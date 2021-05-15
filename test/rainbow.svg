@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox = "0 0 512 512">
+<title>Rainbow Gradient saturated</title>
+<rect width="512" height="512" fill="url(#r)"/>
+<rect width="256" height="256" fill="url(#r)"/>
+<rect width="128" height="128" fill="url(#r)"/>
+<rect width="64" height="64" fill="url(#r)"/>
+<rect width="32" height="32" fill="url(#r)"/>
+<defs><linearGradient id="r">
+<stop offset="0" stop-color="red"/>
+<stop offset="0.333" stop-color="#ff0"/>
+<stop offset="0.5" stop-color="#0f0"/>
+<stop offset="0.666" stop-color="cyan"/>
+<stop offset="0.833" stop-color="blue"/>
+<stop offset="1" stop-color="#f0f"/>
+</linearGradient></defs>
+</svg>

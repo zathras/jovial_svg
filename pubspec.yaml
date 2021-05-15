@@ -1,0 +1,20 @@
+name: scaling_image
+description: Scaling images using Android Vector Drawables
+version: 0.1.0
+author:
+homepage:
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+flutter:
