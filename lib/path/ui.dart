@@ -32,8 +32,14 @@ import 'path.dart';
 import 'dart:ui' as ui;
 
 
+///
+/// Buidler of a Flutter UI path.  See [PathBuilder] for usage.
+///
 class UIPathBuilder implements PathBuilder<Offset, Radius> {
 
+  ///
+  /// The path that is built, or is being built.
+  ///
   final path = ui.Path();
 
   @override

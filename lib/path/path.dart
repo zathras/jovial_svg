@@ -34,28 +34,65 @@ import 'dart:math';
 /// create a binary file in a pure dart program.
 ///
 abstract class PathBuilder<OffsetT, RadiusT> {
+  ///
+  /// Create a new [OffsetT] object.
+  ///
   OffsetT newOffset(double x, double y);
+
+  ///
+  /// Return a new offset that is `a + b`
+  ///
   OffsetT addOffsets(OffsetT a, OffsetT b);
 
-  /// Compute a - b
+  ///
+  /// Return a new offset that is `a - b`
+  ///
   OffsetT subtractOffsets(OffsetT a, OffsetT b);
 
+  ///
+  /// Get the y value from `OffsetT`
+  ///
   double getY(OffsetT p);
+
+  ///
+  /// Get the x value from `OffsetT`
+  ///
   double getX(OffsetT p);
 
+  ///
+  /// Create a new `RadiusT` object for an elliptical radius
+  ///
   RadiusT newRadius(double x, double y);
 
+  ///
+  /// Add a moveTo to the path
+  ///
   void moveTo(OffsetT p);
 
+  ///
+  /// Add a close to the path
+  ///
   void close();
 
+  ///
+  /// Add a lineTo to the path
+  ///
   void lineTo(OffsetT p);
 
+  ///
+  /// Add a cubicTo to the path
+  ///
   void cubicTo(OffsetT c1, OffsetT c2, OffsetT p);
 
+  ///
+  /// Add a quadraticBezierTo to the path
+  ///
   void quadraticBezierTo(OffsetT control, OffsetT p);
 
-  /// rotation in radians
+  ///
+  /// Add an arc.  `rotation` in radians, as is (sorta offhandedly) documented
+  /// for Flutter's Path.
+  ///
   void arcToPoint(OffsetT arcEnd,
       {required RadiusT radius,
       required double rotation,
@@ -63,13 +100,18 @@ abstract class PathBuilder<OffsetT, RadiusT> {
       required bool clockwise});
 }
 
+///
+/// A simple lexer for the Path syntax.  See
+/// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html
+///
 class _Lexer {
   final String source;
   int _pos = 0;
 
   _Lexer(this.source);
 
-  static const bool _debug = true;
+  // Set true to see the tokens go by.
+  static const bool _debug = false;
 
   // Zero or more characters of whitespace, or commas.  This is a little
   // overly permissive, in that it skips stray commas
@@ -120,6 +162,9 @@ class _Lexer {
     return r;
   }
 
+  ///
+  /// Return the next float in the input, or null if there isn't one.
+  ///
   double? tryNextFloat() {
     _skipWhitespace();
     final Match? m = _floatMatch.matchAsPrefix(source, _pos);
@@ -135,6 +180,9 @@ class _Lexer {
     }
   }
 
+  ///
+  /// Return the next float, or fail with a ParseError if there isn't one.
+  ///
   double nextFloat() {
     final r = tryNextFloat();
     if (r != null) {
@@ -145,6 +193,9 @@ class _Lexer {
     }
   }
 
+  ///
+  /// Return the next flag in the input, or null if there isn't one.
+  ///
   bool? tryNextFlag() {
     _skipWhitespace();
     final Match? m = _flagMatch.matchAsPrefix(source, _pos);
@@ -160,6 +211,9 @@ class _Lexer {
     }
   }
 
+  ///
+  /// Return the next flag, or fail with a ParseError if there isn't one.
+  ///
   bool nextFlag() {
     final r = tryNextFlag();
     if (r != null) {
@@ -180,6 +234,18 @@ class _Lexer {
   }
 }
 
+///
+/// Parse an SVG Path. See the specifiation at
+/// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html
+///
+/// Usage:
+/// ```
+/// String src = "M 125,75 a100,50 0 0,1 100,50"
+/// final builder = UIPathBuilder();
+/// PathParser(builder, src).parse();
+/// Path p = builder.path;
+/// ... render p on a Canvas...
+/// ```
 class PathParser<OffsetT, RadiusT> {
   PathBuilder<OffsetT, RadiusT> builder;
   _Lexer _lexer;
@@ -199,7 +265,7 @@ class PathParser<OffsetT, RadiusT> {
         _currentPoint = builder.newOffset(0, 0),
         _initialPoint = builder.newOffset(0, 0);
 
-  static Map<String, void Function(PathParser)> action = {
+  static Map<String, void Function(PathParser)> _action = {
     'M': (PathParser p) {
       p._relative = false;
       p._moveTo();
@@ -276,6 +342,14 @@ class PathParser<OffsetT, RadiusT> {
     },
   };
 
+  ///
+  /// Parse the string.  On error, this throws a [ParseError], but it leaves
+  /// the path up to where the error occurred in builder.path.  The error
+  /// behavior specified in s. 9.5.4 of
+  /// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html can be had
+  /// by catching the exception, reporting it to the user if appropriate,
+  /// and rendering the partial path.
+  ///
   void parse() {
     if (_lexer.source == 'none') {
       // https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html s. 9.3.9
@@ -283,7 +357,7 @@ class PathParser<OffsetT, RadiusT> {
     }
     while (!_lexer.eof) {
       String cmd = _lexer.nextCommand();
-      final void Function(PathParser)? a = action[cmd];
+      final void Function(PathParser)? a = _action[cmd];
       if (a == null) {
         _lexer.error('Unrecognized command "$cmd"');
       } else {
@@ -427,6 +501,10 @@ class PathParser<OffsetT, RadiusT> {
   }
 }
 
+///
+/// Exception thrown when there is a problem parsing a path.
+/// See [PathParser.parse].
+///
 class PathError {
   final String message;
 
