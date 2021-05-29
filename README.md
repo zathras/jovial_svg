@@ -9,8 +9,14 @@ plus commonly-used elements from
 [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported as well.
 
+SVG profile notes:
 
-The AVD format is informally specified
-[here](https://developer.android.com/reference/android/graphics/drawable/VectorDrawable),
-including an informal mention of [SVG Path Data](https://www.w3.org/TR/SVG/paths.html#TheDProperty).
-
+  *  Unlike Tiny, the "`style=`" attribute is supported as an alternative
+     to proper SVG Tiny attributes.  The rest of CSS is not supported,
+     however.
+  *  The `stroke-dasharray` and `stroke-dashoffset` attributes are
+     not supported (cf. Tiny s. 11.4).
+  *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
+  *  Constrained transformations are not supported (not in SVG 1.1;
+     cf. Tiny 7.7)
+  *  DOM support and features related to animation are not supported.
