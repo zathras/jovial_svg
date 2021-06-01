@@ -1,20 +1,27 @@
-name: scaling_image
-description: Scaling images using Android Vector Drawables
-version: 0.1.0
-author:
-homepage:
+name: jovial_svg
+description: Robust rendering of SVG static images, supporting a well-defined profile
+  of SVG and an efficient binary storage format.
+version: 0.2.0
+author:  Bill Foote
+homepage:  https://github.com/zathras/jovial_svg
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.13.0 <3.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
+  xml: ^5.1.0
+  args: ^2.1.0
+  pedantic: ^1.0.8
+  quiver: ^3.0.1
+  vector_math: ^2.1.0
+  jovial_misc: # TODO:  publish ^0.5.1
+    path: /Users/billf/github/misc/dart/jovial_misc
   flutter:
     sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
 
 flutter:

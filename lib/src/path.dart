@@ -21,41 +21,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
-
-/// Binding of the `path` library to the Flutter UI package.
-library path.ui;
+/// Library for dealing with SVG paths:  parsing, rendering, and an efficient
+/// binary format for externalization.  The binary format is also a reasonably
+/// compact, fast way of holding a path in memory for rendering.
+library jovial_svg.path;
 
 import 'dart:ui';
-
-import 'path.dart';
-
-import 'dart:ui' as ui;
-
+import 'path_noui.dart';
 
 ///
 /// Buidler of a Flutter UI path.  See [PathBuilder] for usage.
 ///
-class UIPathBuilder implements PathBuilder<Offset, Radius> {
+class UIPathBuilder implements PathBuilder {
+  final void Function(UIPathBuilder)? _onEnd;
+
+  UIPathBuilder({void Function(UIPathBuilder)? onEnd}) : _onEnd = onEnd;
 
   ///
   /// The path that is built, or is being built.
   ///
-  final path = ui.Path();
+  final path = Path();
 
   @override
-  Offset newOffset(double x, double y) => Offset(x, y);
-
-  @override
-  Radius newRadius(double x, double y) => Radius.elliptical(x, y);
-
-  @override
-  void arcToPoint(Offset arcEnd,
-          {required Radius radius,
+  void arcToPoint(PointT arcEnd,
+          {required RadiusT radius,
           required double rotation,
           required bool largeArc,
           required bool clockwise}) =>
-      path.arcToPoint(arcEnd,
-          radius: radius,
+      path.arcToPoint(newOffset(arcEnd),
+          radius: newRadius(radius),
           rotation: rotation,
           largeArc: largeArc,
           clockwise: clockwise);
@@ -64,28 +58,29 @@ class UIPathBuilder implements PathBuilder<Offset, Radius> {
   void close() => path.close();
 
   @override
-  void cubicTo(Offset c1, Offset c2, Offset p) =>
-    path.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p.dx, p.dy);
+  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {
+    path.cubicTo(c1.x, c1.y, c2.x, c2.y, p.x, p.y);
+  }
 
   @override
-  void lineTo(Offset p) => path.lineTo(p.dx, p.dy);
+  void lineTo(PointT p) => path.lineTo(p.x, p.y);
 
   @override
-  void moveTo(Offset p) => path.moveTo(p.dx, p.dy);
+  void moveTo(PointT p) => path.moveTo(p.x, p.y);
 
   @override
-  void quadraticBezierTo(Offset control, Offset p) =>
-      path.quadraticBezierTo(control.dx, control.dy, p.dx, p.dy);
+  void quadraticBezierTo(PointT control, PointT p, bool shorthand) =>
+      path.quadraticBezierTo(control.x, control.y, p.x, p.y);
 
   @override
-  Offset addOffsets(Offset a, Offset b) => a + b;
+  void end() {
+    final f = _onEnd;
+    if (f != null) {
+      f(this);
+    }
+  }
 
-  @override
-  Offset subtractOffsets(Offset a, Offset b) => a - b;
+  Offset newOffset(PointT o) => Offset(o.x, o.y);
 
-  @override
-  double getX(Offset p) => p.dx;
-
-  @override
-  double getY(Offset p) => p.dy;
+  Radius newRadius(RadiusT r) => Radius.elliptical(r.x, r.y);
 }

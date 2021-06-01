@@ -22,10 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jovial_svg/src/affine.dart';
 
 void main() {
-  test('TODO', () {
+  test('Affine sanity check', () {
+    final rand = Random();
+    for (int i = 0; i < 1000; i++) {
+      final vec = Float64List(6);
+      for (int i = 0; i < vec.length; i++) {
+        vec[i] = (rand.nextDouble() > 0.5)
+            ? rand.nextDouble()
+            : (1 / (rand.nextDouble() + 0.00001));
+      }
+      final m1 = MutableAffine.cssTransform(vec);
+      if (m1.determinant().abs() > 0.0000000000001) {
+        final m2 = MutableAffine.copy(m1)..invert();
+        m1.multiplyBy(m2);
+        for (int r = 0; r < 3; r++) {
+          for (int c = 0; c < 3; c++) {
+            if (r == c) {
+              expect((m1.get(r, c) - 1).abs() < 0.0000001, true,
+                  reason: 'vec $vec');
+            } else {
+              expect(m1.get(r, c).abs() < 0.0000001, true, reason: 'vec $vec');
+            }
+          }
+        }
+      }
+    }
   });
 }

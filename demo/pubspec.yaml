@@ -1,0 +1,56 @@
+name: demo
+description: Demo program for jovial_svg
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.13.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pedantic: ^1.0.8
+  tuple: ^2.0.0
+  jovial_svg:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/other/jupiter.si
+    - assets/manifest.json
+    - assets/svg/anglo.svg
+    - assets/svg/anglo_bitmap.svg
+    - assets/svg/bellot.svg
+    - assets/svg/bonded.svg
+    - assets/svg/dondorf.svg
+    - assets/svg/gnomangelo.svg
+    - assets/svg/gnomangelo_bitmap.svg
+    - assets/svg/guyenne-classic.svg
+    - assets/svg/ornamental.svg
+    - assets/svg/paris-text.svg
+    - assets/svg/paris.svg
+    - assets/svg/swiss-xvii.svg
+    - assets/svg/tango.svg
+    - assets/svg/template-double.svg
+    - assets/svg/template-paris-text.svg
+    - assets/svg/template-paris.svg
+    - assets/svg/template-single-text.svg
+    - assets/svg/template-single.svg
+    - assets/avd/anglo.xml
+    - assets/avd/bellot.xml
+    - assets/avd/bonded.xml
+    - assets/avd/dondorf.xml
+    - assets/avd/gnomangelo.xml
+    - assets/avd/guyenne_classic.xml
+    - assets/avd/ornamental.xml
+    - assets/avd/paris.xml
+    - assets/avd/paris_text.xml
+    - assets/avd/tango.xml
+    - assets/si/anglo.si

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>380</x>
+      <y>230</y>
+      <w>280</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>/SIBuilder&lt;ScalableImageT, PathDataT&gt;/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>60</y>
+      <w>190</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>/SIVisitor&lt;PathDataT&gt;/
+--
+
+--
+/group(transform)/
+/endGroup()/
+/path(pathData)/
+/clipPath(pathData)/
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>170</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+</diagram>

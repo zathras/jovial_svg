@@ -1,0 +1,36 @@
+
+# Defines a default set of lint rules enforced for
+# projects at Google. For details and rationale,
+# see https://github.com/dart-lang/pedantic#enabled-lints.
+include: package:pedantic/analysis_options.yaml
+# include: package:effective_dart/analysis_options.yaml
+
+linter:
+    rules:
+        unawaited_futures: true
+        omit_local_variable_types: false
+        public_member_api_docs: false   # @@ TODO
+        avoid_types_on_closure_parameters: false
+        camel_case_types: true
+        cancel_subscriptions: true
+        comment_references: true
+        await_only_futures: true
+        exhaustive_cases: true
+
+# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
+# Uncomment to specify additional rules.
+# linter:
+#   rules:
+#     - camel_case_types
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+
+#  errors:
+#        prefer_single_quotes: ignore
+
+#   exclude:
+#     - path/to/excluded/files/**

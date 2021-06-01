@@ -1,0 +1,997 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://web.resource.org/cc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="1027" height="615" viewBox="0 0 1027 615" version="1.1">
+  <defs>
+    <path id="cf" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" d="M78.25,117.25c0,2.762-2.238,5-5,5h-67.5c-2.761,0-5-2.238-5-5v-111.5c0-2.762,2.239-5,5-5h67.5c2.762,0,5,2.238,5,5V117.25z"/>
+    <path id="cl" fill="#000000" d="M6.5,-3c-2.772-0.021-4.988,3.909-5.875,3.25c-0.387-1.32,3.125-4,3.125-6.5s-2.5-3.25-3.75-3.25s-3.75,0.75-3.75,3.25s3.512,5.18,3.125,6.5c-0.886,0.659-3.103-3.271-5.875-3.25c-1.75,0-3.75,1.75-3.75,3.5c0,2.25,1.25,4,3.75,4s5.415-3.197,5.75-2.75c0.75,1-1,6.25-2.25,7.75c0,0,1.5-0.5,3-0.5s3,0.5,3,0.5c-1.25-1.5-3-6.75-2.25-7.75c0.336-0.447,3.25,2.75,5.75,2.75s3.75-1.75,3.75-4C10.25,-1.25,8.25,-3,6.5,-3z"/>
+    <path id="cs" fill="#000000" d="M3.012,-1.381c-1.284-0.01-2.311,1.8-2.722,1.497c-0.179-0.608,1.449-1.842,1.449-2.994c0-1.151-1.159-1.497-1.738-1.497s-1.738,0.346-1.738,1.497c0,1.151,1.627,2.386,1.448,2.994c-0.411,0.304-1.438-1.506-2.723-1.497c-0.811,0-1.738,0.806-1.738,1.612c0,1.036,0.579,1.842,1.738,1.842s2.509-1.473,2.665-1.266c0.348,0.46-0.463,2.877-1.042,3.569c0,0,0.695-0.23,1.39-0.23s1.391,0.23,1.391,0.23c-0.58-0.691-1.391-3.108-1.043-3.569c0.156-0.207,1.506,1.266,2.664,1.266c1.159,0,1.738-0.806,1.738-1.842C4.75,-0.576,3.823,-1.381,3.012,-1.381z"/>
+    <path id="dl" fill="#DF0000" d="M4.19,-4.534C1.677,-7.125,0,-9.5,0,-9.5s-1.677,2.375-4.19,4.966C-6.706,-1.943,-9.5,0,-9.5,0s2.794,1.942,5.31,4.535c2.514,2.59,4.19,4.965,4.19,4.965s1.677-2.375,4.19-4.965c2.515-2.593,5.31-4.535,5.31-4.535S6.705,-1.943,4.19,-4.534z"/>
+    <path id="ds" fill="#DF0000" d="M2.205,-2.386C0.882,-3.75,0,-5,0,-5s-0.882,1.25-2.206,2.614C-3.529,-1.023,-5,0,-5,0s1.471,1.022,2.794,2.387C-0.882,3.75,0,5,0,5s0.882-1.25,2.205-2.613C3.529,1.022,5,0,5,0S3.529,-1.023,2.205,-2.386z"/>
+    <path id="hl" fill="#DF0000" d="M4.75,-8.75c-3.852,0-4.75,3.6-4.75,3.6s-0.898-3.6-4.75-3.6c-2.695,0-4.75,1.516-4.75,4.375c0,5.875,8.5,9.875,9.5,13.125c1-3.25,9.5-7.25,9.5-13.125C9.5,-7.234,7.445,-8.75,4.75,-8.75z"/>
+    <path id="hs" fill="#DF0000" d="M2.5,-4.625c-2.027,0-2.5,1.903-2.5,1.903s-0.473-1.903-2.5-1.903c-1.418,0-2.5,0.801-2.5,2.313c0,3.105,4.474,5.22,5,6.938c0.526-1.718,5-3.832,5-6.938C5,-3.824,3.919,-4.625,2.5,-4.625z"/>
+    <path id="sl" fill="#000000" d="M0,-10.75c-0.25,3.25-9,6.25-9,11c0,3.5,2.305,4.5,4,4.5c2.422,0,3.933-1.284,4.175-2c0-0.239,0.325-0.239,0.325,0c0.25,2-1.75,7.5-3,8c0.5,0,2-0.5,3.5-0.5s3,0.5,3.5,0.5c-1.25-0.5-3.25-6-3-8c0-0.239,0.325-0.239,0.325,0c0.242,0.716,1.753,2,4.175,2c1.695,0,4-1,4-4.5C9,-4.5,0.25,-7.5,0,-10.75z"/>
+    <path id="ss" fill="#000000" d="M0,-5.5c-0.128,1.663-4.625,3.198-4.625,5.628c0,1.791,1.185,2.303,2.056,2.303c1.245,0,2.021-0.657,2.145-1.023c0-0.123,0.167-0.123,0.167,0c0.128,1.023-0.899,3.837-1.542,4.093c0.257,0,1.027-0.256,1.798-0.256s1.542,0.256,1.799,0.256c-0.643-0.256-1.67-3.069-1.542-4.093c0-0.123,0.167-0.123,0.167,0c0.124,0.366,0.901,1.023,2.146,1.023c0.871,0,2.055-0.512,2.055-2.303C4.625,-2.302,0.128,-3.837,0,-5.5z"/>
+    <g id="it1" fill="none" stroke-width="1.5">
+      <line x1="3" y1="17.75" x2="6.5" y2="17.75"/>
+      <line x1="12" y1="17.75" x2="8.5" y2="17.75"/>
+      <polyline points="4.5,17.75 7.5,4.5 10.5,17.75 "/>
+      <line x1="5.25" y1="14.5" x2="9.75" y2="14.5"/>
+    </g>
+    <g id="it2" fill="none" stroke-width="1.5">
+      <path d="M90.25,15.5v2.25h-7.5V16.5c0-3.25,7.5-3.75,7.5-7.75c0-2.75-1.25-3.5-3.75-3.5s-3.75,1.5-3.75,3"/>
+    </g>
+    <g id="it3" fill="none" stroke-width="1.5">
+      <path d="M161.75,7.5V5.25h6.75V6l-5,5.25c0,0,1-0.5,2.5-0.5s3.25,1.25,3.25,3.25s-1.5,3.75-3.75,3.75c-1.75,0-3.25-1-3.75-2.5"/>
+    </g>
+    <g id="it4" fill="none" stroke-width="1.5">
+      <line x1="245" y1="17.75" x2="249" y2="17.75"/>
+      <polyline points="247,17.75 247,5.25 246.25,5.25 240.75,14.25 240.75,14.75 249,14.75 "/>
+    </g>
+    <g id="it5" fill="none" stroke-width="1.5">
+      <path d="M327.25,5.25h-7v5.25l0.7,0.25c0,0,0.47-1.5,2.8-1.5s3.27,2.25,3.27,4.5s-1.4,4-3.5,4s-3.03-1.5-3.27-2.25"/>
+    </g>
+    <g id="it6" fill="none" stroke-width="1.5">
+      <circle cx="402.5" cy="14" r="3.25"/>
+      <path d="M399.25,14V8.5c0,0-0.25-3.25,3.23-3.25c1.08,0,2.8,0.5,3.02,2.25"/>
+    </g>
+    <g id="it7" fill="none" stroke-width="1.5">
+      <path d="M477.75,7.5V5.25h6.5L485,6c-2.25,2.75-4.25,7.75-4.25,12.5"/>
+    </g>
+    <g id="it8" fill="none" stroke-width="1.5">
+      <circle cx="560.5" cy="14.25" r="3.5"/>
+      <circle cx="560.5" cy="7.75" r="3"/>
+    </g>
+    <g id="it9" fill="none" stroke-width="1.5">
+      <path d="M642.75,9v5.5c0,0,0.25,3.25-3.23,3.25c-1.08,0-2.8-0.5-3.02-2.25"/>
+      <circle cx="639.5" cy="9" r="3.25"/>
+    </g>
+    <g id="it10" fill="none" stroke-width="1.5">
+      <path d="M722.25,15.6c0,1.19-1.01,2.15-2.25,2.15l0,0c-1.24,0-2.25-0.96-2.25-2.15V7.4c0-1.19,1.01-2.15,2.25-2.15l0,0c1.24,0,2.25,0.96,2.25,2.15V15.6z"/>
+      <line x1="714.75" y1="4.75" x2="714.75" y2="18.25"/>
+    </g>
+    <g id="itj" fill="none" stroke-width="1.5">
+      <path d="M793.75,14.75V15c0,0-0.25,2.75,3,2.75s3-2.75,3-2.75V6"/>
+      <line x1="802" y1="5.25" x2="797.5" y2="5.25"/>
+    </g>
+    <g id="itq" fill="none" stroke-width="1.5">
+      <path d="M872,12.5c6,0,5,5,9,5"/>
+      <path d="M879.25,11.5c0-3.45,0-6.25-2.75-6.25s-2.75,2.8-2.75,6.25s0,6.25,2.75,6.25S879.25,14.95,879.25,11.5z"/>
+    </g>
+    <g id="itk" fill="none" stroke-width="1.5">
+      <line x1="951" y1="5.25" x2="955" y2="5.25"/>
+      <line x1="956" y1="5.25" x2="960" y2="5.25"/>
+      <line x1="951" y1="17.75" x2="955" y2="17.75"/>
+      <line x1="956" y1="17.75" x2="960" y2="17.75"/>
+      <line x1="958.75" y1="5" x2="952.75" y2="13.25"/>
+      <line x1="958.75" y1="18" x2="955" y2="10.25"/>
+      <line x1="952.75" y1="4.5" x2="952.75" y2="18.5"/>
+    </g>
+    <g id="ib1" fill="none" stroke-width="1.5">
+      <line x1="73.75" y1="108.5" x2="69.25" y2="108.5"/>
+      <line x1="76" y1="105.25" x2="72.5" y2="105.25"/>
+      <line x1="67" y1="105.25" x2="70.5" y2="105.25"/>
+      <polyline points="74.5,105.25 71.5,118.5 68.5,105.25 "/>
+    </g>
+    <g id="ib2" fill="none" stroke-width="1.5">
+      <path d="M146.75,107.5v-2.25h7.5v1.25c0,3.25-7.5,3.75-7.5,7.75c0,2.75,1.25,3.5,3.75,3.5s3.75-1.5,3.75-3"/>
+    </g>
+    <g id="ib3" fill="none" stroke-width="1.5">
+      <path d="M233.25,115.5v2.25h-6.75V117l5-5.25c0,0-1,0.5-2.5,0.5s-3.25-1.25-3.25-3.25s1.5-3.75,3.75-3.75c1.75,0,3.25,1,3.75,2.5"/>
+    </g>
+    <g id="ib4" fill="none" stroke-width="1.5">
+      <polyline points="306,105.25 306,117.75 306.75,117.75 312.25,108.75 312.25,108.25 304,108.25 "/>
+      <line x1="308" y1="105.25" x2="304" y2="105.25"/>
+    </g>
+    <g id="ib5" fill="none" stroke-width="1.5">
+      <path d="M383.75,117.75h7v-5.25l-0.7-0.25c0,0-0.47,1.5-2.8,1.5s-3.27-2.25-3.27-4.5s1.4-4,3.5-4s3.03,1.5,3.27,2.25"/>
+    </g>
+    <g id="ib6" fill="none" stroke-width="1.5">
+      <path d="M469.75,109v5.5c0,0,0.25,3.25-3.23,3.25c-1.08,0-2.8-0.5-3.02-2.25"/>
+      <circle cx="466.5" cy="109" r="3.25"/>
+    </g>
+    <g id="ib7" fill="none" stroke-width="1.5">
+      <path d="M549.25,115.5v2.25h-6.5L542,117c2.25-2.75,4.25-7.75,4.25-12.5"/>
+    </g>
+    <g id="ib8" fill="none" stroke-width="1.5">
+      <circle cx="624.5" cy="115.25" r="3"/>
+      <circle cx="624.5" cy="108.75" r="3.5"/>
+    </g>
+    <g id="ib9" fill="none" stroke-width="1.5">
+      <circle cx="703.5" cy="114" r="3.25"/>
+      <path d="M700.25,114v-5.5c0,0-0.25-3.25,3.23-3.25c1.08,0,2.8,0.5,3.02,2.25"/>
+    </g>
+    <g id="ib10" fill="none" stroke-width="1.5">
+      <line x1="786.25" y1="118.25" x2="786.25" y2="104.75"/>
+      <path d="M778.75,107.4c0-1.19,1.01-2.15,2.25-2.15l0,0c1.24,0,2.25,0.96,2.25,2.15v8.2c0,1.19-1.01,2.15-2.25,2.15l0,0c-1.24,0-2.25-0.96-2.25-2.15V107.4z"/>
+    </g>
+    <g id="ibj" fill="none" stroke-width="1.5">
+      <path d="M865.25,108.25V108c0,0,0.25-2.75-3-2.75s-3,2.75-3,2.75v9"/>
+      <line x1="857" y1="117.75" x2="861.5" y2="117.75"/>
+    </g>
+    <g id="ibq" fill="none" stroke-width="1.5">
+      <path d="M937.75,111.5c0,3.45,0,6.25,2.75,6.25s2.75-2.8,2.75-6.25s0-6.25-2.75-6.25S937.75,108.05,937.75,111.5z"/>
+      <path d="M945,110.5c-6,0-5-5-9-5"/>
+    </g>
+    <g id="ibk" fill="none" stroke-width="1.5">
+      <line x1="1024" y1="117.75" x2="1020" y2="117.75"/>
+      <line x1="1019" y1="117.75" x2="1015" y2="117.75"/>
+      <line x1="1024" y1="105.25" x2="1020" y2="105.25"/>
+      <line x1="1022.25" y1="118.5" x2="1022.25" y2="104.5"/>
+      <line x1="1016.25" y1="118" x2="1022.25" y2="109.75"/>
+      <line x1="1016.25" y1="105" x2="1020" y2="112.75"/>
+      <line x1="1019" y1="105.25" x2="1015" y2="105.25"/>
+    </g>
+    <rect id="faceborder" fill="none" stroke-width="1" stroke="#000000" x="0" y="0" width="48" height="92"/>
+    <g id="foot" style="stroke:none">
+      <path d="M 86.068,0 C 61.466,0 56.851,35.041 70.691,35.041 C 84.529,35.041 110.671,0 86.068,0 z "/>
+      <path d="M 45.217,30.699 C 52.586,31.149 60.671,2.577 46.821,4.374 C 32.976,6.171 37.845,30.249 45.217,30.699 z "/>
+      <path d="M 11.445,48.453 C 16.686,46.146 12.12,23.581 3.208,29.735 C -5.7,35.89 6.204,50.759 11.445,48.453 z "/>
+      <path d="M 26.212,36.642 C 32.451,35.37 32.793,9.778 21.667,14.369 C 10.539,18.961 19.978,37.916 26.212,36.642 L 26.212,36.642 z "/>
+      <path d="M 58.791,93.913 C 59.898,102.367 52.589,106.542 45.431,101.092 C 22.644,83.743 83.16,75.089 79.171,51.386 C 75.86,31.712 15.495,37.769 8.621,68.552 C 3.968,89.374 27.774,118.26 52.614,118.26 C 64.834,118.26 78.929,107.226 81.566,93.248 C 83.58,82.589 57.867,86.86 58.791,93.913 L 58.791,93.913 z "/>
+    </g>
+    <path id="star" d="M 62.932505,501.8629 L 63.257848,499.8696 L 61.800257,498.47156 L 63.796534,498.16502 L 64.675731,496.34675 L 65.584155,498.15059 L 67.585119,498.42488 L 66.150279,499.84627 L 66.507746,501.83406 L 64.712542,500.90867 L 62.932505,501.8629 z " inkscape:flatsided="false" inkscape:randomized="0" inkscape:rounded="0" sodipodi:arg1="2.1910458" sodipodi:arg2="2.8193643" sodipodi:cx="64.700272" sodipodi:cy="499.38803" sodipodi:r1="3.0413814" sodipodi:r2="1.5206907" sodipodi:sides="5" sodipodi:type="star" style="fill-opacity:1;stroke:none;stroke-width:1.1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/>
+  </defs>
+  <g id="club_1">
+    <use x="0" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it1" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it1" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib1" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib1" stroke="#000000"/>
+    <use transform="translate(8.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(8.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(70.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(70.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(39.5,61.5)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_1">
+    <use x="0" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it1" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it1" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib1" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib1" stroke="#DF0000"/>
+    <use transform="translate(8.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(8.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(70.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(70.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(39.5,184.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_1">
+    <use x="0" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it1" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it1" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib1" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib1" stroke="#DF0000"/>
+    <use transform="translate(8.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(8.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(70.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(70.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(39.5,307.5)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_1">
+    <use x="0" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it1" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it1" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib1" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib1" stroke="#000000"/>
+    <use transform="translate(8.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(8.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(70.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(70.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(39.5,430.5)" xlink:href="#sl"/>
+  </g>
+  <g id="club_2">
+    <use x="79" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it2" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it2" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib2" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib2" stroke="#000000"/>
+    <use transform="translate(87.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(87.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(149.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(149.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(118.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(118.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_2">
+    <use x="79" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it2" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it2" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib2" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib2" stroke="#DF0000"/>
+    <use transform="translate(87.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(87.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(149.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(149.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(118.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(118.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_2">
+    <use x="79" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it2" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it2" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib2" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib2" stroke="#DF0000"/>
+    <use transform="translate(87.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(87.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(149.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(149.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(118.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(118.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_2">
+    <use x="79" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it2" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it2" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib2" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib2" stroke="#000000"/>
+    <use transform="translate(87.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(87.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(149.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(149.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(118.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(118.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_3">
+    <use x="158" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it3" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it3" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib3" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib3" stroke="#000000"/>
+    <use transform="translate(166.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(166.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(228.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(228.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(197.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(197.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(197.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_3">
+    <use x="158" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it3" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it3" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib3" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib3" stroke="#DF0000"/>
+    <use transform="translate(166.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(166.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(228.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(228.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(197.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(197.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(197.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_3">
+    <use x="158" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it3" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it3" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib3" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib3" stroke="#DF0000"/>
+    <use transform="translate(166.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(166.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(228.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(228.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(197.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(197.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(197.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_3">
+    <use x="158" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it3" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it3" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib3" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib3" stroke="#000000"/>
+    <use transform="translate(166.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(166.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(228.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(228.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(197.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(197.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(197.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_4">
+    <use x="237" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it4" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it4" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib4" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib4" stroke="#000000"/>
+    <use transform="translate(245.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(245.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(307.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(307.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(260.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(260.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(292.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(292.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_4">
+    <use x="237" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it4" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it4" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib4" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib4" stroke="#DF0000"/>
+    <use transform="translate(245.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(245.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(307.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(307.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(260.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(260.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(292.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(292.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_4">
+    <use x="237" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it4" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it4" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib4" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib4" stroke="#DF0000"/>
+    <use transform="translate(245.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(245.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(307.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(307.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(260.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(260.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(292.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(292.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_4">
+    <use x="237" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it4" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it4" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib4" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib4" stroke="#000000"/>
+    <use transform="translate(245.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(245.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(307.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(307.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(260.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(260.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(292.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(292.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_5">
+    <use x="316" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it5" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it5" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib5" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib5" stroke="#000000"/>
+    <use transform="translate(324.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(324.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(386.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(386.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(339.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(339.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(355.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(371.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(371.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_5">
+    <use x="316" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it5" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it5" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib5" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib5" stroke="#DF0000"/>
+    <use transform="translate(324.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(324.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(386.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(386.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(339.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(339.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(355.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(371.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(371.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_5">
+    <use x="316" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it5" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it5" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib5" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib5" stroke="#DF0000"/>
+    <use transform="translate(324.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(324.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(386.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(386.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(339.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(339.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(355.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(371.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(371.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_5">
+    <use x="316" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it5" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it5" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib5" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib5" stroke="#000000"/>
+    <use transform="translate(324.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(324.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(386.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(386.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(339.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(339.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(355.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(371.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(371.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_6">
+    <use x="395" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it6" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it6" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib6" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib6" stroke="#000000"/>
+    <use transform="translate(403.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(403.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(465.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(465.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(418.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(418.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(418.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(450.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(450.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(450.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_6">
+    <use x="395" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it6" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it6" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib6" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib6" stroke="#DF0000"/>
+    <use transform="translate(403.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(403.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(465.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(465.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(418.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(418.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(418.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(450.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(450.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(450.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_6">
+    <use x="395" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it6" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it6" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib6" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib6" stroke="#DF0000"/>
+    <use transform="translate(403.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(403.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(465.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(465.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(418.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(418.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(418.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(450.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(450.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(450.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_6">
+    <use x="395" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it6" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it6" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib6" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib6" stroke="#000000"/>
+    <use transform="translate(403.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(403.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(465.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(465.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(418.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(418.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(418.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(450.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(450.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(450.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_7">
+    <use x="474" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it7" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it7" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib7" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib7" stroke="#000000"/>
+    <use transform="translate(482.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(482.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(544.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(544.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(497.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(497.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(497.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(513.5,41.5)" xlink:href="#cl"/>
+    <use transform="translate(529.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(529.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(529.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_7">
+    <use x="474" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it7" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it7" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib7" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib7" stroke="#DF0000"/>
+    <use transform="translate(482.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(482.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(544.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(544.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(497.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(497.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(497.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(513.5,164.5)" xlink:href="#dl"/>
+    <use transform="translate(529.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(529.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(529.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_7">
+    <use x="474" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it7" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it7" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib7" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib7" stroke="#DF0000"/>
+    <use transform="translate(482.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(482.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(544.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(544.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(497.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(497.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(497.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(513.5,287.5)" xlink:href="#hl"/>
+    <use transform="translate(529.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(529.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(529.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_7">
+    <use x="474" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it7" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it7" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib7" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib7" stroke="#000000"/>
+    <use transform="translate(482.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(482.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(544.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(544.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(497.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(497.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(497.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(513.5,410.5)" xlink:href="#sl"/>
+    <use transform="translate(529.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(529.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(529.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_8">
+    <use x="553" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it8" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it8" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib8" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib8" stroke="#000000"/>
+    <use transform="translate(561.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(561.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(623.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(623.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(576.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(576.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(576.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(592.5,41.5)" xlink:href="#cl"/>
+    <use transform="translate(592.5,81.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(608.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(608.5,61.5)" xlink:href="#cl"/>
+    <use transform="translate(608.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_8">
+    <use x="553" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it8" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it8" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib8" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib8" stroke="#DF0000"/>
+    <use transform="translate(561.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(561.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(623.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(623.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(576.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(576.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(576.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(592.5,164.5)" xlink:href="#dl"/>
+    <use transform="translate(592.5,204.5)" xlink:href="#dl"/>
+    <use transform="translate(608.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(608.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(608.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_8">
+    <use x="553" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it8" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it8" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib8" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib8" stroke="#DF0000"/>
+    <use transform="translate(561.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(561.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(623.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(623.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(576.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(576.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(576.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(592.5,287.5)" xlink:href="#hl"/>
+    <use transform="translate(592.5,327.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(608.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(608.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(608.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_8">
+    <use x="553" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it8" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it8" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib8" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib8" stroke="#000000"/>
+    <use transform="translate(561.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(561.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(623.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(623.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(576.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(576.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(576.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(592.5,410.5)" xlink:href="#sl"/>
+    <use transform="translate(592.5,450.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(608.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(608.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(608.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_9">
+    <use x="632" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it9" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it9" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib9" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib9" stroke="#000000"/>
+    <use transform="translate(640.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(640.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(702.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(702.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(655.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(655.5,48.25)" xlink:href="#cl"/>
+    <use transform="translate(655.5,74.75) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(655.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(671.5,60.5)" xlink:href="#cl"/>
+    <use transform="translate(687.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(687.5,48.25)" xlink:href="#cl"/>
+    <use transform="translate(687.5,74.75) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(687.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_9">
+    <use x="632" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it9" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it9" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib9" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib9" stroke="#DF0000"/>
+    <use transform="translate(640.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(640.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(702.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(702.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(655.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(655.5,171.25)" xlink:href="#dl"/>
+    <use transform="translate(655.5,197.75)" xlink:href="#dl"/>
+    <use transform="translate(655.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(671.5,184.5)" xlink:href="#dl"/>
+    <use transform="translate(687.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(687.5,171.25)" xlink:href="#dl"/>
+    <use transform="translate(687.5,197.75)" xlink:href="#dl"/>
+    <use transform="translate(687.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_9">
+    <use x="632" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it9" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it9" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib9" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib9" stroke="#DF0000"/>
+    <use transform="translate(640.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(640.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(702.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(702.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(655.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(655.5,294.25)" xlink:href="#hl"/>
+    <use transform="translate(655.5,320.75) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(655.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(671.5,307.5)" xlink:href="#hl"/>
+    <use transform="translate(687.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(687.5,294.25)" xlink:href="#hl"/>
+    <use transform="translate(687.5,320.75) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(687.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_9">
+    <use x="632" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it9" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it9" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib9" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib9" stroke="#000000"/>
+    <use transform="translate(640.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(640.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(702.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(702.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(655.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(655.5,417.25)" xlink:href="#sl"/>
+    <use transform="translate(655.5,443.75) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(655.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(671.5,430.5)" xlink:href="#sl"/>
+    <use transform="translate(687.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(687.5,417.25)" xlink:href="#sl"/>
+    <use transform="translate(687.5,443.75) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(687.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_10">
+    <use x="711" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#it10" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#it10" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ib10" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ib10" stroke="#000000"/>
+    <use transform="translate(719.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(719.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(781.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(781.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(734.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(734.5,48.25)" xlink:href="#cl"/>
+    <use transform="translate(734.5,74.75) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(734.5,101.5) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(750.5,34.875)" xlink:href="#cl"/>
+    <use transform="translate(750.5,88.125) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(766.5,21.5)" xlink:href="#cl"/>
+    <use transform="translate(766.5,48.25)" xlink:href="#cl"/>
+    <use transform="translate(766.5,74.75) rotate(180)" xlink:href="#cl"/>
+    <use transform="translate(766.5,101.5) rotate(180)" xlink:href="#cl"/>
+  </g>
+  <g id="diamond_10">
+    <use x="711" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#it10" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#it10" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ib10" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ib10" stroke="#DF0000"/>
+    <use transform="translate(719.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(719.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(781.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(781.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(734.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(734.5,171.25)" xlink:href="#dl"/>
+    <use transform="translate(734.5,197.75)" xlink:href="#dl"/>
+    <use transform="translate(734.5,224.5)" xlink:href="#dl"/>
+    <use transform="translate(750.5,157.875)" xlink:href="#dl"/>
+    <use transform="translate(750.5,211.125)" xlink:href="#dl"/>
+    <use transform="translate(766.5,144.5)" xlink:href="#dl"/>
+    <use transform="translate(766.5,171.25)" xlink:href="#dl"/>
+    <use transform="translate(766.5,197.75)" xlink:href="#dl"/>
+    <use transform="translate(766.5,224.5)" xlink:href="#dl"/>
+  </g>
+  <g id="heart_10">
+    <use x="711" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#it10" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#it10" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ib10" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ib10" stroke="#DF0000"/>
+    <use transform="translate(719.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(719.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(781.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(781.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(734.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(734.5,294.25)" xlink:href="#hl"/>
+    <use transform="translate(734.5,320.75) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(734.5,347.5) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(750.5,280.875)" xlink:href="#hl"/>
+    <use transform="translate(750.5,334.125) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(766.5,267.5)" xlink:href="#hl"/>
+    <use transform="translate(766.5,294.25)" xlink:href="#hl"/>
+    <use transform="translate(766.5,320.75) rotate(180)" xlink:href="#hl"/>
+    <use transform="translate(766.5,347.5) rotate(180)" xlink:href="#hl"/>
+  </g>
+  <g id="spade_10">
+    <use x="711" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#it10" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#it10" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ib10" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ib10" stroke="#000000"/>
+    <use transform="translate(719.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(719.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(781.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(781.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(734.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(734.5,417.25)" xlink:href="#sl"/>
+    <use transform="translate(734.5,443.75) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(734.5,470.5) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(750.5,403.875)" xlink:href="#sl"/>
+    <use transform="translate(750.5,457.125) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(766.5,390.5)" xlink:href="#sl"/>
+    <use transform="translate(766.5,417.25)" xlink:href="#sl"/>
+    <use transform="translate(766.5,443.75) rotate(180)" xlink:href="#sl"/>
+    <use transform="translate(766.5,470.5) rotate(180)" xlink:href="#sl"/>
+  </g>
+  <g id="club_jack">
+    <use x="790" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#itj" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#itj" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ibj" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ibj" stroke="#000000"/>
+    <use transform="translate(798.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(798.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(860.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(860.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <image y="16" height="91" x="806" width="47" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAAAXNSR0IArs4c6QAABINJREFUeNrVXFuO2zAQ0/3v4SvpAj1CPvqZotg6HY/IeUnWeg0YCWBvTFLUaCSNt72TR2vt3f+d8rs+24Lr8jvC0d6FwyOw+jp6/u9XEbxFYCUZC/gUeERgpY1Mxc/735OHBah6tgD4aeXvIHCxhSJwG/hVp7SFJrAN/MWbBQLyPAncBv7yo/LzVw+fEmQD3v8R4L3nLAmVUfDQGgo0izBbOmxWeUksq/x28FHlLQLfqrwGjsih+P4o5ZF1Hg3e8/7newC8iP9tyeBU6bCwJTLKWzdnFKckknE+Bd77g6xdBhJJ8Kloox++zOsGeBQ2S4PUDHjpewbeI4Ask/I8y58rGaX+PR1RTCICWCjaVJVH0zZIhCiNfF6ONlHwTGlG5qMU8/srlpRNgfcmGidINqHWJOT9p02WRxudMMl7uzEL8lpCXmezrjJ4S2kJvjskrKUNCV4endhpIKijA3qIbNa/BwLfF7UEshpN6LTybCnCUr4596OWuIRTovzlRB0+A97zvF53iUQnRFZj0OA/33cpby1z6KOsvGzaquel8lJpFkKZ6sjzpvLnA2eVPxX0yCK/a1J0FGfR5iQw63mtfHeUb+24nMzC7iA1+O5V87xFViv/Bfo/kRR4rzNJIhXPx5Vvg/rp9MBKnBCJWc9b6geUP6j6LO+QJCLKWxFlxJAEjxRmCRtqpUguZKmvwZ8E3JnU1XN4vdwioYd85nk7xT6Gz45matg2B/H+1zVGQhNAno8JcgASR9TzWH0dg/WDWQsgG1nXx4jTMuCbq74m4RGwgNsRpwg+on6UAAKu/97zfTJUHiHlsy3ALFhSfow26NP3vtcHrs86yso70YZ733owmhmNLRBrORzvU573lWdRo0IgEnXS4K3kjAGvEIhEnYLyRypOs8k16gNx9VODlO17NIlBWaVFAJHg6geiTQ/73l7nkbkNy04jgqD0gEabDq0yKu+VnLCtHi8z5VlswDZ9UL9Rz1dmUlZmykbmcIdl4JE6FnhvJsVzGj4FTYK3I441Ac/OpNh8meX+JvgeyHOspY/KChtarSgp3xsaSOaVt8iidSE2hnz2YVuzl6C7mBWt8HxLroXK5car8qSIgS1rMOVb0fPRtVCyVQr2S5Xveot1Jq9ir6o8X/oA697IEt42DyKzwvMm+IryOjrYC0g3K88qjpCvq/tMM54PRxs00rFIY+3w9SAJS3m3rjKzD4vW7mdbAnl+eh/WWpuUO9dsVzvTEkzp22oPIAhFItsSt9QesKb1amjYWODVyafAe/U20QIgWK36qiu9pN6G1Y2FKpmMCqjpmraM51FNmEfAq0HbAj5iFws8a4mpcshsh62CZySm6jmr4D3LeLap+v7ihEi0YeArys8oPuDKKk+LGJza4MeAN+vfn6Y8LPpxymsfBf7TAsY7H4/0PKz4M5TX6cGt4KO1xCvi/BblURL1I8Cz9/NmX1RcMTiFlUf7TKvO2zusnvWsfOd1S7TxXn/+TgLNy/J2v+ddCpUR4LvesE/bJgp81/82CNsmC3zXf5Xwjj8kq7kVbtCoJgAAAABJRU5ErkJggg==" id="image2441"/>
+    <use x="805.5" y="15.5" xlink:href="#faceborder"/>
+    <use transform="translate(0.707107,-0.353553) matrix(1.1,0,0,1.3,813.5,26)" xlink:href="#cs" x="0" y="0" width="1027" height="615"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#cs" transform="translate(0.707107,-0.353553) matrix(1.1,0,0,-1.3,844,98)"/>
+  </g>
+  <g id="diamond_jack">
+    <use x="790" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#itj" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#itj" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ibj" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ibj" stroke="#DF0000"/>
+    <use transform="translate(798.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(798.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(860.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(860.5,221.5)" xlink:href="#ds"/>
+    <image y="139" x="806" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQZIekDjAAABTRJREFUeNrNXDt2IzEM0/3voStNuVvsAVKkSDlbJLIlCgRBSU7i9+bFcWwPiAE/Q1Ept/gopdzX13Hf9+O5Pdpj5+/teeneb7F8vJe73IlHZED/2u7fI+BXSYJnBpw0RgG+BB4ZcFJGHvBj4K0Bpw4G3IK/73sdfPuyk4dyvo/3L+Cl7oP/+HdJxyNCkJ+IGBhlSj3D/CvAt9fa6/3RmN/SvJWNBYqOLPirM6J/77bDWubbc3Y1Vg1oR29IOkmtMr+je2vAEJ1OgLfs9wbsOG1kQHl84O+frTDpgd9hHjnwAJ59KIq3HuunwiW8yr3mL+GDKngklR2HDcuD3pNVAxD4k7FeceD7vvPg+y9eAa8YEIXPR3nQrMgyb6ONFx5fAX4oD0qpM/i3t89jQfeuZETpWCMR81+hsi4xn5EPNJAY0JcD6JxDkrqEOCvVKJ5MnNfVEtletTDajF9UO2nVmfV3pxBDVwJIw7sxQUlwOCz4EVAdjuflrFPSeDx3AFs5ROAtLpQIJ/B9GrYGNGdBRlgDR7B1CAoZ4FfxkyEEf5X5xO3k/U0zeg87VsCnmGcGNOabk1sjPENW5ZJmnkkHRaTL/I5kkwV+FXt+p+wewdeQee9u/yI5YhW8NQBGm+cJKpWO9yXICFt2oLCaB15ZeVCpdGzlp/RdVsFfsINQWXlQqXSeFV1X2Q3h0gc65w7fAMz8GPFAeTCCR8w/M/Dne92MGCY9/wpg5gH42WF96Qy1dAf8aUCFNb+XsRF4Jpk0eNsvaeARcFuhWuCKAcxZRfCVMs+AnwDvSSYN3gKf2g8d8Eguc2CYDWDOmgIfGaAyroKPJLMEvv9CC6APnQrrzIDIWW1xSMBXuUjzgPeA++ee/iPJjLmmovKghvEeFWkReBtmPfDMWYXyQGO+B+wBR4wz/WeYJ+WB5rSMcVTzM/CKs4rlgZZpGXi7XBk5r+KsiWjjSwfrd2bdrrUy51Ukswzehkt0b+pl4J59z3kVZz3CvOd8bLVbcd5vYZ7pN2KeZd5vYb6PtUjHTPNe5n0B8yW8MUH69aMNDqm+5v1oI5UHSomAkgiO8zwDq3E+VR6wDlrkvOwmPIo6R8oDr3dpP4ecl8mlgHpJqW3k8oAxb5lAzqvUPVnmhfKA3SBUt3uMMq8Fblsn9iZHqeeX7qQkRwrA2w5ExmmX72GvooNni2OodcINqPvdg7nBhPWvMo5ywYHuQXGZ3wEfNav8THugY4YXvOLVj14uUbPqSMeMAZ97kzF41JvErZMq9SpJeeBLhrGvALefmVsnNewSk/KgSMxbA6JkxGYxbbaN+vPS4kLEvALerpQwIzjzcHEBf4kCnC1Aew9mhFIqDA7rDTcokmHg0REZERdpU8jGg2wq8x5wth6r9HY86UDm0UzMCvDMarg1QumgpZhfBc9mEKwDet1jJB2Z+S2dk3EVLwT69wuC5r25Fhk8mSvzkpeNJGi1UB5NbCfMDvhnppyi2TJlzwgcTfTm2JWhNnW6FV2BzDxnOJrIpu3YjFk4lgiuQH6SNhhNXJl/jIAjv/JGbyPm6WjiSfCqfFTw0mgim/FVxxPV2eIM8/IgdPpqBCyf0v1jft4mDWkEd5H5XfADDm+abhe8yzRw4OUtHyx77jKv7CnZ2rMS1S4nmGe7ebbA24KKGbDrsIj9I8yjEfBVA6La5xjz3rJLKf4c+6lYvw3e3bkQ7oz8BeCzOxe+ew9syLy6W+cndh+nHPa37fveBv+TO+5D8CvAv/N/HdAktQr85f9lItir9R+8zBzqHCqbzQAAAABJRU5ErkJggg==" id="image2443"/>
+    <use x="805.5" y="138.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ds" transform="translate(0.556467,0) matrix(1.1,0,0,1.3,813,149)"/>
+    <use transform="translate(0.556467,0) matrix(1.1,0,0,1.3,845,220.5)" xlink:href="#ds" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="heart_jack">
+    <use x="790" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#itj" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#itj" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ibj" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ibj" stroke="#DF0000"/>
+    <use transform="translate(798.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(798.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(860.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(860.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <image y="262" x="806" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwUMVS/WJgAABQRJREFUeNrVXEFy4zAM4///kS/5A/uEHnr0HrZOKAoAKVlyZz3jcdLEMghBFEUxtXPwMLPz+DnP83y/jud13Pn8em3u+xeG7y877Zw4MgP83+5+zoAfNgleGbDSmAu4v17Ab4FHBqyUkQe8BXw0YNWJGN8C3rMzcmbAm4G5G/z3n0OeHog6fZvnee4F74F7EAo8u8Z2r8MbvQ18BBsNq4KPwK9zG3jF+ix4D3w5+Aj0LvjoXR4DHwfeHfa3y6biYVZIZ8uAfQr8NlcZB+tK8NsnqVH2Z3391kmqasQo+EcCsypwP+jYlTH+a7LxveMNyHoBDeLb4BsmBoFHA9hkxfx/GTyL9roGM5kE4KwH2Pth8L4h1videL6bkb/434Zkg7oQxRnIyJmTPUctviF41ghi3Tfmj5n31QVKCXzGRvxsFjQKwLJnSvAGVu9oslghGRQ1XmQMBWYoPmduEsvpNXWituJRComje1PrysjWBaaW3vgAZ6zHnM71vQY8YjyybyExpNiP2a94vcAjh4CSU6gHGubVSsg37BussM+AZ3Jh4BvSKszHwEkNJs9+Brw3HD8DHU2WGDFvrnsVeMV+NIDJBUmHaf+NWWUBkEeIXTuifSWXGBZk8pGa//c3Dn5U+5lcPmTh58BMch6QYbZGtF+RS+v7tfbpJBUZukB8DGkbVrNkZTJi4CuD1/qY5iWYb8FXIkQllxkDvITMbxD4h3nNtyxiAIdx9pFhh/X39KGDHrzmp9tR8P6+tg3rejIajcFr9jvwCDjqcjSgIwDGfnx/WH9vlf1G8xE8H6gvyl7OftsT+p5XefAaY52BjzpHDKrzkiO6H0uHs2/IpfkHoEYQc9VQmH03kw7ychYZjwNVLYAP6wOx7Djc7F0H/yLzR+rX+5sZk2htyuL6+NwMPFyp9bsP5IsE/CUztDXP3o8yj5zJjxIKFoLB6o1VDKPXI5pXzsTQ9J2BV8xXNK+8TR/sfZxIp3nfDRV3pTQ/6mkyP+97FiqEh7bcXSFvkyWOKvODmUmd+89gPF9hn/l5NbOie1Rso2Z8mWjN4gzFYBbTqMAMaZ2x/gYf3VklylORIYsmszgIeZg4afrSFmPrxAr7LBBDcTxiP5MMA29+MaIyUxn7avmX5d97L/cqBInWLwO19rUBUS7RpbHlH+pl5WW63ClL6Gj5GM3jVzIGWeYBM298McLWiSqvcidXg3I/qPdYTukNHq3OD1J1kcllJBuMnoGiWbZvYNW8oJqAVHK1kofnBhis5WlWUuWsbFEu1eSqBm8wax32DHRm9iC7IUguM2ltqn2yId1pXmWmDlFxtGon5ABFQiXm/XSb7Qft3oOCm8aO+SRvk28gsMloZOcPsc92HtXupLH4JNv9WLnvmu35lpmv1BPc2aZH5YaVsoEy+KySY0WtAQNeLaKQ4KtFFHcko3o5Yz1lXtXA3D0RQYgYE0Gj1Hy5GklUMqlKKFQ5lQ3SIfCq7ksZUK0/Y26yVOtWkY26IgNGqv5uVRcy5tG1UkL+FHAJns54WW8M1FluA09jjQXgt8smq6qeBa+KkZaCj+yvZv6uAWlg9l+BRwGY8v8V8KyKarls8NZj64XuGLB1wCrwq9jf5ueVbEbBV2KbpeDVgJ1lfofep1xlpYz8idBgaJLKfsM6G88/Epjt+rXx1sDsid95b2P+qV/YT4NnQdhv/W+DMvgZ4E/8V4nK8Re9aFARgDKhVwAAAABJRU5ErkJggg==" id="image2445"/>
+    <use x="805.5" y="261.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#hs" transform="matrix(1.1,0,0,1.3,813,272)"/>
+    <use transform="matrix(1.1,0,0,-1.3,845.5,343)" xlink:href="#hs" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="spade_jack">
+    <use x="790" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#itj" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#itj" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ibj" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ibj" stroke="#000000"/>
+    <use transform="translate(798.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(798.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(860.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(860.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <image y="385" x="806" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQFNehfwwAABKpJREFUeNrtXEGO2zAM1P//4S/5A31CDj2mQLpOJHpmSEq0twvUgLCJrdjDEUlRIr3tmThaa8/9q/WfbWsF1/vPx7N/Pz7tdY9n8vAEqL7eA+/7vQR4ThztQrAWeDl4JEClGvXAj6MUvBWgqiHg5cxHBGgTTT3nEGDaYNmNWTse9P77a5ctIsDbkKvAn0A+fPCDkA74S5nPgmejcKvOrzCP2P8x4H+s2qwIUGaw/Q1nwEe9ziXMW/BWiJNQE+AvnaQsu+45ApYZ7S3go4Ig4FGVKQffx9pWVaLM9+zf7iq9dhIsGSKULEY89j2vEx2B211lSN8fMeP1RncZPAOq9N1jn6oMso8q5pGvR3rv9aXPMLPxMngPoG2RfifVEJFoWwGsgGZbv1aFws4yj9gdr2/vNnMeMa6ECDE/Dt82sGPB2D7R88e9zsa8DRMStBPfb2/vh/Sfq5jv72XV8bOQ//QdhECgdwN+DEW3S3S9H9Uz2A2PhAW9A/CI+dbWGzNYOzJsJFoTey7jkG7mAevALeMK+GjAX32scUSZX90Z8zwMAmvVtllp96DOrwJnHgYxjs69MB4Xey8wBk/1zDMP05OIDNaSN4Dvfe/xIKbzK8CVkTJv4zLfgx8NjFu+/Z5h/fisWA/pvFUbxJa9zlSJCRQxUqS6zB4ak9oa0+hft7COqimeTUp4XXBWozDzaKrGQkeMjhupDQOY/x/8vNJ5K0wWPDqHAjwU9yD2IfPI2yD2d+HaMqOBno0EoDaB1GbwpYT9KvD2OhsB3F8C0eyvxDZ96tKCigjwhe/8Q6s6iv3ZhvKvaBS0DTQuNXpIRVC2A/ZRMGhHAESzGjzKTjMBlIu133ubQvcPCjBKzIYKhctoEupnX/XdTlwqHLfqTMEzadlwIzaj3/EkeB4BwT6e8dgPlM5WLE4Q+xS8nYo9a2dGNttY4IbYp+Cjk8YQTxf5ezWPOIFj9ayXn20V+9JwvbWj/ZF1pVeAx/YA5iAUrSkbsNsVaiWUOacWLSLy3eh+CYunvdh8djQiESxlHrF/TgpscoPU+v2sQIr50+8YMLb9YVf/atGyBwRiQoaZt3ofMUa7EsruILDQoovVfZ1Hoa3a8LHb0mzCmd+E+oB0vY3dxovp6Jj8qthBU7vRVG085tXqv9++qACP9kRbQ1vbCZ3PGmk18+eFTOfnQ3vhXZ9zJqNurx7lAUTNJk6ZIOBeunEFfJT5IcnnJ69wEk0lA+YW5FrnUYa8oT1BlUZkuaOV7GAk90Wylk1O8crDrORfUYA39tG1xX/VhpUJOh6mIvOtjD6Ymdc5fq8+YF3Xc4Al87buJVupEQU6CzjEfKaWLOM6+34FtT5r1UasgsmrdqoQoLH6LQ+4BT9TZ7bMPKqai4JH7EeEqAD+UZuH1sVIHSQrhMu+G5LzNmTfhNbgJEbAq3C9BTyq9Y3ov3fuVvCK/ZmC6MvBZ2velessZx69EZAx1hXXeburVJXYmXdHSl3lXiDA7eAzrvKfYz4LXr0y8V9tqg026nWYd7ksPIgyH303ROWcvJd2L9X5O946Xgb/3e97l4YHd75pXwb+O/7HQcli5Dv/u0T0+APhDpqSdjQ0pAAAAABJRU5ErkJggg==" id="image2447"/>
+    <use x="805.5" y="384.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ss" transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,1.3,813.5,394)"/>
+    <use transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,-1.3,845.5,467)" xlink:href="#ss" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="club_queen">
+    <use x="869" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#itq" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#itq" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ibq" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ibq" stroke="#000000"/>
+    <use transform="translate(877.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(877.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(939.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(939.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <image y="16" x="885" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQ4bYAT0gAABH5JREFUeNrNnGFu5DAIhbn/PXIlX2CP0B/9uauRNlOCHw/sQKaRrKjTdPLxgjF2cOVvwyEi0/n7z4Cfn+dXG6qdn31//bTz+vd9uuD1jSy8vUYUrIbX4I/CW/Cz2d9ZeAHq66dw+ftO5S24NkC3jPqPwiNoz5BIfQ2vDZAu1a3CSPUMPOq8LfCi1XJUziqf6byt8HeUZ533EXimdkZ56z7akHa3QRHHexIrBpTDTz6a8Pcd9VtC5XkTb2DaCZfWgLYR1sIj17gDb8HL4PWjRfCZgSpjQDk8Ao9GWRSNdtSXKvDhpLkol0GG7KgvneCR33sZZ1Z9YRlhFpzBr6YKKwbIlA2S5H8HfCfmZ91HEPjrQAYw8I4WfreFfx0nVASPnlZVSxmQVZ6BixxTu4Lkf79kwBQdHJ8XAm5Ban+mBswXuiMaUXxX6cyTcA2wLoOmWywiPdWgAdPcMwHeFV2WmzdATUMxmoZ9rB0g2pApGppHDvGb9t2fexzvaHYe2jXY913B/zcEbpOlM8KMRXgdejWsNeg0agn8hGfKa/AVAyqVp/AeuB1xp8nGV7/yLjhSXoNrpT6lfAreKmoHilXwWtWToZKNgPKg6uIs810GLg6Oh+qdSKNVZ4pnoC/wPrhAAxg4Ut6q7imOF1QP0oRdhJXvUH3OaOeEbTIschUvz+5SHN1vCD5L1lVsri1FqltwBE0yzdhVhsTwVaojaBL9cq4SqV+tuoU+v0N/lzBXyarPIwJukeoe9PXsuIodXJj6nurss4zqiVW7Ayp+fTxcfX1mB7qeqW77j71ePMCrhUeovF060cmcXUqJlLeq207+YyDoSCfAjvI6idNLJRl4T3nLpjrsAS37jcpPYZP98W/zeZrP4x79+WjjpjA8jn4+zvNsl45gx9IIu5oeROqH2W5m7TCb29xNhZnvwxSGZW0oQapSPVI/k+0Ky5e9HFsKp31sIhJOjHi+HE9E7qg+YEVTbmJ06bCZlLhacU+EaGL0XkNdWRsfTapfB694Dv0eg3ahqxZR0XoQcxWTEktYKtK5iGpFQiOqfTPi5vPa38aDqtvFXJO3e0Wl6/AdqqPVaARuXnrkwZ9U3iu0C5SP4Stf13gG2JKXhPJ7y3m7yqNoM8wry0B5Qanmo80asPCG8ne8U828tAZ1+fOb5U+94Y7AQTEHfjX+dG2B3TTguY15Cn6BTm81xxUcVqwKTleg8hkDKp+EBZ8iTVx5FZdIdfq4Wyecq7y6UeN1s35ssCLnjPKpKrpELXC0qcV2SgaerTaUjLrMgNUdOVnwTJ2neCHJu3lUkeptsfDgGXi4msdiKlPfA0c1xB3gS/Bon9/qrgQvnpfAV3ReVl5bCb4Mn62N9za0VIJDtxk34VlpeRu8JGtdVnYl2HKvFnhZKNTJbmixUacanMKvqJ/ZhdYCL848ciyEzMz+v1Z4b0F1xe9ZqtDqNmx9skL5anAXPlJ/d7dxC7yt0I7cZ2VHTpfqLnym8+7ssm+D9wr7M+pn/7/Bo/Cs89ptGAieLWlUHP8AMjsEWCDFTFwAAAAASUVORK5CYII=" id="image2449"/>
+    <use x="884.5" y="15.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#cs" transform="translate(0.707107,-0.353553) matrix(1.1,0,0,1.3,892.5,26)"/>
+    <use transform="translate(0.707107,-0.353553) matrix(1.1,0,0,-1.3,923,98)" xlink:href="#cs" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="diamond_queen">
+    <use x="869" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#itq" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#itq" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ibq" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ibq" stroke="#DF0000"/>
+    <use transform="translate(877.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(877.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(939.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(939.5,221.5)" xlink:href="#ds"/>
+    <image y="139" x="885" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQgfuyLhAAABShJREFUeNrNXEFy4zAM4///oS/pA/uAHnro0Xto7EgUAFK27DQzmk5SNwYhkCIlurap19fX70i+zGz7+bbNzI73x+f/Kvy8NsNe4+f7PfZr4f22ha8WfHtTD37/bB8efGvAI+D3G1YCfB8eDDOgBd+OR8AfIBrgrQF+KPbZLNhq4FWAZiPD/uPg0QywWTnjvH+CecW+cl5bDfwK87POeyv4HRRiGQH3sT9y3keYR0CRQZnQ2S2CdzPP2I/AMwO6NWQ18CO0XQCv5LPMYRV45KRRpPHgvQFL04Ms+GyYjNj/CHgTKQMDnWH/MeajKJMBPyR9dwBnGaVy1BZsln1D6anKocMQ+YrFGQPa+wwxPAidHXg4PaKSgvnM9zhYTr8DgCtnUj7WAkc/s/m7vzkygK2WdAUFhQ0FX4VzqJIPgTAxG9H1nn1auJxlvjUgC2rGSMQ60P774kqWZLhA2FrQSlLIiAG8iTR0CIE3gQ5zeA8eJlICeMbxVjNvVprhHFYt6T3wEhcJCzU/Au8M4OkrnrIyGLDCCC6TwgcKRzjra0FjA87IKYos2oCgcOCsFxqZVHxX0WTaAMU8l837y6rYb2lvpCKHB542wOceaNviCvjf7+fgEfC0D7AlmDMVg/est+D99SiPfwNnvtVqfjrW2mnWGXDPfCw5wHyfCbZ/WG5lvSfs/Xe9QWTHDAHvDbiudcW6Ar7/fpB4n96W7ubjDGDgV1hnOm9fdSDFmhUWAB6LiTKUfQx8xDpjHrHe1se9ImwzzzhjHpVsqAyc1bpifSzui5+B0jHcfpEHjqqbzErK6trIURHw7lrPorohq+pnh5IMY9373sG8vxhFG79s0/A1Ab7PZTDr1YQSFPNeUuOWRLksm1nmXdjUmveyGeVTTv7MaV6uO/4DD7z9QsZcK73M+5log8Pv633LONO6NwA5r/cZ9d4m4jyXDGAeOSkCzw7BKkjaxvf5FVYyrxakiJXVzHvwLMocv1PMV9PsewBZzbfMZhyX+aQh4PuX1S6ea8e9GnVQJeXD8TBDTDJ+2tFCwpjLDm8A0r9ch1iU8eCRM0W7udFAYZdpHWUAUPNnmF+d67AM1pWoBaYEjPVMdpiXzWgAUwLVvPfmiHXEfKay8vk9z3t4Jdf/NO6s2Tg/W8+yagzlVCgDaGbNhiyxDk1seoW9Ws9WM3dNxPyBwYZlmu2hZCRjJ+pZv63C1h1wVoDDV9ZRr7LOdp+RhICDF7LVV+geynrW8dZeYqtc7weqSmo96/k904b5+LQDV1FGZ+2M1ulKDE5sAPiSOsJUK6raJD3FPDkrIOC5AWf3bXT7rdB8fGJTtlkDrpw76QO6JtoE/ceC+U+d+GnZAGMsBP7cWSs5rOa9aOKE+YP9Bf4aKKEaFAtP9RdEDRkw9lfTh7hPMB8dYeKF8AW+TkSW1ZqP+nlUH5CpU2xvwOpupvCBlqADy2jbHyjPZhwvMqJOgKfMsw4ntKKyrWr2RA6bjZoB/+osDJtCVcc0Yv9Kz2TNgk/0expt+yPsX+lWjTpgp7tqVVMoa1Bm4GUP8WLgsB03Az56YAX2zt8NnvWsw1R4sjf+I+AzrCvpPCob2jFtNuWoqNXxNvB+FVWh8wz41cC7OI9WRCafqShzJ/ioSGCHYNGjRF73t4FXOTx81I2ESPbZrbJRDc7wSbETT1yuBi7Bs/2Wq8zfDj4jnz/PfCSfmWe9VwOXi1SG/cFwkVHeDv6M82b/v8Fq4GnwynlR6sAKmSnwif928R9CbR+qyMeOCAAAAABJRU5ErkJggg==" id="image2451"/>
+    <use x="884.5" y="138.5" xlink:href="#faceborder"/>
+    <use transform="translate(0.556467,0) matrix(1.1,0,0,1.3,892.5,149)" xlink:href="#ds" x="0" y="0" width="1027" height="615"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ds" transform="translate(0.556467,0) matrix(1.1,0,0,1.3,923.5,220.5)"/>
+  </g>
+  <g id="heart_queen">
+    <use x="869" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#itq" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#itq" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ibq" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ibq" stroke="#DF0000"/>
+    <use transform="translate(877.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(877.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(939.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(939.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <image y="262" x="885" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwUVMUR+5gAABWBJREFUeNrVXFty3DAM4/3v4Sv5Aj1CPvLZzk6jLEUBIGlrN+3OeBJ7HRuEwIdkOvZ708fMlp+fv054/LGdbhvHPj+e2zhf3nMX8LH5Yx58PM8CeA/8beDHjRHwsUUgzAALo5AZsBX8940dcG8A2hD7PwIegWaGIP1P1yrIx3YA9+DZCPhjHed9OXgllwFWMX/VeW0H6xXm0ShUnPel4JHmmWTiOQw8ktFbmUdGZNIxAn675hXzbAQYeOW8MhHuYh3JohoukXwicGSU7WIdge84rSozBujHZ/KFVzFfSVQd8I/P417DgEvgFXAmGxV9MgO2Mq8ko7JqBXzFgFuazyRTcVRkBAqb26NNrDs6ITKrONHkRlWv1gWOkkq1nonnnCE0ZowvFWcX+PigTHgWyoKTZFJ0HzjKfr8L+u+xgyaQk2TKM0n9/pqI8SgZqfl5qI7vi683OWQmRPsc8PMej20JCB+Jw3KLj8mI3JD8d/Tdc8OSgeDjCWw5AhnRMYTtI9Ap815DI/2Oi5iY2cw3PIDsOPgV8CHuYzT+21Nb60+0HFExpL6pa64JbIlk8x8dv+M+iu/ohmjWn/1eAT0UQSY7x1StPU8+pJQyQ6obu+aSXVFpMYDOIe05AgP4vM+1yJyM7WfA1eQ+Zd5/j7LrlZGY/2b1AQW+pfl4MVQaoBWvjPnTLEQdBvwgleiho43XfAd8hXkG3k86fHaHI+XjsNf42I/FUzy2m3l/vRk8DLUY+BiBeLEK+LvMl8Ez4HHCewZgGXjEfAU8Chx0i+GQad0DZ/KpRBwzBF45a8J8Jcr47OiPZbpHv59bwNtT8x3m49bRvQLPIw0EPkcbDxzpL9YniP0rzCMSOPhQVUbgLNLEeSWST5d5RgIGP5fvhoAz8GgUImsd5iMBOtIE4DHO+5ORBufhvlZVGgi7cSRXPAi4i/NxiNDF4nDH0Bn/HvmJBdZRFIt1jbHRUF7NDIhOvdb9+FqIZSS/OeKohCViKdKhYj5mTWYMkwwLEiLyaKaY0yLNR+DIGJRtkV+VCzPGuGJi1fQBVxSiMega8btybcOAs6xX0S27WczcDHylRPgaOQzcrFbjDAPRKi4yRjFfNcDh5MAZeBQhrsZ8sxW8qnHCagYHziKOKguqmRVJMHPaZd6hgKsaJw53p6ZBujfTNQ6aMJkCrqaCPoJ0mWcZVlWzqPo1BZzVOOP8q8yfybnRx9B840vzOpayaHOXeSQfVeOQNdTjNvju3DVLfBXmlzhfqW38SHnwnVWDU0gITVTYqkYKfvV8Db6j+2xNKGocrFrvA19dKTuFfPDUky2MoVl5IdLsZj5+kNbBk5uD9MpoZ93NPALP1pMcGWtriVonxyN17SkIA8+eDyylMnniIMC/5onIXCocyz56ckOZrwB/xfMo5Jwl5hHrP/kksKV51e/4U89gZbSpPN37+affS2adW1b+l74D2jhBm3L+gY4P1JabMl/ttak0CdnFXhvZS1zpKqp2OVU7nSpdToUuLN3HdaW/jPVZdvrLSn1vaBVXddiZaIirdvV5Q1inR7FpT78lwF4T6vZNsl7KzntR0mEzxlEC67ScL5L62ACe9uoW+30ls6KHuPNOFJUN65JmBmTgVTf3VuZVfzqTVDSg2zO/A3iJ+Tvg2dsMOySTat5/pwy40nLO1mm2Rhv2zlIFPG1P38B62kvMujpUv6MKjx78Xb1T8JU3xhD4cvR5JfOoVFDgK077VubVglGlVTaNQDeBp5pXK7wIfJZVI/NvA8/Yr4RLFm1uvwXdeSdKyafzDvjbwVecNzYuo7fv3wa+67yd/3uw49MGX3FeBD7+3PH5Aw3rwsk626C7AAAAAElFTkSuQmCC" id="image2453"/>
+    <use x="884.5" y="261.5" xlink:href="#faceborder"/>
+    <use transform="matrix(1.1,0,0,1.3,892,272)" xlink:href="#hs" x="0" y="0" width="1027" height="615"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#hs" transform="matrix(1.1,0,0,-1.3,924.5,343)"/>
+  </g>
+  <g id="spade_queen">
+    <use x="869" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#itq" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#itq" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ibq" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ibq" stroke="#000000"/>
+    <use transform="translate(877.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(877.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(939.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(939.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <image y="385" x="885" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQL0lByxAAABUpJREFUeNrNXElyGzEMxP//wS/x6BzyBB18nBzisUiwuwEukq2qKZUVLY1GEwOAYOxaeJjZ9fnoLzO7anOZu+7PfX/+b8WvP57vZ7/7/f5T4L0BRgxA4O/X3gLef1F7ZYHf1/BvBLwnzMzOgPfMm7ha4K0Binnq6VPgFXAEmBnxdvCRZAZ2EePN38qA7nd3wWfkMsO8Aj8QdoL1mpRM9FoUcY5GmxoARxJRxqiFezTaeAMycvEsM+YHhoHetxas1+Ks1pVxzIAjmn+FAfCzRDrbmlfAmcazes/I5yXgI2lExrwNPPqhjLZ/JfjhNg7AR6H0LeAZYPR6ZuH+CPjrumDShNLlHeASPMq9M8DvBzNAGaO8lgaPviSflJXLrHQG3K9lDGIGIuAgk31+sAdgaa0jD6AHAvv/O3tjkWeJlzAAltX5XCbjgRvg83sK9WqLhTE/gI+Y90VH3fAAMqRl//4bRZohq4w0/x9k+brsiAcY+63Bn48xY4UpsVokPfhyxAPIGMR8+xsyn/eruddXmTIg8gBi3xvaMu87FV0+b+RNGHjpjF31gGK9ZR6mHg+g+TGWcuAtqBNRCBmcZh4bwIF7Vlc80BrBmE9rfryTaeAI/IwHWuCMeW9A02oxEA7LYAAC3v6dMYB5oGV9ivlqPJr4m0QmMau25gFmXCWL9fPxBV4ZwLLNLPisB5TeKfPjQiu0HlUPBb4Oa6kMUSbSO9R8+6NR1aMMiMBXwf4o0QXmGXi0k4FiPSo2GPsq1fXMozDeaT5iXi3YqLDg8sEhE925YbsvYj5i/Zn/F/KMDWhBoFoiLZs2JEX7Rqo66quhQg3IRB8Da2aoOTxwVZCz8IjyH2+QMgAxj4D7jNOq5QpuBpxVSq18lAFM8wp4g4szG6UCiHGU5kYeUJvRkiTGbKRxBpwZkFkDE4yPTSfFdraxdPqS7ZcVjbNi+tRzBLyTTVbj9Sv3eeXzWKyIdRi96acZV+vR1D/+tMajdWgrpZ0FqS4qstWlNK7Wo2XTWxWPvQGsS5ABnr3XwGijgKs7YcYDaj1lNO4bvubzBVXBoBxkxgORVFirEQH/TszabC1b/bCcnXnAG6Q0zrJac3dey+QWUd5tQb2KnpnG/WyCHySqnnk2tVSTFU9UMamQGM2gMfBdAY6Gf9oCQPXwIwPYVlCWdcp8TjZFTt+p6ieb3irWPfiuAGfarZZrlKp6dQY8W6xtP2mJeZ9/ZKNPBF6Vn6yLN2geGcBA+jjNtiKz4FE1p9rsXZeYMc9acyoLVAZEqUDbMePgm6620jwHhvvqGQ+EpR1ts8O7bZ55DzxqlCIDlO5Vmx2FaPPAveb57jTuEmQ8gGI9zjpNGmCqv8iYZxvBsx6IgLNNvmnm1Vbkqgcs2JVRUyBpzSvWUa6+koWyHZlghx4P6yDm1RDEzhoYDYjHVSjzvaWx3mcqpdgADhx83uiQjs8ceT5SjkQhNblNqrjMuIreioyqo4wHokMulHkaisgUyNzMWM4DM6eD4ICcAp6ZxssaONstoJsds+Bn5ySVATOtddmfZ5Ojy6PlYsI1o/WXgY/mgrs6NJDZ1izzDvjZkwnoO38l+MwE9/bs/gnZZE4nnJbMcrTJDvarBX/orAq+SdE4P3ky4ZUG0HYfMyBz3ikCr3KZaeZZbsPAr5w4U2Ms13VdH38+zmme5jdJ4BnWo5PHy5pX4HdO36Dhn23ZZM6hrpxtVedlt8Gzdh8zYId5NrX0NvCrJ2/YrNgR2SgN0ptYMIMWHbHeBh9FG8Q82smIgMvJ1NVoMwt+aEOT/zlCxfVT4P8Bf09usvYuBxgAAAAASUVORK5CYII=" id="image2455"/>
+    <use x="884.5" y="384.5" xlink:href="#faceborder"/>
+    <use transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,1.3,892.5,394)" xlink:href="#ss" x="0" y="0" width="1027" height="615"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ss" transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,-1.3,924.5,467)"/>
+  </g>
+  <g id="club_king">
+    <use x="948" y="0" xlink:href="#cf"/>
+    <use x="1" y="-0.5" xlink:href="#itk" stroke="#000000"/>
+    <use x="63.000000" y="-0.500000" xlink:href="#itk" stroke="#000000"/>
+    <use x="-63.000000" y="0.500000" xlink:href="#ibk" stroke="#000000"/>
+    <use x="-1" y="0.5" xlink:href="#ibk" stroke="#000000"/>
+    <use transform="translate(956.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(956.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <use transform="translate(1018.5,24.5)" xlink:href="#cs"/>
+    <use transform="translate(1018.5,98.5) rotate(180)" xlink:href="#cs"/>
+    <image y="16" x="964" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQr6T5SDAAABBVJREFUeNrtnE2S4yAMhXX/e3AlLjBH6EWWnkXGHVroSQ+BHTIzrqKcIo7z6UX8CTlyDBwicjy+3lNEpOc5Bo/TABExjTnr9XtenXcfBJ6CPw2of4r+Eg1wntvro2v19ZDjmDw0lKVgVYW91gNfCt/+Cm2poETXmj6u6qbhPcBsQeCi3puGX22AB969XgW/siB36c7/4UWOx686VCDQu+C1gqhuS/gTylL5o5RvIXXdNvAWGFJ7K/j2Zn8dvGfAlm6DgLf0eUt5q6scUb6bw3zCIKXnMLdODyz1vfbgQd8CryFmpwW3wbPqmdPZd/h8NAvMKGvdd1lvs3rKa5V2LVtXKD/65S0Eu3LS0QNrVTUEr4FG4LWSDHT7GbRQD+G9nzNjgGUEul97DYokmPBWb5Exwns/+nzr620oJOihBLZ8K8bCQIy6m+XrlYVHPu8FihCgF7tERqK28by24LHAikax0S7ku1bvgwKtXqOm4RnlZw1A9dPwjPKWb3rdJDJEn7GvlzXwegTUylgxdebs9zLlauUL3HBgwS9V/vwSfdZfkDHA93UCHg1SGrhV6wVa0q7Dwcs8vPX6/JLnZwrsIvPK24J8v17j88WEHwEXBx7uEHoroyrxLp4Hz7oM7mmC6QXaotRw5/7Ty0UK5TbeAGUpb/k7jP1Ym8OWqjZ8oWeW2gC2sVrRiK7BMvCPrx7enogVVWf7b2VmnU74UMw5SROiaI8TXtdp1bSqrQFWb4VLoLwXHNVTgwpWRnpz+KxvjdObxC+D/EIrry9gDgSvN5oteOr+WeUpZSaUp37ZrPKUT074PNOm2jbY9WS+8n5PUOGyj+ttmN4MDZI/FuCx8lzQyOvn0QDIjCMmPNq9EGPAqGCRMjKy6hE5HsFx4pDE4YnSzXPEUT6a36DR2Rokq7Ph8FQ+yOvSLsMo7501vDdrrU64+xsezpcN+FHwyG289UJ1InldxKy/aKyx+orj1RdaqU3AFwqeVR7Be2vk0G1ieN/f5wyY9HkWHg1OY40Vw1txocuUHw0soQHrQuX57ZgoJumNuExMFMRU8/BRyu0KA5Yrz8xl2Fi9rmeV/7GGRaGPqJcZ2f0Yed+D7xbgUdxGurVnDjJrpDlIIfga9DLZHb/ZX6rLJY7cBoFn91oze7swi9vbafYaanaXeya7lYZvDWB2+K5MyU3BpzMyBu/JAg8rf1UuTQZ4GJ49M1lOq8DT8Fbfi0BR7tmS3LYReOQa2cy+W+Ajf/ayWb0k6MvhGd9ncoitmNB28Ew+8W29zQw8m/j/cfBbug3z9MK2DZZ5bmRLePZpna2V32aQuusptH8X3pra3vnkZRoe5a1fAb7SADNlxQNf+bTxUngGfOVz3pfB7/KE/TD8Tv9tMAS/279KeMdve97P8rZD25sAAAAASUVORK5CYII=" id="image2457"/>
+    <use x="963.5" y="15.5" xlink:href="#faceborder"/>
+    <use xlink:href="#cs" x="0" y="0" width="1027" height="615" transform="translate(0.707107,-0.353553) matrix(1.1,0,0,1.3,971.5,26)"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#cs" transform="translate(0.707107,-0.353553) matrix(1.1,0,0,-1.3,1002,98)"/>
+  </g>
+  <g id="diamond_king">
+    <use x="948" y="123" xlink:href="#cf"/>
+    <use x="1" y="122.5" xlink:href="#itk" stroke="#DF0000"/>
+    <use x="63.000000" y="122.500000" xlink:href="#itk" stroke="#DF0000"/>
+    <use x="-63.000000" y="123.500000" xlink:href="#ibk" stroke="#DF0000"/>
+    <use x="-1" y="123.5" xlink:href="#ibk" stroke="#DF0000"/>
+    <use transform="translate(956.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(956.5,221.5)" xlink:href="#ds"/>
+    <use transform="translate(1018.5,147.5)" xlink:href="#ds"/>
+    <use transform="translate(1018.5,221.5)" xlink:href="#ds"/>
+    <image y="139" x="964" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwQTwTzqkgAABNdJREFUeNrVnFFy3CAQRLn/PfZKXCAH8Ec+/Olk40KBoXumB4EqURW1rvV69aZpRghGLl/e8fHx3X4fpZSvz5/Pt/d57dFYylfi6AN4/9yaPZn3/i7wWpLw7Y/frXbtUgIAt1f02ShQD3wJvn1JJQEg9ZTP2kAtfB/kLXgvANsqaUzxCuBtD92GZwFkGwrUgm9XHqmiNiWgR+BXA/CaBT8O//mjuu0u/LZsw+Cn9EeCiHoLqd6Ox5RH71u46LUP9Ch8pPo/Dc/U3gF/xDYWfAc8CuDIgFUyzU7rbL3CqgN1Bf6RKyyyzG7vH4VXfN//bsUyEjyaS9/1PEt9CrysPFNGmdcoFlkZrFK26cHtqwe+kl22wnvgKID+JBm1V8HTyu9SsDi3dcrsMq28MqVlPcHgvZtudv9rB3qoPAZ+dXc6r9T8vD9hprFVBjfb2A9/w1r41/A71vqTtZ+jVwY+3euyXGoXijy4CFwJshfHA+8DKAiarXRlemDo3mTvJCzpA6MAInim+HiOUQgLLmUkdT1RsU9rSPFZ3TlQu2QYplUPmmUOreu132G7jII4Afi2eR+1v5oS7yuKM9VHeGxDGEBkGwu/4v2M6u0zUgBoTb2W0XMolUZpE12YFNW9NAwCGAdKLb7qEbwdtAweZ5n4+jEEwMA9eGadaBrAssyYHucAnB7Ains7IrHvc1mqV/3v+XgAFzwDr+C2rQJ4DpODt1nK9gIKoGTBawDEeo7ZDH//HACyTlGtUh31GZAyRtiGgw0A9lzGKorvM7ZB+1A2AKv+8D0Z8ErgWbqcr9ye39HeFPb/9V2V3FsicBU+63n7vcVRf4DHM7cX/KIq2gb1pgo/97TnfQPdPnQXvv+bHt6zTaXJgcBbP67AI9vsgC/hwDU+6uHrAXjFNj78MLgxPFP/Cc9j38N1nPkCgNQvC/Ao2yi2YRmvP2pTnsGjAE7meQW8WuXR1cuqX8XJ2cr0wCugYODDgI28703M7s5tqmMdZsFrYsamnSyAstnzbLAyxa8yrWmObE5gL80n5/MZ8KtADgVge2AM4h585HvPKsOtI+pSdu+INraiFQN0DxuNkV5xe1Nv6tH45RtbaV4diOC9dIkCQPAA/O/EzOsBDz67VhPBI7ug1eNLeSUAu6qVXdqz8Mw6zDKkGnDuMn5SXXV/aY8vmVj4YBEYD5jZo7rqmVViJUvxzY5gGxGtm8frjlhxb9D2AUQ7NNQ2rFgtyjIIzNshibwfbXhQ20TbkcoGmffZeH8r7oE/otYkuLKrp+wCKvZBPTCsdHhFzEjx3D5qHKTSA3Q7X91tvrtz7Te+u85qdiA821CO6gOiytSoCEiphJ2Kjhj8anVGpiwFvaeCS/CZ4jUGppS/rNT9SMrvUhBVlEQVg7eUz5YORvAluOlglVRytllVfrXaT3lGCwbI0lsGPlNPKcMrZZFexUUG3lPYKwo9Cr87gJ3qu57fpf4J8DDbZEsQldR4DJ494nPC+1uemLDwJ6xj5y3/Bfypgbpkm2j2qFTCHoNnAzb7CN0TmUZOlSef/3vkIpV5NPSpANLwmUdDM4+OboP3wNEtYKY3dgYgTYm9h9Qzz3l7n92ebdiNON71WHsav94YAyUCz/6fguz/QbALSyn4XeDb/8NEdyfFjl9ZsOlWsL57MgAAAABJRU5ErkJggg==" id="image2459"/>
+    <use x="963.5" y="138.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ds" transform="translate(0.556467,0) matrix(1.1,0,0,1.3,971.5,149)"/>
+    <use transform="translate(0.556467,0) matrix(1.1,0,0,1.3,1002.5,220.5)" xlink:href="#ds" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="heart_king">
+    <use x="948" y="246" xlink:href="#cf"/>
+    <use x="1" y="245.5" xlink:href="#itk" stroke="#DF0000"/>
+    <use x="63.000000" y="245.500000" xlink:href="#itk" stroke="#DF0000"/>
+    <use x="-63.000000" y="246.500000" xlink:href="#ibk" stroke="#DF0000"/>
+    <use x="-1" y="246.5" xlink:href="#ibk" stroke="#DF0000"/>
+    <use transform="translate(956.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(956.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <use transform="translate(1018.5,270.5)" xlink:href="#hs"/>
+    <use transform="translate(1018.5,344.5) rotate(180)" xlink:href="#hs"/>
+    <image y="262" x="964" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwUFLPNuggAABORJREFUeNrNnF12qzAMhL3/fbAlb6BLyEMfcx9uSIyYGY3/2nIOhzYl8EnIsiyJlqe5lVKe34/f2UspmOnZsZ0ClFKgMOfn8W/qM3UdBd4NfwpQX3u8SQQ4j+352bnxfMnyHNjaG1SivQjee27ZBc8EiHsle3buNrNRAqzYETg9Pie3sgH8bVpf9f/P5LgEfuV+bhn89+MPwp8CbId/P+Kv2rUjG27Bo+tE+xT85UanDbYXJ58x+PYYNb8dvr1R1DL6jMHHAaue3hZ45zPpAnfDMwHai/fY/GUMPYocT0v8PIN3BnEmgIpkfwR+VPsxiq3huB1+Vvu/pvl0oDVPxtE+m4XL7ASlNM9cJPr+j8HTwWWaiGMurdm025TZyBsNhAS5yzzeArS/D/l5FY+4xx5wBP8WYDR6zP6GYLPvIfALbPisuMDZTUe/x86JsDZ8cRfAImStScweswNocrrBKviYRyniBkwAZ7EdF9ZI+zZ8hD43lIJgvthdm9aOJ/pR4EGOBLqSCYV5HndRzZ4gepIf7ZOjgkapuZ4sQtQ4M5E7+PGGlAK40JkAxdC4svX7fY7cdDzo46INdnOl8WoI3woYBYAm6UMf7UChJqA0rsDj4tsRoHDzUG6qpCED0ngx7B7DHxdv2Dzh+4lXO+uHRxp34SsxH5TnLwySCyDia6HxKtytCw/GFDcPaHtGuBs1XkU4cP6dxe0I/vy5qEFZYyWDrJaiSai8uwsfBYgLcQB/hW5nxCwJhASqRommPU9pPw7WBr7Ii4zAVwOe3RfZPYHHE8CM5quAZ3kZB/5mNlm1IlbrnDXqLLyy+cuArcGVVTBYeyoaWaLItXcF37Bl4Ni/syAri11YKN3jKt988VFc45yDVqoVkJNIYm7SmaQuZhMHaQSPi5VsWZjBRxNrtwyeDtgP/HGDz0xhFB5tKDCDrhKZDQKvhafdVsLfw/OD+/kK3FAG38QWS2yfdYMg8IvZYBfETSZGdwwoeyK6ZHncFiHIKxJ4busI3mkqytLWLL+j5iFiNrnWlZ/PZlg1S7czetqrgAcstvdZeKuC8ii3sUCvx/28hleJKJl46oBnpnpJfWTwrr07TUSjmoeJAcdskABOztJZad0EetwHK00GuH6+F17lKNVaON47ScHcVzPZJJXZu8rfaHd5X0tzAV5+/t7LmMNnSSeVMcOZNp4jQvFWia6SxfBoTbs6Y5Zl6OB6gi37GLyTc8wyZlzoHPyynlDrViRABq4yZlkdyoVuro8T92w1lRXBVMasGk/NgW4KFThxz+w/s/tqFNjckk5WtSmq5tNT0sk0nqVBVOJVFEB4zScrCmT+PYPPOj1U1eZ1nq51okDJW1DkNdksPaJqwkPwKByYqYSPtA9QeFzzn+sjWNW70A2PBu7u7g+7E8XqazH6Y1b13XT2/hgdRWYP5GjH0zC81ctlanG212wIPu2iM6BHuvx6bXw5fE8TKDOdKfi0c3Swo89tQV8Cz3p2RwVgPcU/rvlZ7e+FV4/ccJku+FL4VHOdtj/69sJW+B7NO++OLIFXccsJ3zNo3bd2tsOjd/RGQgI1nqZs3nkTrKcgMPIq3Xb4HQJMw6u3HtGAXfkG5jS88+bAavBVAhS1fmTgq986Xg6Pmnl2vu+9Bf6vvGk/ZTa//T8ObPi/+N8l0PYPTc0DDq9B3coAAAAASUVORK5CYII=" id="image2461"/>
+    <use x="963.5" y="261.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#hs" transform="matrix(1.1,0,0,1.3,971,272)"/>
+    <use transform="matrix(1.1,0,0,-1.3,1004,343)" xlink:href="#hs" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="spade_king">
+    <use x="948" y="369" xlink:href="#cf"/>
+    <use x="1" y="368.5" xlink:href="#itk" stroke="#000000"/>
+    <use x="63.000000" y="368.500000" xlink:href="#itk" stroke="#000000"/>
+    <use x="-63.000000" y="369.500000" xlink:href="#ibk" stroke="#000000"/>
+    <use x="-1" y="369.5" xlink:href="#ibk" stroke="#000000"/>
+    <use transform="translate(956.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(956.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <use transform="translate(1018.5,393.5)" xlink:href="#ss"/>
+    <use transform="translate(1018.5,467.5) rotate(180)" xlink:href="#ss"/>
+    <image y="385" x="964" width="47" height="91" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAABbCAYAAADjlNx7AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsSAAALEgHS3X78AAAAB3RJTUUH1gQIFwMi36N8bwAABCFJREFUeNrtnFFytSAMhbP/fbAlNvAvoQ99tA/97UA8SU4A0c70zjjea1W+xEPAAJUj8RGR4/PjmQ3yHMnPaYCIQGPO4/pv3jHvPuf3JfCnAfX/pgvRAOe+PT86V59vchyDn7aAanhPg2fP9cCn4C0D9FaNLTpXgws6dkx+PMDRzQLXBkzDrzYg8nj7ewk88s7Mpu/b7rtjf/CgkHb/+a/SG5KJWcYueO1d71jo8Sc830Jax7z73CIbVjIsvOftx+A19Cs0P1pZ0d+3a34H/Otk86vgmTrwSngrZLLRZqnmIw8xYdF6AqicZfAacET3umXVx26BZ2CjJxDF99saKQ01YszMfho+6raiLi77hG6PNpl+eWSY54xl8N4Lc/+9mBVawPk14YR0hdWJIeu98/ze5l70PaoBj65FCSca3vKCNgA9CQ0hwfkeuAUvIj18X2D52dCNPRiRogwsKWP1bwxfvuEtgO+bFLMASwbtded9GJmhPKhdf8ohVmar9XwEb0HVwEgPvk0BomgjUg7Byc0e3CuoOlEHSabScimXyAXhtQFIMox02nuc15/nZLVOe/6aL8ee9wyw4HzjIvASa54xgPV+daNOVjLFjzbnCVcDeulktI88X9NyKXGobC2MpON534pY1sCCH2FKFr4YrSo2wmtURBmLWmn8G7M4mu8vuIJg+TAGSAocS8aONnKVjVdxoy5DNNTJS0aoYVMCHj8FxoPe0CQjGW00+G54onmvrMZTyEqHaSOSWwmzttZLAxsyMyEW5exRwqqL895FIzCtZLLtg5cS6etiwvMsvK6cTOvMwG/xPKqwNSmzZZ6XzZ6vKz0vmzU/5XnrotEOWrZbkfD8WIwd6SLg88ulgapgeBPem2jFYAu4toUtsE9jTzAq1zcpr9CzALaPkuvbFGML4MPEDgCXxb3KaqRciD6Qn1vMSma0P48yF9H7hfjpBek6YZFkZt6kKmEEkE0Mz0hm9h0WGd7KB+s+SuyY1q/PHvRSYypukBthvb4ib+OlHA0D7NxIRi6rMmba+33S9tIGRYmdkghz87nKGuRMFQvn+Z1Z4hqkHFX2AGs+I5mV+flqpFxAOiQKlfLQyIidgGoY/cQOo3Nv3IkxtgbdC3cusQWfeefUcMgJ2dHAcKTSmwgR9ec1TJRb9IzNQEP4aMQ5GubMjHiPAqfgZyZKRNd48xmWw6/eW8HiFtnMzJ3JTEkZgvdmGHkpOG+6VeT5UXAanp0jac0pW+3xIc+zs/MycySnZhVmKiw7N/K18Jmphq+HZ+ZIboGPjPh18FF8f7VsomgTHXud5let/diu+dlVN1vhM32anZKhNX/nCrQ/eGvl446Vl1Pw3prTXWtep+BZj9+52ngKHs0nfnqd9xD8W1bYp+Hf9L8N0vBP/VeJrAFfAjAum1r7/EMAAAAASUVORK5CYII=" id="image2463"/>
+    <use x="963.5" y="384.5" xlink:href="#faceborder"/>
+    <use height="615" width="1027" y="0" x="0" xlink:href="#ss" transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,1.3,972.5,394)"/>
+    <use transform="translate(-0.1505,-0.252417) matrix(1.1,0,0,-1.3,1003.5,467)" xlink:href="#ss" x="0" y="0" width="1027" height="615"/>
+  </g>
+  <g id="joker_black">
+    <use x="0" y="492" xlink:href="#cf"/>
+    <use transform="matrix(0.662062,0,0,0.76568,7.30133,510.4507)" id="Layer_x0020_1" style="fill-rule:nonzero;stroke:#000000;stroke-miterlimit:4" xlink:href="#foot"/>
+    <use style="fill:#000000" transform="matrix(2.247243,0,0,2.17542,-79.473359,-482)" xlink:href="#star"/>
+    <use style="fill:#000000" transform="matrix(2.247243,0,0,2.17542,-132.8802,-582.3484)" xlink:href="#star"/>
+  </g>
+  <g id="joker_red">
+    <use x="79" y="492" xlink:href="#cf"/>
+    <g style="fill-rule:nonzero;stroke:#000000;stroke-miterlimit:4">
+      <use transform="matrix(0.284179,0,0,0.32359,105,503)" xlink:href="#foot"/>
+      <use xlink:href="#foot" transform=" matrix(1,0,0,-1,0,1107.864) matrix(0.284179,0,0,0.32359,105,503)" width="1027" height="615"/>
+    </g>
+    <text xml:space="preserve" style="font-size:11.81898117px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Trebuchet MS" x="96.44" y="592.17" sodipodi:linespacing="125%" transform="scale(1.061497,0.942066)">
+      <tspan sodipodi:role="line" x="96.44" y="592.17">GNOME</tspan>
+    </text>
+    <use style="fill:#df0000" transform="matrix(2.247243,0,0,2.17542,1.88019,-482.1161)" xlink:href="#star"/>
+    <use style="fill:#df0000" transform="matrix(2.247243,0,0,2.17542,-53.8802,-581.7626)" xlink:href="#star"/>
+  </g>
+  <g id="back">
+    <use x="158" y="492" xlink:href="#cf"/>
+    <rect style="fill:#557fa4;fill-opacity:1;fill-rule:nonzero;stroke:#557fa4;stroke-width:5.19399977;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stroke-dashoffset:0" id="rect14924" width="64.934746" height="109.42517" x="165.34576" y="498.94589"/>
+    <use style="fill-rule:nonzero;stroke:#000000;stroke-miterlimit:4;stroke-opacity:1;fill:#ffffff;fill-opacity:1;stroke-width:1.42137126;stroke-dasharray:none;stroke-linejoin:round" transform="matrix(0.662062,0,0,0.76568,166.2044,508.3294)" xlink:href="#foot"/>
+  </g>
+</svg>
