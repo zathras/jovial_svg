@@ -28,6 +28,7 @@ SOFTWARE.
 ///
 library jovial_svg.common_noui;
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:quiver/core.dart' as quiver;
@@ -35,12 +36,14 @@ import 'package:quiver/core.dart' as quiver;
 import 'affine.dart';
 import 'path_noui.dart';
 
+typedef AlignmentT = Point<double>;
+typedef PointT = Point<double>;
+typedef RadiusT = Point<double>;
+typedef ViewboxT = Rectangle<double>;
+
 abstract class SIVisitor<PathDataT, R> {
   R get initial;
 
-  ///
-  /// Called for each path, top-level or within a group
-  ///
   R path(R collector, PathDataT pathData, SIPaint paint);
 
   R group(R collector, Affine? transform);
@@ -48,6 +51,10 @@ abstract class SIVisitor<PathDataT, R> {
   R endGroup(R collector);
 
   R clipPath(R collector, PathDataT pathData);
+
+  R images(R collector, List<SIImageData> im);
+
+  R image(R collector, int imageNumber);
 }
 
 abstract class SIBuilder<PathDataT> extends SIVisitor<PathDataT, void> {
@@ -70,6 +77,28 @@ abstract class SIBuilder<PathDataT> extends SIVisitor<PathDataT, void> {
   /// will re-use the previously built, equivalent path.
   ///
   PathBuilder? startPath(SIPaint paint, Object key);
+}
+
+class SIImageData {
+  final double x;
+  final double y;
+  final double width;
+  final double height;
+  final Uint8List encoded;
+
+  SIImageData(
+      {required this.x,
+      required this.y,
+      required this.width,
+      required this.height,
+      required this.encoded});
+
+  SIImageData.copy(SIImageData other)
+      : x = other.x,
+        y = other.y,
+        width = other.width,
+        height = other.height,
+        encoded = other.encoded;
 }
 
 class SIPaint {
@@ -525,3 +554,20 @@ enum SIFillType { evenOdd, nonZero }
 // NOTE:  The numerical values of this enum are externalized.
 //        The default tint mode is srcIn.
 enum SITintMode { srcOver, srcIn, srcATop, multiply, screen, add }
+
+enum SIFontStyle { inherit, normal, italic, oblique }
+
+enum SIFontWeight {
+  inherit,
+  w100,
+  w200,
+  w300,
+  w400,
+  w500,
+  w600,
+  w700,
+  w800,
+  w900,
+  bolder,
+  lighter
+}

@@ -43,6 +43,7 @@ abstract class ScalableImage {
   Rect? _viewport;
   final BlendMode tintMode;
   final Color? tintColor;
+  final List<SIImage> _images;
 
   ///
   /// The currentColor value, as defined by
@@ -50,22 +51,24 @@ abstract class ScalableImage {
   /// This is a color value in an SVG document for elements whose color is
   /// controlled by the SVG's container.
   ///
-  final Color currentColor; // cf. Tiny s. 11.2
+  final Color currentColor;
 
   @protected
   ScalableImage(this.width, this.height, this.tintColor, this.tintMode,
-      this._viewport, Color? currentColor)
+      this._viewport, this._images, Color? currentColor)
       : currentColor = currentColor ?? Colors.black;
 
   @protected
-  ScalableImage.modified(ScalableImage other,
-      {Rect? viewport, Color? currentColor})
+  ScalableImage.modifiedFrom(ScalableImage other,
+      {required Rect? viewport, required Color currentColor,
+       required Color? tintColor, required BlendMode tintMode})
       : width = viewport?.width ?? other.width,
         height = viewport?.height ?? other.height,
         _viewport = _newViewport(viewport, other._viewport),
-        tintMode = other.tintMode,
-        tintColor = other.tintColor,
-        currentColor = currentColor ?? other.currentColor;
+        tintMode = tintMode,
+        tintColor = tintColor,
+        _images = other._images,  // TODO:  Prune this
+        currentColor = currentColor;
 
   static Rect? _newViewport(Rect? incoming, Rect? old) {
     if (incoming == null) {
@@ -111,6 +114,19 @@ abstract class ScalableImage {
       {bool prune = true, double pruningTolerance = 0});
 
   ///
+  /// Return a new ScalableImage like this one, with tint modified.
+  ///
+  ScalableImage modifyTint({
+      required BlendMode newTintMode,
+      required Color? newTintColor});
+
+  ///
+  /// Return a new ScalableImage like this one, with currentColor
+  /// modified.
+  ///
+  ScalableImage modifyCurrentColor(Color newCurrentColor);
+
+  ///
   /// Returns this SI as an in-memory directed acyclic graph of nodes.
   /// As compared to a compact scalable image, the DAG representation can
   /// be expected to render somewhat faster, at a significant cost in
@@ -123,9 +139,11 @@ abstract class ScalableImage {
   ScalableImage toDag();
 
   ///
-  /// Load a compact image from a .si file.  The result can be converted
-  /// into an in-memory graph structure that renders faster by calling
-  /// [ScalableImage.toDag].
+  /// Create an image from a `.si` file in an asset bundle.
+  /// Loading a `.si` file is considerably faster than parsing an SVG
+  /// or AVD file - about 30x faster in informal measurements.  A `.si`
+  /// file can be created with `dart run jovial_svg:svg_to_si` or
+  /// `dart run jovial_svg:avd_to_si`.
   ///
   static Future<ScalableImage> fromSIAsset(AssetBundle b, String key,
       {bool compact = false, Color? currentColor}) async {
@@ -140,9 +158,11 @@ abstract class ScalableImage {
   }
 
   ///
-  ///  Create an image from the contents of a .si file in a ByteData.
-  ///  The result can be converted into an in-memory graph structure that
-  ///  renders faster by calling [ScalableImage.toDag].
+  /// Create an image from the contents of a .si file in a ByteData.
+  /// Loading a `.si` file is considerably faster than parsing an SVG
+  /// or AVD file - about 30x faster in informal measurements.  A `.si`
+  /// file can be created with `dart run jovial_svg:svg_to_si` or
+  /// `dart run jovial_svg:avd_to_si`.
   ///
   static ScalableImage fromSIBytes(Uint8List bytes,
       {bool compact = false, Color? currentColor}) {
@@ -155,11 +175,11 @@ abstract class ScalableImage {
   }
 
   ///
-  /// Parse an SVG XML string to an in-memory scalable image
+  /// Parse an SVG XML string to a scalable image
   ///
   static ScalableImage fromSvgString(String src,
       {bool compact = false,
-      bool bigFloats = true,
+      bool bigFloats = false,
       bool warn = true,
       Color? currentColor}) {
     if (compact) {
@@ -176,11 +196,11 @@ abstract class ScalableImage {
 
   ///
   /// Load a string asset containing an SVG
-  /// from [b] and parse it into an in-memory scalable image.
+  /// from [b] and parse it into a scalable image.
   ///
   static Future<ScalableImage> fromSvgAsset(AssetBundle b, String key,
       {bool compact = false,
-      bool bigFloats = true,
+      bool bigFloats = false,
       bool warn = true,
       Color? currentColor}) async {
     final String src = await b.loadString(key, cache: false);
@@ -192,10 +212,27 @@ abstract class ScalableImage {
   }
 
   ///
-  /// Parse an Android Vector Drawable XML string to an in-memory scalable image
+  /// Read a stream containing an SVG
+  /// and parse it into a scalable image.
+  ///
+  static Future<ScalableImage> fromSvgStream(Stream<String> stream,
+      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+    if (compact) {
+      final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
+      await StreamSvgParser(stream, b).parse();
+      return b.si;
+    } else {
+      final b = SIDagBuilder(warn: warn);
+      await StreamSvgParser(stream, b).parse();
+      return b.si;
+    }
+  }
+
+  ///
+  /// Parse an Android Vector Drawable XML string to a scalable image.
   ///
   static ScalableImage fromAvdString(String src,
-      {bool compact = false, bool bigFloats = true, bool warn = true}) {
+      {bool compact = false, bool bigFloats = false, bool warn = true}) {
     if (compact) {
       final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
       StringAvdParser(src, b).parse();
@@ -209,13 +246,59 @@ abstract class ScalableImage {
 
   ///
   /// Load a string asset containing an Android Vector Drawable in XML format
-  /// from [b] and parse it into an in-memory scalable image.
+  /// from [b] and parse it into a scalable image.
   ///
   static Future<ScalableImage> fromAvdAsset(AssetBundle b, String key,
-      {bool compact = false, bool bigFloats = true, bool warn = true}) async {
+      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
     final src = await b.loadString(key, cache: false);
     return fromAvdString(src,
         compact: compact, bigFloats: bigFloats, warn: warn);
+  }
+
+  ///
+  /// Read a stream containing an Android Vector Drawable in XML format
+  /// and parse it into a scalable image.
+  ///
+  static Future<ScalableImage> fromAvdStream(Stream<String> stream,
+      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+    if (compact) {
+      final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
+      await StreamAvdParser(stream, b).parse();
+      return b.si;
+    } else {
+      final b = SIDagBuilder(warn: warn);
+      await StreamAvdParser(stream, b).parse();
+      return b.si;
+    }
+  }
+
+  ///
+  /// Prepare any images in the ScalableImage, by decoding them.  If this is
+  /// not done, images will be invisible (unless a different ScalableImage that
+  /// has been prepared shares the image instances, as could happen with
+  /// viewport setting.).  This method may be called multiple
+  /// times on the same ScalingImage.  Each call to prepareImages() must be
+  /// balanced with a call to `unprepareImages()` to release the image
+  /// resources -- see `Image.dispose()` in the Flutter library.
+  ///
+  Future<void> prepareImages() async {
+    // Start preparing them all, with no await, so that the prepare count
+    // is immediately incremented.
+    print("@@aa ${_images.length}");
+    final waiting = List<Future<void>>.generate(_images.length, (i) =>
+        _images[i].prepare());
+    for (final w in waiting) {
+      await w;
+    }
+  }
+
+  ///
+  /// Undo the effects of [prepareImages], releasing resources.
+  ///
+  void unprepareImages() {
+    for (final im in _images) {
+      im.unprepare();
+    }
   }
 
   void paint(Canvas c) {

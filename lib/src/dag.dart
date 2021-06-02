@@ -24,6 +24,7 @@ SOFTWARE.
 
 library jovial_svg.dag;
 
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -54,9 +55,10 @@ class ScalableImageDag extends ScalableImage
       required Color? tintColor,
       required BlendMode tintMode,
       required Rect? viewport,
-      Color? currentColor})
+      Color? currentColor,
+      required List<SIImage> images})
       : _renderables = List<SIRenderable>.empty(growable: true),
-        super(width, height, tintColor, tintMode, viewport, currentColor);
+        super(width, height, tintColor, tintMode, viewport, images, currentColor);
 
   ///
   /// Create a copy of [other], potentially with a new viewport.  The copy
@@ -65,18 +67,55 @@ class ScalableImageDag extends ScalableImage
   /// viewport.
   ///
   ScalableImageDag.modified(ScalableImageDag other,
-      {Rect? viewport, required bool prune, double pruningTolerance = 0})
+      {Rect? viewport,
+      required bool prune,
+      double pruningTolerance = 0,
+      required Color currentColor,
+      required Color? tintColor,
+      required BlendMode tintMode})
       : _renderables = (!prune || viewport == null)
             ? other._renderables
             : other._childrenPrunedBy(
                 PruningBoundary(viewport.deflate(pruningTolerance)), {}),
-        super.modified(other, viewport: viewport);
+        super.modifiedFrom(other,
+            viewport: viewport,
+            currentColor: currentColor,
+            tintColor: tintColor,
+            tintMode: tintMode);
 
   @override
   ScalableImage withNewViewport(Rect viewport,
           {bool prune = false, double pruningTolerance = 0}) =>
       ScalableImageDag.modified(this,
-          viewport: viewport, prune: prune, pruningTolerance: pruningTolerance);
+          viewport: viewport,
+          prune: prune,
+          pruningTolerance: pruningTolerance,
+          currentColor: currentColor,
+          tintColor: tintColor,
+          tintMode: tintMode);
+
+  @override
+  ScalableImage modifyCurrentColor(Color newCurrentColor) {
+    return ScalableImageDag.modified(this,
+        viewport: viewport,
+        prune: false,
+        pruningTolerance: 0,
+        currentColor: newCurrentColor,
+        tintColor: tintColor,
+        tintMode: tintMode);
+  }
+
+  @override
+  ScalableImage modifyTint(
+      {required BlendMode newTintMode, required Color? newTintColor}) {
+    return ScalableImageDag.modified(this,
+        viewport: viewport,
+        prune: false,
+        pruningTolerance: 0,
+        currentColor: currentColor,
+        tintColor: newTintColor,
+        tintMode: newTintMode);
+  }
 
   @override
   void paintChildren(Canvas c, Color currentColor) {
@@ -249,11 +288,16 @@ class _GroupBuilder implements _SIParentBuilder {
 /// See [PathBuilder] for usage.
 ///
 abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
+  double? _width;
+  double? _height;
+  int? _tintColor;
+  SITintMode? _tintMode;
   final Rect? _viewport;
   @override
   final bool warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
   ScalableImageDag? _si;
+  List<SIImage>? _images;
   final _paths = <Object?, Path>{};
   final Set<SIRenderable> _dagger = <SIRenderable>{};
   final Color? currentColor;
@@ -312,6 +356,26 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
 
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
+  @override
+  void images(void collector, List<SIImageData> im) {
+    assert(_images == null);
+    _images = List<SIImage>.generate(im.length, (i) => SIImage(im[i]));
+    assert (_si == null);
+    final a = _si = ScalableImageDag(
+        width: _width,
+        height: _height,
+        viewport: _viewport,
+        tintColor: (_tintColor == null) ? null : Color(_tintColor!),
+        tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
+        currentColor: currentColor,
+        images: _images!);
+    _parentStack.add(a);
+  }
+
+  @override
+  void image(void collector, int imageNumber) =>
+      addRenderable(_images![imageNumber]);
+
   ScalableImageDag get si {
     final r = _si;
     if (r == null) {
@@ -328,14 +392,10 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
       required int? tintColor,
       required SITintMode? tintMode}) {
     assert(_si == null);
-    final a = _si = ScalableImageDag(
-        width: width,
-        height: height,
-        viewport: _viewport,
-        tintColor: (tintColor == null) ? null : Color(tintColor),
-        tintMode: (tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
-        currentColor: currentColor);
-    _parentStack.add(a);
+    _width = width;
+    _height = height;
+    _tintColor = tintColor;
+    _tintMode = tintMode;
   }
 
   @override

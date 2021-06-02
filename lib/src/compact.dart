@@ -72,8 +72,7 @@ class ScalableImageCompact extends ScalableImage
         _children = children,
         _args = args,
         _transforms = transforms,
-        super(width, height, tintColor, tintMode, viewport, currentColor) {
-    print('@@ New compact image, ${children.length} children bytes,');
+        super(width, height, tintColor, tintMode, viewport, <SIImage>[], currentColor) {
     print('   ${args.length} floats, ${_transforms.length ~/ 6} transforms');
   }
 
@@ -99,6 +98,41 @@ class ScalableImageCompact extends ScalableImage
           transforms: _transforms,
           viewport: viewport);
     }
+  }
+
+  @override
+  ScalableImage modifyCurrentColor(Color newCurrentColor) {
+    return ScalableImageCompact._p(
+        bigFloats: bigFloats,
+        width: width,
+        height: height,
+        tintColor: tintColor,
+        tintMode: tintMode,
+        currentColor: newCurrentColor,
+        numPaths: _numPaths,
+        numPaints: _numPaints,
+        children: _children,
+        args: _args,
+        transforms: _transforms,
+        viewport: viewport);
+  }
+
+  @override
+  ScalableImage modifyTint(
+      {required BlendMode newTintMode, required Color? newTintColor}) {
+    return ScalableImageCompact._p(
+        bigFloats: bigFloats,
+        width: width,
+        height: height,
+        tintColor: newTintColor,
+        tintMode: newTintMode,
+        currentColor: currentColor,
+        numPaths: _numPaths,
+        numPaints: _numPaints,
+        children: _children,
+        args: _args,
+        transforms: _transforms,
+        viewport: viewport);
   }
 
   @override
@@ -129,6 +163,7 @@ class ScalableImageCompact extends ScalableImage
         height: height,
         tintColor: tintColor?.value,
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
+    b.images(null, <SIImageData>[]);  // @@ TODO
     accept(b);
     b.endVector();
     return b.si;
@@ -285,6 +320,16 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   void siClipPath(void collector, SIClipPath path) {
     path.paint(canvas, currentColor);
   }
+
+  @override
+  void images(void collector, List<SIImageData> im) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  void image(void collector, int imageNumber) {
+    throw UnimplementedError("@@ TODO");
+  }
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
@@ -379,6 +424,17 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
     _lastPathData = null;
     return boundary;
   }
+
+  @override
+  PruningBoundary images(PruningBoundary collector, List<SIImageData> im) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  PruningBoundary image(PruningBoundary collector, int imageNumber) {
+    // TODO: implement image
+    throw UnimplementedError("@@ TODO");
+  }
 }
 
 class _PruningBuilder extends _SICompactBuilder<CompactChildData>
@@ -467,6 +523,16 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
       return PruningBoundary(a.getBounds().expandToInclude(b.getBounds()));
       // See comment in _SIParentNode.getBoundary();
     }
+  }
+
+  @override
+  PruningBoundary? images(PruningBoundary? collector, List<SIImageData> im) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  PruningBoundary? image(PruningBoundary? collector, int imageNumber) {
+    throw UnimplementedError("@@ TODO");
   }
 }
 

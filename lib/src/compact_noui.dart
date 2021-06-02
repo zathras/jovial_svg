@@ -553,8 +553,10 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   final DataOutputSink children;
   final FloatSink args;
   final FloatSink transforms;
+
   @override
   final bool warn;
+
   bool _done = false;
   double? _width;
   double? _height;
@@ -741,6 +743,17 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
+
+
+  @override
+  void images(void collector, List<SIImageData> im) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  void image(void collector, imageNumber) {
+    throw UnimplementedError("@@ TODO");
+  }
 
   PathDataT immutableKey(PathDataT pathData);
 }

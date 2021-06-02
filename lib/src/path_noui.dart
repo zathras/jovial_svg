@@ -30,9 +30,6 @@ import 'dart:math';
 
 import 'common_noui.dart';
 
-typedef PointT = Point<double>;
-typedef RadiusT = Point<double>;
-
 ///
 /// A builder of a path.
 ///

@@ -108,105 +108,107 @@ class _DemoScreenState extends State<DemoScreen> {
         ),
         body: Column(children: [
           SizedBox(height: 5),
-          Wrap(
-              spacing: 10,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                SizedBox(width: 0),
-                SizedBox(
-                    width: 130,
-                    child: Row(children: [
-                      ElevatedButton(
-                        onPressed: (assetIndex > 0)
-                            ? () {
-                                assetIndex--;
-                                _setType(AssetType.svg);
-                              }
-                            : null,
-                        child: Icon(Icons.arrow_left),
-                      ),
-                      Spacer(),
-                      ElevatedButton(
-                        onPressed: (assetIndex + 1 < assets.length)
-                            ? () {
-                                assetIndex++;
-                                _setType(AssetType.svg);
-                              }
-                            : null,
-                        child: Icon(Icons.arrow_right),
-                      ),
-                    ])),
-                SizedBox(width: 40),
-                SizedBox(
-                    width: 180,
-                    child: Row(children: [
-                      Text('SVG'),
-                      Radio(
-                          value: AssetType.svg,
-                          groupValue: assetType,
-                          onChanged: _setType),
-                      Spacer(),
-                      Text('AVD',
-                          style: (asset.avd == null)
-                              ? const TextStyle(color: Colors.grey)
-                              : const TextStyle()),
-                      Radio(
-                          value: AssetType.avd,
-                          groupValue: assetType,
-                          onChanged: asset.avd == null ? null : _setType),
-                      Spacer(),
-                      Text('SI',
-                          style: (asset.si == null)
-                              ? const TextStyle(color: Colors.grey)
-                              : const TextStyle()),
-                      Radio(
-                          value: AssetType.si,
-                          groupValue: assetType,
-                          onChanged: asset.si == null ? null : _setType),
-                    ])),
-                SizedBox(width: 10),
-                SizedBox(
-                    width: 450,
-                    child: Row(children: [
-                      Slider(
-                        min: -8,
-                        max: 8,
-                        value: _fitToScreen ? 0 : _scale,
-                        onChanged: _fitToScreen
-                            ? null
-                            : (double v) {
-                                setState(() {
-                                  _scale = v;
-                                });
-                              },
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _fitToScreen
-                                ? ' '
-                                : 'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
-                            textAlign: TextAlign.left,
-                          ),
-                          Text(assets[assetIndex].fileName(assetType)!)
-                        ],
-                      ),
-                    ])),
-                SizedBox(
-                    width: 140,
-                    child: Row(children: [
-                      Text('Fit to screen:  '),
-                      Checkbox(
-                          value: _fitToScreen,
-                          onChanged: (_) => setState(() {
-                                _fitToScreen = !_fitToScreen;
-                              })),
-                    ])),
-                SizedBox(width: 30),
-                ElevatedButton(onPressed: () {}, child: Text('Browser')),
-                SizedBox(width: 30),
-              ]),
+          Center(
+            child: Wrap(
+                spacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(width: 0),
+                  SizedBox(
+                      width: 130,
+                      child: Row(children: [
+                        ElevatedButton(
+                          onPressed: (assetIndex > 0)
+                              ? () {
+                                  assetIndex--;
+                                  _setType(AssetType.svg);
+                                }
+                              : null,
+                          child: Icon(Icons.arrow_left),
+                        ),
+                        Spacer(),
+                        ElevatedButton(
+                          onPressed: (assetIndex + 1 < assets.length)
+                              ? () {
+                                  assetIndex++;
+                                  _setType(AssetType.svg);
+                                }
+                              : null,
+                          child: Icon(Icons.arrow_right),
+                        ),
+                      ])),
+                  SizedBox(width: 40),
+                  SizedBox(
+                      width: 180,
+                      child: Row(children: [
+                        Text('SVG'),
+                        Radio(
+                            value: AssetType.svg,
+                            groupValue: assetType,
+                            onChanged: _setType),
+                        Spacer(),
+                        Text('AVD',
+                            style: (asset.avd == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
+                        Radio(
+                            value: AssetType.avd,
+                            groupValue: assetType,
+                            onChanged: asset.avd == null ? null : _setType),
+                        Spacer(),
+                        Text('SI',
+                            style: (asset.si == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
+                        Radio(
+                            value: AssetType.si,
+                            groupValue: assetType,
+                            onChanged: asset.si == null ? null : _setType),
+                      ])),
+                  SizedBox(width: 10),
+                  SizedBox(
+                      width: 450,
+                      child: Row(children: [
+                        Slider(
+                          min: -8,
+                          max: 8,
+                          value: _fitToScreen ? 0 : _scale,
+                          onChanged: _fitToScreen
+                              ? null
+                              : (double v) {
+                                  setState(() {
+                                    _scale = v;
+                                  });
+                                },
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _fitToScreen
+                                  ? ' '
+                                  : 'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
+                              textAlign: TextAlign.left,
+                            ),
+                            Text(assets[assetIndex].fileName(assetType)!)
+                          ],
+                        ),
+                      ])),
+                  SizedBox(
+                      width: 140,
+                      child: Row(children: [
+                        Text('Fit to screen:  '),
+                        Checkbox(
+                            value: _fitToScreen,
+                            onChanged: (_) => setState(() {
+                                  _fitToScreen = !_fitToScreen;
+                                })),
+                      ])),
+                  SizedBox(width: 30),
+                  ElevatedButton(onPressed: () {}, child: Text('Browser')),
+                  SizedBox(width: 30),
+                ]),
+          ),
           SizedBox(height: 10),
           Expanded(
               child: _maybeScrolling(si == null

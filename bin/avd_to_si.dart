@@ -9,9 +9,10 @@ class AvdToSI extends ToSI {
   @override
   void parse(String src, SIBuilder<String> builder) =>
       StringAvdParser(src, builder).parse();
+
+  @override
+  String get extension => '.xml';
 }
 
-Future<void> main(List<String> arguments) {
-  final converter = AvdToSI();
-  return converter.main(arguments);
-}
+Future<void> main(List<String> arguments) =>
+    AvdToSI().main(arguments);

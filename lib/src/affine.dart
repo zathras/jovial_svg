@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-library jovial_svg.matrix;
+library jovial_svg.affine;
 
 import 'dart:math';
 import 'dart:typed_data';

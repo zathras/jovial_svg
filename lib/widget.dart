@@ -31,15 +31,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:quiver/core.dart' as quiver;
 
 import 'jovial_svg.dart';
 
-abstract class ScalableImageWidget extends StatelessWidget {
+abstract class ScalableImageWidget extends StatefulWidget {
   ScalableImageWidget._p(Key? key) : super(key: key);
 
   ///
   /// Create a lightweight widget to display a pre-loaded [ScalableImage].
+  ///
+  /// If the [ScalableImage] contains embedded images, it is recommended
+  /// that the caller await a call to [ScalableImage.prepareImages()] before
+  /// creating the widget.  See also [ScalableImage.unprepareImages()].  If
+  /// this is not done, there might be a delay after the widget is created
+  /// while the image(s) are decoded.
   ///
   factory ScalableImageWidget(
           {Key? key,
@@ -68,16 +75,48 @@ abstract class ScalableImageWidget extends StatelessWidget {
 class _SyncSIWidget extends ScalableImageWidget {
   final _SIPainter _painter;
   final Size _size;
+  final ScalableImage _si;
 
   _SyncSIWidget(Key? key, ScalableImage si, BoxFit fit, Alignment alignment,
       bool clip, double scale)
       : _painter = _SIPainter(si, fit, alignment, clip),
         _size = Size(si.viewport.width * scale, si.viewport.height * scale),
+        _si = si,
         super._p(key);
 
   @override
+  State<StatefulWidget> createState() => _SyncSIWidgetState();
+}
+
+class _SyncSIWidgetState extends State<_SyncSIWidget> {
+
+  _SyncSIWidgetState();
+
+  @override
+  void initState() {
+    super.initState();
+    _registerWithFuture(widget._si.prepareImages());
+  }
+
+  @override
+  void didUpdateWidget(_SyncSIWidget old) {
+    _registerWithFuture(widget._si.prepareImages());
+    old._si.unprepareImages();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget._si.unprepareImages();
+  }
+
+  void _registerWithFuture(final Future<void> f) {
+    unawaited(f.then((void _) => setState(() {})));
+  }
+
+  @override
   Widget build(BuildContext context) =>
-      CustomPaint(painter: _painter, size: _size);
+      CustomPaint(painter: widget._painter, size: widget._size);
 }
 
 class _SIPainter extends CustomPainter {
@@ -152,53 +191,44 @@ class _AsyncSIWidget extends ScalableImageWidget {
       : super._p(key);
 
   @override
-  Widget build(BuildContext context) => _SIBuilderWidget(this);
+  State<StatefulWidget> createState() => _AsyncSIWidgetState();
 }
 
-class _SIBuilderWidget extends StatefulWidget {
-  final _AsyncSIWidget params;
-
-  const _SIBuilderWidget(this.params);
-
-  @override
-  State<StatefulWidget> createState() => _SIBuilderState();
-}
-
-class _SIBuilderState extends State<_SIBuilderWidget> {
+class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   ScalableImage? _si;
 
   @override
   void initState() {
     super.initState();
-    _registerWithFuture(widget.params._siSource);
+    _registerWithFuture(widget._siSource);
   }
 
   @override
-  void didUpdateWidget(_SIBuilderWidget old) {
+  void didUpdateWidget(_AsyncSIWidget old) {
     super.didUpdateWidget(old);
-    if (old.params._siSource != widget.params._siSource) {
+    if (old._siSource != widget._siSource) {
       _si = null;
-      _registerWithFuture(widget.params._siSource);
+      _registerWithFuture(widget._siSource);
     }
   }
 
   void _registerWithFuture(final ScalableImageSource src) {
-    src.si.then((ScalableImage a) {
-      if (widget.params._siSource == src) {
+    unawaited(src.si.then((ScalableImage a) {
+      if (widget._siSource == src) {
         // If it's not stale, perhaps due to reparenting
         setState(() => _si = a);
       }
-    });
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
     final si = _si;
     if (si == null) {
-      return Container(width: 100, height: 100); // @@@@ hack
+      return Container(width: 1, height: 1);
     } else {
-      final p = widget.params;
-      return _SyncSIWidget(null, si, p._fit, p._alignment, p._clip, p._scale);
+      return _SyncSIWidget(null, si, widget._fit, widget._alignment,
+          widget._clip, widget._scale);
     }
   }
 }

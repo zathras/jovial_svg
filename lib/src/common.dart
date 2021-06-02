@@ -29,11 +29,12 @@ SOFTWARE.
 library jovial_svg.common;
 
 import 'dart:math';
-import 'dart:ui';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:quiver/core.dart' as quiver;
+import 'package:quiver/collection.dart' as quiver;
 
 import 'affine.dart';
 import 'common_noui.dart';
@@ -299,6 +300,115 @@ class SIPath extends SIRenderable {
 
   @override
   int get hashCode => quiver.hash2(path, siPaint);
+}
+
+class SIImage extends SIImageData implements SIRenderable {
+  int _timesPrepared = 0;
+  ui.Image? _decoded;
+  ui.Codec? _codec;
+  // ui.ImageDescriptor? _descriptor;
+
+  SIImage(SIImageData data) : super.copy(data);
+
+  @override
+  PruningBoundary? getBoundary() =>
+      PruningBoundary(Rect.fromLTWH(x, y, width.toDouble(), height.toDouble()));
+
+  @override
+  SIRenderable? prunedBy(PruningBoundary b, Set<SIRenderable> dagger) {
+    final Rect imageB =
+        Rect.fromLTWH(x, y, width.toDouble(), height.toDouble());
+    final bb = b.getBounds();
+    if (imageB.overlaps(bb)) {
+      return this;
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> prepare() async {
+    _timesPrepared++;
+    if (_timesPrepared > 1) {
+      return;
+    }
+    assert(_decoded == null);
+    final buf = await ui.ImmutableBuffer.fromUint8List(encoded);
+    final des = await ui.ImageDescriptor.encoded(buf);
+    // It's not documented whether ImageDescriptor takes over ownership of
+    // buf, or if we're supposed to call buf.dispose().  After some
+    // trial-and-error, it appears that it's the former, that is, we're
+    // not supposed to call buf.dispose.  Or, it could be the bug(s) addressed
+    // by this:  https://github.com/flutter/engine/pull/26435
+    //
+    // For now, I'll just refrain from disposing buf.  This area looks to
+    // be pretty flaky (as of June 2021), what with ImageDescriptor.dispose()
+    // not being implemented.
+    //
+    // https://github.com/flutter/flutter/issues/83764
+    //
+    // TODO:  Revisit this when this area of Flutter is less flaky
+    final codec = _codec = await des.instantiateCodec();
+    final decoded = (await codec.getNextFrame()).image;
+    if (_timesPrepared > 0) {
+      _decoded = decoded;
+      _codec = codec;
+      // _descriptor = des;
+    } else {
+      decoded.dispose();  // Too late!
+      codec.dispose();
+      // https://github.com/flutter/flutter/issues/83421:
+      // _descriptor?.dispose();
+      // Further, it's not clear from the documentation if we're *supposed*
+      // to call it, given that we dispose the codec.  Once it's implemented,
+      // it will be possible to test this.
+    }
+  }
+
+  void unprepare() {
+    if (_timesPrepared <= 0) {
+      throw StateError('Attempt to unprepare() and image that was not prepare()d');
+    }
+    _timesPrepared--;
+    if (_timesPrepared == 0) {
+      _decoded?.dispose();    // Could be null if prepare() is still running
+      _codec?.dispose();
+      _decoded = null;
+      // https://github.com/flutter/flutter/issues/83421:
+      // _descriptor?.dispose();
+      // Further, it's not clear from the documentation if we're *supposed*
+      // to call it, given that we dispose the codec.
+    }
+  }
+
+  @override
+  void paint(Canvas c, Color currentColor) {
+    final im = _decoded;
+    if (im != null) {
+      final src = Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
+      final dest = Rect.fromLTWH(x, y, width, height);
+      // c.drawImage(im, Offset(x, y), Paint());
+      c.drawImageRect(im, src, dest, Paint());
+    }
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (!(other is SIImage)) {
+      return false;
+    } else {
+      return x == other.x &&
+          y == other.y &&
+          width == other.width &&
+          height == other.height &&
+          quiver.listsEqual(encoded, other.encoded);
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash2(
+      quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
 }
 
 ///

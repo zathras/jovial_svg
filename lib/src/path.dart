@@ -28,6 +28,7 @@ library jovial_svg.path;
 
 import 'dart:ui';
 import 'path_noui.dart';
+import 'common_noui.dart';
 
 ///
 /// Buidler of a Flutter UI path.  See [PathBuilder] for usage.
