@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+
 ///
 /// The generic portion of ScalableImageCompact.  This is separated out with
 /// no dependencies on Flutter so that the non-flutter application

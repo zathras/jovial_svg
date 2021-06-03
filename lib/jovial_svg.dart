@@ -1,26 +1,32 @@
 /*
-MIT License
-
 Copyright (c) 2021 William Foote
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+  * Neither the name of the copyright holder nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+*/
 
 library jovial_svg;
 
@@ -37,7 +43,7 @@ import 'src/compact.dart';
 import 'src/dag.dart';
 import 'src/svg_parser.dart';
 
-abstract class ScalableImage {
+abstract class ScalableImage extends _PackageInitializer {
   final double? width;
   final double? height;
   Rect? _viewport;
@@ -60,14 +66,16 @@ abstract class ScalableImage {
 
   @protected
   ScalableImage.modifiedFrom(ScalableImage other,
-      {required Rect? viewport, required Color currentColor,
-       required Color? tintColor, required BlendMode tintMode})
+      {required Rect? viewport,
+      required Color currentColor,
+      required Color? tintColor,
+      required BlendMode tintMode})
       : width = viewport?.width ?? other.width,
         height = viewport?.height ?? other.height,
         _viewport = _newViewport(viewport, other._viewport),
         tintMode = tintMode,
         tintColor = tintColor,
-        _images = other._images,  // TODO:  Prune this
+        _images = other._images, // TODO:  Prune this
         currentColor = currentColor;
 
   static Rect? _newViewport(Rect? incoming, Rect? old) {
@@ -116,9 +124,8 @@ abstract class ScalableImage {
   ///
   /// Return a new ScalableImage like this one, with tint modified.
   ///
-  ScalableImage modifyTint({
-      required BlendMode newTintMode,
-      required Color? newTintColor});
+  ScalableImage modifyTint(
+      {required BlendMode newTintMode, required Color? newTintColor});
 
   ///
   /// Return a new ScalableImage like this one, with currentColor
@@ -284,9 +291,8 @@ abstract class ScalableImage {
   Future<void> prepareImages() async {
     // Start preparing them all, with no await, so that the prepare count
     // is immediately incremented.
-    print("@@aa ${_images.length}");
-    final waiting = List<Future<void>>.generate(_images.length, (i) =>
-        _images[i].prepare());
+    final waiting = List<Future<void>>.generate(
+        _images.length, (i) => _images[i].prepare());
     for (final w in waiting) {
       await w;
     }
@@ -314,4 +320,46 @@ abstract class ScalableImage {
 
   @protected
   void paintChildren(Canvas c, Color currentColor);
+}
+
+class _PackageInitializer {
+  static bool _first = true;
+  static const _licenseText = '''
+Copyright (c) 2021 William Foote
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions 
+are met:
+
+  * Redistributions of source code must retain the above copyright notice, 
+  this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright 
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+  * Neither the name of the copyright holder nor the names of its 
+  contributors may be used to endorse or promote products derived 
+  from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER(S) AND CONTRIBUTORS 
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.''';
+  _PackageInitializer() {
+    if (_first) {
+      _first = false;
+      LicenseRegistry.addLicense(_getLicense);
+    }
+  }
+
+  static Stream<LicenseEntry> _getLicense() async* {
+    yield LicenseEntryWithLineBreaks(['jovial_svg'], _licenseText);
+  }
 }

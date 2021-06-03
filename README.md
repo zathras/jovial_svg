@@ -11,17 +11,19 @@ are also supported.  A widget for displaying scalable images is provided.
 
 SVG profile notes:
 
-  *  Unlike Tiny, the "`style=`" attribute is supported as an alternative
-     to proper SVG Tiny attributes.  The rest of CSS is not supported,
-     however.
+  *  As per the Tiny spec s. 6.2, full CSS is not supported.  However, the
+     `style=` attribute is supported as a way of specifying presentation
+     attributes.
   *  The `stroke-dasharray` and `stroke-dashoffset` attributes are
      not supported (cf. Tiny s. 11.4).
   *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   *  Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
   *  DOM support and features related to animation are not supported.
+  *  Conditional processing (Tiny s. 5.8) is not supported
   *  Text restrictions:
       * `textArea` is not supported (not in SVG 1.1).
       * `font-variant` (`small-caps`) is not supported
       * `rotate` is not supported (but normal transformations, including rotation apply).
       * Embedded fonts are not supported.
+      * Bi-directional text is not supported
