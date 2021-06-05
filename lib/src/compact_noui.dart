@@ -214,7 +214,10 @@ class CompactTraverser<R> {
         strokeMiterLimit: strokeMiterLimit,
         strokeJoin: strokeJoin,
         strokeCap: strokeCap,
-        fillType: fillType);
+        fillType: fillType,
+        strokeDashArray: null,
+        strokeDashOffset: null);
+    throw UnimplementedError("@@ TODO dash array");
     if (hasPaintNumber) {
       _rewindChildren.seek = oldChildrenSeek;
       _rewindArgs.seek = oldArgsSeek;
@@ -754,11 +757,6 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
       assert(len + 1 == _pathShare.length);
       return CompactPathBuilder(this);
     }
-  }
-
-  void dashedPath(void collector, PathDataT pathData, int dashesIndex,
-      SIPaint paint) {
-    throw UnimplementedError("@@ TODO");
   }
 
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});

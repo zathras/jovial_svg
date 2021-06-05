@@ -398,12 +398,6 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
       addRenderable(_images![imageNumber]);
 
   @override
-  void dashedPath(
-      void collector, PathDataT pathData, int dashesIndex, SIPaint paint) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
   void text(void collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, SIPaint p) {
     addRenderable(SIText(

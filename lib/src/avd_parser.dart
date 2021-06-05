@@ -315,7 +315,9 @@ abstract class AvdParser extends GenericParser {
                 strokeMiterLimit: strokeMiterLimit,
                 strokeJoin: strokeJoin,
                 strokeCap: strokeCap,
-                fillType: fillType));
+                fillType: fillType,
+                strokeDashArray: null,
+                strokeDashOffset: null));
       }
     }
   }

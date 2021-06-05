@@ -55,16 +55,10 @@ abstract class SIVisitor<PathDataT, R> {
   /// Called first on a traversal, this establishes the immutable values that
   /// are canonicalized.
   ///
-  R init(
-      R collector,
-      List<SIImageData> im,
-      List<String> strings,
-      List<List<double>> floatLists,
-      List<Affine> transforms);
+  R init(R collector, List<SIImageData> im, List<String> strings,
+      List<List<double>> floatLists, List<Affine> transforms);
 
   R path(R collector, PathDataT pathData, SIPaint paint);
-
-  R dashedPath(R collector, PathDataT pathData, int dashesIndex, SIPaint paint);
 
   R group(R collector, int? transformIndex);
 
@@ -151,6 +145,8 @@ class SIPaint {
   final SIStrokeJoin strokeJoin;
   final SIStrokeCap strokeCap;
   final SIFillType fillType;
+  final List<double>? strokeDashArray;
+  final double? strokeDashOffset;
 
   const SIPaint(
       {required this.fillColor,
@@ -161,7 +157,9 @@ class SIPaint {
       required double? strokeMiterLimit,
       required SIStrokeJoin? strokeJoin,
       required SIStrokeCap? strokeCap,
-      required SIFillType? fillType})
+      required SIFillType? fillType,
+      required this.strokeDashArray,
+      required this.strokeDashOffset})
       : strokeWidth = strokeWidth ?? strokeWidthDefault,
         strokeMiterLimit = strokeMiterLimit ?? strokeMiterLimitDefault,
         strokeJoin = strokeJoin ?? SIStrokeJoin.miter,
@@ -171,9 +169,30 @@ class SIPaint {
   static const double strokeMiterLimitDefault = 4;
   static const double strokeWidthDefault = 1;
 
+  SIPaint forText() => SIPaint(
+      fillColor: fillColor,
+      fillColorType: fillColorType,
+      strokeColor: 0,
+      strokeColorType: SIColorType.none,
+      strokeWidth: null,
+      strokeMiterLimit: null,
+      strokeJoin: null,
+      strokeCap: null,
+      fillType: null,
+      strokeDashArray: null,
+      strokeDashOffset: null);
+
   @override
-  int get hashCode => quiver.hash4(fillColor, strokeColor, strokeWidth,
-      quiver.hash4(strokeMiterLimit, strokeJoin, strokeCap, fillType));
+  int get hashCode => quiver.hash4(
+      fillColor,
+      strokeColor,
+      strokeWidth,
+      quiver.hash4(
+          strokeMiterLimit,
+          strokeJoin,
+          strokeCap,
+          quiver.hash3(fillType, strokeDashOffset,
+              quiver.hashObjects(strokeDashArray ?? <double>[]))));
 
   @override
   bool operator ==(Object other) {
@@ -185,7 +204,9 @@ class SIPaint {
           strokeWidth == other.strokeWidth &&
           strokeMiterLimit == other.strokeMiterLimit &&
           strokeJoin == other.strokeJoin &&
-          fillType == other.fillType;
+          fillType == other.fillType &&
+          quiver.listsEqual(strokeDashArray, other.strokeDashArray) &&
+          strokeDashOffset == other.strokeDashOffset;
     } else {
       return false;
     }
@@ -363,8 +384,10 @@ abstract class GenericParser {
   }
 
   List<double>? getFloatList(String? s) {
-    if (s == null || s.toLowerCase() == 'none') {
+    if (s == null) {
       return null;
+    } else if (s.toLowerCase() == 'none') {
+      return [];
     }
     final lex = BnfLexer(s);
     final r = List<double>.empty(growable: true);

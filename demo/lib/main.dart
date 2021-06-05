@@ -256,6 +256,7 @@ class _DemoScreenState extends State<DemoScreen> {
                   : ScalableImageWidget(
                       si: si!,
                       key: _siWidgetKey,
+                      alignment: Alignment.center,
                       scale: _fitToScreen ? double.infinity : _multiplier)))
         ]));
   }
@@ -284,7 +285,7 @@ class _DemoScreenState extends State<DemoScreen> {
 
   Widget _maybeScrolling(Widget scrollee) {
     if (_fitToScreen) {
-      return scrollee;
+      return Container(padding: EdgeInsets.all(5), child: scrollee);
     } else {
       // The ValueKey works around a bug with InteractiveViewer, where it
       // doesn't ensure that content is re-scrolled to make it visible when
@@ -305,12 +306,13 @@ class _DemoScreenState extends State<DemoScreen> {
       // over zooming there.
       //
       // cf. https://github.com/flutter/flutter/issues/83628
-      return InteractiveViewer(
+      return Container(padding: EdgeInsets.all(5),
+          child: InteractiveViewer(
           key: ValueKey(Tuple2(_scale, si)),
           constrained: false,
           scaleEnabled: false,
           panEnabled: true,
-          child: scrollee);
+          child: scrollee));
     }
   }
 }

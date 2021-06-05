@@ -383,6 +383,8 @@ abstract class SvgParser extends GenericParser {
     p.strokeCap = getStrokeCap(attrs.remove('stroke-linecap'));
     p.strokeJoin = getStrokeJoin(attrs.remove('stroke-linejoin'));
     p.strokeMiterLimit = getFloat(attrs.remove('stroke-miterlimit'));
+    p.strokeDashArray = getFloatList(attrs.remove('stroke-dasharray'));
+    p.strokeDashOffset = getFloat(attrs.remove('stroke-dashoffset'));
     final SvgTextAttributes t = node.textAttributes;
     t.fontFamily = attrs.remove('font-family');
 

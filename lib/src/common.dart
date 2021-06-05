@@ -301,7 +301,46 @@ class SIPath extends SIRenderable {
       _paint.strokeCap = siPaint.strokeCap.asStrokeCap;
       _paint.strokeJoin = siPaint.strokeJoin.asStrokeJoin;
       _paint.strokeMiterLimit = siPaint.strokeMiterLimit;
-      c.drawPath(path, _paint);
+      final List<double>? sda = siPaint.strokeDashArray;
+      if (sda == null || sda.length < 2) {
+        c.drawPath(path, _paint);
+        return;
+      }
+      final len = sda.reduce((a, b) => a + b);
+      if (len <= 0.0) {
+        c.drawPath(path, _paint);
+        return;
+      }
+      for (final contour in path.computeMetrics()) {
+        double offset = (siPaint.strokeDashOffset ?? 0.0) % len;
+        int sdaI = 0;
+        bool penDown = true;
+        double start = 0.0;
+        for (;;) {
+          final thisDash = sda[sdaI] - offset;
+          if (thisDash <= 0.0) {
+            offset -= sda[sdaI++];
+            sdaI %= sda.length;
+            penDown = !penDown;
+          } else if (start + thisDash >= contour.length) { // done w/ contour
+            final p = contour.extractPath(start, contour.length);
+            if (penDown) {
+              c.drawPath(p, _paint);
+            }
+            break; // out of for(;;) loop
+          } else {
+            final end = start + thisDash;
+            final p = contour.extractPath(start, end);
+            if (penDown) {
+              c.drawPath(p, _paint);
+            }
+            start = end;
+            sdaI++;
+            sdaI %= sda.length;
+            penDown = !penDown;
+          }
+        }
+      }
     }
   }
 
@@ -348,12 +387,12 @@ class SIPath extends SIRenderable {
 
 class SIImage extends SIRenderable {
   int _timesPrepared = 0;
-  SIImageData _data;
+  final SIImageData _data;
   ui.Image? _decoded;
   ui.Codec? _codec;
   // ui.ImageDescriptor? _descriptor;
 
-  SIImage(SIImageData this._data);
+  SIImage(this._data);
 
   double get x => _data.x;
   double get y => _data.y;

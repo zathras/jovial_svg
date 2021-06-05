@@ -54,10 +54,7 @@ class SvgParseGraph {
     final rootTA = SvgTextAttributes.initial();
     SvgGroup? newRoot = root.reduce(idLookup, rootPaint, builder.warn);
     builder.vector(
-        width: width,
-        height: height,
-        tintColor: null,
-        tintMode: null);
+        width: width, height: height, tintColor: null, tintMode: null);
     final theCanon = SvgCanonicalizedData();
     newRoot?.collectCanon(theCanon);
     builder.init(
@@ -130,7 +127,9 @@ abstract class SvgInheritableAttributes {
         strokeMiterLimit: paint.strokeMiterLimit ?? ancestor.strokeMiterLimit,
         strokeJoin: paint.strokeJoin ?? ancestor.strokeJoin,
         strokeCap: paint.strokeCap ?? ancestor.strokeCap,
-        fillType: paint.fillType ?? ancestor.fillType);
+        fillType: paint.fillType ?? ancestor.fillType,
+        strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
+        strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset);
   }
 
   SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
@@ -153,6 +152,8 @@ class SvgPaint {
   SIStrokeJoin? strokeJoin;
   SIStrokeCap? strokeCap;
   SIFillType? fillType;
+  List<double>? strokeDashArray;  // [] for "none"
+  double? strokeDashOffset;
 
   SvgPaint(
       {required this.currentColor,
@@ -164,7 +165,9 @@ class SvgPaint {
       required this.strokeMiterLimit,
       required this.strokeJoin,
       required this.strokeCap,
-      required this.fillType});
+      required this.fillType,
+      required this.strokeDashArray,
+      required this.strokeDashOffset});
 
   SvgPaint.empty()
       : fillColor = SvgColor.inherit,
@@ -181,14 +184,17 @@ class SvgPaint {
       strokeMiterLimit: 4,
       strokeJoin: SIStrokeJoin.miter,
       strokeCap: SIStrokeCap.butt,
-      fillType: SIFillType.nonZero);
+      fillType: SIFillType.nonZero,
+      strokeDashArray: null,
+      strokeDashOffset: null);
 
   @override
   int get hashCode => quiver.hash4(
       fillColor,
       fillAlpha,
       quiver.hash4(strokeColor, strokeAlpha, strokeWidth, strokeMiterLimit),
-      quiver.hash4(currentColor, strokeJoin, strokeCap, fillType));
+      quiver.hash4(currentColor, strokeJoin, strokeCap,
+          quiver.hash3(fillType, strokeDashOffset, quiver.hashObjects(strokeDashArray ?? <double>[]))));
 
   @override
   bool operator ==(Object other) {
@@ -203,7 +209,9 @@ class SvgPaint {
           strokeWidth == other.strokeWidth &&
           strokeMiterLimit == other.strokeMiterLimit &&
           strokeJoin == other.strokeJoin &&
-          fillType == other.fillType;
+          fillType == other.fillType &&
+          quiver.listsEqual(strokeDashArray, other.strokeDashArray) &&
+          strokeDashOffset == other.strokeDashOffset;
     } else {
       return false;
     }
@@ -219,7 +227,9 @@ class SvgPaint {
         strokeMiterLimit: strokeMiterLimit,
         strokeJoin: strokeJoin,
         strokeCap: strokeCap,
-        fillType: fillType);
+        fillType: fillType,
+        strokeDashArray: strokeDashArray,
+        strokeDashOffset: strokeDashOffset);
   }
 }
 
@@ -370,7 +380,6 @@ class SvgPath extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SIPaint curr) {
-    print('@@ path, ${curr.fillColor.toRadixString(16)}');
     builder.path(null, pathData, curr);
   }
 }
@@ -472,7 +481,7 @@ class SvgEllipse extends SvgPathMaker {
     if (pb == null) {
       return;
     }
-    pb.addOval(RectT(cx-rx, cy-ry, 2*rx, 2*ry));
+    pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
     pb.end();
   }
 
@@ -597,7 +606,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   @override
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
       SvgPaint ancestor, SvgTextAttributes ta) {
-    final currPaint = cascadePaint(ancestor).toSIPaint();
+    final currPaint = cascadePaint(ancestor).toSIPaint().forText();
     final currTA = cascadeText(ta).toSITextAttributes();
     if (transformIndex != null) {
       builder.group(null, transformIndex);
@@ -826,7 +835,6 @@ class _SvgColorCurrentColor extends SvgColor {
 }
 
 abstract class SvgFontWeight {
-
   const SvgFontWeight();
 
   static const SvgFontWeight w100 = _SvgFontWeightAbsolute(SIFontWeight.w100);
@@ -863,7 +871,8 @@ class _SvgFontWeightBolder extends SvgFontWeight {
   @override
   SvgFontWeight orInherit(SvgFontWeight ancestor) {
     int i = ancestor.toSI().index;
-    return _SvgFontWeightAbsolute(SIFontWeight.values[min(i+1, SIFontWeight.values.length - 1)]);
+    return _SvgFontWeightAbsolute(
+        SIFontWeight.values[min(i + 1, SIFontWeight.values.length - 1)]);
   }
 
   @override
@@ -879,7 +888,7 @@ class _SvgFontWeightLighter extends SvgFontWeight {
   @override
   SvgFontWeight orInherit(SvgFontWeight ancestor) {
     int i = ancestor.toSI().index;
-    return _SvgFontWeightAbsolute(SIFontWeight.values[max(i-1, 0)]);
+    return _SvgFontWeightAbsolute(SIFontWeight.values[max(i - 1, 0)]);
   }
 
   @override

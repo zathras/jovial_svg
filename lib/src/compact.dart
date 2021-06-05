@@ -310,12 +310,6 @@ abstract class _CompactVisitor<R>
   R siPath(R collector, SIPath p);
 
   @override
-  R dashedPath(
-      R collector, CompactChildData pathData, int dashesIndex, SIPaint paint) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
   R clipPath(R collector, CompactChildData pathData) {
     final pb = UIPathBuilder();
     CompactPathParser(pathData, pb).parse();
