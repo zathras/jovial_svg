@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   pedantic: ^1.0.8
   tuple: ^2.0.0
+  url_launcher: ^6.0.3
   jovial_svg:
     path: ../
 
@@ -38,11 +39,18 @@ flutter:
     - assets/svg/paris.svg
     - assets/svg/swiss-xvii.svg
     - assets/svg/tango.svg
-    - assets/svg/template-double.svg
-    - assets/svg/template-paris-text.svg
-    - assets/svg/template-paris.svg
-    - assets/svg/template-single-text.svg
-    - assets/svg/template-single.svg
+    - assets/svg/tiny_07_12.svg
+    - assets/svg/tiny_07_12_bbox01.svg
+    - assets/svg/tiny_08_03.svg
+    - assets/svg/tiny_08_03_cubic02.svg
+    - assets/svg/tiny_09_02.svg
+    - assets/svg/tiny_09_06.svg
+    - assets/svg/tiny_11_01.svg
+    - assets/svg/tiny_13_01.svg
+    - assets/svg/tiny_13_02.svg
+    - assets/svg/tiny_stroke_dasharray_1.svg
+    - assets/svg/tiny_stroke_dasharray_2.svg
+    - assets/svg/tiny_stroke_dasharray_3.svg
     - assets/avd/anglo.xml
     - assets/avd/bellot.xml
     - assets/avd/bonded.xml

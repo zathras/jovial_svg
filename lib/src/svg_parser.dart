@@ -49,7 +49,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 
-
 import 'package:xml/xml_events.dart';
 import 'affine.dart';
 import 'common_noui.dart';
@@ -65,6 +64,8 @@ abstract class SvgParser extends GenericParser {
   final attributesIgnored = <String>{};
 
   final _parentStack = List<SvgGroup>.empty(growable: true);
+
+  SvgText? _currentText;
 
   ///
   /// The result of parsing.  For SVG files we need to generate an intermediate
@@ -102,6 +103,11 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
+      } else if (evt.name == 'defs') {
+        _processDefs(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _parentStack.length = _parentStack.length - 1;
+        }
       } else if (evt.name == 'path') {
         _processPath(_toMap(evt.attributes));
       } else if (evt.name == 'rect') {
@@ -118,6 +124,11 @@ abstract class SvgParser extends GenericParser {
         _processPoly(true, _toMap(evt.attributes));
       } else if (evt.name == 'image') {
         _processImage(_toMap(evt.attributes));
+      } else if (evt.name == 'text') {
+        _currentText = _processText(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _currentText = null;
+        }
       } else if (evt.name == 'use') {
         _processUse(_toMap(evt.attributes));
       } else if (warn && tagsIgnored.add(evt.name)) {
@@ -129,20 +140,49 @@ abstract class SvgParser extends GenericParser {
     }
   }
 
+  void _textEvent(XmlTextEvent e) {
+    final el = _currentText;
+    if (el != null) {
+      if (el.text == '') {
+        el.text = e.text.trim();
+      } else {
+        el.text = el.text + ' ' + e.text.trim();
+      }
+    }
+  }
+
   void _endTag(XmlEndElementEvent evt) {
-    if (_parentStack.isNotEmpty && (evt.name == 'svg' || evt.name == 'g')) {
+    if (_parentStack.isNotEmpty &&
+        (evt.name == 'svg' || evt.name == 'g' || evt.name == 'defs')) {
       _parentStack.length = _parentStack.length - 1;
+    } else if (evt.name == 'text') {
+      _currentText = null;
     }
   }
 
   void _processSvg(Map<String, String> attrs) {
-    final root = SvgGroup();
     attrs.remove('xmlns');
     attrs.remove('xmlns:xlink');
     attrs.remove('version');
     attrs.remove('id');
-    final double? width = getFloat(attrs.remove('width'));
-    final double ?height = getFloat(attrs.remove('height'));
+    double? width = getFloat(attrs.remove('width'));
+    double? height = getFloat(attrs.remove('height'));
+    final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
+    final SvgGroup root;
+    if (viewbox == null) {
+      root = SvgGroup();
+    } else {
+      final transform = MutableAffine.identity();
+      if (width != null && height != null) {
+        transform.multiplyBy(MutableAffine.scale(width / viewbox.width, height / viewbox.height));
+      }
+      transform.multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
+      if (transform.isIdentity()) {
+        root = SvgGroup();
+      } else {
+        root = SvgGroup.withTransform(transform);
+      }
+    }
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
     final r = svg = SvgParseGraph(root, width, height);
@@ -158,11 +198,20 @@ abstract class SvgParser extends GenericParser {
     _parentStack.add(group);
   }
 
+  void _processDefs(Map<String, String> attrs) {
+    final group = SvgDefs();
+    _processId(group, attrs);
+    _processInheritable(group, attrs);
+    _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(group);
+    _parentStack.add(group);
+  }
+
   void _processPath(Map<String, String> attrs) {
     final d = attrs.remove('d') ?? '';
     final path = SvgPath(d);
     _processId(path, attrs);
-    _processInheritable(path, attrs); // transform probably not allowed
+    _processInheritable(path, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(path);
   }
@@ -189,7 +238,7 @@ abstract class SvgParser extends GenericParser {
     ry = min(ry, width / 2);
     final rect = SvgRect(x, y, width, height, rx, ry);
     _processId(rect, attrs);
-    _processInheritable(rect, attrs); // transform probably not allowed
+    _processInheritable(rect, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(rect);
   }
@@ -200,7 +249,7 @@ abstract class SvgParser extends GenericParser {
     final double r = getFloat(attrs.remove('r')) ?? 0;
     final e = SvgEllipse(cx, cy, r, r);
     _processId(e, attrs);
-    _processInheritable(e, attrs); // transform probably not allowed
+    _processInheritable(e, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(e);
   }
@@ -212,7 +261,7 @@ abstract class SvgParser extends GenericParser {
     final double ry = getFloat(attrs.remove('ry')) ?? 0;
     final e = SvgEllipse(cx, cy, rx, ry);
     _processId(e, attrs);
-    _processInheritable(e, attrs); // transform probably not allowed
+    _processInheritable(e, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(e);
   }
@@ -224,7 +273,7 @@ abstract class SvgParser extends GenericParser {
     final double y2 = getFloat(attrs.remove('y2')) ?? 0;
     final line = SvgPoly(false, [Point(x1, y1), Point(x2, y2)]);
     _processId(line, attrs);
-    _processInheritable(line, attrs); // transform probably not allowed
+    _processInheritable(line, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(line);
   }
@@ -245,7 +294,7 @@ abstract class SvgParser extends GenericParser {
     }
     final line = SvgPoly(close, points);
     _processId(line, attrs);
-    _processInheritable(line, attrs); // transform probably not allowed
+    _processInheritable(line, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(line);
   }
@@ -270,9 +319,20 @@ abstract class SvgParser extends GenericParser {
       }
     }
     _processId(image, attrs);
-    _processInheritable(image, attrs); // transform probably not allowed
+    _processInheritable(image, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(image);
+  }
+
+  SvgText _processText(Map<String, String> attrs) {
+    final n = SvgText();
+    n.x = getFloatList(attrs.remove('x')) ?? n.x;
+    n.y = getFloatList(attrs.remove('y')) ?? n.y;
+    _processId(n, attrs);
+    _processInheritable(n, attrs);
+    _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(n);
+    return n;
   }
 
   void _processUse(Map<String, String> attrs) {
@@ -310,7 +370,8 @@ abstract class SvgParser extends GenericParser {
     }
   }
 
-  void _processInheritable(SvgInheritableAttributes node, Map<String, String> attrs) {
+  void _processInheritable(
+      SvgInheritableAttributes node, Map<String, String> attrs) {
     final SvgPaint p = node.paint;
     p.currentColor = getSvgColor(attrs.remove('color')?.trim().toLowerCase());
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim().toLowerCase());
@@ -323,51 +384,55 @@ abstract class SvgParser extends GenericParser {
     p.strokeJoin = getStrokeJoin(attrs.remove('stroke-linejoin'));
     p.strokeMiterLimit = getFloat(attrs.remove('stroke-miterlimit'));
     final SvgTextAttributes t = node.textAttributes;
-    t.fontFamily = attrs.remove('fontfamily');
+    t.fontFamily = attrs.remove('font-family');
 
-    String? attr = attrs.remove('fontstyle')?.toLowerCase();
+    String? attr = attrs.remove('font-style')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
-      // Let it stay at inherit
+      // Let it stay at null
     } else if (attr == 'normal') {
       t.fontStyle = SIFontStyle.normal;
     } else if (attr == 'italic') {
       t.fontStyle = SIFontStyle.italic;
     } else if (attr == 'oblique') {
-      t.fontStyle = SIFontStyle.inherit;
+      t.fontStyle = SIFontStyle.italic;
     } else if (warn) {
       print('    Ignoring invalid fontStyle "$attr"');
     }
 
-    attr = attrs.remove('fontweight')?.toLowerCase();
+    attr = attrs.remove('font-weight')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at inherit
+    } else if (attr == 'normal') {
+      t.fontWeight = SvgFontWeight.w400;
+    } else if (attr == 'bold') {
+      t.fontWeight = SvgFontWeight.w700;
     } else if (attr == '100') {
-      t.fontWeight = SIFontWeight.w100;
+      t.fontWeight = SvgFontWeight.w100;
     } else if (attr == '200') {
-      t.fontWeight = SIFontWeight.w200;
+      t.fontWeight = SvgFontWeight.w200;
     } else if (attr == '300') {
-      t.fontWeight = SIFontWeight.w300;
+      t.fontWeight = SvgFontWeight.w300;
     } else if (attr == '400') {
-      t.fontWeight = SIFontWeight.w400;
+      t.fontWeight = SvgFontWeight.w400;
     } else if (attr == '500') {
-      t.fontWeight = SIFontWeight.w500;
+      t.fontWeight = SvgFontWeight.w500;
     } else if (attr == '600') {
-      t.fontWeight = SIFontWeight.w600;
+      t.fontWeight = SvgFontWeight.w600;
     } else if (attr == '700') {
-      t.fontWeight = SIFontWeight.w700;
+      t.fontWeight = SvgFontWeight.w700;
     } else if (attr == '800') {
-      t.fontWeight = SIFontWeight.w800;
+      t.fontWeight = SvgFontWeight.w800;
     } else if (attr == '900') {
-      t.fontWeight = SIFontWeight.w900;
+      t.fontWeight = SvgFontWeight.w900;
     } else if (attr == 'bolder') {
-      t.fontWeight = SIFontWeight.bolder;
+      t.fontWeight = SvgFontWeight.bolder;
     } else if (attr == 'lighter') {
-      t.fontWeight = SIFontWeight.lighter;
+      t.fontWeight = SvgFontWeight.lighter;
     } else if (warn) {
       print('    Ignoring invalid fontStyle "$attr"');
     }
 
-    attr = attrs.remove('fontsize')?.toLowerCase();
+    attr = attrs.remove('font-size')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at inherit
     } else if (attr == 'xx-small') {
@@ -389,7 +454,7 @@ abstract class SvgParser extends GenericParser {
     } else if (attr == 'smaller') {
       t.fontSize = SvgFontSize.smaller;
     } else {
-      double? d = double.tryParse(attr);
+      double? d = getFloat(attr);
       if (d != null) {
         t.fontSize = SvgFontSize.absolute(d);
       } else if (warn) {
@@ -397,14 +462,14 @@ abstract class SvgParser extends GenericParser {
       }
     }
 
-    node.transform = getTransform(attrs.remove('transform'));
+    node.transform = getTransform(node.transform, attrs.remove('transform'));
   }
 
-  MutableAffine? getTransform(String? s) {
+  MutableAffine? getTransform(MutableAffine? initial, String? s) {
     if (s == null) {
-      return null;
+      return initial;
     }
-    final result = MutableAffine.identity();
+    final result = initial ?? MutableAffine.identity();
     final lexer = BnfLexer(s.toLowerCase());
     for (;;) {
       final t = lexer.tryNextIdentifier();
@@ -558,7 +623,7 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitProcessingEvent(XmlProcessingEvent event) {}
 
   @override
-  void visitTextEvent(XmlTextEvent event) {}
+  void visitTextEvent(XmlTextEvent event) => parser._textEvent(event);
 }
 
 class StreamSvgParser extends SvgParser {

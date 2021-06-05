@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 library jovial_svg.svg_graph;
 
 import 'dart:collection';
@@ -52,29 +51,73 @@ class SvgParseGraph {
 
   void build(SIBuilder<String> builder) {
     final rootPaint = SvgPaint.initial();
+    final rootTA = SvgTextAttributes.initial();
     SvgGroup? newRoot = root.reduce(idLookup, rootPaint, builder.warn);
     builder.vector(
-        width: width, height: height, tintColor: null, tintMode: null);
-    final images = List<SIImageData>.empty(growable: true);
-    newRoot?.collectImages(images);
-    builder.images(null, images);
-    newRoot?.build(builder, rootPaint);
+        width: width,
+        height: height,
+        tintColor: null,
+        tintMode: null);
+    final theCanon = SvgCanonicalizedData();
+    newRoot?.collectCanon(theCanon);
+    builder.init(
+        null,
+        theCanon.toList(theCanon.images),
+        theCanon.toList(theCanon.strings),
+        theCanon.toList(theCanon.floatLists),
+        theCanon.toList(theCanon.transforms));
+    newRoot?.build(builder, theCanon, rootPaint, rootTA);
     builder.endVector();
+  }
+}
+
+class SvgCanonicalizedData {
+  final Map<SIImageData, int> images = {};
+  final Map<String, int> strings = {};
+  final Map<List<double>, int> floatLists = HashMap(
+      equals: (List<double> k1, List<double> k2) => quiver.listsEqual(k1, k2),
+      hashCode: (List<double> k) => quiver.hashObjects(k));
+  final Map<Affine, int> transforms = {};
+
+  int? getIndex<T extends Object>(Map<T, int> map, T? value) {
+    if (value == null) {
+      return null;
+    }
+    final len = map.length;
+    return map.putIfAbsent(value, () => len);
+  }
+
+  List<T> toList<T>(Map<T, int> map) {
+    if (map.length == 0) {
+      return List<T>.empty();
+    }
+    T random = map.entries.first.key;
+    final r = List<T>.filled(map.length, random);
+    for (final MapEntry<T, int> e in map.entries) {
+      r[e.value] = e.key;
+    }
+    return r;
   }
 }
 
 abstract class SvgNode {
   SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn);
 
-  void build(SIBuilder<String> builder, SvgPaint ancestor);
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta);
 
-  void collectImages(List<SIImageData> images);
+  void collectCanon(SvgCanonicalizedData canon);
 }
 
 abstract class SvgInheritableAttributes {
   MutableAffine? transform;
+  int? transformIndex;
   SvgPaint paint = SvgPaint.empty();
-  SvgTextAttributes textAttributes = SvgTextAttributes();
+  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+
+  bool _isInvisible(SvgPaint paint) =>
+      (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
+      (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none);
 
   SvgPaint cascadePaint(SvgPaint ancestor) {
     return SvgPaint(
@@ -88,6 +131,14 @@ abstract class SvgInheritableAttributes {
         strokeJoin: paint.strokeJoin ?? ancestor.strokeJoin,
         strokeCap: paint.strokeCap ?? ancestor.strokeCap,
         fillType: paint.fillType ?? ancestor.fillType);
+  }
+
+  SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
+    return SvgTextAttributes(
+        fontSize: textAttributes.fontSize.orInherit(ancestor.fontSize),
+        fontFamily: textAttributes.fontFamily ?? ancestor.fontFamily,
+        fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
+        fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
 }
 
@@ -177,6 +228,10 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
 
   SvgGroup();
 
+  SvgGroup.withTransform(MutableAffine transform) {
+    this.transform = transform;
+  }
+
   @override
   SvgGroup? reduce(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
@@ -200,20 +255,36 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void build(SIBuilder<String> builder, SvgPaint ancestor) {
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
     SvgPaint curr = cascadePaint(ancestor);
-    builder.group(null, transform);
+    final currTA = cascadeText(ta);
+    builder.group(null, transformIndex);
     for (final c in children) {
-      c.build(builder, curr);
+      c.build(builder, canon, curr, currTA);
     }
     builder.endGroup(null);
   }
 
   @override
-  void collectImages(List<SIImageData> images) {
+  void collectCanon(SvgCanonicalizedData canon) {
+    transformIndex = canon.getIndex(canon.transforms, transform);
     for (final ch in children) {
-      ch.collectImages(images);
+      ch.collectCanon(canon);
     }
+  }
+}
+
+class SvgDefs extends SvgGroup {
+  @override
+  SvgGroup? reduce(
+          Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) =>
+      null;
+
+  @override
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
+    assert(false);
   }
 }
 
@@ -248,28 +319,30 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void collectImages(List<SIImageData> images) {}
+  void collectCanon(SvgCanonicalizedData canon) {
+    assert(false);
+  }
 
   @override
-  void build(SIBuilder<String> builder, SvgPaint ancestor) {
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
     assert(false);
   }
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributes
     implements SvgNode {
-  bool _isInvisible(SvgPaint paint) =>
-      (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
-      (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none);
+  @override
+  void collectCanon(SvgCanonicalizedData canon) {
+    transformIndex = canon.getIndex(canon.transforms, transform);
+  }
 
   @override
-  void collectImages(List<SIImageData> images) {}
-
-  @override
-  void build(SIBuilder<String> builder, SvgPaint ancestor) {
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
     SvgPaint curr = cascadePaint(ancestor);
-    if (transform != null) {
-      builder.group(null, transform);
+    if (transformIndex != null) {
+      builder.group(null, transformIndex);
       makePath(builder, curr.toSIPaint());
       builder.endGroup(null);
     } else {
@@ -297,6 +370,7 @@ class SvgPath extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SIPaint curr) {
+    print('@@ path, ${curr.fillColor.toRadixString(16)}');
     builder.path(null, pathData, curr);
   }
 }
@@ -398,14 +472,7 @@ class SvgEllipse extends SvgPathMaker {
     if (pb == null) {
       return;
     }
-    final start = PointT(cx - rx, cy - ry);
-    pb.moveTo(start);
-    pb.arcToPoint(start,
-        radius: RadiusT(rx, ry),
-        rotation: 360,
-        largeArc: true,
-        clockwise: true);
-    pb.close();
+    pb.addOval(RectT(cx-rx, cy-ry, 2*rx, 2*ry));
     pb.end();
   }
 
@@ -486,20 +553,21 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   SvgImage();
 
   static final Uint8List _emptyData = Uint8List(0);
-  static final ViewboxT _emptyViewbox = ViewboxT(0, 0, 0, 0);
 
   @override
-  void collectImages(List<SIImageData> images) {
-    _imageNumber = images.length;
-    images.add(SIImageData(
-        x: x, y: y, width: width, height: height, encoded: imageData));
+  void collectCanon(SvgCanonicalizedData canon) {
+    final sid = SIImageData(
+        x: x, y: y, width: width, height: height, encoded: imageData);
+    _imageNumber = canon.getIndex(canon.images, sid)!;
+    transformIndex = canon.getIndex(canon.transforms, transform);
   }
 
   @override
-  void build(SIBuilder<String> builder, SvgPaint ancestor) {
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
     assert(_imageNumber > -1);
-    if (transform != null) {
-      builder.group(null, transform);
+    if (transformIndex != null) {
+      builder.group(null, transformIndex);
       builder.image(null, _imageNumber);
       builder.endGroup(null);
     } else {
@@ -518,41 +586,72 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
 
 class SvgText extends SvgInheritableAttributes implements SvgNode {
   String text = '';
-  double width = 0;
-  double height = 0;
   List<double> x = const [0.0];
   List<double> y = const [0.0];
+  int xIndex = -1;
+  int yIndex = -1;
+  int textIndex = -1;
 
   SvgText();
 
   @override
-  void build(SIBuilder<String> builder, SvgPaint ancestor) {
-    if (transform != null) {
-      builder.group(null, transform);
-      // TODO: implement build
+  void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
+      SvgPaint ancestor, SvgTextAttributes ta) {
+    final currPaint = cascadePaint(ancestor).toSIPaint();
+    final currTA = cascadeText(ta).toSITextAttributes();
+    if (transformIndex != null) {
+      builder.group(null, transformIndex);
+      builder.text(null, xIndex, yIndex, textIndex, currTA, currPaint);
       builder.endGroup(null);
     } else {
-      // TODO: implement build
+      builder.text(null, xIndex, yIndex, textIndex, currTA, currPaint);
     }
   }
 
   @override
   SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    // TODO: implement reduce
-    return null;
+    final currPaint = cascadePaint(ancestor);
+    if (text == '' ||
+        currPaint.fillAlpha == 0 ||
+        currPaint.fillColor == SvgColor.none) {
+      return null;
+    }
+    return this;
   }
 
   @override
-  void collectImages(List<SIImageData> images) {}
+  void collectCanon(SvgCanonicalizedData canon) {
+    transformIndex = canon.getIndex(canon.transforms, transform);
+    xIndex = canon.getIndex(canon.floatLists, x)!;
+    yIndex = canon.getIndex(canon.floatLists, y)!;
+    textIndex = canon.getIndex(canon.strings, text)!;
+  }
 }
 
 class SvgTextAttributes {
   String? fontFamily;
-  SIFontStyle fontStyle = SIFontStyle.inherit;
-  SIFontWeight fontWeight = SIFontWeight.inherit;
+  SIFontStyle? fontStyle;
+  SvgFontWeight fontWeight = SvgFontWeight.inherit;
   SvgFontSize fontSize = SvgFontSize.inherit;
 
-  SvgTextAttributes();
+  SvgTextAttributes.empty();
+  SvgTextAttributes(
+      {required this.fontFamily,
+      required this.fontStyle,
+      required this.fontWeight,
+      required this.fontSize});
+
+  SvgTextAttributes.initial()
+      : fontFamily = '',
+        fontStyle = SIFontStyle.normal,
+        fontWeight = SvgFontWeight.w400,
+        fontSize = SvgFontSize.medium;
+
+  SITextAttributes toSITextAttributes() => SITextAttributes(
+      fontFamily: fontFamily!,
+      fontStyle: fontStyle!,
+      fontWeight: fontWeight.toSI(),
+      fontSize: fontSize.toSI());
 }
 
 ///
@@ -563,7 +662,7 @@ abstract class SvgFontSize {
 
   factory SvgFontSize.absolute(double size) => _SvgFontSizeAbsolute(size);
 
-  static const SvgFontSize inherit = _SvgFontSizeAbsolute(-1);
+  static const SvgFontSize inherit = _SvgFontSizeInherit();
 
   static const SvgFontSize larger = _SvgFontSizeRelative(1.2);
 
@@ -581,18 +680,55 @@ abstract class SvgFontSize {
   static const SvgFontSize x_large = _SvgFontSizeAbsolute(_med * 1.2 * 1.2);
   static const SvgFontSize xx_large =
       _SvgFontSizeAbsolute(_med * 1.2 * 1.2 * 1.2);
+
+  SvgFontSize orInherit(SvgFontSize ancestor);
+
+  double toSI() {
+    assert(false);
+    return 12.0;
+  }
 }
 
 class _SvgFontSizeAbsolute extends SvgFontSize {
   final double size;
 
   const _SvgFontSizeAbsolute(this.size);
+
+  @override
+  SvgFontSize orInherit(SvgFontSize ancestor) => this;
+
+  @override
+  double toSI() => size;
 }
 
 class _SvgFontSizeRelative extends SvgFontSize {
   final double scale;
 
   const _SvgFontSizeRelative(this.scale);
+
+  @override
+  SvgFontSize orInherit(SvgFontSize ancestor) {
+    if (ancestor is _SvgFontSizeAbsolute) {
+      return _SvgFontSizeAbsolute(ancestor.size * scale);
+    } else {
+      assert(false);
+      return SvgFontSize.medium;
+    }
+  }
+}
+
+class _SvgFontSizeInherit extends SvgFontSize {
+  const _SvgFontSizeInherit();
+
+  @override
+  SvgFontSize orInherit(SvgFontSize ancestor) {
+    if (ancestor == SvgFontSize.inherit) {
+      assert(false);
+      return SvgFontSize.medium;
+    } else {
+      return ancestor;
+    }
+  }
 }
 
 ///
@@ -687,4 +823,81 @@ class _SvgColorCurrentColor extends SvgColor {
   @override
   int toSIColor(int? alpha, SvgColor cascadedCurrentColor) =>
       cascadedCurrentColor.toSIColor(alpha, const _SvgColorValue(0));
+}
+
+abstract class SvgFontWeight {
+
+  const SvgFontWeight();
+
+  static const SvgFontWeight w100 = _SvgFontWeightAbsolute(SIFontWeight.w100);
+  static const SvgFontWeight w200 = _SvgFontWeightAbsolute(SIFontWeight.w200);
+  static const SvgFontWeight w300 = _SvgFontWeightAbsolute(SIFontWeight.w300);
+  static const SvgFontWeight w400 = _SvgFontWeightAbsolute(SIFontWeight.w400);
+  static const SvgFontWeight w500 = _SvgFontWeightAbsolute(SIFontWeight.w500);
+  static const SvgFontWeight w600 = _SvgFontWeightAbsolute(SIFontWeight.w600);
+  static const SvgFontWeight w700 = _SvgFontWeightAbsolute(SIFontWeight.w700);
+  static const SvgFontWeight w800 = _SvgFontWeightAbsolute(SIFontWeight.w800);
+  static const SvgFontWeight w900 = _SvgFontWeightAbsolute(SIFontWeight.w900);
+  static const SvgFontWeight bolder = _SvgFontWeightBolder();
+  static const SvgFontWeight lighter = _SvgFontWeightLighter();
+  static const SvgFontWeight inherit = _SvgFontWeightInherit();
+
+  SvgFontWeight orInherit(SvgFontWeight ancestor);
+  SIFontWeight toSI();
+}
+
+class _SvgFontWeightAbsolute extends SvgFontWeight {
+  final SIFontWeight weight;
+  const _SvgFontWeightAbsolute(this.weight);
+
+  @override
+  SvgFontWeight orInherit(SvgFontWeight ancestor) => this;
+
+  @override
+  SIFontWeight toSI() => weight;
+}
+
+class _SvgFontWeightBolder extends SvgFontWeight {
+  const _SvgFontWeightBolder();
+
+  @override
+  SvgFontWeight orInherit(SvgFontWeight ancestor) {
+    int i = ancestor.toSI().index;
+    return _SvgFontWeightAbsolute(SIFontWeight.values[min(i+1, SIFontWeight.values.length - 1)]);
+  }
+
+  @override
+  SIFontWeight toSI() {
+    assert(false);
+    return SIFontWeight.w400;
+  }
+}
+
+class _SvgFontWeightLighter extends SvgFontWeight {
+  const _SvgFontWeightLighter();
+
+  @override
+  SvgFontWeight orInherit(SvgFontWeight ancestor) {
+    int i = ancestor.toSI().index;
+    return _SvgFontWeightAbsolute(SIFontWeight.values[max(i-1, 0)]);
+  }
+
+  @override
+  SIFontWeight toSI() {
+    assert(false);
+    return SIFontWeight.w400;
+  }
+}
+
+class _SvgFontWeightInherit extends SvgFontWeight {
+  const _SvgFontWeightInherit();
+
+  @override
+  SvgFontWeight orInherit(SvgFontWeight ancestor) => ancestor;
+
+  @override
+  SIFontWeight toSI() {
+    assert(false);
+    return SIFontWeight.w400;
+  }
 }

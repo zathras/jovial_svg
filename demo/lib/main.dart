@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -38,6 +37,7 @@ import 'package:jovial_svg/jovial_svg.dart';
 import 'package:jovial_svg/widget.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:tuple/tuple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -124,6 +124,11 @@ class _DemoScreenState extends State<DemoScreen> {
 
   List<Asset> get assets => widget.assets;
 
+  void _launch() {
+    final String name = assets[assetIndex].svg;
+    launch('https://freeshell.de/~jovial/jovial_svg/$name', forceWebView: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final asset = assets[assetIndex];
@@ -135,7 +140,8 @@ class _DemoScreenState extends State<DemoScreen> {
             'assets/other/jupiter.si',
             currentColor: Colors.yellow.shade300,
           )),
-          title: Text(widget.title),
+          title: Text(widget.title +
+              ' - ${assets[assetIndex].fileName(assetType)?.substring(7)}'),
         ),
         body: Column(children: [
           SizedBox(height: 5),
@@ -168,13 +174,19 @@ class _DemoScreenState extends State<DemoScreen> {
                           child: Icon(Icons.arrow_right),
                         ),
                       ])),
-                  SizedBox(width: 40),
+                  SizedBox(width: 15),
                   SizedBox(
-                      width: 180,
+                      width: 260,
                       child: Row(children: [
                         Text('SVG'),
                         Radio(
                             value: AssetType.svg,
+                            groupValue: assetType,
+                            onChanged: _setType),
+                        Spacer(),
+                        Text('Compact'),
+                        Radio(
+                            value: AssetType.compact,
                             groupValue: assetType,
                             onChanged: _setType),
                         Spacer(),
@@ -198,7 +210,7 @@ class _DemoScreenState extends State<DemoScreen> {
                       ])),
                   SizedBox(width: 10),
                   SizedBox(
-                      width: 450,
+                      width: 300,
                       child: Row(children: [
                         Slider(
                           min: -8,
@@ -212,18 +224,11 @@ class _DemoScreenState extends State<DemoScreen> {
                                   });
                                 },
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _fitToScreen
-                                  ? ' '
-                                  : 'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
-                              textAlign: TextAlign.left,
-                            ),
-                            Text(assets[assetIndex].fileName(assetType)!)
-                          ],
-                        ),
+                        _fitToScreen
+                            ? Text('')
+                            : Text(
+                                'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
+                                textAlign: TextAlign.left),
                       ])),
                   SizedBox(
                       width: 140,
@@ -236,7 +241,11 @@ class _DemoScreenState extends State<DemoScreen> {
                                 })),
                       ])),
                   SizedBox(width: 30),
-                  ElevatedButton(onPressed: () {}, child: Text('Browser')),
+                  ElevatedButton(
+                      onPressed: () {
+                        _launch();
+                      },
+                      child: Text('Browser')),
                   SizedBox(width: 30),
                 ]),
           ),
@@ -306,7 +315,7 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 }
 
-enum AssetType { svg, avd, si }
+enum AssetType { svg, compact, avd, si }
 
 class Asset {
   final String svg;
@@ -319,6 +328,8 @@ class Asset {
     switch (t) {
       case AssetType.svg:
         return ScalableImage.fromSvgAsset(b, svg);
+      case AssetType.compact:
+        return ScalableImage.fromSvgAsset(b, svg, compact: true);
       case AssetType.avd:
         return ScalableImage.fromAvdAsset(b, avd!);
       case AssetType.si:
@@ -329,6 +340,7 @@ class Asset {
   String? fileName(AssetType t) {
     switch (t) {
       case AssetType.svg:
+      case AssetType.compact:
         return svg;
       case AssetType.avd:
         return avd;

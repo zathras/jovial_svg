@@ -60,6 +60,11 @@ class UIPathBuilder implements PathBuilder {
           clockwise: clockwise);
 
   @override
+  void addOval(RectT rect) {
+    path.addOval(Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height));
+  }
+
+  @override
   void close() => path.close();
 
   @override

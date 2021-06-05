@@ -73,24 +73,33 @@ abstract class ScalableImageWidget extends StatefulWidget {
 }
 
 class _SyncSIWidget extends ScalableImageWidget {
-  final _SIPainter _painter;
-  final Size _size;
   final ScalableImage _si;
+  final BoxFit _fit;
+  final Alignment _alignment;
+  final bool _clip;
+  final double _scale;
 
-  _SyncSIWidget(Key? key, ScalableImage si, BoxFit fit, Alignment alignment,
-      bool clip, double scale)
-      : _painter = _SIPainter(si, fit, alignment, clip),
-        _size = Size(si.viewport.width * scale, si.viewport.height * scale),
-        _si = si,
-        super._p(key);
+  _SyncSIWidget(
+      Key? key, this._si, this._fit, this._alignment, this._clip, this._scale)
+      : super._p(key);
 
   @override
-  State<StatefulWidget> createState() => _SyncSIWidgetState();
+  State<StatefulWidget> createState() => _SyncSIWidgetState(this);
 }
 
 class _SyncSIWidgetState extends State<_SyncSIWidget> {
+  _SIPainter _painter;
+  Size _size;
 
-  _SyncSIWidgetState();
+  _SyncSIWidgetState(_SyncSIWidget initial)
+      : _painter = _newPainter(initial, true),
+        _size = _newSize(initial);
+
+  static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) =>
+      _SIPainter(w._si, w._fit, w._alignment, w._clip, preparing);
+
+  static Size _newSize(_SyncSIWidget w) =>
+      Size(w._si.viewport.width * w._scale, w._si.viewport.height * w._scale);
 
   @override
   void initState() {
@@ -100,6 +109,9 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
 
   @override
   void didUpdateWidget(_SyncSIWidget old) {
+    super.didUpdateWidget(old);
+    _painter = _newPainter(widget, true);
+    _size = _newSize(widget);
     _registerWithFuture(widget._si.prepareImages());
     old._si.unprepareImages();
   }
@@ -111,12 +123,14 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   }
 
   void _registerWithFuture(final Future<void> f) {
-    unawaited(f.then((void _) => setState(() {})));
+    unawaited(f.then((void _) => setState(() {
+          _painter = _newPainter(widget, false);
+        })));
   }
 
   @override
   Widget build(BuildContext context) =>
-      CustomPaint(painter: widget._painter, size: widget._size);
+      CustomPaint(painter: _painter, size: _size);
 }
 
 class _SIPainter extends CustomPainter {
@@ -124,8 +138,9 @@ class _SIPainter extends CustomPainter {
   final BoxFit _fit;
   final Alignment _alignment;
   final bool _clip;
+  bool _preparing;
 
-  _SIPainter(this._si, this._fit, this._alignment, this._clip);
+  _SIPainter(this._si, this._fit, this._alignment, this._clip, this._preparing);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -175,8 +190,12 @@ class _SIPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-  // We are immutable, and we never change parent
+  bool shouldRepaint(_SIPainter oldDelegate) =>
+      _preparing != oldDelegate._preparing ||
+      _si != oldDelegate._si ||
+      _fit != oldDelegate._fit ||
+      _alignment != oldDelegate._alignment ||
+      _clip != oldDelegate._clip;
 }
 
 class _AsyncSIWidget extends ScalableImageWidget {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" height="1216.19" width="2178.18" viewBox="-.2 -236 2178.99 1216.19">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" height="1216.19" width="2178.18" viewBox="-.2 -236 2178.99 1216.19" font-family="DejaVu Serif" font-size="43" font-weight="bold">
   <!-- SVG-cards 2.0								-->
   <!-- This set of SVG files is a complete cards game with figures, numbers	-->
   <!--	and backs of cards completely designed in SVG.				-->
@@ -23,20 +23,6 @@
   <!--                                                                            -->
   <!--	Contact the author David Bellot at david.bellot@free.fr			-->
   <defs>
-    <style type="text/css">
-      <![CDATA[
-        text.cardsymbol {
-          font-family: DejaVu Serif;
-          font-size: 43;
-          font-weight: bold;
-        }
-        text.jokersymbol {
-          font-family: DejaVu Serif;
-          font-size: 22;
-          font-weight: bold;
-        }
-      ]]>
-    </style>
     <text id="n_1" class="cardsymbol" transform="scale(0.56453 1.05741)">1</text>
     <text id="n_2" class="cardsymbol" transform="scale(0.56453 1.05741)">2</text>
     <text id="n_3" class="cardsymbol" transform="scale(0.56453 1.05741)">3</text>
@@ -1828,8 +1814,8 @@
     <g id="joker_black">
       <use xlink:href="#base" x="0" y="972.55"/>
       <g id="joker_text">
-        <text class="jokersymbol" transform="matrix(0.512616,0.000000,0.000000,1.170664,8.034702,763.1465)" >JOKER</text>
-        <text class="jokersymbol" transform="matrix(-0.512616,0.000000,0.000000,-1.170664,158.5403,953.5535)">JOKER</text>
+        <text font-size="22" transform="matrix(0.512616,0.000000,0.000000,1.170664,8.034702,763.1465)" >JOKER</text>
+        <text font-size="22" transform="matrix(-0.512616,0.000000,0.000000,-1.170664,158.5403,953.5535)">JOKER</text>
       </g>
       <g id="Full_joker">
         <use xlink:href="#joker" transform="matrix(0.203,0,0,0.203,441.265,911.431)"/>

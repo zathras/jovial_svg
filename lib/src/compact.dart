@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 ///
 /// Memory-efficient version of ScalableImage, at the expense of rendering
 /// time.  This representation rendered about 3x slower in some informal
@@ -83,7 +82,8 @@ class ScalableImageCompact extends ScalableImage
         _children = children,
         _args = args,
         _transforms = transforms,
-        super(width, height, tintColor, tintMode, viewport, <SIImage>[], currentColor) {
+        super(width, height, tintColor, tintMode, viewport, <SIImage>[],
+            currentColor) {
     print('   ${args.length} floats, ${_transforms.length ~/ 6} transforms');
   }
 
@@ -174,7 +174,8 @@ class ScalableImageCompact extends ScalableImage
         height: height,
         tintColor: tintColor?.value,
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
-    b.images(null, <SIImageData>[]);  // @@ TODO
+    b.init(null, <SIImageData>[], <String>[], <List<double>>[],
+        <Affine>[]); // @@ TODO
     accept(b);
     b.endVector();
     return b.si;
@@ -280,11 +281,24 @@ class ScalableImageCompact extends ScalableImage
 
 ///
 /// Helper for visitors of compact scalable images.  This class adds
-/// the creation of renderable SIPath objects.
+/// the creation of renderable SI objects.
 ///
 abstract class _CompactVisitor<R>
     with SIGroupHelper
     implements SIVisitor<CompactChildData, R> {
+  @override
+  R init(R collector, List<SIImageData> im, List<String> strings,
+      List<List<double>> floatLists, List<Affine> transforms) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  R group(R collector, int? transformIndex) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  R siGroup(R collector, Affine? transform);
+
   @override
   R path(R collector, CompactChildData pathData, SIPaint paint) {
     final pb = UIPathBuilder();
@@ -296,6 +310,12 @@ abstract class _CompactVisitor<R>
   R siPath(R collector, SIPath p);
 
   @override
+  R dashedPath(
+      R collector, CompactChildData pathData, int dashesIndex, SIPaint paint) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
   R clipPath(R collector, CompactChildData pathData) {
     final pb = UIPathBuilder();
     CompactPathParser(pathData, pb).parse();
@@ -304,6 +324,17 @@ abstract class _CompactVisitor<R>
   }
 
   R siClipPath(R collector, SIClipPath path);
+
+  @override
+  R image(R collector, int imageIndex) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  R text(R collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes ta, SIPaint p) {
+    throw UnimplementedError("@@ TODO");
+  }
 }
 
 class _PaintingVisitor extends _CompactVisitor<void> {
@@ -316,8 +347,9 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   void get initial => null;
 
   @override
-  void group(void collector, Affine? transform) =>
-      startPaintGroup(canvas, transform);
+  void siGroup(void collector, Affine? transform) {
+    startPaintGroup(canvas, transform);
+  }
 
   @override
   void endGroup(void collector) => endPaintGroup(canvas);
@@ -330,16 +362,6 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   @override
   void siClipPath(void collector, SIClipPath path) {
     path.paint(canvas, currentColor);
-  }
-
-  @override
-  void images(void collector, List<SIImageData> im) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
-  void image(void collector, int imageNumber) {
-    throw UnimplementedError("@@ TODO");
   }
 }
 
@@ -380,7 +402,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary group(PruningBoundary boundary, Affine? transform) {
+  PruningBoundary siGroup(PruningBoundary boundary, Affine? transform) {
     final parent = _groupStack.isEmpty ? null : _groupStack.last;
     _groupStack.add(_PruningEntry(boundary, parent, this, transform));
     return transformBoundaryFromParent(boundary, transform);
@@ -435,17 +457,6 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
     _lastPathData = null;
     return boundary;
   }
-
-  @override
-  PruningBoundary images(PruningBoundary collector, List<SIImageData> im) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
-  PruningBoundary image(PruningBoundary collector, int imageNumber) {
-    // TODO: implement image
-    throw UnimplementedError("@@ TODO");
-  }
 }
 
 class _PruningBuilder extends _SICompactBuilder<CompactChildData>
@@ -480,7 +491,8 @@ class _PruningEntry {
       return;
     }
     parent?.generateGroupIfNeeded();
-    visitor.builder.group(null, transform);
+    throw UnimplementedError("@@ TODO");
+    // visitor.builder.group(null, transform);
     generated = true;
   }
 
@@ -501,7 +513,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? get initial => null;
 
   @override
-  PruningBoundary? group(PruningBoundary? initial, Affine? transform) {
+  PruningBoundary? siGroup(PruningBoundary? initial, Affine? transform) {
     groupStack.add(_BoundaryEntry(initial, transform));
     return null;
   }
@@ -534,16 +546,6 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
       return PruningBoundary(a.getBounds().expandToInclude(b.getBounds()));
       // See comment in _SIParentNode.getBoundary();
     }
-  }
-
-  @override
-  PruningBoundary? images(PruningBoundary? collector, List<SIImageData> im) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
-  PruningBoundary? image(PruningBoundary? collector, int imageNumber) {
-    throw UnimplementedError("@@ TODO");
   }
 }
 

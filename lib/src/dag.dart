@@ -28,14 +28,14 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 ///
-/// A [ScalingImage] implemented as a directed acyclic graph of Dart objects.
+/// A [ScalableImage] implemented as a directed acyclic graph of Dart objects.
 /// This representation renders fast, but occupies the amount of memory you'd
 /// expect with Dart objects.
 ///
 library jovial_svg.dag;
 
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -70,7 +70,8 @@ class ScalableImageDag extends ScalableImage
       Color? currentColor,
       required List<SIImage> images})
       : _renderables = List<SIRenderable>.empty(growable: true),
-        super(width, height, tintColor, tintMode, viewport, images, currentColor);
+        super(
+            width, height, tintColor, tintMode, viewport, images, currentColor);
 
   ///
   /// Create a copy of [other], potentially with a new viewport.  The copy
@@ -302,6 +303,7 @@ class _GroupBuilder implements _SIParentBuilder {
 abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   double? _width;
   double? _height;
+  Rectangle<double>? _viewbox;
   int? _tintColor;
   SITintMode? _tintMode;
   final Rect? _viewport;
@@ -310,6 +312,9 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
   ScalableImageDag? _si;
   List<SIImage>? _images;
+  List<String> _strings = [];
+  List<List<double>> _floatLists = [];
+  List<Affine> _transforms = [];
   final _paths = <Object?, Path>{};
   final Set<SIRenderable> _dagger = <SIRenderable>{};
   final Color? currentColor;
@@ -369,10 +374,14 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
   @override
-  void images(void collector, List<SIImageData> im) {
+  void init(void collector, List<SIImageData> im, List<String> strings,
+      List<List<double>> floatLists, List<Affine> transforms) {
     assert(_images == null);
     _images = List<SIImage>.generate(im.length, (i) => SIImage(im[i]));
-    assert (_si == null);
+    _strings = strings;
+    _floatLists = floatLists;
+    _transforms = transforms;
+    assert(_si == null);
     final a = _si = ScalableImageDag(
         width: _width,
         height: _height,
@@ -387,6 +396,19 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   @override
   void image(void collector, int imageNumber) =>
       addRenderable(_images![imageNumber]);
+
+  @override
+  void dashedPath(
+      void collector, PathDataT pathData, int dashesIndex, SIPaint paint) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  void text(void collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes ta, SIPaint p) {
+    addRenderable(SIText(
+        _strings[textIndex], _floatLists[xIndex], _floatLists[yIndex], ta, p));
+  }
 
   ScalableImageDag get si {
     final r = _si;
@@ -421,8 +443,9 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
-  void group(void collector, Affine? transform) {
-    final g = _GroupBuilder(transform);
+  void group(void collector, int? transformIndex) {
+    final t = (transformIndex == null) ? null : _transforms[transformIndex];
+    final g = _GroupBuilder(t);
     _parentStack.add(g);
   }
 

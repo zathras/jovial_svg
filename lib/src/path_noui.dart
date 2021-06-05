@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 library jovial_svg.path_noui;
 
 import 'dart:math';
@@ -73,6 +72,8 @@ abstract class PathBuilder {
       required double rotation,
       required bool largeArc,
       required bool clockwise});
+
+  void addOval(RectT rect);
 
   ///
   /// Finish the path.
@@ -375,7 +376,7 @@ class PathParser extends AbstractPathParser {
   }
 
   PointT _shorthandQuadraticBezier(double x2) {
-    return _finishQuadraticBezier(null, _lexer.nextFloat());
+    return _finishQuadraticBezier(null, x2);
   }
 
   PointT _finishQuadraticBezier(PointT? control, double x) {

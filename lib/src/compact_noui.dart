@@ -31,6 +31,7 @@ SOFTWARE.
 library jovial_svg.compact_noui;
 
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:quiver/core.dart' as quiver;
@@ -128,7 +129,8 @@ class CompactTraverser<R> {
     } else {
       transform = null;
     }
-    collector = _visitor.group(collector, transform);
+    throw UnimplementedError("@@ TODO:");
+    // collector = _visitor.group(collector, transform);
     if (_DEBUG_COMPACT) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
@@ -244,6 +246,7 @@ class CompactTraverser<R> {
 mixin ScalableImageCompactGeneric<ColorT, BlendModeT> {
   double? get width;
   double? get height;
+  Rectangle<double>? viewbox;   // @@ TODO
 
   bool get bigFloats;
   int get _numPaths;
@@ -564,6 +567,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   int? _tintColor;
   SITintMode _tintMode;
   final _pathShare = <Object?, int>{};
+
   // We share path objects.  This is a significant memory savings.  For example,
   // on the "anglo" card deck, it shrinks the number of floats saved by about
   // a factor of 2.4 (from 116802 to 47944; if storing float64's, that's
@@ -587,17 +591,24 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   static const END_GROUP_CODE = 146;
 
   bool get done => _done;
+
   double? get width => _width;
+
   double? get height => _height;
+
   int? get tintColor => _tintColor;
+
   SITintMode get tintMode => _tintMode;
+
   int get numPaths => _pathShare.length;
+
   int get numPaints => _paintShare.length;
 
   @override
   void get initial => null;
 
   static int _flag(bool v, int bit) => v ? (1 << bit) : 0;
+
   void _writeFloat(double? v) {
     if (v != null) {
       args.add(v);
@@ -616,11 +627,10 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
-  void vector(
-      {required double? width,
-      required double? height,
-      required int? tintColor,
-      required SITintMode? tintMode}) {
+  void vector({required double? width,
+    required double? height,
+    required int? tintColor,
+    required SITintMode? tintMode}) {
     _width = width;
     _height = height;
     _tintColor = tintColor;
@@ -649,14 +659,16 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
-  void group(void collector, Affine? transform) {
+  void group(void collector, int? transformNumber) {
+    throw UnimplementedError("@@ TODO");
+    /*
     int? transformNumber;
     if (transform != null) {
       transformNumber = _transformShare[transform];
     }
     children.writeByte(GROUP_CODE |
-        _flag(transform != null, 0) |
-        _flag(transformNumber != null, 1));
+    _flag(transform != null, 0) |
+    _flag(transformNumber != null, 1));
     if (transformNumber != null) {
       _writeUnsignedInt(transformNumber);
     } else if (transform != null) {
@@ -666,6 +678,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
       children.writeUnsignedInt(args.length + 100);
       children.writeUnsignedShort(_debugGroupDepth++);
     }
+     */
   }
 
   @override
@@ -704,17 +717,17 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
     }
     assert(colorTypes < 8);
     children.writeByte(PATH_CODE |
-        _flag(pathNumber != null, 0) |
-        _flag(paintNumber != null, 1) |
-        colorTypes << 2);
+    _flag(pathNumber != null, 0) |
+    _flag(paintNumber != null, 1) |
+    colorTypes << 2);
     if (paintNumber != null) {
       children.writeUnsignedInt(paintNumber);
     } else {
       children.writeByte(_flag(hasStrokeWidth, 1) |
-          _flag(hasStrokeMiterLimit, 2) |
-          siPaint.strokeJoin.index << 3 |
-          siPaint.strokeCap.index << 5 |
-          siPaint.fillType.index << 7);
+      _flag(hasStrokeMiterLimit, 2) |
+      siPaint.strokeJoin.index << 3 |
+      siPaint.strokeCap.index << 5 |
+      siPaint.fillType.index << 7);
       if (siPaint.fillColorType == SIColorType.value) {
         _writeUnsignedInt(siPaint.fillColor);
       }
@@ -743,16 +756,26 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
     }
   }
 
+  void dashedPath(void collector, PathDataT pathData, int dashesIndex,
+      SIPaint paint) {
+    throw UnimplementedError("@@ TODO");
+  }
+
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
-
   @override
-  void images(void collector, List<SIImageData> im) {
+  void init(void collector, List<SIImageData> im, List<String> strings,
+      List<List<double>> floatLists, List<Affine> transforms) {
     throw UnimplementedError("@@ TODO");
   }
 
   @override
   void image(void collector, imageNumber) {
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  void text(void collector, int xIndex, int yIndex, int textIndex, SITextAttributes ta, SIPaint p) {
     throw UnimplementedError("@@ TODO");
   }
 
@@ -903,6 +926,11 @@ class CompactPathBuilder extends PathBuilder {
     _args.add(arcEnd.x);
     _args.add(arcEnd.y);
     _args.add(rotation);
+  }
+
+  @override
+  void addOval(RectT rect) {
+    throw UnimplementedError("@@ TODO");
   }
 
   @override

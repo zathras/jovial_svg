@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 ///
 /// Utilities that are common between DAG and Compact
 /// scalable image implementations.
@@ -39,6 +38,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:quiver/core.dart' as quiver;
+import 'package:quiver/collection.dart' as quiver;
 
 import 'affine.dart';
 import 'path_noui.dart';
@@ -46,22 +46,36 @@ import 'path_noui.dart';
 typedef AlignmentT = Point<double>;
 typedef PointT = Point<double>;
 typedef RadiusT = Point<double>;
-typedef ViewboxT = Rectangle<double>;
+typedef RectT = Rectangle<double>;
 
 abstract class SIVisitor<PathDataT, R> {
   R get initial;
 
+  ///
+  /// Called first on a traversal, this establishes the immutable values that
+  /// are canonicalized.
+  ///
+  R init(
+      R collector,
+      List<SIImageData> im,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<Affine> transforms);
+
   R path(R collector, PathDataT pathData, SIPaint paint);
 
-  R group(R collector, Affine? transform);
+  R dashedPath(R collector, PathDataT pathData, int dashesIndex, SIPaint paint);
+
+  R group(R collector, int? transformIndex);
 
   R endGroup(R collector);
 
   R clipPath(R collector, PathDataT pathData);
 
-  R images(R collector, List<SIImageData> im);
+  R image(R collector, int imageIndex);
 
-  R image(R collector, int imageNumber);
+  R text(R collector, int xIndex, int yIndex, int textIndex, SITextAttributes a,
+      SIPaint paint);
 }
 
 abstract class SIBuilder<PathDataT> extends SIVisitor<PathDataT, void> {
@@ -106,6 +120,25 @@ class SIImageData {
         width = other.width,
         height = other.height,
         encoded = other.encoded;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SIImageData) {
+      return x == other.x &&
+          y == other.y &&
+          width == other.width &&
+          height == other.height &&
+          quiver.listsEqual(encoded, other.encoded);
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash4(
+      x, y, width, quiver.hash2(height, quiver.hashObjects(encoded)));
 }
 
 class SIPaint {
@@ -192,7 +225,7 @@ abstract class GenericParser {
     'gray': 0xff808080,
     'white': 0xffffffff,
     'maroon': 0xff800000,
-    'red': 0xffffffff,
+    'red': 0xffff0000,
     'purple': 0xff800080,
     'fuchsia': 0xffff00ff,
     'green': 0xff008000,
@@ -225,7 +258,7 @@ abstract class GenericParser {
       throw ParseError('Color is not #rgb #rrggbb or #aarrggbb:  $s');
     }
     if (s.startsWith('rgb') && s.endsWith(')')) {
-      final lex = BnfLexer(s.substring(3, s.length - 1));
+      final lex = BnfLexer(s.substring(4, s.length - 1));
       final rgb = lex.getList(_colorComponentMatch);
       if (rgb.length != 3) {
         throw ParseError('Invalid rgb() syntax: $s');
@@ -238,6 +271,12 @@ abstract class GenericParser {
     final nc = _namedColors[s];
     if (nc != null) {
       return nc;
+    }
+    if (s.startsWith('url(#')) {
+      if (warn) {
+        print('   Warning:  Gradients not supported; defaulting to grey');
+        return 0xff808080;
+      }
     }
     throw ParseError('Unrecognized color $s');
   }
@@ -285,12 +324,58 @@ abstract class GenericParser {
       throw ParseError('Expected float value, saw "$s".');
     } else {
       String postfix = s.substring(m.end).trim();
-      if (warn && !warnedAbout.contains(postfix)) {
-        warnedAbout.add(postfix);
-        print('    (ignoring units "$postfix")');
+      final double multiplier;
+      if (postfix == '') {
+        multiplier = 1.0;
+      } else if (postfix == 'cm') {
+        multiplier = 96.0 / 2.54;
+        // 96 dpi is as good as anything else.  This isn't terribly
+        // important - see Tiny 7.11
+      } else if (postfix == 'mm') {
+        multiplier = 96.0 / 25.4;
+      } else if (postfix == 'in') {
+        multiplier = 96.0;
+      } else {
+        multiplier = 1.0;
+        if (warn && !warnedAbout.contains(postfix)) {
+          warnedAbout.add(postfix);
+          print('    (ignoring units "$postfix")');
+        }
       }
-      return double.parse(s.substring(m.start, m.end));
+      return multiplier * double.parse(s.substring(m.start, m.end));
     }
+  }
+
+  Rectangle<double>? getViewbox(String? s) {
+    if (s == null || s.toLowerCase() == 'none') {
+      return null;
+    }
+    final lex = BnfLexer(s);
+    final x = lex.tryNextFloat();
+    final y = lex.tryNextFloat();
+    final w = lex.tryNextFloat();
+    final h = lex.tryNextFloat();
+    if (x == null || y == null || w == null || h == null) {
+      return null;
+    } else {
+      return Rectangle(x, y, w, h);
+    }
+  }
+
+  List<double>? getFloatList(String? s) {
+    if (s == null || s.toLowerCase() == 'none') {
+      return null;
+    }
+    final lex = BnfLexer(s);
+    final r = List<double>.empty(growable: true);
+    for (;;) {
+      final d = lex.tryNextFloat();
+      if (d == null) {
+        break;
+      }
+      r.add(d);
+    }
+    return r;
   }
 
   int? getAlpha(String? s) {
@@ -374,7 +459,7 @@ class BnfLexer {
     return r;
   }
 
-  // Throw a PathError with a helpful message, including a pointer
+  // Throw a ParseError with a helpful message, including a pointer
   // to where we are in the source string
   void error(String message) {
     String segment = source;
@@ -562,19 +647,19 @@ enum SIFillType { evenOdd, nonZero }
 //        The default tint mode is srcIn.
 enum SITintMode { srcOver, srcIn, srcATop, multiply, screen, add }
 
-enum SIFontStyle { inherit, normal, italic, oblique }
+enum SIFontStyle { normal, italic }
 
-enum SIFontWeight {
-  inherit,
-  w100,
-  w200,
-  w300,
-  w400,
-  w500,
-  w600,
-  w700,
-  w800,
-  w900,
-  bolder,
-  lighter
+enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
+
+class SITextAttributes {
+  final String fontFamily;
+  final SIFontStyle fontStyle;
+  final SIFontWeight fontWeight;
+  final double fontSize;
+
+  SITextAttributes(
+      {required this.fontFamily,
+      required this.fontStyle,
+      required this.fontWeight,
+      required this.fontSize});
 }

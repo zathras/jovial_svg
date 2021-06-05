@@ -162,6 +162,44 @@ extension SITintModeMapping on SITintMode {
   }
 }
 
+extension SIFontWeightMapping on SIFontWeight {
+
+  FontWeight get asFontWeight {
+    switch(this) {
+      case SIFontWeight.w100:
+        return FontWeight.w100;
+      case SIFontWeight.w200:
+        return FontWeight.w200;
+      case SIFontWeight.w300:
+        return FontWeight.w300;
+      case SIFontWeight.w400:
+        return FontWeight.w400;
+      case SIFontWeight.w500:
+        return FontWeight.w500;
+      case SIFontWeight.w600:
+        return FontWeight.w600;
+      case SIFontWeight.w700:
+        return FontWeight.w700;
+      case SIFontWeight.w800:
+        return FontWeight.w800;
+      case SIFontWeight.w900:
+        return FontWeight.w900;
+    }
+  }
+}
+
+extension SIFontStyleMapping on SIFontStyle {
+
+  FontStyle get asFontStyle {
+    switch(this) {
+      case SIFontStyle.normal:
+        return FontStyle.normal;
+      case SIFontStyle.italic:
+        return FontStyle.italic;
+    }
+  }
+}
+
 ///
 /// A Mixin for operations on a Group
 ///
@@ -308,13 +346,20 @@ class SIPath extends SIRenderable {
   int get hashCode => quiver.hash2(path, siPaint);
 }
 
-class SIImage extends SIImageData implements SIRenderable {
+class SIImage extends SIRenderable {
   int _timesPrepared = 0;
+  SIImageData _data;
   ui.Image? _decoded;
   ui.Codec? _codec;
   // ui.ImageDescriptor? _descriptor;
 
-  SIImage(SIImageData data) : super.copy(data);
+  SIImage(SIImageData this._data);
+
+  double get x => _data.x;
+  double get y => _data.y;
+  double get width => _data.width;
+  double get height => _data.height;
+  Uint8List get encoded => _data.encoded;
 
   @override
   PruningBoundary? getBoundary() =>
@@ -351,6 +396,8 @@ class SIImage extends SIImageData implements SIRenderable {
     // not being implemented.
     //
     // https://github.com/flutter/flutter/issues/83764
+    // https://github.com/flutter/flutter/issues/83908
+    // https://github.com/flutter/flutter/issues/83910
     //
     // TODO:  Revisit this when this area of Flutter is less flaky
     final codec = _codec = await des.instantiateCodec();
@@ -360,7 +407,7 @@ class SIImage extends SIImageData implements SIRenderable {
       _codec = codec;
       // _descriptor = des;
     } else {
-      decoded.dispose();  // Too late!
+      decoded.dispose(); // Too late!
       codec.dispose();
       // https://github.com/flutter/flutter/issues/83421:
       // _descriptor?.dispose();
@@ -372,11 +419,12 @@ class SIImage extends SIImageData implements SIRenderable {
 
   void unprepare() {
     if (_timesPrepared <= 0) {
-      throw StateError('Attempt to unprepare() and image that was not prepare()d');
+      throw StateError(
+          'Attempt to unprepare() and image that was not prepare()d');
     }
     _timesPrepared--;
     if (_timesPrepared == 0) {
-      _decoded?.dispose();    // Could be null if prepare() is still running
+      _decoded?.dispose(); // Could be null if prepare() is still running
       _codec?.dispose();
       _decoded = null;
       // https://github.com/flutter/flutter/issues/83421:
@@ -390,9 +438,9 @@ class SIImage extends SIImageData implements SIRenderable {
   void paint(Canvas c, Color currentColor) {
     final im = _decoded;
     if (im != null) {
-      final src = Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
+      final src =
+          Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
       final dest = Rect.fromLTWH(x, y, width, height);
-      // c.drawImage(im, Offset(x, y), Paint());
       c.drawImageRect(im, src, dest, Paint());
     }
   }
@@ -415,6 +463,69 @@ class SIImage extends SIImageData implements SIRenderable {
   @override
   int get hashCode => quiver.hash2(
       quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
+}
+
+class SIText extends SIRenderable {
+  final String _text;
+  final List<double> _x;
+  final List<double> _y;
+  final SITextAttributes _attr;
+  final SIPaint _paint;
+
+
+  SIText(this._text, this._x, this._y, this._attr, this._paint);
+
+
+  @override
+  PruningBoundary? getBoundary() {
+    // TODO: implement getBoundary
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  SIRenderable? prunedBy(PruningBoundary b, Set<SIRenderable> dagger) {
+    // TODO: implement prunedBy
+    throw UnimplementedError("@@ TODO");
+  }
+
+  @override
+  void paint(ui.Canvas c, ui.Color currentColor) {
+    if (_paint.fillColorType == SIColorType.none) {
+      return;
+    }
+    // It's tempting to try to do all this work once, in the constructor,
+    // but we need currColor for the text style.  This node can be reused,
+    // so we can't guarantee that's a constant.  Fortunately, text performance
+    // isn't a big part of SVG rendering performance most fo the time.
+    final len = min(min(_x.length, _y.length), _text.length);
+    final fam = (_attr.fontFamily == '') ? null : _attr.fontFamily;
+    final sz = _attr.fontSize;
+    final FontStyle style = _attr.fontStyle.asFontStyle;
+    final FontWeight weight = _attr.fontWeight.asFontWeight;
+    final color = (_paint.fillColorType == SIColorType.value)
+        ? Color(_paint.fillColor)
+        : currentColor;
+    for (int i = 0; i < len; i++) {
+      final String s;
+      if (i == len - 1)  {
+        s = _text.substring(i, _text.length);
+      } else {
+        s = _text.substring(i, i+1);
+      }
+      final span = TextSpan(
+          style: TextStyle(
+              color: color,
+              fontFamily: fam,
+              fontSize: sz,
+              fontStyle: style,
+              fontWeight: weight),
+          text: s);
+      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+      tp.layout();
+      final dy = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+      tp.paint(c, Offset(_x[i], _y[i] - dy));
+    }
+  }
 }
 
 ///
