@@ -256,13 +256,14 @@ class SIValueColor extends SIColor {
 enum SIGradientSpreadMethod { pad, reflect, repeat }
 
 abstract class SIGradientColor extends SIColor {
-  final SIGradientSpreadMethod spreadMethod =
-      SIGradientSpreadMethod.pad; // @@ TODO
   final List<SIColor> colors;
   final List<double> stops;
   final bool objectBoundingBox;
+  final SIGradientSpreadMethod spreadMethod;
+  final Affine? transform;
 
-  SIGradientColor(this.colors, this.stops, this.objectBoundingBox);
+  SIGradientColor(this.colors, this.stops, this.objectBoundingBox,
+      this.spreadMethod, this.transform);
 }
 
 class SILinearGradientColor extends SIGradientColor {
@@ -278,8 +279,10 @@ class SILinearGradientColor extends SIGradientColor {
       required this.y2,
       required List<SIColor> colors,
       required List<double> stops,
-      required bool objectBoundingBox})
-      : super(colors, stops, objectBoundingBox);
+      required bool objectBoundingBox,
+      required SIGradientSpreadMethod spreadMethod,
+      required Affine? transform})
+      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
   void accept(SIColorVisitor v) => v.linearGradient(this);
@@ -293,6 +296,8 @@ class SILinearGradientColor extends SIGradientColor {
           y1 == other.y1 &&
           x2 == other.x2 &&
           y2 == other.y2 &&
+          spreadMethod == other.spreadMethod &&
+          transform == other.transform &&
           quiver.listsEqual(colors, other.colors) &&
           quiver.listsEqual(stops, other.stops) &&
           objectBoundingBox == other.objectBoundingBox;
@@ -302,8 +307,11 @@ class SILinearGradientColor extends SIGradientColor {
   }
 
   @override
-  int get hashCode => quiver.hash4(quiver.hash4(x1, y1, x2, y2),
-      quiver.hashObjects(colors), quiver.hashObjects(stops), objectBoundingBox);
+  int get hashCode => quiver.hash4(
+      quiver.hash4(x1, y1, x2, y2),
+      quiver.hashObjects(colors),
+      quiver.hashObjects(stops),
+      quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
 class SIRadialGradientColor extends SIGradientColor {
@@ -317,8 +325,10 @@ class SIRadialGradientColor extends SIGradientColor {
       required this.r,
       required List<SIColor> colors,
       required List<double> stops,
-      required bool objectBoundingBox})
-      : super(colors, stops, objectBoundingBox);
+      required bool objectBoundingBox,
+      required SIGradientSpreadMethod spreadMethod,
+      required Affine? transform})
+      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
   void accept(SIColorVisitor v) => v.radialGradient(this);
@@ -331,6 +341,8 @@ class SIRadialGradientColor extends SIGradientColor {
       return cx == other.cx &&
           cy == other.cy &&
           r == other.r &&
+          spreadMethod == other.spreadMethod &&
+          transform == other.transform &&
           quiver.listsEqual(colors, other.colors) &&
           quiver.listsEqual(stops, other.stops) &&
           objectBoundingBox == other.objectBoundingBox;
@@ -340,8 +352,11 @@ class SIRadialGradientColor extends SIGradientColor {
   }
 
   @override
-  int get hashCode => quiver.hash4(quiver.hash3(cx, cy, r),
-      quiver.hashObjects(colors), quiver.hashObjects(stops), objectBoundingBox);
+  int get hashCode => quiver.hash4(
+      quiver.hash3(cx, cy, r),
+      quiver.hashObjects(colors),
+      quiver.hashObjects(stops),
+      quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
 class SIColorVisitor {

@@ -196,7 +196,7 @@ abstract class SvgParser extends GenericParser {
       if (transform.isIdentity()) {
         root = SvgGroup("root");
       } else {
-        root = SvgGroup("root")..transform=transform;
+        root = SvgGroup("root")..transform = transform;
       }
     }
     _processInheritable(root, attrs);
@@ -352,28 +352,69 @@ abstract class SvgParser extends GenericParser {
   }
 
   SvgGradientNode _processLinearGradient(Map<String, String> attrs) {
-    final x1 = getFloat(attrs.remove('x1')) ?? 0;
-    final y1 = getFloat(attrs.remove('y1')) ?? 0;
-    final x2 = getFloat(attrs.remove('x2')) ?? 1;
-    final y2 = getFloat(attrs.remove('y2')) ?? 0;
-    bool objectBoundingBox = attrs.remove('gradientunits') != 'userSpaceOnUse';
-    final n = SvgGradientNode(SvgLinearGradientColor(
-        x1: x1, x2: x2, y1: y1, y2: y2, objectBoundingBox: objectBoundingBox));
+    final String? parentID = _getHref(attrs);
+    final x1 = getFloat(attrs.remove('x1'));
+    final y1 = getFloat(attrs.remove('y1'));
+    final x2 = getFloat(attrs.remove('x2'));
+    final y2 = getFloat(attrs.remove('y2'));
+    final sgu = attrs.remove('gradientunits');
+    final bool? objectBoundingBox =
+        (sgu == null) ? null : sgu != 'userSpaceOnUse';
+    final MutableAffine? transform =
+        getTransform(null, attrs.remove('gradienttransform'));
+    final spreadMethod = getSpreadMethod(attrs.remove('spreadmethod'));
+    final n = SvgGradientNode(
+        parentID,
+        SvgLinearGradientColor(
+            x1: x1,
+            x2: x2,
+            y1: y1,
+            y2: y2,
+            objectBoundingBox: objectBoundingBox,
+            transform: transform,
+            spreadMethod: spreadMethod));
     _processId(n, attrs);
     _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(n);
     return n;
   }
 
   SvgGradientNode _processRadialGradient(Map<String, String> attrs) {
-    final cx = getFloat(attrs.remove('cx')) ?? 0.5;
-    final cy = getFloat(attrs.remove('cy')) ?? 0.5;
-    final r = getFloat(attrs.remove('r')) ?? 0.5;
-    bool objectBoundingBox = attrs.remove('gradientunits') != 'userSpaceOnUse';
-    final n = SvgGradientNode(SvgRadialGradientColor(
-        cx: cx, cy: cy, r: r, objectBoundingBox: objectBoundingBox));
+    final String? parentID = _getHref(attrs);
+    final cx = getFloat(attrs.remove('cx'));
+    final cy = getFloat(attrs.remove('cy'));
+    final r = getFloat(attrs.remove('r'));
+    final sgu = attrs.remove('gradientunits');
+    final bool? objectBoundingBox =
+        (sgu == null) ? null : sgu != 'userSpaceOnUse';
+    final MutableAffine? transform =
+        getTransform(null, attrs.remove('gradienttransform'));
+    final spreadMethod = getSpreadMethod(attrs.remove('spreadMethod'));
+    final n = SvgGradientNode(
+        parentID,
+        SvgRadialGradientColor(
+            cx: cx,
+            cy: cy,
+            r: r,
+            objectBoundingBox: objectBoundingBox,
+            transform: transform,
+            spreadMethod: spreadMethod));
     _processId(n, attrs);
     _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(n);
     return n;
+  }
+
+  SIGradientSpreadMethod? getSpreadMethod(String? s) {
+    if (s == null) {
+      return null;
+    } else if (s == 'reflect') {
+      return SIGradientSpreadMethod.reflect;
+    } else if (s == 'repeat') {
+      return SIGradientSpreadMethod.repeat;
+    } else {
+      return SIGradientSpreadMethod.pad;
+    }
   }
 
   void _processStop(Map<String, String> attrs) {
@@ -381,8 +422,7 @@ abstract class SvgParser extends GenericParser {
     if (g == null) {
       throw ParseError('<stop> outside of gradient');
     }
-    final SvgColor color =
-        getSvgColor(attrs.remove('stop-color')?.trim());
+    final SvgColor color = getSvgColor(attrs.remove('stop-color')?.trim());
     if (color != SvgColor.inherit &&
         color != SvgColor.currentColor &&
         !(color is SvgValueColor)) {
@@ -390,22 +430,19 @@ abstract class SvgParser extends GenericParser {
     }
     int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;
     double offset = (getFloat(attrs.remove('offset')) ?? 0.0).clamp(0.0, 1.0);
-    if (g.gradient.stops.isNotEmpty) {
-      final minOffset = g.gradient.stops.last.offset;
+    if (g.gradient.stops?.isNotEmpty == true) {
+      final minOffset = g.gradient.stops!.last.offset;
       offset = max(offset, minOffset);
     }
-    g.gradient.stops.add(SvgGradientStop(offset, color, alpha));
+    g.gradient.addStop(SvgGradientStop(offset, color, alpha));
   }
 
   void _processUse(Map<String, String> attrs) {
-    final href = attrs.remove('xlink:href');
+    final href = _getHref(attrs);
     if (href == null) {
       throw ParseError('<use> with no xlink:href');
     }
-    if (!href.startsWith('#')) {
-      throw ParseError('xlink:href does not start with "#"');
-    }
-    final use = SvgUse(href.substring(1));
+    final use = SvgUse(href);
     _processId(use, attrs);
     _processInheritable(use, attrs);
     final x = getFloat(attrs.remove('x'));
@@ -423,6 +460,17 @@ abstract class SvgParser extends GenericParser {
     }
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(use);
+  }
+
+  String? _getHref(Map<String, String> attrs) {
+    final href = attrs.remove('xlink:href');
+    if (href == null) {
+      return href;
+    }
+    if (!href.startsWith('#')) {
+      throw ParseError('xlink:href does not start with "#"');
+    }
+    return href.substring(1);
   }
 
   void _processId(SvgNode n, Map<String, String> attrs) {
@@ -656,8 +704,8 @@ abstract class SvgParser extends GenericParser {
     } else if (lc == 'currentcolor') {
       return SvgColor.currentColor;
     } else if (s.startsWith('url(') && s.endsWith(')')) {
-        s = s.substring(5, s.length - 1).trim();
-        return SvgColor.reference(s);
+      s = s.substring(5, s.length - 1).trim();
+      return SvgColor.reference(s);
     } else {
       return SvgColor.value(super.getColor(lc));
     }

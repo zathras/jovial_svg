@@ -334,10 +334,16 @@ class SIPath extends SIRenderable {
 
   bool _setPaint(SIColor si, Color currentColor) {
     Float64List? xform(SIGradientColor c) {
+      final transform = c.transform;
       if (c.objectBoundingBox) {
         final bounds = getBounds();
         final a = MutableAffine.scale(bounds.width, bounds.height);
+        if (transform != null) {
+          a.multiplyBy(transform.toMutable);
+        }
         return a.forCanvas;
+      } else if (transform != null) {
+        return c.transform!.forCanvas;
       } else {
         return null;
       }

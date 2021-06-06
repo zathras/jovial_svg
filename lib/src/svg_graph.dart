@@ -52,7 +52,7 @@ class SvgParseGraph {
   void build(SIBuilder<String> builder) {
     final rootPaint = SvgPaint.initial();
     final rootTA = SvgTextAttributes.initial();
-    SvgGroup? newRoot = root.reduce(idLookup, rootPaint, builder.warn);
+    SvgGroup? newRoot = root.resolve(idLookup, rootPaint, builder.warn);
     builder.vector(
         width: width, height: height, tintColor: null, tintMode: null);
     final theCanon = SvgCanonicalizedData();
@@ -98,7 +98,7 @@ class SvgCanonicalizedData {
 }
 
 abstract class SvgNode {
-  SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn);
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn);
 
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta);
@@ -239,26 +239,25 @@ class SvgPaint {
 
 class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   var children = List<SvgNode>.empty(growable: true);
-  final String label;   // @@ TODO:  Remove
+  final String label; // @@ TODO:  Remove
 
   SvgGroup(this.label);
 
   @override
-  SvgGroup? reduce(
+  SvgGroup? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    if (transform?.determinant() == 0.0) {
-      return null;
-    }
     final cascaded = cascadePaint(ancestor, idLookup);
     final newC = List<SvgNode>.empty(growable: true);
     for (SvgNode n in children) {
-      final nn = n.reduce(idLookup, cascaded, warn);
+      final nn = n.resolve(idLookup, cascaded, warn);
       if (nn != null) {
         newC.add(nn);
       }
     }
     children = newC;
     if (children.isEmpty) {
+      return null;
+    } else if (transform?.determinant() == 0.0) {
       return null;
     } else {
       return this;
@@ -291,13 +290,14 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
 }
 
 class SvgDefs extends SvgGroup {
-
   SvgDefs() : super("defs");
 
   @override
-  SvgGroup? reduce(
-          Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) =>
-      null;
+  SvgGroup? resolve(
+          Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+    super.resolve(idLookup, ancestor, warn);
+    return null;
+  }
 
   @override
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
@@ -312,18 +312,16 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   SvgUse(this.childID);
 
   @override
-  SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    if (transform?.determinant() == 0.0) {
-      return null;
-    }
+  SvgNode? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     SvgNode? n = idLookup[childID];
     if (n == null) {
       print('    <use> references nonexistent $childID');
       return null;
     }
     final cascaded = cascadePaint(ancestor, idLookup);
-    n = n.reduce(idLookup, cascaded, warn);
-    if (n == null) {
+    n = n.resolve(idLookup, cascaded, warn);
+    if (n == null || transform?.determinant() == 0.0) {
       return null;
     }
     final g = SvgGroup("from use $childID");
@@ -347,7 +345,6 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
 
 abstract class SvgPathMaker extends SvgInheritableAttributes
     implements SvgNode {
-
   @override
   void collectCanon(SvgCanonicalizedData canon) {
     transformIndex = canon.getIndex(canon.transforms, transform);
@@ -375,9 +372,10 @@ class SvgPath extends SvgPathMaker {
   SvgPath(this.pathData);
 
   @override
-  SvgPath? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgPath? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (pathData == '' || _isInvisible(cascaded)) {
+    if (pathData == '') {
       return null;
     } else {
       return this;
@@ -386,7 +384,9 @@ class SvgPath extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SvgPaint cascaded) {
-    builder.path(null, pathData, cascaded.toSIPaint());
+    if (!_isInvisible(cascaded)) {
+      builder.path(null, pathData, cascaded.toSIPaint());
+    }
   }
 }
 
@@ -401,9 +401,10 @@ class SvgRect extends SvgPathMaker {
   SvgRect(this.x, this.y, this.width, this.height, this.rx, this.ry);
 
   @override
-  SvgRect? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgRect? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (width <= 0 || height <= 0 || _isInvisible(cascaded)) {
+    if (width <= 0 || height <= 0) {
       return null;
     } else {
       return this;
@@ -412,6 +413,9 @@ class SvgRect extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SvgPaint cascaded) {
+    if (_isInvisible(cascaded)) {
+      return;
+    }
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
@@ -472,10 +476,10 @@ class SvgEllipse extends SvgPathMaker {
   SvgEllipse(this.cx, this.cy, this.rx, this.ry);
 
   @override
-  SvgEllipse? reduce(
+  SvgEllipse? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (rx <= 0 || ry <= 0 || _isInvisible(cascaded)) {
+    if (rx <= 0 || ry <= 0) {
       return null;
     } else {
       return this;
@@ -484,6 +488,9 @@ class SvgEllipse extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SvgPaint cascaded) {
+    if (_isInvisible(cascaded)) {
+      return;
+    }
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
@@ -518,9 +525,10 @@ class SvgPoly extends SvgPathMaker {
   SvgPoly(this.close, this.points);
 
   @override
-  SvgPoly? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgPoly? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (points.length < 2 || _isInvisible(cascaded)) {
+    if (points.length < 2) {
       return null;
     } else {
       return this;
@@ -529,6 +537,9 @@ class SvgPoly extends SvgPathMaker {
 
   @override
   void makePath(SIBuilder<String> builder, SvgPaint cascaded) {
+    if (_isInvisible(cascaded)) {
+      return;
+    }
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
@@ -561,8 +572,27 @@ class SvgPoly extends SvgPathMaker {
 
 class SvgGradientNode implements SvgNode {
   final SvgGradientColor gradient;
+  final String? parentID;
 
-  SvgGradientNode(this.gradient);
+  SvgGradientNode(this.parentID, this.gradient);
+
+  @override
+  SvgNode? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+    final pid = parentID;
+    if (pid != null) {
+      final parent = idLookup[pid];
+      if (!(parent is SvgGradientNode) || !(gradient.trySetParent(parent.gradient))) {
+        // Note that trySetParent, above, has a crucial side effect.
+        if (warn) {
+          print('    Gradient references non-existent gradient $pid');
+        }
+      }
+    }
+    // Our underlying gradient gets incorporated into SIPaint, so no reason to
+    // keep the node around
+    return null;
+  }
 
   @override
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
@@ -572,13 +602,6 @@ class SvgGradientNode implements SvgNode {
 
   @override
   void collectCanon(SvgCanonicalizedData canon) {
-    // Do nothing - paints get canonicalized, which is good enough
-  }
-
-  @override
-  SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    // Our underlying gradient gets incorporated into SIPaint
-    return null;
   }
 }
 
@@ -604,6 +627,15 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
+  SvgNode? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
+    return this;
+  }
+
+  @override
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(_imageNumber > -1);
@@ -614,14 +646,6 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
     } else {
       builder.image(null, _imageNumber);
     }
-  }
-
-  @override
-  SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    if (width <= 0 || height <= 0) {
-      return null;
-    }
-    return this;
   }
 }
 
@@ -636,20 +660,24 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   SvgText();
 
   @override
-  SvgNode? reduce(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (text == '' ||
-        cascaded.fillAlpha == 0 ||
-        cascaded.fillColor == SvgColor.none) {
+    if (text == '') {
       return null;
+    } else {
+      return this;
     }
-    return this;
   }
 
   @override
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
-    final currPaint = cascadePaint(ancestor, idLookup).toSIPaint().forText();
+    final cascaded = cascadePaint(ancestor, idLookup);
+    if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
+      return;
+    }
+    final currPaint = cascaded.toSIPaint().forText();
     final currTA = cascadeText(ta).toSITextAttributes();
     if (transformIndex != null) {
       builder.group(null, transformIndex);
@@ -821,7 +849,8 @@ class SvgValueColor extends SvgColor {
   }
 
   @override
-  String toString() => 'SvgValueColor(#${_value.toRadixString(16).padLeft(6, "0")})';
+  String toString() =>
+      'SvgValueColor(#${_value.toRadixString(16).padLeft(6, "0")})';
 }
 
 class _SvgInheritColor extends SvgColor {
@@ -887,67 +916,138 @@ class SvgGradientStop {
 }
 
 abstract class SvgGradientColor extends SvgColor {
-  final bool objectBoundingBox;
-  final List<SvgGradientStop> stops;
+  final bool? objectBoundingBox;
+  List<SvgGradientStop>? stops;
+  Affine? transform;
+  int? transformIndex;
+  SvgGradientColor? get parent;
+  final SIGradientSpreadMethod? spreadMethod;
 
-  SvgGradientColor(this.objectBoundingBox)
-      : stops = List<SvgGradientStop>.empty(growable: true);
+  SvgGradientColor(this.objectBoundingBox, this.transform, this.spreadMethod);
+
+  // Resolving getters:
+
+  bool get objectBoundingBoxR =>
+      objectBoundingBox ?? parent?.objectBoundingBoxR ?? true;
+
+  List<SvgGradientStop> get stopsR => stops ?? parent?.stopsR ?? [];
+
+  Affine? get transformR => transform ?? parent?.transformR;
+
+  SIGradientSpreadMethod get spreadMethodR =>
+      spreadMethod ?? parent?.spreadMethodR ?? SIGradientSpreadMethod.pad;
+
+  void addStop(SvgGradientStop s) {
+    final sl = stops ??= List<SvgGradientStop>.empty(growable: true);
+    sl.add(s);
+  }
+
+  bool trySetParent(SvgGradientColor? parent);
 }
 
 class SvgLinearGradientColor extends SvgGradientColor {
-  final double x1;
-  final double y1;
-  final double x2;
-  final double y2;
+  final double? x1;
+  final double? y1;
+  final double? x2;
+  final double? y2;
+
+  @override
+  SvgLinearGradientColor? parent;
 
   SvgLinearGradientColor(
       {required this.x1,
       required this.y1,
-      required this.x2,
-      required this.y2,
-      required bool objectBoundingBox})
-      : super(objectBoundingBox);
+      required this.x2, // default 1
+      required this.y2, // default 0
+      required bool? objectBoundingBox, // default true
+      required Affine? transform,
+      required SIGradientSpreadMethod? spreadMethod})
+      : super(objectBoundingBox, transform, spreadMethod);
+
+  // Resolving getters:
+
+  double get x1R => x1 ?? parent?.x1R ?? 0.0;
+  double get y1R => y1 ?? parent?.y1R ?? 0.0;
+  double get x2R => x2 ?? parent?.x2R ?? 1.0;
+  double get y2R => y2 ?? parent?.y2R ?? 0.0;
+
+  @override
+  bool trySetParent(SvgGradientColor? parent) {
+    if (parent is SvgLinearGradientColor) {
+      this.parent = parent;
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+    final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset);
     final colors = List<SIColor>.generate(stops.length,
         (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
     return SILinearGradientColor(
-        x1: x1,
-        y1: y1,
-        x2: x2,
-        y2: y2,
+        x1: x1R,
+        y1: y1R,
+        x2: x2R,
+        y2: y2R,
         colors: colors,
         stops: offsets,
-        objectBoundingBox: objectBoundingBox);
+        objectBoundingBox: objectBoundingBoxR,
+        spreadMethod: spreadMethodR,
+        transform: transformR);
   }
 }
 
 class SvgRadialGradientColor extends SvgGradientColor {
-  final double cx;
-  final double cy;
-  final double r;
+  final double? cx; // default 0.5
+  final double? cy; // default 0.5
+  final double? r; // default 0.5
+
+  @override
+  SvgRadialGradientColor? parent;
 
   SvgRadialGradientColor(
       {required this.cx,
       required this.cy,
       required this.r,
-      required bool objectBoundingBox})
-      : super(objectBoundingBox);
+      required bool? objectBoundingBox,
+      required Affine? transform,
+      required SIGradientSpreadMethod? spreadMethod})
+      : super(objectBoundingBox, transform, spreadMethod);
+
+  // Resolving getters:
+
+  double get cxR => cx ?? parent?.cxR ?? 0.5;
+  double get cyR => cy ?? parent?.cyR ?? 0.5;
+  double get rR => r ?? parent?.rR ?? 0.5;
+
+  @override
+  bool trySetParent(SvgGradientColor? parent) {
+    if (parent is SvgRadialGradientColor) {
+      this.parent = parent;
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+    final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset);
     final colors = List<SIColor>.generate(stops.length,
-            (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
+        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
     return SIRadialGradientColor(
-        cx: cx,
-        cy: cy,
-        r: r,
+        cx: cxR,
+        cy: cyR,
+        r: rR,
         colors: colors,
         stops: offsets,
-        objectBoundingBox: objectBoundingBox);
+        objectBoundingBox: objectBoundingBoxR,
+        spreadMethod: spreadMethodR,
+        transform: transformR);
   }
 }
 
