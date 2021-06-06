@@ -66,6 +66,7 @@ abstract class SvgParser extends GenericParser {
   final _parentStack = List<SvgGroup>.empty(growable: true);
 
   SvgText? _currentText;
+  SvgGradientNode? _currentGradient;
 
   ///
   /// The result of parsing.  For SVG files we need to generate an intermediate
@@ -129,12 +130,23 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _currentText = null;
         }
+      } else if (evt.name == 'linearGradient') {
+        _currentGradient = _processLinearGradient(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _currentGradient = null;
+        }
+      } else if (evt.name == 'radialGradient') {
+        _currentGradient = _processRadialGradient(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _currentGradient = null;
+        }
+      } else if (evt.name == 'stop') {
+        _processStop(_toMap(evt.attributes));
       } else if (evt.name == 'use') {
         _processUse(_toMap(evt.attributes));
       } else if (warn && tagsIgnored.add(evt.name)) {
         print('    Ignoring ${evt.name} tag(s)');
       }
-      // TODO:  Text
     } finally {
       _currTag = null;
     }
@@ -157,6 +169,8 @@ abstract class SvgParser extends GenericParser {
       _parentStack.length = _parentStack.length - 1;
     } else if (evt.name == 'text') {
       _currentText = null;
+    } else if (evt.name == 'linearGradient' || evt.name == 'radialGradient') {
+      _currentGradient = null;
     }
   }
 
@@ -170,17 +184,19 @@ abstract class SvgParser extends GenericParser {
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
     final SvgGroup root;
     if (viewbox == null) {
-      root = SvgGroup();
+      root = SvgGroup("root");
     } else {
       final transform = MutableAffine.identity();
       if (width != null && height != null) {
-        transform.multiplyBy(MutableAffine.scale(width / viewbox.width, height / viewbox.height));
+        transform.multiplyBy(MutableAffine.scale(
+            width / viewbox.width, height / viewbox.height));
       }
-      transform.multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
+      transform
+          .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
       if (transform.isIdentity()) {
-        root = SvgGroup();
+        root = SvgGroup("root");
       } else {
-        root = SvgGroup.withTransform(transform);
+        root = SvgGroup("root")..transform=transform;
       }
     }
     _processInheritable(root, attrs);
@@ -190,7 +206,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processGroup(Map<String, String> attrs) {
-    final group = SvgGroup();
+    final group = SvgGroup(attrs['id'] ?? "??");
     _processId(group, attrs);
     _processInheritable(group, attrs);
     _warnUnusedAttributes(attrs);
@@ -335,6 +351,52 @@ abstract class SvgParser extends GenericParser {
     return n;
   }
 
+  SvgGradientNode _processLinearGradient(Map<String, String> attrs) {
+    final x1 = getFloat(attrs.remove('x1')) ?? 0;
+    final y1 = getFloat(attrs.remove('y1')) ?? 0;
+    final x2 = getFloat(attrs.remove('x2')) ?? 1;
+    final y2 = getFloat(attrs.remove('y2')) ?? 0;
+    bool objectBoundingBox = attrs.remove('gradientunits') != 'userSpaceOnUse';
+    final n = SvgGradientNode(SvgLinearGradientColor(
+        x1: x1, x2: x2, y1: y1, y2: y2, objectBoundingBox: objectBoundingBox));
+    _processId(n, attrs);
+    _warnUnusedAttributes(attrs);
+    return n;
+  }
+
+  SvgGradientNode _processRadialGradient(Map<String, String> attrs) {
+    final cx = getFloat(attrs.remove('cx')) ?? 0.5;
+    final cy = getFloat(attrs.remove('cy')) ?? 0.5;
+    final r = getFloat(attrs.remove('r')) ?? 0.5;
+    bool objectBoundingBox = attrs.remove('gradientunits') != 'userSpaceOnUse';
+    final n = SvgGradientNode(SvgRadialGradientColor(
+        cx: cx, cy: cy, r: r, objectBoundingBox: objectBoundingBox));
+    _processId(n, attrs);
+    _warnUnusedAttributes(attrs);
+    return n;
+  }
+
+  void _processStop(Map<String, String> attrs) {
+    final g = _currentGradient;
+    if (g == null) {
+      throw ParseError('<stop> outside of gradient');
+    }
+    final SvgColor color =
+        getSvgColor(attrs.remove('stop-color')?.trim());
+    if (color != SvgColor.inherit &&
+        color != SvgColor.currentColor &&
+        !(color is SvgValueColor)) {
+      throw ParseError('Illegal color value for gradient stop:  $color');
+    }
+    int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;
+    double offset = (getFloat(attrs.remove('offset')) ?? 0.0).clamp(0.0, 1.0);
+    if (g.gradient.stops.isNotEmpty) {
+      final minOffset = g.gradient.stops.last.offset;
+      offset = max(offset, minOffset);
+    }
+    g.gradient.stops.add(SvgGradientStop(offset, color, alpha));
+  }
+
   void _processUse(Map<String, String> attrs) {
     final href = attrs.remove('xlink:href');
     if (href == null) {
@@ -364,7 +426,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processId(SvgNode n, Map<String, String> attrs) {
-    final id = attrs.remove('id');
+    final id = attrs.remove('id') ?? attrs.remove('xml:id');
     if (id != null) {
       svg!.idLookup[id] = n;
     }
@@ -373,11 +435,11 @@ abstract class SvgParser extends GenericParser {
   void _processInheritable(
       SvgInheritableAttributes node, Map<String, String> attrs) {
     final SvgPaint p = node.paint;
-    p.currentColor = getSvgColor(attrs.remove('color')?.trim().toLowerCase());
-    p.fillColor = getSvgColor(attrs.remove('fill')?.trim().toLowerCase());
+    p.currentColor = getSvgColor(attrs.remove('color')?.trim());
+    p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
     p.fillAlpha = getAlpha(attrs.remove('fill-opacity'));
     p.fillType = getFillType(attrs.remove('fill-rule'));
-    p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim().toLowerCase());
+    p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim());
     p.strokeAlpha = getAlpha(attrs.remove('stroke-opacity'));
     p.strokeWidth = getFloat(attrs.remove('stroke-width'));
     p.strokeCap = getStrokeCap(attrs.remove('stroke-linecap'));
@@ -586,14 +648,18 @@ abstract class SvgParser extends GenericParser {
   }
 
   SvgColor getSvgColor(String? s) {
-    if (s == null || s == 'inherit') {
+    final lc = s?.toLowerCase();
+    if (s == null || lc == null || lc == 'inherit') {
       return SvgColor.inherit;
-    } else if (s == 'none') {
+    } else if (lc == 'none') {
       return SvgColor.none;
-    } else if (s == 'currentcolor') {
+    } else if (lc == 'currentcolor') {
       return SvgColor.currentColor;
+    } else if (s.startsWith('url(') && s.endsWith(')')) {
+        s = s.substring(5, s.length - 1).trim();
+        return SvgColor.reference(s);
     } else {
-      return SvgColor.value(super.getColor(s));
+      return SvgColor.value(super.getColor(lc));
     }
   }
 }

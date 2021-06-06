@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1027" height="615" viewBox="0 0 1027 615" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    width="1027" height="615" viewBox="0 0 1027 615" version="1.1"
+    font-family="URW Bookman L" font-size="19"
+    font-weight="normal" font-stretch="ultra-condensed">
 <defs>
-<style type="text/css">
-<![CDATA[
-  text.cardsymbol {
-    font-family: URW Bookman L;
-    font-size: 19;
-    font-weight: normal;
-    font-stretch: ultra-condensed;
-  }
-]]>
-</style>
 <g id="ubjql" stroke="#FFFFFF" stroke-width=".6" fill="none">
 <circle cx="0" cy="-24" r=".75"/>
 <circle cx="0" cy="-20" r=".75"/>

@@ -48,6 +48,18 @@ import 'common_noui.dart';
 abstract class SIRenderable {
   void paint(Canvas c, Color currentColor);
 
+  bool _wouldPaint(SIColor c) {
+    bool hasWork = true;
+    c.accept(SIColorVisitor(
+        value: (SIValueColor c) {},
+        current: () { },
+        none: () => hasWork = false,
+        linearGradient: (SILinearGradientColor c) {},
+        radialGradient: (SIRadialGradientColor c) {}
+    ));
+    return hasWork;
+  }
+
   SIRenderable? prunedBy(PruningBoundary b, Set<SIRenderable> dagger);
 
   PruningBoundary? getBoundary();
@@ -163,9 +175,8 @@ extension SITintModeMapping on SITintMode {
 }
 
 extension SIFontWeightMapping on SIFontWeight {
-
   FontWeight get asFontWeight {
-    switch(this) {
+    switch (this) {
       case SIFontWeight.w100:
         return FontWeight.w100;
       case SIFontWeight.w200:
@@ -189,9 +200,8 @@ extension SIFontWeightMapping on SIFontWeight {
 }
 
 extension SIFontStyleMapping on SIFontStyle {
-
   FontStyle get asFontStyle {
-    switch(this) {
+    switch (this) {
       case SIFontStyle.normal:
         return FontStyle.normal;
       case SIFontStyle.italic:
@@ -282,20 +292,27 @@ class SIPath extends SIRenderable {
 
   SIPath(this.path, this.siPaint);
 
+  bool _setPaint(SIColor si, Color currentColor) {
+    bool hasWork = true;
+    _paint.shader = null;
+    si.accept(SIColorVisitor(
+      value: (SIValueColor c) => _paint.color = Color(c.argb),
+      current: () => _paint.color = currentColor,
+      none: () => hasWork = false,
+      linearGradient: (SILinearGradientColor c) => throw "@@ TODO",
+      radialGradient: (SIRadialGradientColor c) => throw "@@ TODO"
+    ));
+    return hasWork;
+  }
+
   @override
   void paint(Canvas c, Color currentColor) {
-    if (siPaint.fillColorType != SIColorType.none) {
-      _paint.color = (siPaint.fillColorType == SIColorType.value)
-          ? Color(siPaint.fillColor)
-          : currentColor;
+    if (_setPaint(siPaint.fillColor, currentColor)) {
       _paint.style = PaintingStyle.fill;
       path.fillType = siPaint.fillType.asPathFillType;
       c.drawPath(path, _paint);
     }
-    if (siPaint.strokeColorType != SIColorType.none) {
-      _paint.color = (siPaint.strokeColorType == SIColorType.value)
-          ? Color(siPaint.strokeColor)
-          : currentColor;
+    if (_setPaint(siPaint.strokeColor, currentColor)) {
       _paint.style = PaintingStyle.stroke;
       _paint.strokeWidth = siPaint.strokeWidth;
       _paint.strokeCap = siPaint.strokeCap.asStrokeCap;
@@ -322,7 +339,8 @@ class SIPath extends SIRenderable {
             offset -= sda[sdaI++];
             sdaI %= sda.length;
             penDown = !penDown;
-          } else if (start + thisDash >= contour.length) { // done w/ contour
+          } else if (start + thisDash >= contour.length) {
+            // done w/ contour
             final p = contour.extractPath(start, contour.length);
             if (penDown) {
               c.drawPath(p, _paint);
@@ -357,7 +375,7 @@ class SIPath extends SIRenderable {
 
   Rect getBounds() {
     Rect pathB = path.getBounds();
-    if (siPaint.strokeColorType != SIColorType.none) {
+    if (_wouldPaint(siPaint.strokeColor)) {
       final sw = siPaint.strokeWidth;
       pathB = Rect.fromLTWH(pathB.left - sw / 2, pathB.top - sw / 2,
           pathB.width + sw, pathB.height + sw);
@@ -511,9 +529,7 @@ class SIText extends SIRenderable {
   final SITextAttributes _attr;
   final SIPaint _paint;
 
-
   SIText(this._text, this._x, this._y, this._attr, this._paint);
-
 
   @override
   PruningBoundary? getBoundary() {
@@ -527,9 +543,25 @@ class SIText extends SIRenderable {
     throw UnimplementedError("@@ TODO");
   }
 
+  Paint? _getPaint(SIColor c, Color currentColor) {
+    Paint? r;
+    c.accept(SIColorVisitor(
+        value: (SIValueColor c) {
+          Paint p = r = Paint();
+          p.color = Color(c.argb);
+        },
+        current: () => r = Paint()..color = currentColor,
+        none: () {},
+        linearGradient: (SILinearGradientColor c) => throw "@@ TODO",
+        radialGradient: (SIRadialGradientColor c) => throw "@@ TODO"
+    ));
+    return r;
+  }
+
   @override
   void paint(ui.Canvas c, ui.Color currentColor) {
-    if (_paint.fillColorType == SIColorType.none) {
+    final Paint? foreground = _getPaint(_paint.fillColor, currentColor);
+    if (foreground == null) {
       return;
     }
     // It's tempting to try to do all this work once, in the constructor,
@@ -541,19 +573,16 @@ class SIText extends SIRenderable {
     final sz = _attr.fontSize;
     final FontStyle style = _attr.fontStyle.asFontStyle;
     final FontWeight weight = _attr.fontWeight.asFontWeight;
-    final color = (_paint.fillColorType == SIColorType.value)
-        ? Color(_paint.fillColor)
-        : currentColor;
     for (int i = 0; i < len; i++) {
       final String s;
-      if (i == len - 1)  {
+      if (i == len - 1) {
         s = _text.substring(i, _text.length);
       } else {
-        s = _text.substring(i, i+1);
+        s = _text.substring(i, i + 1);
       }
       final span = TextSpan(
           style: TextStyle(
-              color: color,
+              foreground: foreground,
               fontFamily: fam,
               fontSize: sz,
               fontStyle: style,

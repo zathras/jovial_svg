@@ -28,7 +28,6 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 ///
 /// Android Vector Drawable parser
 ///
@@ -304,13 +303,12 @@ abstract class AvdParser extends GenericParser {
             null,
             pathData,
             SIPaint(
-                fillColor: fillColor ?? 0,
-                fillColorType:
-                    (fillColor == null) ? SIColorType.none : SIColorType.value,
-                strokeColor: strokeColor ?? 0,
-                strokeColorType: (strokeColor == null)
-                    ? SIColorType.none
-                    : SIColorType.value,
+                fillColor: (fillColor == null)
+                    ? SIColor.none
+                    : SIValueColor(fillColor),
+                strokeColor: (strokeColor == null)
+                    ? SIColor.none
+                    : SIValueColor(strokeColor),
                 strokeWidth: strokeWidth,
                 strokeMiterLimit: strokeMiterLimit,
                 strokeJoin: strokeJoin,

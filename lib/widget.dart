@@ -138,7 +138,7 @@ class _SIPainter extends CustomPainter {
   final BoxFit _fit;
   final Alignment _alignment;
   final bool _clip;
-  bool _preparing;
+  final bool _preparing;
 
   _SIPainter(this._si, this._fit, this._alignment, this._clip, this._preparing);
 

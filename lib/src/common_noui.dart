@@ -52,7 +52,7 @@ abstract class SIVisitor<PathDataT, R> {
   R get initial;
 
   ///
-  /// Called first on a traversal, this establishes the immutable values that
+  /// Called first on a traversal, this establishes immutable values that
   /// are canonicalized.
   ///
   R init(R collector, List<SIImageData> im, List<String> strings,
@@ -136,10 +136,8 @@ class SIImageData {
 }
 
 class SIPaint {
-  final int fillColor;
-  final SIColorType fillColorType;
-  final int strokeColor;
-  final SIColorType strokeColorType;
+  final SIColor fillColor;
+  final SIColor strokeColor;
   final double strokeWidth;
   final double strokeMiterLimit;
   final SIStrokeJoin strokeJoin;
@@ -150,9 +148,7 @@ class SIPaint {
 
   const SIPaint(
       {required this.fillColor,
-      required this.fillColorType,
       required this.strokeColor,
-      required this.strokeColorType,
       required double? strokeWidth,
       required double? strokeMiterLimit,
       required SIStrokeJoin? strokeJoin,
@@ -171,9 +167,7 @@ class SIPaint {
 
   SIPaint forText() => SIPaint(
       fillColor: fillColor,
-      fillColorType: fillColorType,
-      strokeColor: 0,
-      strokeColorType: SIColorType.none,
+      strokeColor: SIColor.none,
       strokeWidth: null,
       strokeMiterLimit: null,
       strokeJoin: null,
@@ -184,15 +178,10 @@ class SIPaint {
 
   @override
   int get hashCode => quiver.hash4(
-      fillColor,
-      strokeColor,
-      strokeWidth,
-      quiver.hash4(
-          strokeMiterLimit,
-          strokeJoin,
-          strokeCap,
-          quiver.hash3(fillType, strokeDashOffset,
-              quiver.hashObjects(strokeDashArray ?? <double>[]))));
+      quiver.hash2(fillColor, strokeColor),
+      quiver.hash4(strokeWidth, strokeMiterLimit, strokeJoin, strokeCap),
+      quiver.hash2(fillType, strokeDashOffset),
+      quiver.hashObjects(strokeDashArray ?? <double>[]));
 
   @override
   bool operator ==(Object other) {
@@ -204,6 +193,7 @@ class SIPaint {
           strokeWidth == other.strokeWidth &&
           strokeMiterLimit == other.strokeMiterLimit &&
           strokeJoin == other.strokeJoin &&
+          strokeCap == other.strokeCap &&
           fillType == other.fillType &&
           quiver.listsEqual(strokeDashArray, other.strokeDashArray) &&
           strokeDashOffset == other.strokeDashOffset;
@@ -213,7 +203,156 @@ class SIPaint {
   }
 }
 
-enum SIColorType { none, currentColor, value }
+abstract class SIColor {
+  const SIColor();
+
+  static const none = SINoneColor._p();
+  static const currentColor = SICurrentColor._p();
+
+  void accept(SIColorVisitor v);
+}
+
+class SINoneColor extends SIColor {
+  const SINoneColor._p();
+
+  @override
+  void accept(SIColorVisitor v) => v.none();
+}
+
+class SICurrentColor extends SIColor {
+  const SICurrentColor._p();
+
+  @override
+  void accept(SIColorVisitor v) => v.current();
+}
+
+class SIValueColor extends SIColor {
+  final int argb;
+
+  SIValueColor(this.argb);
+
+  @override
+  void accept(SIColorVisitor v) => v.value(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SIValueColor) {
+      return argb == other.argb;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => argb.hashCode ^ 0x94d38975;
+
+  @override
+  String toString() => 'SIValueColor(#${argb.toRadixString(16).padLeft(6, "0")})';
+}
+
+abstract class SIGradientColor extends SIColor {
+  final List<SIColor> colors;
+  final List<double> stops;
+  final bool objectBoundingBox;
+
+  SIGradientColor(this.colors, this.stops, this.objectBoundingBox);
+}
+
+class SILinearGradientColor extends SIGradientColor {
+  final double x1;
+  final double y1;
+  final double x2;
+  final double y2;
+
+  SILinearGradientColor(
+      {required this.x1,
+      required this.y1,
+      required this.x2,
+      required this.y2,
+      required List<SIColor> colors,
+      required List<double> stops,
+      required bool objectBoundingBox})
+      : super(colors, stops, objectBoundingBox);
+
+  @override
+  void accept(SIColorVisitor v) => v.linearGradient(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SILinearGradientColor) {
+      return x1 == other.x1 &&
+          y1 == other.y1 &&
+          x2 == other.x2 &&
+          y2 == other.y2 &&
+          quiver.listsEqual(colors, other.colors) &&
+          quiver.listsEqual(stops, other.stops) &&
+          objectBoundingBox == other.objectBoundingBox;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash4(quiver.hash4(x1, y1, x2, y2),
+      quiver.hashObjects(colors), quiver.hashObjects(stops), objectBoundingBox);
+}
+
+class SIRadialGradientColor extends SIGradientColor {
+  final double cx;
+  final double cy;
+  final double r;
+
+  SIRadialGradientColor(
+      {required this.cx,
+      required this.cy,
+      required this.r,
+      required List<SIColor> colors,
+      required List<double> stops,
+      required bool objectBoundingBox})
+      : super(colors, stops, objectBoundingBox);
+
+  @override
+  void accept(SIColorVisitor v) => v.radialGradient(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SIRadialGradientColor) {
+      return cx == other.cx &&
+          cy == other.cy &&
+          r == other.r &&
+          quiver.listsEqual(colors, other.colors) &&
+          quiver.listsEqual(stops, other.stops) &&
+          objectBoundingBox == other.objectBoundingBox;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash4(quiver.hash3(cx, cy, r),
+      quiver.hashObjects(colors), quiver.hashObjects(stops), objectBoundingBox);
+}
+
+class SIColorVisitor {
+  final void Function(SIValueColor c) value;
+  final void Function() none;
+  final void Function() current;
+  final void Function(SILinearGradientColor c) linearGradient;
+  final void Function(SIRadialGradientColor c) radialGradient;
+
+  const SIColorVisitor(
+      {required this.value,
+      required this.none,
+      required this.current,
+      required this.linearGradient,
+      required this.radialGradient});
+}
 
 ///
 /// Mixin for SIBuilder that builds paths from strings
@@ -292,12 +431,6 @@ abstract class GenericParser {
     final nc = _namedColors[s];
     if (nc != null) {
       return nc;
-    }
-    if (s.startsWith('url(#')) {
-      if (warn) {
-        print('   Warning:  Gradients not supported; defaulting to grey');
-        return 0xff808080;
-      }
     }
     throw ParseError('Unrecognized color $s');
   }

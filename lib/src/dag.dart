@@ -303,7 +303,6 @@ class _GroupBuilder implements _SIParentBuilder {
 abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   double? _width;
   double? _height;
-  Rectangle<double>? _viewbox;
   int? _tintColor;
   SITintMode? _tintMode;
   final Rect? _viewport;
@@ -316,12 +315,12 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   List<List<double>> _floatLists = [];
   List<Affine> _transforms = [];
   final _paths = <Object?, Path>{};
-  final Set<SIRenderable> _dagger = <SIRenderable>{};
+  final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
 
   SIGenericDagBuilder(this._viewport, this.warn, this.currentColor);
 
-  T _daggerize<T extends SIRenderable>(T r) {
+  T _daggerize<T extends Object>(T r) {
     var result = _dagger.lookup(r);
     if (result == null) {
       result = r;
@@ -337,7 +336,7 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
 
   @override
   void path(void collector, PathDataT pathData, SIPaint siPaint) {
-    final p = _daggerize(SIPath(_getPath(pathData), siPaint));
+    final p = _daggerize(SIPath(_getPath(pathData), _daggerize(siPaint)));
     addRenderable(p);
   }
 
@@ -400,8 +399,8 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   @override
   void text(void collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, SIPaint p) {
-    addRenderable(SIText(
-        _strings[textIndex], _floatLists[xIndex], _floatLists[yIndex], ta, p));
+    addRenderable(SIText(_strings[textIndex], _floatLists[xIndex],
+        _floatLists[yIndex], ta, _daggerize(p)));
   }
 
   ScalableImageDag get si {

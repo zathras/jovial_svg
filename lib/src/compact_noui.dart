@@ -169,6 +169,7 @@ class CompactTraverser<R> {
   }
 
   SIPaint _getPaint({required bool hasPaintNumber, required int colorTypes}) {
+    /*
     final fillColorType = SIColorType.values[colorTypes ~/ 3];
     final strokeColorType = SIColorType.values[colorTypes % 3];
     final int flags;
@@ -217,12 +218,13 @@ class CompactTraverser<R> {
         fillType: fillType,
         strokeDashArray: null,
         strokeDashOffset: null);
-    throw UnimplementedError("@@ TODO dash array");
     if (hasPaintNumber) {
       _rewindChildren.seek = oldChildrenSeek;
       _rewindArgs.seek = oldArgsSeek;
     }
-    return r;
+     */
+    throw UnimplementedError("@@ TODO dash array");
+    // return r;
   }
 
   CompactChildData _getPathData(bool hasPathNumber) {
@@ -710,6 +712,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
     bool hasStrokeWidth = siPaint.strokeWidth != SIPaint.strokeWidthDefault;
     bool hasStrokeMiterLimit =
         siPaint.strokeWidth != SIPaint.strokeMiterLimitDefault;
+    /*
     assert(SIColorType.none.index == 0 && SIColorType.values.length == 3);
     final colorTypes =
         siPaint.fillColorType.index * 3 + siPaint.strokeColorType.index - 1;
@@ -745,6 +748,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
       }
       final len = _paintShare[siPaint] = _paintShare.length;
       assert(len + 1 == _paintShare.length);
+
     }
     if (_DEBUG_COMPACT) {
       children.writeUnsignedInt(args.length + 100);
@@ -757,6 +761,8 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
       assert(len + 1 == _pathShare.length);
       return CompactPathBuilder(this);
     }
+     */
+    throw UnimplementedError("@@ TODO");
   }
 
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
