@@ -84,9 +84,9 @@ packages:
   jovial_misc:
     dependency: "direct main"
     description:
-      path: "/Users/billf/github/misc/dart/jovial_misc"
-      relative: false
-    source: path
+      name: jovial_misc
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.5.1"
   matcher:
     dependency: transitive
@@ -129,7 +129,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.1"
   quiver:
     dependency: "direct main"
     description:
