@@ -27,4 +27,5 @@ SVG profile notes:
       * `rotate` is not supported (but normal transformations, including rotation apply).
       * Embedded fonts are not supported.
       * Bi-directional text is not supported
-  *  Gradients are not supported at present
+  *  Gradients are supported, and additionally support xlink:href attributes to other
+     gradients, and gradientTransform attributes from SVG 1.1.

@@ -52,17 +52,57 @@ abstract class SIRenderable {
     bool hasWork = true;
     c.accept(SIColorVisitor(
         value: (SIValueColor c) {},
-        current: () { },
+        current: () {},
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) {},
-        radialGradient: (SIRadialGradientColor c) {}
-    ));
+        radialGradient: (SIRadialGradientColor c) {}));
     return hasWork;
   }
 
   SIRenderable? prunedBy(PruningBoundary b, Set<SIRenderable> dagger);
 
   PruningBoundary? getBoundary();
+
+  void _setLinearGradient(
+      Color current, Paint p, SILinearGradientColor g, Float64List? xform) {
+    p.shader = ui.Gradient.linear(Offset(g.x1, g.y1), Offset(g.x2, g.y2),
+        _gradientColors(current, g), g.stops, g.spreadMethod.toTileMode, xform);
+  }
+
+  void _setRadialGradient(
+      Color current, Paint p, SIRadialGradientColor g, Float64List? xform) {
+    p.shader = ui.Gradient.radial(Offset(g.cx, g.cy), g.r,
+        _gradientColors(current, g), g.stops, g.spreadMethod.toTileMode, xform);
+  }
+
+  List<Color> _gradientColors(Color current, SIGradientColor g) {
+    Color cc = current;
+    final v = SIColorVisitor(
+      value: (SIValueColor c) => cc = Color(c.argb),
+      none: () { assert(false); },
+      current: () => cc = current,
+      linearGradient: (_) { assert(false); },
+      radialGradient: (_) { assert(false); },
+    );
+    final r = List<Color>.generate(g.colors.length, (i) {
+      g.colors[i].accept(v);
+      return cc;
+    });
+    return r;
+  }
+}
+
+extension SIGradientSpreadMethodMapping on SIGradientSpreadMethod {
+  TileMode get toTileMode {
+    switch(this) {
+      case SIGradientSpreadMethod.pad:
+        return TileMode.clamp;
+      case SIGradientSpreadMethod.reflect:
+        return TileMode.mirror;
+      case SIGradientSpreadMethod.repeat:
+        return TileMode.repeated;
+    }
+  }
 }
 
 extension SIStrokeJoinMapping on SIStrokeJoin {
@@ -293,15 +333,25 @@ class SIPath extends SIRenderable {
   SIPath(this.path, this.siPaint);
 
   bool _setPaint(SIColor si, Color currentColor) {
+    Float64List? xform(SIGradientColor c) {
+      if (c.objectBoundingBox) {
+        final bounds = getBounds();
+        final a = MutableAffine.scale(bounds.width, bounds.height);
+        return a.forCanvas;
+      } else {
+        return null;
+      }
+    }
     bool hasWork = true;
     _paint.shader = null;
     si.accept(SIColorVisitor(
-      value: (SIValueColor c) => _paint.color = Color(c.argb),
-      current: () => _paint.color = currentColor,
-      none: () => hasWork = false,
-      linearGradient: (SILinearGradientColor c) => throw "@@ TODO",
-      radialGradient: (SIRadialGradientColor c) => throw "@@ TODO"
-    ));
+        value: (SIValueColor c) => _paint.color = Color(c.argb),
+        current: () => _paint.color = currentColor,
+        none: () => hasWork = false,
+        linearGradient: (SILinearGradientColor c) =>
+            _setLinearGradient(currentColor, _paint, c, xform(c)),
+        radialGradient: (SIRadialGradientColor c) =>
+            _setRadialGradient(currentColor, _paint, c, xform(c))));
     return hasWork;
   }
 
@@ -545,16 +595,24 @@ class SIText extends SIRenderable {
 
   Paint? _getPaint(SIColor c, Color currentColor) {
     Paint? r;
+    Float64List? xform(SIGradientColor c) {
+      throw UnimplementedError("@@ TODO");
+    }
     c.accept(SIColorVisitor(
         value: (SIValueColor c) {
-          Paint p = r = Paint();
+          final p = r = Paint();
           p.color = Color(c.argb);
         },
         current: () => r = Paint()..color = currentColor,
         none: () {},
-        linearGradient: (SILinearGradientColor c) => throw "@@ TODO",
-        radialGradient: (SIRadialGradientColor c) => throw "@@ TODO"
-    ));
+        linearGradient: (SILinearGradientColor c) {
+          final p = r = Paint();
+          _setLinearGradient(currentColor, p, c, xform(c));
+        },
+        radialGradient: (SIRadialGradientColor c) {
+          final p = r = Paint();
+          _setRadialGradient(currentColor, p, c, xform(c));
+        }));
     return r;
   }
 

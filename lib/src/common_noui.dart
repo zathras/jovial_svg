@@ -249,10 +249,15 @@ class SIValueColor extends SIColor {
   int get hashCode => argb.hashCode ^ 0x94d38975;
 
   @override
-  String toString() => 'SIValueColor(#${argb.toRadixString(16).padLeft(6, "0")})';
+  String toString() =>
+      'SIValueColor(#${argb.toRadixString(16).padLeft(6, "0")})';
 }
 
+enum SIGradientSpreadMethod { pad, reflect, repeat }
+
 abstract class SIGradientColor extends SIColor {
+  final SIGradientSpreadMethod spreadMethod =
+      SIGradientSpreadMethod.pad; // @@ TODO
   final List<SIColor> colors;
   final List<double> stops;
   final bool objectBoundingBox;

@@ -269,12 +269,16 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   void build(SIBuilder<String> builder, SvgCanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final currTA = cascadeText(ta);
-    builder.group(null, transformIndex);
     final cascaded = cascadePaint(ancestor, idLookup);
-    for (final c in children) {
-      c.build(builder, canon, idLookup, cascaded, currTA);
+    if (transformIndex == null && children.length == 1) {
+      children[0].build(builder, canon, idLookup, cascaded, currTA);
+    } else {
+      builder.group(null, transformIndex);
+      for (final c in children) {
+        c.build(builder, canon, idLookup, cascaded, currTA);
+      }
+      builder.endGroup(null);
     }
-    builder.endGroup(null);
   }
 
   @override

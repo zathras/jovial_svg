@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" 
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+   x="0.0000000"
+   y="0.0000000"
+   width="600"
+   height="300">
+  <defs
+     id="defs3">
+    <linearGradient
+       id="linearGradient2060">
+      <stop
+         style="stop-color:#eb0000;stop-opacity:1.0000000;"
+         offset="0.0000000"
+         id="stop2062" />
+      <stop
+         style="stop-color:#00ff00;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop2064" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient2060"
+       id="linearGradient1734"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,-1)"
+       x1="2"
+       y1="63.099518"
+       x2="109"
+       y2="128.69501" />
+    <linearGradient
+       id="spread"
+       spreadMethod="reflect"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="0.3">
+      <stop
+         style="stop-color:#eb0000;stop-opacity:1.0000000;"
+         offset="0.0000000"
+         id="stop2062" />
+      <stop
+         style="stop-color:#00ff00;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop2064" />
+    </linearGradient>
+  </defs>
+ <path
+           id="rect1306"
+           d="M 18,1.9999995 L 121,1.9999995 C 129.864,1.9999995 137,9.1359995 137,18 L 137,171 C 137,179.864 129.864,187 121,187 L 18,187 C 9.136,187 2,179.864 2,171 L 2,18 C 2,9.1359995 9.136,1.9999995 18,1.9999995 z "
+           style="fill:url(#linearGradient1734);fill-opacity:1;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1" />
+ <path
+           transform="translate(200,0)"
+           id="bar"
+           d="M 18,1.9999995 L 121,1.9999995 C 129.864,1.9999995 137,9.1359995 137,18 L 137,171 C 137,179.864 129.864,187 121,187 L 18,187 C 9.136,187 2,179.864 2,171 L 2,18 C 2,9.1359995 9.136,1.9999995 18,1.9999995 z "
+           style="fill:url(#linearGradient2060);fill-opacity:1;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1" />
+ <path
+           transform="translate(400,0)"
+           d="M 18,1.9999995 L 121,1.9999995 C 129.864,1.9999995 137,9.1359995 137,18 L 137,171 C 137,179.864 129.864,187 121,187 L 18,187 C 9.136,187 2,179.864 2,171 L 2,18 C 2,9.1359995 9.136,1.9999995 18,1.9999995 z "
+           style="fill:url(#spread);fill-opacity:1;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1" />
+    
+</svg>
