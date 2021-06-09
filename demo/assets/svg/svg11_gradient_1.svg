@@ -56,5 +56,17 @@
            transform="translate(400,0)"
            d="M 18,1.9999995 L 121,1.9999995 C 129.864,1.9999995 137,9.1359995 137,18 L 137,171 C 137,179.864 129.864,187 121,187 L 18,187 C 9.136,187 2,179.864 2,171 L 2,18 C 2,9.1359995 9.136,1.9999995 18,1.9999995 z "
            style="fill:url(#spread);fill-opacity:1;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1" />
+
+<radialGradient id="groovy"
+      spreadMethod="reflect"
+      gradientTransform="scale(.2,1.5)"
+      cx="2.50" cy=".10" r="0.4">
+    <stop offset="0" stop-color="red"/>
+    <stop offset="0.3" stop-color="purple"/>
+    <stop offset="0.7" stop-color="blue"/>
+    <stop offset="0.9" stop-color="green"/>
+</radialGradient>
+
+  <text fill="url(#groovy)" font-size="50" font-family="Rollerball" x="60" y="275">Get a job, hippie!</text>
     
 </svg>

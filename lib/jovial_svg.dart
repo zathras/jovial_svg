@@ -119,7 +119,7 @@ abstract class ScalableImage extends _PackageInitializer {
   /// tolerance might reduce the size of the new image with no
   /// visual impact.
   ScalableImage withNewViewport(Rect viewport,
-      {bool prune = true, double pruningTolerance = 0});
+      {bool prune = false, double pruningTolerance = 0});
 
   ///
   /// Return a new ScalableImage like this one, with tint modified.

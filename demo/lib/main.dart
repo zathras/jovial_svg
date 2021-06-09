@@ -117,6 +117,7 @@ class _DemoScreenState extends State<DemoScreen> {
   var assetType = AssetType.svg;
   double _scale = 0;
   bool _fitToScreen = false;
+  Rect? _originalViewport;
   double get _multiplier => pow(2.0, _scale).toDouble();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
 
@@ -240,6 +241,14 @@ class _DemoScreenState extends State<DemoScreen> {
                                   _fitToScreen = !_fitToScreen;
                                 })),
                       ])),
+                  SizedBox(
+                      width: 120,
+                      child: Row(children: [
+                        Text('Zoom/Prune'),
+                        Checkbox(
+                            value: _originalViewport != null,
+                            onChanged: (_) => _changeZoomPrune())
+                      ])),
                   SizedBox(width: 30),
                   ElevatedButton(
                       onPressed: () {
@@ -278,6 +287,7 @@ class _DemoScreenState extends State<DemoScreen> {
       setState(() {
         assetType = v;
         si = newSI;
+        _originalViewport = null;
         errorMessage = err;
       });
     }());
@@ -306,15 +316,30 @@ class _DemoScreenState extends State<DemoScreen> {
       // over zooming there.
       //
       // cf. https://github.com/flutter/flutter/issues/83628
-      return Container(padding: EdgeInsets.all(5),
+      return Container(
+          padding: EdgeInsets.all(5),
           child: InteractiveViewer(
-          key: ValueKey(Tuple2(_scale, si)),
-          constrained: false,
-          scaleEnabled: false,
-          panEnabled: true,
-          child: scrollee));
+              key: ValueKey(Tuple2(_scale, si)),
+              constrained: false,
+              scaleEnabled: false,
+              panEnabled: true,
+              child: scrollee));
     }
   }
+
+  void _changeZoomPrune() => setState(() {
+    if (_originalViewport != null) {
+      si = si!.withNewViewport(_originalViewport!);
+      _originalViewport = null;
+    } else {
+      Rect r = _originalViewport = si!.viewport;
+      // Card height/width:
+      final ch = r.height / 5;
+      final cw = r.width / 13;
+      si = si!.withNewViewport(Rect.fromLTWH(9*cw, 2*ch, 3*cw, ch),
+      prune: true);
+    }
+  });
 }
 
 enum AssetType { svg, compact, avd, si }

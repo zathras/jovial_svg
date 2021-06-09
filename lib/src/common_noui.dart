@@ -838,4 +838,21 @@ class SITextAttributes {
       required this.fontStyle,
       required this.fontWeight,
       required this.fontSize});
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SITextAttributes) {
+      return fontFamily == other.fontFamily &&
+          fontStyle == other.fontStyle &&
+          fontWeight == other.fontWeight &&
+          fontSize == other.fontSize;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash4(fontFamily, fontStyle, fontWeight, fontSize);
 }

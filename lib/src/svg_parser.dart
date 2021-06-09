@@ -389,7 +389,7 @@ abstract class SvgParser extends GenericParser {
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
     final MutableAffine? transform =
         getTransform(null, attrs.remove('gradienttransform'));
-    final spreadMethod = getSpreadMethod(attrs.remove('spreadMethod'));
+    final spreadMethod = getSpreadMethod(attrs.remove('spreadmethod'));
     final n = SvgGradientNode(
         parentID,
         SvgRadialGradientColor(

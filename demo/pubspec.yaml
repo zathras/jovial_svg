@@ -23,6 +23,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+      - family: Rollerball
+        fonts:
+          - asset: assets/fonts/rollerball.ttf
   assets:
     - assets/other/jupiter.si
     - assets/manifest.json

@@ -79,10 +79,16 @@ abstract class SIRenderable {
     Color cc = current;
     final v = SIColorVisitor(
       value: (SIValueColor c) => cc = Color(c.argb),
-      none: () { assert(false); },
+      none: () {
+        assert(false);
+      },
       current: () => cc = current,
-      linearGradient: (_) { assert(false); },
-      radialGradient: (_) { assert(false); },
+      linearGradient: (_) {
+        assert(false);
+      },
+      radialGradient: (_) {
+        assert(false);
+      },
     );
     final r = List<Color>.generate(g.colors.length, (i) {
       g.colors[i].accept(v);
@@ -90,11 +96,26 @@ abstract class SIRenderable {
     });
     return r;
   }
+
+  Float64List? _gradientXform(SIGradientColor c, Rect bounds) {
+    final transform = c.transform;
+    if (c.objectBoundingBox) {
+      final a = MutableAffine.scale(bounds.width, bounds.height);
+      if (transform != null) {
+        a.multiplyBy(transform.toMutable);
+      }
+      return a.forCanvas;
+    } else if (transform != null) {
+      return c.transform!.forCanvas;
+    } else {
+      return null;
+    }
+  }
 }
 
 extension SIGradientSpreadMethodMapping on SIGradientSpreadMethod {
   TileMode get toTileMode {
-    switch(this) {
+    switch (this) {
       case SIGradientSpreadMethod.pad:
         return TileMode.clamp;
       case SIGradientSpreadMethod.reflect:
@@ -333,31 +354,16 @@ class SIPath extends SIRenderable {
   SIPath(this.path, this.siPaint);
 
   bool _setPaint(SIColor si, Color currentColor) {
-    Float64List? xform(SIGradientColor c) {
-      final transform = c.transform;
-      if (c.objectBoundingBox) {
-        final bounds = getBounds();
-        final a = MutableAffine.scale(bounds.width, bounds.height);
-        if (transform != null) {
-          a.multiplyBy(transform.toMutable);
-        }
-        return a.forCanvas;
-      } else if (transform != null) {
-        return c.transform!.forCanvas;
-      } else {
-        return null;
-      }
-    }
     bool hasWork = true;
     _paint.shader = null;
     si.accept(SIColorVisitor(
         value: (SIValueColor c) => _paint.color = Color(c.argb),
         current: () => _paint.color = currentColor,
         none: () => hasWork = false,
-        linearGradient: (SILinearGradientColor c) =>
-            _setLinearGradient(currentColor, _paint, c, xform(c)),
-        radialGradient: (SIRadialGradientColor c) =>
-            _setRadialGradient(currentColor, _paint, c, xform(c))));
+        linearGradient: (SILinearGradientColor c) => _setLinearGradient(
+            currentColor, _paint, c, _gradientXform(c, getBounds())),
+        radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
+            currentColor, _paint, c, _gradientXform(c, getBounds()))));
     return hasWork;
   }
 
@@ -588,22 +594,49 @@ class SIText extends SIRenderable {
   SIText(this._text, this._x, this._y, this._attr, this._paint);
 
   @override
-  PruningBoundary? getBoundary() {
-    // TODO: implement getBoundary
-    throw UnimplementedError("@@ TODO");
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (!(other is SIText)) {
+      return false;
+    } else {
+      return quiver.listsEqual(_x, other._x) &&
+          quiver.listsEqual(_y, other._y) &&
+          _attr == other._attr &&
+          _paint == other._paint;
+    }
   }
 
   @override
+  int get hashCode => quiver.hash4(
+      quiver.hashObjects(_x), quiver.hashObjects(_y), _attr, _paint);
+
+  @override
+  PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());
+
+  @override
   SIRenderable? prunedBy(PruningBoundary b, Set<SIRenderable> dagger) {
-    // TODO: implement prunedBy
-    throw UnimplementedError("@@ TODO");
+    Rect textB = getTextBounds();
+    final bb = b.getBounds();
+    if (textB.overlaps(bb)) {
+      return this;
+    } else {
+      return null;
+    }
+  }
+
+  Rect getTextBounds() {
+    Rect result = Rect.fromLTRB(_x[0], _y[0], 1, 1);
+    _forEachPainter(Colors.black, Paint(),
+        (double left, double top, TextPainter tp) {
+      result =
+          result.expandToInclude(Rect.fromLTWH(left, top, tp.width, tp.height));
+    });
+    return result;
   }
 
   Paint? _getPaint(SIColor c, Color currentColor) {
     Paint? r;
-    Float64List? xform(SIGradientColor c) {
-      throw UnimplementedError("@@ TODO");
-    }
     c.accept(SIColorVisitor(
         value: (SIValueColor c) {
           final p = r = Paint();
@@ -613,11 +646,11 @@ class SIText extends SIRenderable {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          _setLinearGradient(currentColor, p, c, xform(c));
+          _setLinearGradient(currentColor, p, c, _gradientXform(c, getTextBounds()));
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          _setRadialGradient(currentColor, p, c, xform(c));
+          _setRadialGradient(currentColor, p, c, _gradientXform(c, getTextBounds()));
         }));
     return r;
   }
@@ -628,6 +661,14 @@ class SIText extends SIRenderable {
     if (foreground == null) {
       return;
     }
+    _forEachPainter(currentColor, foreground,
+        (double left, double top, TextPainter tp) {
+      tp.paint(c, Offset(left, top));
+    });
+  }
+
+  void _forEachPainter(ui.Color currentColor, ui.Paint foreground,
+      void Function(double left, double top, TextPainter p) thingToDo) {
     // It's tempting to try to do all this work once, in the constructor,
     // but we need currColor for the text style.  This node can be reused,
     // so we can't guarantee that's a constant.  Fortunately, text performance
@@ -655,7 +696,7 @@ class SIText extends SIRenderable {
       final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
       tp.layout();
       final dy = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      tp.paint(c, Offset(_x[i], _y[i] - dy));
+      thingToDo(_x[i], _y[i] - dy, tp);
     }
   }
 }
