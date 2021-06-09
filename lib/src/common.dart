@@ -602,6 +602,7 @@ class SIText extends SIRenderable {
     } else {
       return quiver.listsEqual(_x, other._x) &&
           quiver.listsEqual(_y, other._y) &&
+          _text == other._text &&
           _attr == other._attr &&
           _paint == other._paint;
     }
@@ -609,7 +610,8 @@ class SIText extends SIRenderable {
 
   @override
   int get hashCode => quiver.hash4(
-      quiver.hashObjects(_x), quiver.hashObjects(_y), _attr, _paint);
+      quiver.hashObjects(_x), quiver.hashObjects(_y), _text,
+      quiver.hash2(_attr, _paint));
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());
