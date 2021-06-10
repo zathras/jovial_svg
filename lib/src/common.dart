@@ -100,7 +100,8 @@ abstract class SIRenderable {
   Float64List? _gradientXform(SIGradientColor c, Rect bounds) {
     final transform = c.transform;
     if (c.objectBoundingBox) {
-      final a = MutableAffine.scale(bounds.width, bounds.height);
+      final a = MutableAffine.translation(bounds.left, bounds.top);
+      a.multiplyBy(MutableAffine.scale(bounds.width, bounds.height));
       if (transform != null) {
         a.multiplyBy(transform.toMutable);
       }

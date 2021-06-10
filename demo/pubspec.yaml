@@ -24,7 +24,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   fonts:
-      - family: Rollerball
+      - family: "ROLLERBALL 1975"
         fonts:
           - asset: assets/fonts/rollerball.ttf
   assets:
@@ -65,5 +65,6 @@ flutter:
     - assets/avd/ornamental.xml
     - assets/avd/paris.xml
     - assets/avd/paris_text.xml
+    - assets/avd/svg11_gradient_1.xml
     - assets/avd/tango.xml
     - assets/si/anglo.si
