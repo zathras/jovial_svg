@@ -55,7 +55,8 @@ abstract class SIRenderable {
         current: () {},
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) {},
-        radialGradient: (SIRadialGradientColor c) {}));
+        radialGradient: (SIRadialGradientColor c) {},
+        sweepGradient: (SISweepGradientColor c) {}));
     return hasWork;
   }
 
@@ -75,6 +76,18 @@ abstract class SIRenderable {
         _gradientColors(current, g), g.stops, g.spreadMethod.toTileMode, xform);
   }
 
+  void _setSweepGradient(
+      Color current, Paint p, SISweepGradientColor g, Float64List? xform) {
+    p.shader = ui.Gradient.sweep(
+        Offset(g.cx, g.cy),
+        _gradientColors(current, g),
+        g.stops,
+        g.spreadMethod.toTileMode,
+        g.startAngle,
+        g.endAngle,
+        xform);
+  }
+
   List<Color> _gradientColors(Color current, SIGradientColor g) {
     Color cc = current;
     final v = SIColorVisitor(
@@ -87,6 +100,9 @@ abstract class SIRenderable {
         assert(false);
       },
       radialGradient: (_) {
+        assert(false);
+      },
+      sweepGradient: (_) {
         assert(false);
       },
     );
@@ -364,6 +380,8 @@ class SIPath extends SIRenderable {
         linearGradient: (SILinearGradientColor c) => _setLinearGradient(
             currentColor, _paint, c, _gradientXform(c, getBounds())),
         radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
+            currentColor, _paint, c, _gradientXform(c, getBounds())),
+        sweepGradient: (SISweepGradientColor c) => _setSweepGradient(
             currentColor, _paint, c, _gradientXform(c, getBounds()))));
     return hasWork;
   }
@@ -610,9 +628,8 @@ class SIText extends SIRenderable {
   }
 
   @override
-  int get hashCode => quiver.hash4(
-      quiver.hashObjects(_x), quiver.hashObjects(_y), _text,
-      quiver.hash2(_attr, _paint));
+  int get hashCode => quiver.hash4(quiver.hashObjects(_x),
+      quiver.hashObjects(_y), _text, quiver.hash2(_attr, _paint));
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());
@@ -649,11 +666,18 @@ class SIText extends SIRenderable {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          _setLinearGradient(currentColor, p, c, _gradientXform(c, getTextBounds()));
+          _setLinearGradient(
+              currentColor, p, c, _gradientXform(c, getTextBounds()));
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          _setRadialGradient(currentColor, p, c, _gradientXform(c, getTextBounds()));
+          _setRadialGradient(
+              currentColor, p, c, _gradientXform(c, getTextBounds()));
+        },
+        sweepGradient: (SISweepGradientColor c) {
+          final p = r = Paint();
+          _setSweepGradient(
+              currentColor, p, c, _gradientXform(c, getTextBounds()));
         }));
     return r;
   }

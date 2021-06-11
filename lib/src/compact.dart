@@ -174,8 +174,8 @@ class ScalableImageCompact extends ScalableImage
         height: height,
         tintColor: tintColor?.value,
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
-    b.init(null, <SIImageData>[], <String>[], <List<double>>[],
-        <Affine>[]); // @@ TODO
+    b.init(null, <SIImageData>[], <String>[], <List<double>>[]);
+    throw UnimplementedError("@@ TODO");
     accept(b);
     b.endVector();
     return b.si;
@@ -288,12 +288,12 @@ abstract class _CompactVisitor<R>
     implements SIVisitor<CompactChildData, R> {
   @override
   R init(R collector, List<SIImageData> im, List<String> strings,
-      List<List<double>> floatLists, List<Affine> transforms) {
+      List<List<double>> floatLists) {
     throw UnimplementedError("@@ TODO");
   }
 
   @override
-  R group(R collector, int? transformIndex) {
+  R group(R collector, Affine? transform) {
     throw UnimplementedError("@@ TODO");
   }
 

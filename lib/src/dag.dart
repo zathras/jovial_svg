@@ -313,7 +313,6 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   List<SIImage>? _images;
   List<String> _strings = [];
   List<List<double>> _floatLists = [];
-  List<Affine> _transforms = [];
   final _paths = <Object?, Path>{};
   final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
@@ -374,12 +373,11 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
 
   @override
   void init(void collector, List<SIImageData> im, List<String> strings,
-      List<List<double>> floatLists, List<Affine> transforms) {
+      List<List<double>> floatLists) {
     assert(_images == null);
     _images = List<SIImage>.generate(im.length, (i) => SIImage(im[i]));
     _strings = strings;
     _floatLists = floatLists;
-    _transforms = transforms;
     assert(_si == null);
     final a = _si = ScalableImageDag(
         width: _width,
@@ -436,9 +434,11 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
-  void group(void collector, int? transformIndex) {
-    final t = (transformIndex == null) ? null : _transforms[transformIndex];
-    final g = _GroupBuilder(t);
+  void group(void collector, Affine? transform) {
+    if (transform != null) {
+      transform = _daggerize(transform);
+    }
+    final g = _GroupBuilder(transform);
     _parentStack.add(g);
   }
 

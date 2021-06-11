@@ -664,7 +664,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
-  void group(void collector, int? transformNumber) {
+  void group(void collector, Affine? transform) {
     throw UnimplementedError("@@ TODO");
     /*
     int? transformNumber;
@@ -769,7 +769,7 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
 
   @override
   void init(void collector, List<SIImageData> im, List<String> strings,
-      List<List<double>> floatLists, List<Affine> transforms) {
+      List<List<double>> floatLists) {
     throw UnimplementedError("@@ TODO");
   }
 

@@ -56,11 +56,11 @@ abstract class SIVisitor<PathDataT, R> {
   /// are canonicalized.
   ///
   R init(R collector, List<SIImageData> im, List<String> strings,
-      List<List<double>> floatLists, List<Affine> transforms);
+      List<List<double>> floatLists);
 
   R path(R collector, PathDataT pathData, SIPaint paint);
 
-  R group(R collector, int? transformIndex);
+  R group(R collector, Affine? transform);
 
   R endGroup(R collector);
 
@@ -359,19 +359,69 @@ class SIRadialGradientColor extends SIGradientColor {
       quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
+class SISweepGradientColor extends SIGradientColor {
+  final double cx;
+  final double cy;
+  final double startAngle;
+  final double endAngle;
+
+  SISweepGradientColor(
+      {required this.cx,
+        required this.cy,
+        required this.startAngle,
+        required this.endAngle,
+        required List<SIColor> colors,
+        required List<double> stops,
+        required bool objectBoundingBox,
+        required SIGradientSpreadMethod spreadMethod,
+        required Affine? transform})
+      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
+
+  @override
+  void accept(SIColorVisitor v) => v.sweepGradient(this);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SISweepGradientColor) {
+      return cx == other.cx &&
+          cy == other.cy &&
+          startAngle == other.startAngle &&
+          endAngle == other.endAngle &&
+          spreadMethod == other.spreadMethod &&
+          transform == other.transform &&
+          quiver.listsEqual(colors, other.colors) &&
+          quiver.listsEqual(stops, other.stops) &&
+          objectBoundingBox == other.objectBoundingBox;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => quiver.hash4(
+      quiver.hash4(cx, cy, startAngle, endAngle),
+      quiver.hashObjects(colors),
+      quiver.hashObjects(stops),
+      quiver.hash3(spreadMethod, transform, objectBoundingBox));
+}
+
 class SIColorVisitor {
   final void Function(SIValueColor c) value;
   final void Function() none;
   final void Function() current;
   final void Function(SILinearGradientColor c) linearGradient;
   final void Function(SIRadialGradientColor c) radialGradient;
+  final void Function(SISweepGradientColor c) sweepGradient;
 
   const SIColorVisitor(
       {required this.value,
       required this.none,
       required this.current,
       required this.linearGradient,
-      required this.radialGradient});
+      required this.radialGradient,
+      required this.sweepGradient});
 }
 
 ///
