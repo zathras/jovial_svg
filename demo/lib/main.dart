@@ -63,7 +63,11 @@ Future<void> main() async {
     // SVG is required to always be there.
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
+  final sw = Stopwatch()..start();
   final firstSI = await assets[0].forType(AssetType.svg, rootBundle);
+  final time = sw.elapsedMilliseconds;
+  sw.stop();
+  print('Loaded ${assets[0].fileName(AssetType.svg)} in $time ms.');
   runApp(Demo(assets, firstSI));
 }
 
@@ -278,7 +282,11 @@ class _DemoScreenState extends State<DemoScreen> {
       String? err;
       ScalableImage? newSI;
       try {
+        final sw = Stopwatch()..start();
         newSI = await assets[assetIndex].forType(v, widget.bundle);
+        final time = sw.elapsedMilliseconds;
+        sw.stop();
+        print('Loaded ${assets[assetIndex].fileName(v)} in $time ms.');
       } catch (e, st) {
         err = e.toString();
         print(e);

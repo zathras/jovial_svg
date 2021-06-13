@@ -1,11 +1,4 @@
 [
-    "svg11_gradient_1",
-    "tiny_11_01",
-    "tiny_13_01",
-    "tiny_13_02",
-    "tiny_stroke_dasharray_1",
-    "tiny_stroke_dasharray_2",
-    "tiny_stroke_dasharray_3",
     "anglo",
     "anglo_bitmap",
     "bellot",
@@ -24,5 +17,12 @@
     "tiny_08_03",
     "tiny_08_03_cubic02",
     "tiny_09_02",
-    "tiny_09_06"
+    "tiny_09_06",
+    "tiny_11_01",
+    "tiny_13_01",
+    "tiny_13_02",
+    "tiny_stroke_dasharray_1",
+    "tiny_stroke_dasharray_2",
+    "tiny_stroke_dasharray_3",
+    "svg11_gradient_1"
 ]

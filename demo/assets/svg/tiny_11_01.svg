@@ -6,7 +6,7 @@
 
   <g>
     <defs>
-      <linearGradient xml:id="MyGradient" gradientUnits="objectBoundingBox">
+      <linearGradient id="MyGradient" gradientUnits="objectBoundingBox">
         <stop offset="0" stop-color="#F60"/>
         <stop offset="1" stop-color="#FF6"/>
       </linearGradient>

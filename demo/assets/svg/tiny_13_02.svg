@@ -6,7 +6,7 @@
 
   <g>
     <defs>
-      <radialGradient xml:id="MyGradient" gradientUnits="userSpaceOnUse"
+      <radialGradient id="MyGradient" gradientUnits="userSpaceOnUse"
                       cx="400" cy="200" r="300">
         <stop offset="0" stop-color="red"/>
         <stop offset="0.5" stop-color="blue"/>

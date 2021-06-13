@@ -6,7 +6,7 @@
 
   <g>
     <defs>
-      <linearGradient xml:id="MyGradient">
+      <linearGradient id="MyGradient">
         <stop offset="0.05" stop-color="#F60"/>
         <stop offset="0.95" stop-color="#FF6"/>
       </linearGradient>
