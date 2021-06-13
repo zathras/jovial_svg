@@ -184,7 +184,7 @@ abstract class SvgParser extends GenericParser {
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
     final SvgGroup root;
     if (viewbox == null) {
-      root = SvgGroup("root");
+      root = SvgGroup();
     } else {
       final transform = MutableAffine.identity();
       if (width != null && height != null) {
@@ -194,9 +194,9 @@ abstract class SvgParser extends GenericParser {
       transform
           .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
       if (transform.isIdentity()) {
-        root = SvgGroup("root");
+        root = SvgGroup();
       } else {
-        root = SvgGroup("root")..transform = transform;
+        root = SvgGroup()..transform = transform;
       }
     }
     _processInheritable(root, attrs);
@@ -206,7 +206,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processGroup(Map<String, String> attrs) {
-    final group = SvgGroup(attrs['id'] ?? "??");
+    final group = SvgGroup();
     _processId(group, attrs);
     _processInheritable(group, attrs);
     _warnUnusedAttributes(attrs);

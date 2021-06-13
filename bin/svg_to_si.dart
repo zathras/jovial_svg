@@ -74,9 +74,9 @@ abstract class ToSI {
               .pathSegments
               .last;
           out = File.fromUri(outDir.uri.resolve(basename));
-          final bytes = b.si.writeToFile(out);
-          print('Wrote $bytes bytes to ${out.path}.');
         }
+        final bytes = b.si.writeToFile(out);
+        print('Wrote $bytes bytes to ${out.path}.');
       }
     }
   }

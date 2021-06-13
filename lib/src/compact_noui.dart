@@ -29,8 +29,8 @@ SOFTWARE.
 ///
 library jovial_svg.compact_noui;
 
+import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:quiver/core.dart' as quiver;
@@ -39,7 +39,7 @@ import 'affine.dart';
 import 'common_noui.dart';
 import 'path_noui.dart';
 
-const _DEBUG_COMPACT = true; // @@@@ TODO
+const _DEBUG_COMPACT = false;
 
 ///
 /// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
@@ -277,7 +277,8 @@ class CompactTraverser<R, IM> {
     final strokeWidth = hasStrokeWidth ? args.get() : null;
     final strokeMiterLimit = hasStrokeMiterLimit ? args.get() : null;
     final strokeDashArray = hasStrokeDashArray
-        ? List<double>.generate(_readSmallishInt(children), (_) => args.get())
+        ? List<double>.generate(_readSmallishInt(children), (_) => args.get(),
+            growable: false)
         : null;
     final strokeDashOffset = hasStrokeDashOffset ? args.get() : null;
     final r = SIPaint(
@@ -317,12 +318,12 @@ class CompactTraverser<R, IM> {
       final Affine? transform =
           _getTransform(hasTransform, hasTransformNumber, children);
       final len = _readSmallishInt(children);
-      final stops = List<double>.generate(len, (_) => args.get());
+      final stops = List<double>.generate(len, (_) => args.get(), growable: false);
       final colors = List<SIColor>.generate(len, (_) {
         final ct = children.readUnsignedByte();
         assert(ct != 3);
         return _readColor(ct, children, args);
-      });
+      }, growable: false);
       if (gType == 0) {
         final x1 = args.get();
         final y1 = args.get();
@@ -386,17 +387,6 @@ class CompactTraverser<R, IM> {
   }
 
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
-
-  int _readSmallishInt(ByteBufferDataInputStream str) {
-    int r = str.readUnsignedByte();
-    if (r < 0xfe) {
-      return r;
-    } else if (r < 0xff) {
-      return str.readUnsignedShort();
-    } else {
-      return str.readUnsignedInt();
-    }
-  }
 }
 
 ///
@@ -406,7 +396,6 @@ class CompactTraverser<R, IM> {
 mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   double? get width;
   double? get height;
-  Rectangle<double>? viewbox; // @@ TODO
 
   bool get bigFloats;
   int get _numPaths;
@@ -420,25 +409,30 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ColorT? get tintColor;
   BlendModeT get tintMode;
 
+  ///
+  /// The magic number for a .si file, which is written big-endian
+  /// (because I'm not o monster).  Named for Bobo-Dioulasso and
+  /// Léo, Burkina Faso, plus 7 for luck.
+  ///
+  static const int magicNumber = 0xb0b01e07;
+  static const int fileVersionNumber = 0;
+
   int writeToFile(File out) {
     int numWritten = 0;
     if (_DEBUG_COMPACT) {
       throw StateError("Can't write file with _DEBUG_COMPACT turned on.");
     }
     final os = DataOutputSink(out.openWrite(), Endian.big);
-    throw "@@ TODO:  Write init data";
-    // TODO:  Move constants somewhere more sensible
-    os.writeUnsignedInt(0xb0b01e07);
+    os.writeUnsignedInt(magicNumber);
     numWritten += 4;
-    //  Bobo-Dioulasso and Léo, Burkina Faso, plus 7 for luck
-    const int version = 0;
     // There's plenty of extensibility built into this format, if one were
     // to want to extend it while still reading legacy files.  But the
     // intended usage is to display assets that are bundled with the
     // application, so actually doing anything beyond failing on version #
-    // mismatch would probably be overkill, if the format ever does evolve.
+    // mismatch would probably be overkill, if the format ever does
+    // significantly evolve, beyond adding features.
     os.writeByte(0); // Word align
-    os.writeUnsignedShort(version);
+    os.writeUnsignedShort(fileVersionNumber);
     os.writeByte(SIGenericCompactBuilder._flag(width != null, 0) |
         SIGenericCompactBuilder._flag(height != null, 1) |
         SIGenericCompactBuilder._flag(bigFloats, 2) |
@@ -471,12 +465,43 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       os.writeByte(blendModeToSI(tintMode).index);
       numWritten += 5;
     }
-    // We put this last.  That way, we don't need to store the length.
+
+    numWritten += _writeSmallishInt(os, _strings.length);
+    for (final s in _strings) {
+      final Uint8List x = (const Utf8Encoder()).convert(s);
+      numWritten += _writeSmallishInt(os, x.length);
+      os.writeBytes(x);
+      numWritten += x.length;
+    }
+
+    numWritten += _writeSmallishInt(os, _floatLists.length);
+    for (final fl in _floatLists) {
+      numWritten += _writeSmallishInt(os, fl.length);
+      for (final f in fl) {
+        numWritten += _writeFloatIfNotNull(os, f);
+      }
+    }
+
+    numWritten += _writeSmallishInt(os, _images.length);
+    for (final IM i in _images) {
+      final id = getImageData(i);
+      numWritten += _writeFloatIfNotNull(os, id.x);
+      numWritten += _writeFloatIfNotNull(os, id.y);
+      numWritten += _writeFloatIfNotNull(os, id.width);
+      numWritten += _writeFloatIfNotNull(os, id.height);
+      numWritten += _writeSmallishInt(os, id.encoded.length);
+      os.writeBytes(id.encoded);
+      numWritten += id.encoded.length;
+    }
+
+    // This is last, so we don't need to store the length.
     os.writeBytes(_children);
     numWritten += _children.lengthInBytes;
     os.close();
     return numWritten;
   }
+
+  SIImageData getImageData(IM image);
 
   int _writeFloatIfNotNull(DataOutputSink os, double? val) {
     if (val != null) {
@@ -495,6 +520,13 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   int colorValue(ColorT tintColor);
 
   SITintMode blendModeToSI(BlendModeT b);
+
+  ///
+  /// Efficiently read an int value that's expected to be small most of
+  /// the time.
+  ///
+  static int readSmallishInt(ByteBufferDataInputStream str) =>
+      _readSmallishInt(str);
 }
 
 class ScalableImageCompactNoUI
@@ -558,6 +590,9 @@ class ScalableImageCompactNoUI
 
   @override
   int colorValue(int tintColor) => tintColor;
+
+  @override
+  SIImageData getImageData(SIImageData image) => image;
 }
 
 class CompactChildData {
@@ -822,18 +857,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   void _writeFloat(double? v) {
     if (v != null) {
       args.add(v);
-    }
-  }
-
-  void _writeSmallishInt(DataOutputSink out, int v) {
-    if (v < 0xfe) {
-      out.writeByte(v);
-    } else if (v < 0xffff) {
-      out.writeByte(0xfe);
-      out.writeUnsignedShort(v);
-    } else {
-      out.writeByte(0xff);
-      out.writeUnsignedInt(v);
     }
   }
 
@@ -1388,75 +1411,32 @@ class FloatBufferInputStream {
   String toString() =>
       'FloatBufferInputStream(seek: $seek, length: ${_buf.length})';
 }
-/*
 
-  void _callInit(R collector) {
-    double getFloat() {
-      if (bigFloats) {
-        return _initData.readDouble();
-      } else {
-        return _initData.readFloat();
-      }
-    }
-
-    final images = List<SIImageData>.generate(_readSmallishInt(_initData), (_) {
-      final x = getFloat();
-      final y = getFloat();
-      final w = getFloat();
-      final h = getFloat();
-      final data = _initData.readBytes(_readSmallishInt(_initData));
-      return SIImageData(x: x, y: y, width: w, height: h, encoded: data);
-    });
-    final strings = List<String>.generate(_readSmallishInt(_initData), (_) {
-      return _initData.readUTF8();
-    });
-    _strings = strings;
-    final fl = List<List<double>>.generate(_readSmallishInt(_initData), (_) {
-      final List<double> l;
-      if (bigFloats) {
-        l = Float64List(_readSmallishInt(_initData));
-      } else {
-        l = Float32List(_readSmallishInt(_initData));
-      }
-      for (int i = 0; i < l.length; i++) {
-        l[i] = getFloat();
-      }
-      return l;
-    });
-    _visitor.init(collector, images, strings, fl);
-    _initData.close();
+int _readSmallishInt(ByteBufferDataInputStream str) {
+  int r = str.readUnsignedByte();
+  if (r < 0xfe) {
+    return r;
+  } else if (r < 0xff) {
+    return str.readUnsignedShort();
+  } else {
+    return str.readUnsignedInt();
   }
+}
 
-    final sink = ByteSink();
-    final out = DataOutputSink(sink, Endian.little);
-    void outputFloat(double d) {
-      if (bigFloats) {
-        out.writeDouble(d);
-      } else {
-        out.writeFloat(d);
-      }
-    }
-
-    _writeSmallishInt(out, images.length);
-    for (final im in images) {
-      outputFloat(im.x);
-      outputFloat(im.y);
-      outputFloat(im.width);
-      outputFloat(im.height);
-      _writeSmallishInt(out, im.encoded.length);
-      out.writeBytes(im.encoded);
-    }
-    _writeSmallishInt(out, strings.length);
-    for (final s in strings) {
-      out.writeUTF8(s);
-    }
-    _writeSmallishInt(out, floatLists.length);
-    for (final fl in floatLists) {
-      _writeSmallishInt(out, fl.length);
-      for (final f in fl) {
-        outputFloat(f);
-      }
-    }
-    out.close();
-    initData = sink.toList();
- */
+///
+/// Returns number of bytes written
+///
+int _writeSmallishInt(DataOutputSink out, int v) {
+  if (v < 0xfe) {
+    out.writeByte(v);
+    return 1;
+  } else if (v < 0xffff) {
+    out.writeByte(0xfe);
+    out.writeUnsignedShort(v);
+    return 3;
+  } else {
+    out.writeByte(0xff);
+    out.writeUnsignedInt(v);
+    return 5;
+  }
+}

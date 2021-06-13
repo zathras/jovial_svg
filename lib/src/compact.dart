@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.compact;
 
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -90,10 +91,7 @@ class ScalableImageCompact extends ScalableImage
         _args = args,
         _transforms = transforms,
         super(width, height, tintColor, tintMode, viewport, images,
-            currentColor) {
-    // @@ TODO remove:
-    print('   ${args.length} floats, ${_transforms.length ~/ 6} transforms');
-  }
+            currentColor);
 
   @override
   ScalableImageCompact withNewViewport(Rect viewport,
@@ -215,12 +213,12 @@ class ScalableImageCompact extends ScalableImage
   static ScalableImageCompact fromBytes(Uint8List data, {Color? currentColor}) {
     final dis = ByteBufferDataInputStream(data, Endian.big);
     final magic = dis.readUnsignedInt();
-    if (magic != 0xb0b01e07) {
+    if (magic != ScalableImageCompactGeneric.magicNumber) {
       throw ParseError('Bad magic number:  0x${magic.toRadixString(16)}');
     }
     dis.readByte();
     final version = dis.readUnsignedShort();
-    if (version != 0) {
+    if (version != ScalableImageCompactGeneric.fileVersionNumber) {
       throw ParseError('Unsupported version $version');
     }
     final int flags = dis.readUnsignedByte();
@@ -245,10 +243,23 @@ class ScalableImageCompact extends ScalableImage
       tintMode = SITintModeMapping.defaultValue.index;
       tintColor = null;
     }
+    final strings = List<String>.generate(
+        _readSmallishInt(dis),
+        (_) => (const Utf8Decoder(allowMalformed: true))
+            .convert(dis.readBytesImmutable(_readSmallishInt(dis))),
+        growable: false);
+    final floatLists = List<List<double>>.generate(_readSmallishInt(dis),
+        (_) => _floatList(dis, bigFloats, _readSmallishInt(dis), Endian.big),
+        growable: false);
+    final images = List<SIImageData>.generate(_readSmallishInt(dis), (_) {
+      final x = _readFloat(dis, bigFloats, true)!;
+      final y = _readFloat(dis, bigFloats, true)!;
+      final w = _readFloat(dis, bigFloats, true)!;
+      final h = _readFloat(dis, bigFloats, true)!;
+      final encoded = dis.readBytes(_readSmallishInt(dis));
+      return SIImageData(x: x, y: y, width: w, height: h, encoded: encoded);
+    }, growable: false);
     final children = dis.remainingCopy();
-    throw "@@ TODO";
-    final initData = Uint8List(0);
-    /*
     return ScalableImageCompact._p(
         bigFloats: bigFloats,
         width: width,
@@ -258,24 +269,30 @@ class ScalableImageCompact extends ScalableImage
         currentColor: currentColor,
         numPaths: numPaths,
         numPaints: numPaints,
-        initData: initData,
+        strings: strings,
+        floatLists: floatLists,
+        images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
+            growable: false),
         children: children,
         args: args,
         transforms: transforms,
         viewport: null);
-     */
   }
+
+  @override
+  SIImageData getImageData(SIImage image) => image.data;
 
   static bool _flag(int byte, int bitNumber) => (byte & (1 << bitNumber)) != 0;
 
   static List<double> _floatList(
-      ByteBufferDataInputStream dis, bool bigFloats, int length) {
+      ByteBufferDataInputStream dis, bool bigFloats, int length,
+      [Endian endian = Endian.little]) {
     if (bigFloats) {
       Uint8List bytes = dis.readBytes(length * 8);
       ByteData bd = bytes.buffer.asByteData(bytes.offsetInBytes, length * 8);
       final r = Float64List(length);
       for (int i = 0; i < length; i++) {
-        r[i] = bd.getFloat64(8 * i, Endian.little);
+        r[i] = bd.getFloat64(8 * i, endian);
       }
       return r;
     } else {
@@ -283,7 +300,7 @@ class ScalableImageCompact extends ScalableImage
       ByteData bd = bytes.buffer.asByteData(bytes.offsetInBytes, length * 4);
       final r = Float32List(length);
       for (int i = 0; i < length; i++) {
-        r[i] = bd.getFloat32(4 * i, Endian.little);
+        r[i] = bd.getFloat32(4 * i, endian);
       }
       return r;
     }
@@ -301,6 +318,9 @@ class ScalableImageCompact extends ScalableImage
       return null;
     }
   }
+
+  static int _readSmallishInt(ByteBufferDataInputStream str) =>
+      ScalableImageCompactGeneric.readSmallishInt(str);
 }
 
 ///
@@ -691,44 +711,6 @@ class SIDagBuilderFromCompact
   List<SIImage> convertImages(List<SIImage> images) => images;
 }
 
-abstract class _SICompactBuilder<PathDataT extends Object>
-    extends SIGenericCompactBuilder<PathDataT, SIImageData> {
-  _SICompactBuilder(
-      bool bigFloats,
-      ByteSink childrenSink,
-      DataOutputSink children,
-      FloatSink args,
-      FloatSink transforms,
-      this.viewport,
-      {required bool warn,
-      this.currentColor})
-      : super(bigFloats, childrenSink, children, args, transforms, warn: warn);
-
-  final Color? currentColor;
-  final Rect? viewport;
-
-  ScalableImageCompact get si {
-    assert(done);
-    return ScalableImageCompact._p(
-        bigFloats: bigFloats,
-        width: width,
-        height: height,
-        tintColor: (tintColor == null) ? null : Color(tintColor!),
-        tintMode: tintMode.asBlendMode,
-        currentColor: currentColor,
-        numPaths: numPaths,
-        numPaints: numPaints,
-        strings: strings,
-        floatLists: floatLists,
-        images:
-            List<SIImage>.generate(images.length, (i) => SIImage(images[i])),
-        children: childrenSink.toList(),
-        args: args.toList(),
-        transforms: transforms.toList(),
-        viewport: viewport);
-  }
-}
-
 class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
     with SIStringPathMaker {
   final Color? currentColor;
@@ -768,8 +750,8 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
-        images:
-            List<SIImage>.generate(images.length, (i) => SIImage(images[i])),
+        images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
+            growable: false),
         children: childrenSink.toList(),
         args: args.toList(),
         transforms: transforms.toList(),

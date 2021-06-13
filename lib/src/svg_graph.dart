@@ -30,7 +30,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 library jovial_svg.svg_graph;
 
-import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -207,10 +206,10 @@ class SvgPaint {
 }
 
 class SvgGroup extends SvgInheritableAttributes implements SvgNode {
-  var children = List<SvgNode>.empty(growable: true);
-  final String label; // @@ TODO:  Remove
 
-  SvgGroup(this.label);
+  var children = List<SvgNode>.empty(growable: true);
+
+  SvgGroup();
 
   @override
   SvgGroup? resolve(
@@ -259,7 +258,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
 }
 
 class SvgDefs extends SvgGroup {
-  SvgDefs() : super("defs");
+  SvgDefs() : super();
 
   @override
   SvgGroup? resolve(
@@ -293,7 +292,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     if (n == null || transform?.determinant() == 0.0) {
       return null;
     }
-    final g = SvgGroup("from use $childID");
+    final g = SvgGroup();
     g.paint = paint;
     g.transform = transform;
     g.children.add(n);
@@ -341,7 +340,6 @@ class SvgPath extends SvgPathMaker {
   @override
   SvgPath? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
     if (pathData == '') {
       return null;
     } else {
@@ -370,7 +368,6 @@ class SvgRect extends SvgPathMaker {
   @override
   SvgRect? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
     if (width <= 0 || height <= 0) {
       return null;
     } else {
@@ -445,7 +442,6 @@ class SvgEllipse extends SvgPathMaker {
   @override
   SvgEllipse? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
     if (rx <= 0 || ry <= 0) {
       return null;
     } else {
@@ -494,7 +490,6 @@ class SvgPoly extends SvgPathMaker {
   @override
   SvgPoly? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
     if (points.length < 2) {
       return null;
     } else {
@@ -628,7 +623,6 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   @override
   SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
     if (text == '') {
       return null;
     } else {
@@ -952,9 +946,13 @@ class SvgLinearGradientColor extends SvgGradientColor {
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
     final stops = stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset);
-    final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
+    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
+        growable: false);
+    final colors = List<SIColor>.generate(
+        stops.length,
+        (i) => stops[i]
+            .color
+            .toSIColor(stops[i].alpha, cascadedCurrentColor), growable: false);
     return SILinearGradientColor(
         x1: x1R,
         y1: y1R,
@@ -1000,9 +998,11 @@ class SvgRadialGradientColor extends SvgGradientColor {
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
     final stops = stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset);
+    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
+        growable: false);
     final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
+        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+        growable: false);
     return SIRadialGradientColor(
         cx: cxR,
         cy: cyR,
@@ -1050,9 +1050,9 @@ class SvgSweepGradientColor extends SvgGradientColor {
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
     final stops = stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset);
+    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset, growable: false);
     final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor));
+        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor), growable: false);
     return SISweepGradientColor(
         cx: cxR,
         cy: cyR,

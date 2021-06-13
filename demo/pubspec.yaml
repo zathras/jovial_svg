@@ -68,3 +68,28 @@ flutter:
     - assets/avd/svg11_gradient_1.xml
     - assets/avd/tango.xml
     - assets/si/anglo.si
+    - assets/si/anglo_bitmap.si
+    - assets/si/bellot.si
+    - assets/si/bonded.si
+    - assets/si/dondorf.si
+    - assets/si/gnomangelo.si
+    - assets/si/gnomangelo_bitmap.si
+    - assets/si/guyenne-classic.si
+    - assets/si/ornamental.si
+    - assets/si/paris-text.si
+    - assets/si/paris.si
+    - assets/si/svg11_gradient_1.si
+    - assets/si/swiss-xvii.si
+    - assets/si/tango.si
+    - assets/si/tiny_07_12.si
+    - assets/si/tiny_07_12_bbox01.si
+    - assets/si/tiny_08_03.si
+    - assets/si/tiny_08_03_cubic02.si
+    - assets/si/tiny_09_02.si
+    - assets/si/tiny_09_06.si
+    - assets/si/tiny_11_01.si
+    - assets/si/tiny_13_01.si
+    - assets/si/tiny_13_02.si
+    - assets/si/tiny_stroke_dasharray_1.si
+    - assets/si/tiny_stroke_dasharray_2.si
+    - assets/si/tiny_stroke_dasharray_3.si

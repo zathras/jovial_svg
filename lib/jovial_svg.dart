@@ -82,9 +82,7 @@ abstract class ScalableImage extends _PackageInitializer {
         tintMode = tintMode,
         tintColor = tintColor,
         images = images ?? other.images,
-        currentColor = currentColor {
-    print("@@@@ images from ${other.images.length} to ${this.images.length}");
-  }
+        currentColor = currentColor;
 
   static Rect? _newViewport(Rect? incoming, Rect? old) {
     if (incoming == null) {

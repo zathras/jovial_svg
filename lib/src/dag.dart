@@ -187,7 +187,6 @@ abstract class _SIParentBuilder {
 abstract class _SIParentNode {
   List<SIRenderable> get _renderables;
 
-  @override
   List<SIRenderable> _childrenPrunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     bool changed = false;
@@ -485,5 +484,6 @@ class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
 
   @override
   List<SIImage> convertImages(List<SIImageData> images) =>
-      List<SIImage>.generate(images.length, (i) => SIImage(images[i]));
+      List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
+          growable: false);
 }

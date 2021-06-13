@@ -60,7 +60,8 @@ abstract class SIRenderable {
     return hasWork;
   }
 
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b);
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b);
 
   PruningBoundary? getBoundary();
 
@@ -109,7 +110,7 @@ abstract class SIRenderable {
     final r = List<Color>.generate(g.colors.length, (i) {
       g.colors[i].accept(v);
       return cc;
-    });
+    }, growable: false);
     return r;
   }
 
@@ -334,7 +335,8 @@ class SIClipPath extends SIRenderable {
   }
 
   @override
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     Rect pathB = path.getBounds();
     final bb = b.getBounds();
     if (pathB.overlaps(bb)) {
@@ -444,7 +446,8 @@ class SIPath extends SIRenderable {
   }
 
   @override
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     final Rect pathB = getBounds();
     final bb = b.getBounds();
     if (pathB.overlaps(bb)) {
@@ -498,13 +501,15 @@ class SIImage extends SIRenderable {
   double get width => _data.width;
   double get height => _data.height;
   Uint8List get encoded => _data.encoded;
+  SIImageData get data => _data;
 
   @override
   PruningBoundary? getBoundary() =>
       PruningBoundary(Rect.fromLTWH(x, y, width.toDouble(), height.toDouble()));
 
   @override
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     final Rect imageB =
         Rect.fromLTWH(x, y, width.toDouble(), height.toDouble());
     final bb = b.getBounds();
@@ -636,7 +641,8 @@ class SIText extends SIRenderable {
   PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());
 
   @override
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     Rect textB = getTextBounds();
     final bb = b.getBounds();
     if (textB.overlaps(bb)) {
