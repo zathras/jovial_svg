@@ -209,7 +209,7 @@ abstract class AvdParser extends GenericParser {
     }
     builder.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
-    builder.init(null, const [], const [], const []);
+    builder.init(null, const <SIImageData>[], const [], const []);
   }
 
   void _parseGroup(List<XmlEventAttribute> attrs) {
@@ -348,101 +348,6 @@ abstract class AvdParser extends GenericParser {
                 strokeJoin: path.strokeJoin,
                 strokeCap: path.strokeCap,
                 fillType: path.fillType,
-                strokeDashArray: null,
-                strokeDashOffset: null));
-      }
-    }
-  }
-
-  void _parsePathOld(List<XmlEventAttribute> attrs) {
-    int? fillColor;
-    int? strokeColor;
-    double? strokeWidth;
-    int? strokeAlpha;
-    int? fillAlpha;
-    double? strokeMiterLimit;
-    SIStrokeJoin? strokeJoin;
-    SIStrokeCap? strokeCap;
-    SIFillType? fillType;
-    String? pathData;
-    final dups = _DuplicateChecker();
-
-    for (final a in attrs) {
-      dups.check(a.name);
-      if (a.name == 'android:name') {
-        // don't care
-      } else if (a.name == 'android:pathData') {
-        pathData = a.value;
-      } else if (a.name == 'android:fillColor') {
-        fillColor = getColor(a.value.trim().toLowerCase());
-      } else if (a.name == 'android:strokeColor') {
-        strokeColor = getColor(a.value.trim().toLowerCase());
-      } else if (a.name == 'android:strokeWidth') {
-        strokeWidth = getFloat(a.value);
-      } else if (a.name == 'android:strokeAlpha') {
-        strokeAlpha = getAlpha(a.value);
-      } else if (a.name == 'android:fillAlpha') {
-        fillAlpha = getAlpha(a.value);
-      } else if (a.name == 'android:strokeLineCap') {
-        strokeCap = getStrokeCap(a.value);
-      } else if (a.name == 'android:strokeLineJoin') {
-        strokeJoin = getStrokeJoin(a.value);
-      } else if (a.name == 'android:strokeMiterLimit') {
-        strokeMiterLimit = getFloat(a.value);
-      } else if (a.name == 'android:fillType') {
-        fillType = getFillType(a.value);
-      } else if (a.name == 'android:trimPathStart' ||
-          a.name == 'android:trimPathEnd' ||
-          a.name == 'android:trimPathOffset') {
-        if (warn && !warnedAbout.contains('android:trimPath')) {
-          warnedAbout.add('android:trimPath');
-          print('    (ignoring animation attributes android:trimPathXXX)');
-          // trimPathXXX are used for animation.  They're not useful here,
-          // and supporting them would mean deferring path building to the
-          // end.  They're not all that well-specified -
-          // https://developer.android.com/reference/android/graphics/drawable/VectorDrawable
-          // is less than clear about trimPathOffset, but according to
-          // https://www.androiddesignpatterns.com/2016/11/introduction-to-icon-animation-techniques.html,
-          // trimPathOffset actually makes the start and end wrap around (so
-          // the part that's trimmed is in the middle).  It would be nice if
-          // the (quasi-)normative spec language actually specified this!
-          //
-          // But complaining aside, if these animation parameters have initial
-          // values in the static AVD, probably the best thing to do most of
-          // the time is to include the whole path anyway.  It's certainly
-          // a reasonable thing to do.
-        }
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
-      }
-    }
-    if (pathData == null) {
-      if (warn) {
-        print('    Path with no android:pathData - ignored');
-      }
-    } else {
-      if (strokeAlpha != null && strokeColor != null) {
-        strokeColor = (strokeColor & 0xffffff) | (strokeAlpha << 24);
-      }
-      if (fillAlpha != null && fillColor != null) {
-        fillColor = (fillColor & 0xffffff) | (fillAlpha << 24);
-      }
-      if (fillColor != null || strokeColor != null) {
-        builder.path(
-            null,
-            pathData,
-            SIPaint(
-                fillColor: (fillColor == null)
-                    ? SIColor.none
-                    : SIValueColor(fillColor),
-                strokeColor: (strokeColor == null)
-                    ? SIColor.none
-                    : SIValueColor(strokeColor),
-                strokeWidth: strokeWidth,
-                strokeMiterLimit: strokeMiterLimit,
-                strokeJoin: strokeJoin,
-                strokeCap: strokeCap,
-                fillType: fillType,
                 strokeDashArray: null,
                 strokeDashOffset: null));
       }

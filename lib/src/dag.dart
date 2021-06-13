@@ -35,8 +35,6 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.dag;
 
-import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -73,39 +71,63 @@ class ScalableImageDag extends ScalableImage
         super(
             width, height, tintColor, tintMode, viewport, images, currentColor);
 
+  ScalableImageDag._modified(ScalableImageDag other, this._renderables,
+      {required Rect? viewport,
+      required List<SIImage> images,
+      required Color currentColor,
+      required Color? tintColor,
+      required BlendMode tintMode})
+      : super.modifiedFrom(other,
+            viewport: viewport,
+            currentColor: currentColor,
+            tintColor: tintColor,
+            tintMode: tintMode,
+            images: images);
+
   ///
   /// Create a copy of [other], potentially with a new viewport.  The copy
   /// will share most of its data with the original, but the tree of renderable
   /// paths will be pruned to contain only those that intersect the new
   /// viewport.
   ///
-  ScalableImageDag.modified(ScalableImageDag other,
+  static ScalableImageDag modified(ScalableImageDag other,
       {Rect? viewport,
       required bool prune,
       double pruningTolerance = 0,
       required Color currentColor,
       required Color? tintColor,
-      required BlendMode tintMode})
-      : _renderables = (!prune || viewport == null)
-            ? other._renderables
-            : other._childrenPrunedBy(
-                PruningBoundary(viewport.deflate(pruningTolerance)), {}),
-        super.modifiedFrom(other,
-            viewport: viewport,
-            currentColor: currentColor,
-            tintColor: tintColor,
-            tintMode: tintMode);
+      required BlendMode tintMode}) {
+    final List<SIImage> images;
+    final List<SIRenderable> renderables;
+    if (prune && viewport != null) {
+      final dagger = <SIRenderable>{};
+      final imageSet = <SIImage>{};
+      renderables = other._childrenPrunedBy(dagger, imageSet,
+          PruningBoundary(viewport.deflate(pruningTolerance)));
+      images = imageSet.toList(growable: false);
+    } else {
+      images = other.images;
+      renderables = other._renderables;
+    }
+    return ScalableImageDag._modified(other, renderables,
+        viewport: viewport,
+        images: images,
+        currentColor: currentColor,
+        tintColor: tintColor,
+        tintMode: tintMode);
+  }
 
   @override
   ScalableImage withNewViewport(Rect viewport,
-          {bool prune = false, double pruningTolerance = 0}) =>
-      ScalableImageDag.modified(this,
-          viewport: viewport,
-          prune: prune,
-          pruningTolerance: pruningTolerance,
-          currentColor: currentColor,
-          tintColor: tintColor,
-          tintMode: tintMode);
+      {bool prune = false, double pruningTolerance = 0}) {
+    return ScalableImageDag.modified(this,
+        viewport: viewport,
+        prune: prune,
+        pruningTolerance: pruningTolerance,
+        currentColor: currentColor,
+        tintColor: tintColor,
+        tintMode: tintMode);
+  }
 
   @override
   ScalableImage modifyCurrentColor(Color newCurrentColor) {
@@ -139,9 +161,10 @@ class ScalableImageDag extends ScalableImage
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      PruningBoundary b, Set<SIRenderable> dagger) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    // Maximize instance sharing with source SI
     _addAll(_renderables, dagger);
-    return super._childrenPrunedBy(b, dagger);
+    return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
   void _addAll(List<SIRenderable> children, Set<SIRenderable> dagger) {
@@ -164,12 +187,13 @@ abstract class _SIParentBuilder {
 abstract class _SIParentNode {
   List<SIRenderable> get _renderables;
 
+  @override
   List<SIRenderable> _childrenPrunedBy(
-      PruningBoundary b, Set<SIRenderable> dagger) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     bool changed = false;
     final copy = List<SIRenderable>.empty(growable: true);
     for (final r in _renderables) {
-      final rr = r.prunedBy(b, dagger);
+      final rr = r.prunedBy(dagger, imageSet, b);
       if (rr == null) {
         changed = true;
       } else {
@@ -222,9 +246,9 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      PruningBoundary b, Set<SIRenderable> dagger) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     b = transformBoundaryFromParent(b, transform);
-    return super._childrenPrunedBy(b, dagger);
+    return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
   @override
@@ -241,8 +265,9 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   }
 
   @override
-  SIGroup? prunedBy(PruningBoundary b, Set<SIRenderable> dagger) {
-    final rr = _childrenPrunedBy(b, dagger);
+  SIGroup? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    final rr = _childrenPrunedBy(dagger, imageSet, b);
     if (rr.isEmpty) {
       return null;
     }
@@ -300,7 +325,8 @@ class _GroupBuilder implements _SIParentBuilder {
 ///
 /// See [PathBuilder] for usage.
 ///
-abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
+abstract class SIGenericDagBuilder<PathDataT, IM>
+    extends SIBuilder<PathDataT, IM> {
   double? _width;
   double? _height;
   int? _tintColor;
@@ -310,9 +336,9 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   final bool warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
   ScalableImageDag? _si;
-  List<SIImage>? _images;
-  List<String> _strings = [];
-  List<List<double>> _floatLists = [];
+  late final List<SIImage> _images;
+  late final List<String> _strings;
+  late final List<List<double>> _floatLists;
   final _paths = <Object?, Path>{};
   final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
@@ -372,10 +398,9 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
   @override
-  void init(void collector, List<SIImageData> im, List<String> strings,
+  void init(void collector, List<IM> images, List<String> strings,
       List<List<double>> floatLists) {
-    assert(_images == null);
-    _images = List<SIImage>.generate(im.length, (i) => SIImage(im[i]));
+    _images = convertImages(images);
     _strings = strings;
     _floatLists = floatLists;
     assert(_si == null);
@@ -386,17 +411,20 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
         tintColor: (_tintColor == null) ? null : Color(_tintColor!),
         tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
         currentColor: currentColor,
-        images: _images!);
+        images: _images);
     _parentStack.add(a);
   }
 
-  @override
-  void image(void collector, int imageNumber) =>
-      addRenderable(_images![imageNumber]);
+  List<SIImage> convertImages(List<IM> images);
 
   @override
+  void image(void collector, int imageNumber) =>
+      addRenderable(_images[imageNumber]);
+
+  @override
+  @mustCallSuper
   void text(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes ta, SIPaint p) {
+      SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
     addRenderable(SIText(_strings[textIndex], _floatLists[xIndex],
         _floatLists[yIndex], ta, _daggerize(p)));
   }
@@ -450,7 +478,12 @@ abstract class SIGenericDagBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 }
 
-class SIDagBuilder extends SIGenericDagBuilder<String> with SIStringPathMaker {
+class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
+    with SIStringPathMaker {
   SIDagBuilder({required bool warn, Color? currentColor})
       : super(null, warn, currentColor);
+
+  @override
+  List<SIImage> convertImages(List<SIImageData> images) =>
+      List<SIImage>.generate(images.length, (i) => SIImage(images[i]));
 }

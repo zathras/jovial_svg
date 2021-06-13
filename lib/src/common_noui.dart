@@ -48,14 +48,14 @@ typedef PointT = Point<double>;
 typedef RadiusT = Point<double>;
 typedef RectT = Rectangle<double>;
 
-abstract class SIVisitor<PathDataT, R> {
+abstract class SIVisitor<PathDataT, IM, R> {
   R get initial;
 
   ///
   /// Called first on a traversal, this establishes immutable values that
   /// are canonicalized.
   ///
-  R init(R collector, List<SIImageData> im, List<String> strings,
+  R init(R collector, List<IM> im, List<String> strings,
       List<List<double>> floatLists);
 
   R path(R collector, PathDataT pathData, SIPaint paint);
@@ -69,10 +69,10 @@ abstract class SIVisitor<PathDataT, R> {
   R image(R collector, int imageIndex);
 
   R text(R collector, int xIndex, int yIndex, int textIndex, SITextAttributes a,
-      SIPaint paint);
+      int? fontFamilyIndex, SIPaint paint);
 }
 
-abstract class SIBuilder<PathDataT> extends SIVisitor<PathDataT, void> {
+abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   bool get warn;
 
   ///
@@ -263,7 +263,9 @@ abstract class SIGradientColor extends SIColor {
   final Affine? transform;
 
   SIGradientColor(this.colors, this.stops, this.objectBoundingBox,
-      this.spreadMethod, this.transform);
+      this.spreadMethod, this.transform) {
+    assert(colors.length == stops.length);
+  }
 }
 
 class SILinearGradientColor extends SIGradientColor {

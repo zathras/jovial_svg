@@ -49,7 +49,12 @@ abstract class ScalableImage extends _PackageInitializer {
   Rect? _viewport;
   final BlendMode tintMode;
   final Color? tintColor;
-  final List<SIImage> _images;
+
+  ///
+  /// The images within this [ScalableImage].
+  ///
+  @protected
+  final List<SIImage> images;
 
   ///
   /// The currentColor value, as defined by
@@ -61,7 +66,7 @@ abstract class ScalableImage extends _PackageInitializer {
 
   @protected
   ScalableImage(this.width, this.height, this.tintColor, this.tintMode,
-      this._viewport, this._images, Color? currentColor)
+      this._viewport, this.images, Color? currentColor)
       : currentColor = currentColor ?? Colors.black;
 
   @protected
@@ -69,14 +74,17 @@ abstract class ScalableImage extends _PackageInitializer {
       {required Rect? viewport,
       required Color currentColor,
       required Color? tintColor,
-      required BlendMode tintMode})
+      required BlendMode tintMode,
+      List<SIImage>? images})
       : width = viewport?.width ?? other.width,
         height = viewport?.height ?? other.height,
         _viewport = _newViewport(viewport, other._viewport),
         tintMode = tintMode,
         tintColor = tintColor,
-        _images = other._images, // TODO:  Prune this
-        currentColor = currentColor;
+        images = images ?? other.images,
+        currentColor = currentColor {
+    print("@@@@ images from ${other.images.length} to ${this.images.length}");
+  }
 
   static Rect? _newViewport(Rect? incoming, Rect? old) {
     if (incoming == null) {
@@ -292,7 +300,7 @@ abstract class ScalableImage extends _PackageInitializer {
     // Start preparing them all, with no await, so that the prepare count
     // is immediately incremented.
     final waiting = List<Future<void>>.generate(
-        _images.length, (i) => _images[i].prepare());
+        images.length, (i) => images[i].prepare());
     for (final w in waiting) {
       await w;
     }
@@ -302,7 +310,7 @@ abstract class ScalableImage extends _PackageInitializer {
   /// Undo the effects of [prepareImages], releasing resources.
   ///
   void unprepareImages() {
-    for (final im in _images) {
+    for (final im in images) {
       im.unprepare();
     }
   }

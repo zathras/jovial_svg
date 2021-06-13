@@ -55,11 +55,13 @@ import 'path.dart';
 /// that is interpreted when rendering.
 ///
 class ScalableImageCompact extends ScalableImage
-    with ScalableImageCompactGeneric<Color, BlendMode> {
+    with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
   @override
   final bool bigFloats;
   final int _numPaths;
   final int _numPaints;
+  final List<String> _strings;
+  final List<List<double>> _floatLists;
   final Uint8List _children;
   final List<double> _args; // Float32List or Float64List
   final List<double> _transforms; // Float32List or Float64List
@@ -73,17 +75,23 @@ class ScalableImageCompact extends ScalableImage
       required Color? currentColor,
       required int numPaths,
       required int numPaints,
+      required List<SIImage> images,
+      required List<String> strings,
+      required List<List<double>> floatLists,
       required Uint8List children,
       required List<double> args,
       required List<double> transforms,
       required Rect? viewport})
       : _numPaths = numPaths,
         _numPaints = numPaints,
+        _strings = strings,
+        _floatLists = floatLists,
         _children = children,
         _args = args,
         _transforms = transforms,
-        super(width, height, tintColor, tintMode, viewport, <SIImage>[],
+        super(width, height, tintColor, tintMode, viewport, images,
             currentColor) {
+    // @@ TODO remove:
     print('   ${args.length} floats, ${_transforms.length ~/ 6} transforms');
   }
 
@@ -95,6 +103,8 @@ class ScalableImageCompact extends ScalableImage
       accept(v);
       return v.si;
     } else {
+      throw "@@ TODO";
+      /*
       return ScalableImageCompact._p(
           bigFloats: bigFloats,
           width: width,
@@ -104,10 +114,12 @@ class ScalableImageCompact extends ScalableImage
           currentColor: currentColor,
           numPaths: _numPaths,
           numPaints: _numPaints,
+          initData: _initData,
           children: _children,
           args: _args,
           transforms: _transforms,
           viewport: viewport);
+       */
     }
   }
 
@@ -122,6 +134,9 @@ class ScalableImageCompact extends ScalableImage
         currentColor: newCurrentColor,
         numPaths: _numPaths,
         numPaints: _numPaints,
+        strings: _strings,
+        floatLists: _floatLists,
+        images: images,
         children: _children,
         args: _args,
         transforms: _transforms,
@@ -140,6 +155,9 @@ class ScalableImageCompact extends ScalableImage
         currentColor: currentColor,
         numPaths: _numPaths,
         numPaints: _numPaints,
+        strings: _strings,
+        floatLists: _floatLists,
+        images: images,
         children: _children,
         args: _args,
         transforms: _transforms,
@@ -153,8 +171,12 @@ class ScalableImageCompact extends ScalableImage
   @override
   PruningBoundary? getBoundary() => accept(_BoundaryVisitor());
 
-  R accept<R>(SIVisitor<CompactChildData, R> visitor) {
-    final t = CompactTraverser<R>(
+  R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) {
+    final t = CompactTraverser<R, SIImage>(
+        bigFloats: bigFloats,
+        strings: _strings,
+        floatLists: _floatLists,
+        images: images,
         visiteeChildren: _children,
         visiteeArgs: _args,
         visiteeTransforms: _transforms,
@@ -174,8 +196,6 @@ class ScalableImageCompact extends ScalableImage
         height: height,
         tintColor: tintColor?.value,
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
-    b.init(null, <SIImageData>[], <String>[], <List<double>>[]);
-    throw UnimplementedError("@@ TODO");
     accept(b);
     b.endVector();
     return b.si;
@@ -227,6 +247,9 @@ class ScalableImageCompact extends ScalableImage
       tintColor = null;
     }
     final children = dis.remainingCopy();
+    throw "@@ TODO";
+    final initData = Uint8List(0);
+    /*
     return ScalableImageCompact._p(
         bigFloats: bigFloats,
         width: width,
@@ -236,10 +259,12 @@ class ScalableImageCompact extends ScalableImage
         currentColor: currentColor,
         numPaths: numPaths,
         numPaints: numPaints,
+        initData: initData,
         children: children,
         args: args,
         transforms: transforms,
         viewport: null);
+     */
   }
 
   static bool _flag(int byte, int bitNumber) => (byte & (1 << bitNumber)) != 0;
@@ -285,19 +310,19 @@ class ScalableImageCompact extends ScalableImage
 ///
 abstract class _CompactVisitor<R>
     with SIGroupHelper
-    implements SIVisitor<CompactChildData, R> {
+    implements SIVisitor<CompactChildData, SIImage, R> {
+  late final List<String> _strings;
+  late final List<List<double>> _floatLists;
+  late final List<SIImage> _images;
+
   @override
-  R init(R collector, List<SIImageData> im, List<String> strings,
+  R init(R collector, List<SIImage> images, List<String> strings,
       List<List<double>> floatLists) {
-    throw UnimplementedError("@@ TODO");
+    _images = images;
+    _strings = strings;
+    _floatLists = floatLists;
+    return collector;
   }
-
-  @override
-  R group(R collector, Affine? transform) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  R siGroup(R collector, Affine? transform);
 
   @override
   R path(R collector, CompactChildData pathData, SIPaint paint) {
@@ -320,15 +345,13 @@ abstract class _CompactVisitor<R>
   R siClipPath(R collector, SIClipPath path);
 
   @override
-  R image(R collector, int imageIndex) {
-    throw UnimplementedError("@@ TODO");
+  R text(R collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
+    return siText(SIText(
+        _strings[textIndex], _floatLists[xIndex], _floatLists[yIndex], ta, p));
   }
 
-  @override
-  R text(R collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes ta, SIPaint p) {
-    throw UnimplementedError("@@ TODO");
-  }
+  R siText(SIText text);
 }
 
 class _PaintingVisitor extends _CompactVisitor<void> {
@@ -341,22 +364,25 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   void get initial => null;
 
   @override
-  void siGroup(void collector, Affine? transform) {
-    startPaintGroup(canvas, transform);
-  }
+  void group(void collector, Affine? transform) =>
+      startPaintGroup(canvas, transform);
 
   @override
   void endGroup(void collector) => endPaintGroup(canvas);
 
   @override
-  void siPath(void collector, SIPath path) {
-    path.paint(canvas, currentColor);
-  }
+  void siPath(void collector, SIPath path) => path.paint(canvas, currentColor);
 
   @override
-  void siClipPath(void collector, SIClipPath path) {
-    path.paint(canvas, currentColor);
-  }
+  void siClipPath(void collector, SIClipPath path) =>
+      path.paint(canvas, currentColor);
+
+  @override
+  void image(void collector, int imageIndex) =>
+      _images[imageIndex].paint(canvas, currentColor);
+
+  @override
+  void siText(SIText text) => text.paint(canvas, currentColor);
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
@@ -396,7 +422,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary siGroup(PruningBoundary boundary, Affine? transform) {
+  PruningBoundary group(PruningBoundary boundary, Affine? transform) {
     final parent = _groupStack.isEmpty ? null : _groupStack.last;
     _groupStack.add(_PruningEntry(boundary, parent, this, transform));
     return transformBoundaryFromParent(boundary, transform);
@@ -421,7 +447,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary siPath(PruningBoundary boundary, SIPath path) {
     assert(_lastPathData != null);
-    if (path.prunedBy(boundary, const {}) != null) {
+    if (path.prunedBy(const {}, const {}, boundary) != null) {
       if (_groupStack.isNotEmpty) {
         _groupStack.last.generateGroupIfNeeded();
       }
@@ -442,7 +468,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary siClipPath(PruningBoundary boundary, SIClipPath cp) {
     assert(_lastPathData != null);
-    if (cp.prunedBy(boundary, const {}) != null) {
+    if (cp.prunedBy(const {}, const {}, boundary) != null) {
       if (_groupStack.isNotEmpty) {
         _groupStack.last.generateGroupIfNeeded();
       }
@@ -450,6 +476,16 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
     }
     _lastPathData = null;
     return boundary;
+  }
+
+  @override
+  PruningBoundary image(PruningBoundary collector, int imageIndex) {
+    throw "@@ TODO";
+  }
+
+  @override
+  PruningBoundary siText(SIText text) {
+    throw "@@ TODO";
   }
 }
 
@@ -507,7 +543,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? get initial => null;
 
   @override
-  PruningBoundary? siGroup(PruningBoundary? initial, Affine? transform) {
+  PruningBoundary? group(PruningBoundary? initial, Affine? transform) {
     groupStack.add(_BoundaryEntry(initial, transform));
     return null;
   }
@@ -541,6 +577,16 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
       // See comment in _SIParentNode.getBoundary();
     }
   }
+
+  @override
+  PruningBoundary? image(PruningBoundary? collector, int imageIndex) {
+    throw "@@ TODO";
+  }
+
+  @override
+  PruningBoundary? siText(SIText text) {
+    throw "@@ TODO";
+  }
 }
 
 class _BoundaryEntry with SIGroupHelper {
@@ -568,15 +614,19 @@ mixin _SICompactPathBuilder {
       CompactChildData.copy(key);
 }
 
-class SIDagBuilderFromCompact extends SIGenericDagBuilder<CompactChildData>
+class SIDagBuilderFromCompact
+    extends SIGenericDagBuilder<CompactChildData, SIImage>
     with _SICompactPathBuilder {
   SIDagBuilderFromCompact(Rect? viewport,
       {required bool warn, Color? currentColor})
       : super(viewport, warn, currentColor);
+
+  @override
+  List<SIImage> convertImages(List<SIImage> images) => images;
 }
 
 abstract class _SICompactBuilder<PathDataT extends Object>
-    extends SIGenericCompactBuilder<PathDataT> {
+    extends SIGenericCompactBuilder<PathDataT, SIImageData> {
   _SICompactBuilder(
       bool bigFloats,
       ByteSink childrenSink,
@@ -602,6 +652,10 @@ abstract class _SICompactBuilder<PathDataT extends Object>
         currentColor: currentColor,
         numPaths: numPaths,
         numPaints: numPaints,
+        strings: strings,
+        floatLists: floatLists,
+        images:
+            List<SIImage>.generate(images.length, (i) => SIImage(images[i])),
         children: childrenSink.toList(),
         args: args.toList(),
         transforms: transforms.toList(),

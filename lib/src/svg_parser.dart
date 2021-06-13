@@ -57,7 +57,7 @@ import 'svg_graph.dart';
 abstract class SvgParser extends GenericParser {
   @override
   final bool warn;
-  final SIBuilder<String> _builder;
+  final SIBuilder<String, SIImageData> _builder;
   String? _currTag;
 
   final tagsIgnored = <String>{};
@@ -745,11 +745,11 @@ class _SvgParserEventHandler with XmlEventVisitor {
 class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
-  StreamSvgParser(this._input, SIBuilder<String> builder, {bool warn = true})
+  StreamSvgParser(this._input, SIBuilder<String, SIImageData> builder, {bool warn = true})
       : super(warn, builder);
 
   static StreamSvgParser fromByteStream(
-          Stream<List<int>> input, SIBuilder<String> builder) =>
+          Stream<List<int>> input, SIBuilder<String, SIImageData> builder) =>
       StreamSvgParser(input.transform(utf8.decoder), builder);
 
   /// Throws a [ParseError] or other exception in case of error.
@@ -767,7 +767,7 @@ class StreamSvgParser extends SvgParser {
 class StringSvgParser extends SvgParser {
   final String _input;
 
-  StringSvgParser(this._input, SIBuilder<String> builder, {bool warn = true})
+  StringSvgParser(this._input, SIBuilder<String, SIImageData> builder, {bool warn = true})
       : super(warn, builder);
 
   /// Throws a [ParseError] or other exception in case of error.

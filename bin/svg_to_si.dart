@@ -8,7 +8,7 @@ import 'package:jovial_svg/src/svg_parser.dart';
 abstract class ToSI {
 
   String get programName;
-  void parse(String src, SIBuilder<String> builder);
+  void parse(String src, SIBuilder<String, SIImageData> builder);
   String get extension;
 
   void usage(final ArgParser argp) {
@@ -97,7 +97,7 @@ class SvgToSI extends ToSI {
   String get extension => '.svg';
 
   @override
-  void parse(String src, SIBuilder<String> builder) =>
+  void parse(String src, SIBuilder<String, SIImageData> builder) =>
     StringSvgParser(src, builder).parse();
 }
 

@@ -131,7 +131,7 @@ class _CompactAffine extends Affine {
   final int _offset;
 
   _CompactAffine(this._storage, this._offset) : super._p() {
-    assert(_storage.length >= _offset + 6);
+    assert(_storage.length >= _offset + 6, '${_storage.length} $_offset');
   }
 
   ///

@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-
 ///
 /// The generic portion of ScalableImageCompact.  This is separated out with
 /// no dependencies on Flutter so that the non-flutter application
@@ -40,10 +39,18 @@ import 'affine.dart';
 import 'common_noui.dart';
 import 'path_noui.dart';
 
-const _DEBUG_COMPACT = false;
+const _DEBUG_COMPACT = true; // @@@@ TODO
 
-class CompactTraverser<R> {
-  final SIVisitor<CompactChildData, R> _visitor;
+///
+/// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
+/// traversing the represented graph.
+///
+class CompactTraverser<R, IM> {
+  final bool bigFloats;
+  final SIVisitor<CompactChildData, IM, R> _visitor;
+  final List<String> _strings;
+  final List<List<double>> _floatLists;
+  final List<IM> _images;
   final ByteBufferDataInputStream _children;
   final FloatBufferInputStream _args;
   final FloatBufferInputStream _transforms;
@@ -55,17 +62,25 @@ class CompactTraverser<R> {
   int _currPathID = 0;
   final Uint32List _paintChildrenSeek;
   final Uint32List _paintArgsSeek;
+  final Uint32List _paintTransformsSeek;
   int _currPaintID = 0;
   int _groupDepth = 0;
 
   CompactTraverser(
-      {required Uint8List visiteeChildren,
+      {required this.bigFloats,
+      required Uint8List visiteeChildren,
       required List<double> visiteeArgs,
       required List<double> visiteeTransforms,
       required int visiteeNumPaths,
       required int visiteeNumPaints,
-      required SIVisitor<CompactChildData, R> visitor})
+      required SIVisitor<CompactChildData, IM, R> visitor,
+      required List<String> strings,
+      required List<List<double>> floatLists,
+      required List<IM> images})
       : _visitor = visitor,
+        _strings = strings,
+        _floatLists = floatLists,
+        _images = images,
         _children = ByteBufferDataInputStream(visiteeChildren, Endian.little),
         _args = FloatBufferInputStream(visiteeArgs),
         _transforms = FloatBufferInputStream(visiteeTransforms),
@@ -75,28 +90,44 @@ class CompactTraverser<R> {
         _pathChildrenSeek = Uint32List(visiteeNumPaths),
         _pathArgsSeek = Uint32List(visiteeNumPaths),
         _paintChildrenSeek = Uint32List(visiteeNumPaints),
-        _paintArgsSeek = Uint32List(visiteeNumPaints);
+        _paintArgsSeek = Uint32List(visiteeNumPaints),
+        _paintTransformsSeek = Uint32List(visiteeNumPaints);
 
   R traverse(R collector) {
+    collector = _visitor.init(collector, _images, _strings, _floatLists);
+    return traverseGroup(collector);
+  }
+
+  R traverseGroup(R collector) {
     while (!_children.isEOF()) {
       final code = _children.readUnsignedByte();
-      if (code < SIGenericCompactBuilder.PATH_CODE) {
-        // it's GROUP_CODE
-        assert(SIGenericCompactBuilder.GROUP_CODE & 0x1f == 0);
-        collector = group(collector,
-            hasTransform: _flag(code, 0), hasTransformNumber: _flag(code, 1));
-      } else if (code < SIGenericCompactBuilder.CLIPPATH_CODE) {
-        assert(SIGenericCompactBuilder.PATH_CODE & 0x1f == 0);
-        // it's PATH_CODE
+      if (code < SIGenericCompactBuilder.TEXT_CODE) {
+        // It's PATH_CODE
         collector = path(collector,
             hasPathNumber: _flag(code, 0),
             hasPaintNumber: _flag(code, 1),
-            colorTypes: ((code >> 2) & 0x7) + 1);
-      } else if (code < SIGenericCompactBuilder.END_GROUP_CODE) {
-        assert(SIGenericCompactBuilder.CLIPPATH_CODE & 0x01 == 0);
+            fillColorType: (code >> 2) & 0x3,
+            strokeColorType: (code >> 4) & 0x3);
+      } else if (code < SIGenericCompactBuilder.GROUP_CODE) {
+        // it's TEXT_CODE
+        assert(SIGenericCompactBuilder.TEXT_CODE & 0x3f == 0);
+        collector = text(collector,
+            hasPaintNumber: _flag(code, 0),
+            hasFontFamilyIndex: _flag(code, 1),
+            fillColorType: (code >> 2) & 0x3,
+            strokeColorType: (code >> 4) & 0x3);
+      } else if (code < SIGenericCompactBuilder.CLIPPATH_CODE) {
+        // it's GROUP_CODE
+        assert(SIGenericCompactBuilder.GROUP_CODE & 0x3 == 0);
+        collector = group(collector,
+            hasTransform: _flag(code, 0), hasTransformNumber: _flag(code, 1));
+      } else if (code < SIGenericCompactBuilder.IMAGE_CODE) {
         // it's CLIPPATH_CODE
-        final flags = code - SIGenericCompactBuilder.CLIPPATH_CODE;
-        collector = clipPath(collector, hasPathNumber: _flag(flags, 0));
+        assert(SIGenericCompactBuilder.CLIPPATH_CODE & 0x1 == 0);
+        collector = clipPath(collector, hasPathNumber: _flag(code, 0));
+      } else if (code < SIGenericCompactBuilder.END_GROUP_CODE) {
+        // it's IMAGE_CODE
+        collector = image(collector);
       } else if (code == SIGenericCompactBuilder.END_GROUP_CODE) {
         if (_groupDepth <= 0) {
           throw ParseError('Unexpected END_GROUP_CODE');
@@ -116,21 +147,23 @@ class CompactTraverser<R> {
     return collector;
   }
 
+  Affine? _getTransform(bool hasTransform, bool hasTransformNumber,
+      ByteBufferDataInputStream children) {
+    if (hasTransformNumber) {
+      assert(hasTransform);
+      return _transforms.getAffineAt(_readSmallishInt(children) * 6);
+    } else if (hasTransform) {
+      return _transforms.getAffine();
+    } else {
+      return null;
+    }
+  }
+
   R group(R collector,
       {required bool hasTransform, required bool hasTransformNumber}) {
-    final Affine? transform;
-    if (hasTransform) {
-      if (hasTransformNumber) {
-        final n = _children.readUnsignedInt();
-        transform = _transforms.getAffineAt(n);
-      } else {
-        transform = _transforms.getAffine();
-      }
-    } else {
-      transform = null;
-    }
-    throw UnimplementedError("@@ TODO:");
-    // collector = _visitor.group(collector, transform);
+    final Affine? transform =
+        _getTransform(hasTransform, hasTransformNumber, _children);
+    collector = _visitor.group(collector, transform);
     if (_DEBUG_COMPACT) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
@@ -138,7 +171,7 @@ class CompactTraverser<R> {
       assert(d == _groupDepth, '$d == $_groupDepth at ${_children.seek}');
     }
     _groupDepth++;
-    collector = traverse(collector); // Traverse our children
+    collector = traverseGroup(collector); // Traverse our children
     _groupDepth--;
     return collector;
   }
@@ -146,16 +179,47 @@ class CompactTraverser<R> {
   R path(R collector,
       {required bool hasPathNumber,
       required bool hasPaintNumber,
-      required int colorTypes}) {
-    final siPaint =
-        _getPaint(hasPaintNumber: hasPaintNumber, colorTypes: colorTypes);
+      required int fillColorType,
+      required int strokeColorType}) {
+    final siPaint = _getPaint(
+        hasPaintNumber: hasPaintNumber,
+        fillColorType: fillColorType,
+        strokeColorType: strokeColorType);
     if (_DEBUG_COMPACT) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek, '$currArgSeek, $_args');
     }
     final CompactChildData pathData = _getPathData(hasPathNumber);
-    collector = _visitor.path(collector, pathData, siPaint);
-    return collector;
+    return _visitor.path(collector, pathData, siPaint);
+  }
+
+  R text(R collector,
+      {required bool hasPaintNumber,
+      required bool hasFontFamilyIndex,
+      required int fillColorType,
+      required int strokeColorType}) {
+    final p = _getPaint(
+        hasPaintNumber: hasPaintNumber,
+        fillColorType: fillColorType,
+        strokeColorType: strokeColorType);
+    final xi = _readSmallishInt(_children);
+    final yi = _readSmallishInt(_children);
+    final textIndex = _readSmallishInt(_children);
+    final ffi = hasFontFamilyIndex ? _readSmallishInt(_children) : null;
+    final byte = _children.readUnsignedByte();
+    final style = SIFontStyle.values[byte & 0x1];
+    final weight = SIFontWeight.values[(byte >> 1) & 0xf];
+    final fontSize = _args.get();
+    final ta = SITextAttributes(
+        fontFamily: (ffi == null) ? '' : _strings[ffi],
+        fontStyle: style,
+        fontSize: fontSize,
+        fontWeight: weight);
+    return _visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
+  }
+
+  R image(R collector) {
+    return _visitor.image(collector, _readSmallishInt(_children));
   }
 
   R clipPath(R collector, {required bool hasPathNumber}) {
@@ -168,68 +232,148 @@ class CompactTraverser<R> {
     return collector;
   }
 
-  SIPaint _getPaint({required bool hasPaintNumber, required int colorTypes}) {
-    /*
-    final fillColorType = SIColorType.values[colorTypes ~/ 3];
-    final strokeColorType = SIColorType.values[colorTypes % 3];
+  SIPaint _getPaint(
+      {required bool hasPaintNumber,
+      required int fillColorType,
+      required int strokeColorType}) {
     final int flags;
     final int oldChildrenSeek;
     final int oldArgsSeek;
+    final int oldTransformsSeek;
     final ByteBufferDataInputStream children;
     final FloatBufferInputStream args;
     if (hasPaintNumber) {
-      final paintNumber = _children.readUnsignedInt();
+      final paintNumber = _readSmallishInt(_children);
       oldChildrenSeek = _rewindChildren.seek;
       oldArgsSeek = _rewindChildren.seek;
+      oldTransformsSeek = _transforms.seek;
       _rewindChildren.seek = _paintChildrenSeek[paintNumber];
       _rewindArgs.seek = _paintArgsSeek[paintNumber];
+      _transforms.seek = _paintTransformsSeek[paintNumber];
       children = _rewindChildren;
       args = _rewindArgs;
     } else {
       _paintChildrenSeek[_currPaintID] = _children.seek;
       _paintArgsSeek[_currPaintID] = _args.seek;
+      _paintTransformsSeek[_currPaintID] = _transforms.seek;
       _currPaintID++;
       oldChildrenSeek = 0;
       oldArgsSeek = 0;
+      oldTransformsSeek = 0;
       children = _children;
       args = _args;
     }
     flags = children.readUnsignedByte();
-    final hasStrokeWidth = _flag(flags, 1);
-    final hasStrokeMiterLimit = _flag(flags, 2);
-    final strokeJoin = SIStrokeJoin.values[(flags >> 3) & 0x3];
-    final strokeCap = SIStrokeCap.values[(flags >> 5) & 0x03];
-    final fillType = SIFillType.values[(flags >> 7) & 0x01];
-    final fillColor =
-        (fillColorType == SIColorType.value) ? children.readUnsignedInt() : 0;
-    final strokeColor =
-        (strokeColorType == SIColorType.value) ? children.readUnsignedInt() : 0;
+    final hasStrokeWidth = _flag(flags, 0);
+    final hasStrokeMiterLimit = _flag(flags, 1);
+    final strokeJoin = SIStrokeJoin.values[(flags >> 2) & 0x3];
+    final strokeCap = SIStrokeCap.values[(flags >> 4) & 0x03];
+    final fillType = SIFillType.values[(flags >> 6) & 0x01];
+    final hasStrokeDashArray = _flag(flags, 7);
+    final hasStrokeDashOffset =
+        hasStrokeDashArray ? _flag(children.readUnsignedByte(), 0) : false;
+    final fillColor = _readColor(fillColorType, children, args);
+    final strokeColor = _readColor(strokeColorType, children, args);
     final strokeWidth = hasStrokeWidth ? args.get() : null;
     final strokeMiterLimit = hasStrokeMiterLimit ? args.get() : null;
+    final strokeDashArray = hasStrokeDashArray
+        ? List<double>.generate(_readSmallishInt(children), (_) => args.get())
+        : null;
+    final strokeDashOffset = hasStrokeDashOffset ? args.get() : null;
     final r = SIPaint(
         fillColor: fillColor,
-        fillColorType: fillColorType,
         strokeColor: strokeColor,
-        strokeColorType: strokeColorType,
         strokeWidth: strokeWidth,
         strokeMiterLimit: strokeMiterLimit,
         strokeJoin: strokeJoin,
         strokeCap: strokeCap,
         fillType: fillType,
-        strokeDashArray: null,
-        strokeDashOffset: null);
+        strokeDashArray: strokeDashArray,
+        strokeDashOffset: strokeDashOffset);
     if (hasPaintNumber) {
+      _transforms.seek = oldTransformsSeek;
       _rewindChildren.seek = oldChildrenSeek;
       _rewindArgs.seek = oldArgsSeek;
     }
-     */
-    throw UnimplementedError("@@ TODO dash array");
-    // return r;
+    return r;
+  }
+
+  SIColor _readColor(int colorType, ByteBufferDataInputStream children,
+      FloatBufferInputStream args) {
+    if (colorType == 0) {
+      return SIValueColor(children.readUnsignedInt());
+    } else if (colorType == 1) {
+      return SIColor.none;
+    } else if (colorType == 2) {
+      return SIColor.currentColor;
+    } else {
+      assert(colorType == 3);
+      final flags = children.readUnsignedByte();
+      final gType = (flags & 0x3);
+      bool objectBoundingBox = _flag(flags, 2);
+      final sm = SIGradientSpreadMethod.values[(flags >> 3) & 0x3];
+      bool hasTransform = _flag(flags, 5);
+      bool hasTransformNumber = _flag(flags, 6);
+      final Affine? transform =
+          _getTransform(hasTransform, hasTransformNumber, children);
+      final len = _readSmallishInt(children);
+      final stops = List<double>.generate(len, (_) => args.get());
+      final colors = List<SIColor>.generate(len, (_) {
+        final ct = children.readUnsignedByte();
+        assert(ct != 3);
+        return _readColor(ct, children, args);
+      });
+      if (gType == 0) {
+        final x1 = args.get();
+        final y1 = args.get();
+        final x2 = args.get();
+        final y2 = args.get();
+        return SILinearGradientColor(
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2,
+            objectBoundingBox: objectBoundingBox,
+            spreadMethod: sm,
+            transform: transform,
+            stops: stops,
+            colors: colors);
+      } else if (gType == 1) {
+        final cx = args.get();
+        final cy = args.get();
+        final r = args.get();
+        return SIRadialGradientColor(
+            cx: cx,
+            cy: cy,
+            r: r,
+            objectBoundingBox: objectBoundingBox,
+            spreadMethod: sm,
+            transform: transform,
+            stops: stops,
+            colors: colors);
+      } else {
+        assert(gType == 2);
+        final cx = args.get();
+        final cy = args.get();
+        final startAngle = args.get();
+        final endAngle = args.get();
+        return SISweepGradientColor(
+            cx: cx,
+            cy: cy,
+            startAngle: startAngle,
+            endAngle: endAngle,
+            objectBoundingBox: objectBoundingBox,
+            spreadMethod: sm,
+            transform: transform,
+            stops: stops,
+            colors: colors);
+      }
+    }
   }
 
   CompactChildData _getPathData(bool hasPathNumber) {
     if (hasPathNumber) {
-      final pathNumber = _children.readUnsignedInt();
+      final pathNumber = _readSmallishInt(_children);
       _rewindChildren.seek = _pathChildrenSeek[pathNumber];
       _rewindArgs.seek = _pathArgsSeek[pathNumber];
       return CompactChildData(_rewindChildren, _rewindArgs);
@@ -242,20 +386,34 @@ class CompactTraverser<R> {
   }
 
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
+
+  int _readSmallishInt(ByteBufferDataInputStream str) {
+    int r = str.readUnsignedByte();
+    if (r < 0xfe) {
+      return r;
+    } else if (r < 0xff) {
+      return str.readUnsignedShort();
+    } else {
+      return str.readUnsignedInt();
+    }
+  }
 }
 
 ///
 /// A scalable image that's represented by a compact packed binary format
 /// that is interpreted when rendering.
 ///
-mixin ScalableImageCompactGeneric<ColorT, BlendModeT> {
+mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   double? get width;
   double? get height;
-  Rectangle<double>? viewbox;   // @@ TODO
+  Rectangle<double>? viewbox; // @@ TODO
 
   bool get bigFloats;
   int get _numPaths;
   int get _numPaints;
+  List<String> get _strings;
+  List<List<double>> get _floatLists;
+  List<IM> get _images;
   Uint8List get _children;
   List<double> get _args; // Float32List or Float64List
   List<double> get _transforms; // Float32List or Float64List
@@ -268,6 +426,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT> {
       throw StateError("Can't write file with _DEBUG_COMPACT turned on.");
     }
     final os = DataOutputSink(out.openWrite(), Endian.big);
+    throw "@@ TODO:  Write init data";
     // TODO:  Move constants somewhere more sensible
     os.writeUnsignedInt(0xb0b01e07);
     numWritten += 4;
@@ -339,7 +498,16 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT> {
 }
 
 class ScalableImageCompactNoUI
-    with ScalableImageCompactGeneric<int, SITintMode> {
+    with ScalableImageCompactGeneric<int, SITintMode, SIImageData> {
+  @override
+  final List<String> _strings;
+
+  @override
+  final List<List<double>> _floatLists;
+
+  @override
+  final List<SIImageData> _images;
+
   @override
   final List<double> _args;
 
@@ -371,6 +539,9 @@ class ScalableImageCompactNoUI
   final SITintMode tintMode;
 
   ScalableImageCompactNoUI(
+      this._strings,
+      this._floatLists,
+      this._images,
       this._args,
       this._transforms,
       this._children,
@@ -424,6 +595,7 @@ class CompactChildData {
 class CompactPathParser extends AbstractPathParser {
   final ByteBufferDataInputStream children;
   final FloatBufferInputStream args;
+  bool _nextNybble = false;
 
   CompactPathParser(CompactChildData data, PathBuilder builder)
       : children = data.children,
@@ -446,7 +618,14 @@ class CompactPathParser extends AbstractPathParser {
   }
 
   // Return true on done
-  bool _parseCommand(final int c) {
+  bool _parseCommand(int c) {
+    if (_nextNybble) {
+      c += 14;
+      _nextNybble = false;
+    } else if (c == 15) {
+      _nextNybble = true;
+      return false;
+    }
     switch (_PathCommand.values[c]) {
       case _PathCommand.end:
         buildEnd();
@@ -486,6 +665,15 @@ class CompactPathParser extends AbstractPathParser {
           return _quadraticBezierTo(null, x);
         });
         break;
+      case _PathCommand.close:
+        buildClose();
+        break;
+      case _PathCommand.circle:
+        _ellipse(true);
+        break;
+      case _PathCommand.ellipse:
+        _ellipse(false);
+        break;
       case _PathCommand.arcToPointCircSmallCCW:
         _arcToPointCirc(false, false);
         break;
@@ -510,9 +698,6 @@ class CompactPathParser extends AbstractPathParser {
       case _PathCommand.arcToPointEllipseLargeCW:
         _arcToPointEllipse(true, true);
         break;
-      case _PathCommand.close:
-        buildClose();
-        break;
     }
     return false;
   }
@@ -527,6 +712,16 @@ class CompactPathParser extends AbstractPathParser {
     final x = args.get();
     final p = PointT(x, args.get());
     return buildCubicBezier(c1, c2, p);
+  }
+
+  void _ellipse(bool isCircle) {
+    final left = args.get();
+    final top = args.get();
+    final width = args.get();
+    final height = isCircle ? width : args.get();
+    builder.addOval(RectT(left, top, width, height));
+    // We don't need to do the runPathCommand() because an ellipse/circle
+    // is always a stand-alone path.
   }
 
   void _arcToPointCirc(bool largeArc, bool clockwise) {
@@ -556,7 +751,12 @@ class CompactPathParser extends AbstractPathParser {
   }
 }
 
-abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
+///
+/// Build the binary structures read by a [CompactTraverser] and written out
+/// to a `.si` file.
+///
+abstract class SIGenericCompactBuilder<PathDataT, IM>
+    extends SIBuilder<PathDataT, IM> {
   final bool bigFloats;
   final ByteSink childrenSink;
   final DataOutputSink children;
@@ -572,7 +772,6 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   int? _tintColor;
   SITintMode _tintMode;
   final _pathShare = <Object?, int>{};
-
   // We share path objects.  This is a significant memory savings.  For example,
   // on the "anglo" card deck, it shrinks the number of floats saved by about
   // a factor of 2.4 (from 116802 to 47944; if storing float64's, that's
@@ -581,8 +780,12 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   // complexity, and on the anglo test image, it only reduced the float
   // usage by 16%.  The int part (_children) is just over 30K, so any
   // savings there can't be significant either.
+
   final _transformShare = <Affine, int>{};
   final _paintShare = <SIPaint, int>{};
+  late final List<String> strings;
+  late final List<List<double>> floatLists;
+  late final List<IM> images;
   int _debugGroupDepth = 0; // Should be optimized away when not used
 
   SIGenericCompactBuilder(this.bigFloats, this.childrenSink, this.children,
@@ -590,10 +793,12 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
       {required this.warn})
       : _tintMode = SITintMode.srcIn;
 
-  static const GROUP_CODE = 0; // 0..31, with room to spare
-  static const PATH_CODE = 32; // 32..63, with room to spare
-  static const CLIPPATH_CODE = 144; // 144..145
-  static const END_GROUP_CODE = 146;
+  static const PATH_CODE = 0; // 0..63 (6 bits)
+  static const TEXT_CODE = 64; // 64..127 (6 bits)
+  static const GROUP_CODE = 128; // 128..131 (4 bits)
+  static const CLIPPATH_CODE = 132; // 132, 133
+  static const IMAGE_CODE = 134;
+  static const END_GROUP_CODE = 135;
 
   bool get done => _done;
 
@@ -620,22 +825,35 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
     }
   }
 
-  void _writeUnsignedInt(int? v) {
-    if (v != null) {
-      children.writeUnsignedInt(v);
+  void _writeSmallishInt(DataOutputSink out, int v) {
+    if (v < 0xfe) {
+      out.writeByte(v);
+    } else if (v < 0xffff) {
+      out.writeByte(0xfe);
+      out.writeUnsignedShort(v);
+    } else {
+      out.writeByte(0xff);
+      out.writeUnsignedInt(v);
     }
   }
 
-  void _writeTransform(Affine t) {
-    _transformShare[t.toKey] = transforms.length;
-    transforms.addTransform(t);
+  int? _writeTransform(Affine t) {
+    final int len = _transformShare.length;
+    int i = _transformShare.putIfAbsent(t.toKey, () => len);
+    if (i == len) {
+      transforms.addTransform(t);
+      return null;
+    } else {
+      return i;
+    }
   }
 
   @override
-  void vector({required double? width,
-    required double? height,
-    required int? tintColor,
-    required SITintMode? tintMode}) {
+  void vector(
+      {required double? width,
+      required double? height,
+      required int? tintColor,
+      required SITintMode? tintMode}) {
     _width = width;
     _height = height;
     _tintColor = tintColor;
@@ -648,11 +866,19 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
   }
 
   @override
+  void init(void collector, List<IM> images, List<String> strings,
+      List<List<double>> floatLists) {
+    this.images = images;
+    this.strings = strings;
+    this.floatLists = floatLists;
+  }
+
+  @override
   void clipPath(void collector, PathDataT pathData) {
     final int? pathNumber = _pathShare[pathData];
     children.writeByte(CLIPPATH_CODE | _flag(pathNumber != null, 0));
     if (pathNumber != null) {
-      _writeUnsignedInt(pathNumber);
+      _writeSmallishInt(children, pathNumber);
     } else {
       final len = _pathShare[immutableKey(pathData)] = _pathShare.length;
       assert(len + 1 == _pathShare.length);
@@ -665,25 +891,20 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
 
   @override
   void group(void collector, Affine? transform) {
-    throw UnimplementedError("@@ TODO");
-    /*
     int? transformNumber;
     if (transform != null) {
-      transformNumber = _transformShare[transform];
+      transformNumber = _writeTransform(transform);
     }
     children.writeByte(GROUP_CODE |
-    _flag(transform != null, 0) |
-    _flag(transformNumber != null, 1));
+        _flag(transform != null, 0) |
+        _flag(transformNumber != null, 1));
     if (transformNumber != null) {
-      _writeUnsignedInt(transformNumber);
-    } else if (transform != null) {
-      _writeTransform(transform);
+      _writeSmallishInt(children, transformNumber);
     }
     if (_DEBUG_COMPACT) {
       children.writeUnsignedInt(args.length + 100);
       children.writeUnsignedShort(_debugGroupDepth++);
     }
-     */
   }
 
   @override
@@ -700,95 +921,173 @@ abstract class SIGenericCompactBuilder<PathDataT> extends SIBuilder<PathDataT> {
     final pb = startPath(siPaint, key);
     if (pb != null) {
       makePath(pathData, pb, warn: false);
-      // It might have been pruned; in this case, we need to read the path
-      // in to position the streams appropriately.
     }
+  }
+
+  @override
+  void image(void collector, imageNumber) {
+    children.writeByte(IMAGE_CODE);
+    _writeSmallishInt(children, imageNumber);
+  }
+
+  @override
+  void text(void collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
+    print("@@@@ $fontFamilyIndex");
+    final int? paintNumber = _paintShare[p];
+    children.writeByte(TEXT_CODE |
+        _flag(paintNumber != null, 0) |
+        _flag(fontFamilyIndex != null, 1) |
+        (_getColorType(p.fillColor) << 2) |
+        (_getColorType(p.strokeColor) << 4));
+    if (paintNumber != null) {
+      _writeSmallishInt(children, paintNumber);
+    } else {
+      _writePaint(p);
+    }
+    _writeSmallishInt(children, xIndex);
+    _writeSmallishInt(children, yIndex);
+    _writeSmallishInt(children, textIndex);
+    if (fontFamilyIndex != null) {
+      _writeSmallishInt(children, fontFamilyIndex);
+    }
+    children.writeByte(ta.fontStyle.index | (ta.fontWeight.index << 1));
+    _writeFloat(ta.fontSize);
+  }
+
+  int _getColorType(SIColor c) {
+    int r = -1;
+    c.accept(SIColorVisitor(
+        value: (_) => r = 0,
+        none: () => r = 1,
+        current: () => r = 2,
+        linearGradient: (_) => r = 3,
+        radialGradient: (_) => r = 3,
+        sweepGradient: (_) => r = 3));
+    assert(r != -1);
+    return r;
+  }
+
+  void _writeColor(SIColor c) {
+    void writeGradientStart(int type, SIGradientColor c) {
+      int? transformNumber;
+      final transform = c.transform;
+      if (transform != null) {
+        transformNumber = _writeTransform(transform);
+      }
+      children.writeByte(type |
+          _flag(c.objectBoundingBox, 2) |
+          ((c.spreadMethod.index) << 3) |
+          _flag(transform != null, 5) |
+          _flag(transformNumber != null, 6));
+      if (transformNumber != null) {
+        _writeSmallishInt(children, transformNumber);
+      }
+      _writeSmallishInt(children, c.colors.length);
+      for (int i = 0; i < c.colors.length; i++) {
+        _writeFloat(c.stops[i]);
+      }
+      for (int i = 0; i < c.colors.length; i++) {
+        children.writeByte(_getColorType(c.colors[i]));
+        _writeColor(c.colors[i]);
+      }
+    }
+
+    c.accept(SIColorVisitor(
+        value: (SIValueColor c) => children.writeUnsignedInt(c.argb),
+        none: () {},
+        current: () {},
+        linearGradient: (SILinearGradientColor c) {
+          writeGradientStart(0, c);
+          _writeFloat(c.x1);
+          _writeFloat(c.y1);
+          _writeFloat(c.x2);
+          _writeFloat(c.y2);
+        },
+        radialGradient: (SIRadialGradientColor c) {
+          writeGradientStart(1, c);
+          _writeFloat(c.cx);
+          _writeFloat(c.cy);
+          _writeFloat(c.r);
+        },
+        sweepGradient: (SISweepGradientColor c) {
+          writeGradientStart(2, c);
+          _writeFloat(c.cx);
+          _writeFloat(c.cy);
+          _writeFloat(c.startAngle);
+          _writeFloat(c.endAngle);
+        }));
+  }
+
+  void _writePaint(SIPaint p) {
+    bool hasStrokeWidth = p.strokeWidth != SIPaint.strokeWidthDefault;
+    bool hasStrokeMiterLimit = p.strokeWidth != SIPaint.strokeMiterLimitDefault;
+    final strokeDashArray = p.strokeDashArray;
+    final strokeDashOffset = p.strokeDashOffset;
+    children.writeByte(_flag(hasStrokeWidth, 0) |
+        _flag(hasStrokeMiterLimit, 1) |
+        p.strokeJoin.index << 2 |
+        p.strokeCap.index << 4 |
+        p.fillType.index << 6 |
+        _flag(strokeDashArray != null, 7));
+    if (strokeDashArray != null) {
+      children.writeByte(_flag(strokeDashOffset != null, 0));
+    }
+    _writeColor(p.fillColor);
+    _writeColor(p.strokeColor);
+    if (hasStrokeWidth) {
+      _writeFloat(p.strokeWidth);
+    }
+    if (hasStrokeMiterLimit) {
+      _writeFloat(p.strokeMiterLimit);
+    }
+    if (strokeDashArray != null) {
+      _writeSmallishInt(children, strokeDashArray.length);
+      for (final f in strokeDashArray) {
+        _writeFloat(f);
+      }
+      if (strokeDashOffset != null) {
+        _writeFloat(strokeDashOffset);
+      }
+    }
+    final len = _paintShare[p] = _paintShare.length;
+    assert(len + 1 == _paintShare.length);
   }
 
   @override
   PathBuilder? startPath(SIPaint siPaint, Object? pathKey) {
     final int? pathNumber = _pathShare[pathKey];
     final int? paintNumber = _paintShare[siPaint];
-    bool hasStrokeWidth = siPaint.strokeWidth != SIPaint.strokeWidthDefault;
-    bool hasStrokeMiterLimit =
-        siPaint.strokeWidth != SIPaint.strokeMiterLimitDefault;
-    /*
-    assert(SIColorType.none.index == 0 && SIColorType.values.length == 3);
-    final colorTypes =
-        siPaint.fillColorType.index * 3 + siPaint.strokeColorType.index - 1;
-    if (colorTypes == -1) {
-      // both can't be invisible
-      assert(false);
-      return null;
-    }
-    assert(colorTypes < 8);
     children.writeByte(PATH_CODE |
-    _flag(pathNumber != null, 0) |
-    _flag(paintNumber != null, 1) |
-    colorTypes << 2);
+        _flag(pathNumber != null, 0) |
+        _flag(paintNumber != null, 1) |
+        (_getColorType(siPaint.fillColor) << 2) |
+        (_getColorType(siPaint.strokeColor) << 4));
     if (paintNumber != null) {
-      children.writeUnsignedInt(paintNumber);
+      _writeSmallishInt(children, paintNumber);
     } else {
-      children.writeByte(_flag(hasStrokeWidth, 1) |
-      _flag(hasStrokeMiterLimit, 2) |
-      siPaint.strokeJoin.index << 3 |
-      siPaint.strokeCap.index << 5 |
-      siPaint.fillType.index << 7);
-      if (siPaint.fillColorType == SIColorType.value) {
-        _writeUnsignedInt(siPaint.fillColor);
-      }
-      if (siPaint.strokeColorType == SIColorType.value) {
-        _writeUnsignedInt(siPaint.strokeColor);
-      }
-      if (hasStrokeWidth) {
-        _writeFloat(siPaint.strokeWidth);
-      }
-      if (hasStrokeMiterLimit) {
-        _writeFloat(siPaint.strokeMiterLimit);
-      }
-      final len = _paintShare[siPaint] = _paintShare.length;
-      assert(len + 1 == _paintShare.length);
-
+      _writePaint(siPaint);
     }
     if (_DEBUG_COMPACT) {
       children.writeUnsignedInt(args.length + 100);
     }
     if (pathNumber != null) {
-      _writeUnsignedInt(pathNumber);
+      _writeSmallishInt(children, pathNumber);
       return null;
     } else {
       final len = _pathShare[pathKey] = _pathShare.length;
       assert(len + 1 == _pathShare.length);
       return CompactPathBuilder(this);
     }
-     */
-    throw UnimplementedError("@@ TODO");
   }
 
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
-  @override
-  void init(void collector, List<SIImageData> im, List<String> strings,
-      List<List<double>> floatLists) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
-  void image(void collector, imageNumber) {
-    throw UnimplementedError("@@ TODO");
-  }
-
-  @override
-  void text(void collector, int xIndex, int yIndex, int textIndex, SITextAttributes ta, SIPaint p) {
-    throw UnimplementedError("@@ TODO");
-  }
-
   PathDataT immutableKey(PathDataT pathData);
 }
 
-class SICompactBuilderNoUI extends SIGenericCompactBuilder<String>
+class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
     with SIStringPathMaker {
-
   ScalableImageCompactNoUI? _si;
 
   SICompactBuilderNoUI._p(bool bigFloats, ByteSink childrenSink, FloatSink args,
@@ -814,6 +1113,9 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String>
       return _si!;
     }
     return _si = ScalableImageCompactNoUI(
+        strings,
+        floatLists,
+        images,
         args.toList(),
         transforms.toList(),
         childrenSink.toList(),
@@ -837,6 +1139,9 @@ enum _PathCommand {
   cubicToShorthand,
   quadraticBezierTo,
   quadraticBezierToShorthand,
+  close,
+  circle,
+  ellipse,
   arcToPointCircSmallCCW,
   arcToPointCircSmallCW,
   arcToPointCircLargeCCW,
@@ -844,8 +1149,7 @@ enum _PathCommand {
   arcToPointEllipseSmallCCW,
   arcToPointEllipseSmallCW,
   arcToPointEllipseLargeCCW,
-  arcToPointEllipseLargeCW,
-  close
+  arcToPointEllipseLargeCW
 }
 
 class CompactPathBuilder extends PathBuilder {
@@ -858,7 +1162,6 @@ class CompactPathBuilder extends PathBuilder {
       : _children = b.children,
         _args = b.args {
     assert(_PathCommand.end.index == 0);
-    assert(_PathCommand.close.index <= 0xf); // Two in one byte!
   }
 
   void _flush() {
@@ -872,18 +1175,28 @@ class CompactPathBuilder extends PathBuilder {
     }
   }
 
+  void _send(_PathCommand c) {
+    _flush();
+    final i = c.index;
+    if (i < 15) {
+      _currByte |= i;
+    } else {
+      _currByte |= 15;
+      _flush();
+      _currByte |= (i - 14);
+    }
+  }
+
   @override
   void moveTo(PointT p) {
-    _flush();
-    _currByte |= _PathCommand.moveTo.index;
+    _send(_PathCommand.moveTo);
     _args.add(p.x);
     _args.add(p.y);
   }
 
   @override
   void lineTo(PointT p) {
-    _flush();
-    _currByte |= _PathCommand.lineTo.index;
+    _send(_PathCommand.lineTo);
     _args.add(p.x);
     _args.add(p.y);
   }
@@ -894,34 +1207,33 @@ class CompactPathBuilder extends PathBuilder {
       required double rotation,
       required bool largeArc,
       required bool clockwise}) {
-    _flush();
     if (radius.x == radius.y) {
       if (largeArc) {
         if (clockwise) {
-          _currByte |= _PathCommand.arcToPointCircLargeCW.index;
+          _send(_PathCommand.arcToPointCircLargeCW);
         } else {
-          _currByte |= _PathCommand.arcToPointCircLargeCCW.index;
+          _send(_PathCommand.arcToPointCircLargeCCW);
         }
       } else {
         if (clockwise) {
-          _currByte |= _PathCommand.arcToPointCircSmallCW.index;
+          _send(_PathCommand.arcToPointCircSmallCW);
         } else {
-          _currByte |= _PathCommand.arcToPointCircSmallCCW.index;
+          _send(_PathCommand.arcToPointCircSmallCCW);
         }
       }
       _args.add(radius.x);
     } else {
       if (largeArc) {
         if (clockwise) {
-          _currByte |= _PathCommand.arcToPointEllipseLargeCW.index;
+          _send(_PathCommand.arcToPointEllipseLargeCW);
         } else {
-          _currByte |= _PathCommand.arcToPointEllipseLargeCCW.index;
+          _send(_PathCommand.arcToPointEllipseLargeCCW);
         }
       } else {
         if (clockwise) {
-          _currByte |= _PathCommand.arcToPointEllipseSmallCW.index;
+          _send(_PathCommand.arcToPointEllipseSmallCW);
         } else {
-          _currByte |= _PathCommand.arcToPointEllipseSmallCCW.index;
+          _send(_PathCommand.arcToPointEllipseSmallCCW);
         }
       }
       _args.add(radius.x);
@@ -934,16 +1246,23 @@ class CompactPathBuilder extends PathBuilder {
 
   @override
   void addOval(RectT rect) {
-    throw UnimplementedError("@@ TODO");
+    _args.add(rect.left);
+    _args.add(rect.top);
+    _args.add(rect.width);
+    if (rect.width == rect.height) {
+      _send(_PathCommand.circle);
+    } else {
+      _send(_PathCommand.ellipse);
+      _args.add(rect.height);
+    }
   }
 
   @override
   void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {
-    _flush();
     if (shorthand) {
-      _currByte |= _PathCommand.cubicToShorthand.index;
+      _send(_PathCommand.cubicToShorthand);
     } else {
-      _currByte |= _PathCommand.cubicTo.index;
+      _send(_PathCommand.cubicTo);
       _args.add(c1.x);
       _args.add(c1.y);
     }
@@ -955,11 +1274,10 @@ class CompactPathBuilder extends PathBuilder {
 
   @override
   void quadraticBezierTo(PointT control, PointT p, bool shorthand) {
-    _flush();
     if (shorthand) {
-      _currByte |= _PathCommand.quadraticBezierToShorthand.index;
+      _send(_PathCommand.quadraticBezierToShorthand);
     } else {
-      _currByte |= _PathCommand.quadraticBezierTo.index;
+      _send(_PathCommand.quadraticBezierTo);
       _args.add(control.x);
       _args.add(control.y);
     }
@@ -969,8 +1287,7 @@ class CompactPathBuilder extends PathBuilder {
 
   @override
   void close() {
-    _flush();
-    _currByte |= _PathCommand.close.index;
+    _send(_PathCommand.close);
   }
 
   @override
@@ -1072,3 +1389,75 @@ class FloatBufferInputStream {
   String toString() =>
       'FloatBufferInputStream(seek: $seek, length: ${_buf.length})';
 }
+/*
+
+  void _callInit(R collector) {
+    double getFloat() {
+      if (bigFloats) {
+        return _initData.readDouble();
+      } else {
+        return _initData.readFloat();
+      }
+    }
+
+    final images = List<SIImageData>.generate(_readSmallishInt(_initData), (_) {
+      final x = getFloat();
+      final y = getFloat();
+      final w = getFloat();
+      final h = getFloat();
+      final data = _initData.readBytes(_readSmallishInt(_initData));
+      return SIImageData(x: x, y: y, width: w, height: h, encoded: data);
+    });
+    final strings = List<String>.generate(_readSmallishInt(_initData), (_) {
+      return _initData.readUTF8();
+    });
+    _strings = strings;
+    final fl = List<List<double>>.generate(_readSmallishInt(_initData), (_) {
+      final List<double> l;
+      if (bigFloats) {
+        l = Float64List(_readSmallishInt(_initData));
+      } else {
+        l = Float32List(_readSmallishInt(_initData));
+      }
+      for (int i = 0; i < l.length; i++) {
+        l[i] = getFloat();
+      }
+      return l;
+    });
+    _visitor.init(collector, images, strings, fl);
+    _initData.close();
+  }
+
+    final sink = ByteSink();
+    final out = DataOutputSink(sink, Endian.little);
+    void outputFloat(double d) {
+      if (bigFloats) {
+        out.writeDouble(d);
+      } else {
+        out.writeFloat(d);
+      }
+    }
+
+    _writeSmallishInt(out, images.length);
+    for (final im in images) {
+      outputFloat(im.x);
+      outputFloat(im.y);
+      outputFloat(im.width);
+      outputFloat(im.height);
+      _writeSmallishInt(out, im.encoded.length);
+      out.writeBytes(im.encoded);
+    }
+    _writeSmallishInt(out, strings.length);
+    for (final s in strings) {
+      out.writeUTF8(s);
+    }
+    _writeSmallishInt(out, floatLists.length);
+    for (final fl in floatLists) {
+      _writeSmallishInt(out, fl.length);
+      for (final f in fl) {
+        outputFloat(f);
+      }
+    }
+    out.close();
+    initData = sink.toList();
+ */
