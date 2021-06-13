@@ -48,26 +48,18 @@ Future<void> main() async {
     final name = typeUnsafe[i] as String;
     final svg = 'assets/svg/$name.svg';
     String? avd = 'assets/avd/$name.xml';
-    String? si = 'assets/si/$name.si';
+    String si = 'assets/si/$name.si';
     // Disable avd and si if they're not in the asset bundle:
     try {
       await rootBundle.load(avd);
     } on FlutterError catch (_) {
       avd = null;
     }
-    try {
-      await rootBundle.load(si);
-    } on FlutterError catch (_) {
-      si = null;
-    }
+    await rootBundle.load(si);
     // SVG is required to always be there.
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
-  final sw = Stopwatch()..start();
-  final firstSI = await assets[0].forType(AssetType.svg, rootBundle);
-  final time = sw.elapsedMilliseconds;
-  sw.stop();
-  print('Loaded ${assets[0].fileName(AssetType.svg)} in $time ms.');
+  final firstSI = await assets[0].forType(AssetType.si, rootBundle);
   runApp(Demo(assets, firstSI));
 }
 
@@ -118,7 +110,7 @@ class _DemoScreenState extends State<DemoScreen> {
   ScalableImage? si;
   String? errorMessage;
   int assetIndex = 0;
-  var assetType = AssetType.svg;
+  var assetType = AssetType.si;
   double _scale = 0;
   bool _fitToScreen = false;
   Rect? _originalViewport;
@@ -163,7 +155,7 @@ class _DemoScreenState extends State<DemoScreen> {
                           onPressed: (assetIndex > 0)
                               ? () {
                                   assetIndex--;
-                                  _setType(AssetType.svg);
+                                  _setType(AssetType.si);
                                 }
                               : null,
                           child: Icon(Icons.arrow_left),
@@ -173,7 +165,7 @@ class _DemoScreenState extends State<DemoScreen> {
                           onPressed: (assetIndex + 1 < assets.length)
                               ? () {
                                   assetIndex++;
-                                  _setType(AssetType.svg);
+                                  _setType(AssetType.si);
                                 }
                               : null,
                           child: Icon(Icons.arrow_right),
@@ -183,15 +175,24 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 260,
                       child: Row(children: [
-                        Text('SVG'),
+                        Text('SI',
+                            style: (asset.si == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
                         Radio(
-                            value: AssetType.svg,
+                            value: AssetType.si,
                             groupValue: assetType,
-                            onChanged: _setType),
+                            onChanged: asset.si == null ? null : _setType),
                         Spacer(),
                         Text('Compact'),
                         Radio(
                             value: AssetType.compact,
+                            groupValue: assetType,
+                            onChanged: _setType),
+                        Spacer(),
+                        Text('SVG'),
+                        Radio(
+                            value: AssetType.svg,
                             groupValue: assetType,
                             onChanged: _setType),
                         Spacer(),
@@ -203,15 +204,6 @@ class _DemoScreenState extends State<DemoScreen> {
                             value: AssetType.avd,
                             groupValue: assetType,
                             onChanged: asset.avd == null ? null : _setType),
-                        Spacer(),
-                        Text('SI',
-                            style: (asset.si == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
-                        Radio(
-                            value: AssetType.si,
-                            groupValue: assetType,
-                            onChanged: asset.si == null ? null : _setType),
                       ])),
                   SizedBox(width: 10),
                   SizedBox(
@@ -350,12 +342,12 @@ class _DemoScreenState extends State<DemoScreen> {
       });
 }
 
-enum AssetType { svg, compact, avd, si }
+enum AssetType { si, compact, svg, avd }
 
 class Asset {
   final String svg;
   final String? avd;
-  final String? si;
+  final String si;
 
   Asset({required this.svg, required this.avd, required this.si});
 
@@ -364,21 +356,21 @@ class Asset {
       case AssetType.svg:
         return ScalableImage.fromSvgAsset(b, svg);
       case AssetType.compact:
-        return ScalableImage.fromSvgAsset(b, svg, compact: true);
+        return ScalableImage.fromSIAsset(b, si, compact: true);
       case AssetType.avd:
         return ScalableImage.fromAvdAsset(b, avd!);
       case AssetType.si:
-        return ScalableImage.fromSIAsset(b, si!);
+        return ScalableImage.fromSIAsset(b, si);
     }
   }
 
   String? fileName(AssetType t) {
     switch (t) {
       case AssetType.svg:
-      case AssetType.compact:
         return svg;
       case AssetType.avd:
         return avd;
+      case AssetType.compact:
       case AssetType.si:
         return si;
     }
