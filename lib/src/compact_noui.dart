@@ -933,7 +933,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   @override
   void text(void collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
-    print("@@@@ $fontFamilyIndex");
     final int? paintNumber = _paintShare[p];
     children.writeByte(TEXT_CODE |
         _flag(paintNumber != null, 0) |

@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.common_noui;
 
+import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -907,4 +908,40 @@ class SITextAttributes {
 
   @override
   int get hashCode => quiver.hash4(fontFamily, fontStyle, fontWeight, fontSize);
+}
+
+///
+/// The data that is canonicalized when an SVG graph is built.
+///
+class CanonicalizedData<IM> {
+  final Map<IM, int> images = {};
+  final Map<String, int> strings = {};
+
+  ///
+  /// The float lists that are (somewhat bizarrely) used as x and y
+  /// coordinates on text nodes
+  ///
+  final Map<List<double>, int> floatLists = HashMap(
+      equals: (List<double> k1, List<double> k2) => quiver.listsEqual(k1, k2),
+      hashCode: (List<double> k) => quiver.hashObjects(k));
+
+  int? getIndex<T extends Object>(Map<T, int> map, T? value) {
+    if (value == null) {
+      return null;
+    }
+    final len = map.length;
+    return map.putIfAbsent(value, () => len);
+  }
+
+  List<T> toList<T>(Map<T, int> map) {
+    if (map.isEmpty) {
+      return List<T>.empty();
+    }
+    T random = map.entries.first.key;
+    final r = List<T>.filled(map.length, random);
+    for (final MapEntry<T, int> e in map.entries) {
+      r[e.value] = e.key;
+    }
+    return r;
+  }
 }

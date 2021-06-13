@@ -103,8 +103,6 @@ class ScalableImageCompact extends ScalableImage
       accept(v);
       return v.si;
     } else {
-      throw "@@ TODO";
-      /*
       return ScalableImageCompact._p(
           bigFloats: bigFloats,
           width: width,
@@ -114,12 +112,13 @@ class ScalableImageCompact extends ScalableImage
           currentColor: currentColor,
           numPaths: _numPaths,
           numPaints: _numPaints,
-          initData: _initData,
+          strings: _strings,
+          floatLists: _floatLists,
+          images: images,
           children: _children,
           args: _args,
           transforms: _transforms,
           viewport: viewport);
-       */
     }
   }
 
@@ -347,11 +346,15 @@ abstract class _CompactVisitor<R>
   @override
   R text(R collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
-    return siText(SIText(
-        _strings[textIndex], _floatLists[xIndex], _floatLists[yIndex], ta, p));
+    return siText(
+        collector,
+        SIText(_strings[textIndex], _floatLists[xIndex], _floatLists[yIndex],
+            ta, p),
+        xIndex,
+        yIndex);
   }
 
-  R siText(SIText text);
+  R siText(R collector, SIText text, int xIndex, int yIndex);
 }
 
 class _PaintingVisitor extends _CompactVisitor<void> {
@@ -382,7 +385,8 @@ class _PaintingVisitor extends _CompactVisitor<void> {
       _images[imageIndex].paint(canvas, currentColor);
 
   @override
-  void siText(SIText text) => text.paint(canvas, currentColor);
+  void siText(void collector, SIText text, int xIndex, int yIndex) =>
+      text.paint(canvas, currentColor);
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
@@ -391,6 +395,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   final _PruningBuilder builder;
   ScalableImageCompact? _si;
   CompactChildData? _lastPathData;
+  final _theCanon = CanonicalizedData<SIImage>();
 
   _PruningVisitor(ScalableImageCompact si, Rect viewport, double tolerance)
       : _boundary = PruningBoundary(viewport.deflate(tolerance)),
@@ -400,6 +405,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
             (si.bigFloats) ? Float64Sink() : Float32Sink(),
             (si.bigFloats) ? Float64Sink() : Float32Sink(),
             viewport,
+            currentColor: si.currentColor,
             warn: false) {
     builder.vector(
         width: viewport.width,
@@ -417,6 +423,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
       return r;
     } else {
       builder.endVector();
+      builder.setCanon(_theCanon);
       return _si = builder.si;
     }
   }
@@ -447,7 +454,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary siPath(PruningBoundary boundary, SIPath path) {
     assert(_lastPathData != null);
-    if (path.prunedBy(const {}, const {}, boundary) != null) {
+    if (path.prunedBy({}, {}, boundary) != null) {
       if (_groupStack.isNotEmpty) {
         _groupStack.last.generateGroupIfNeeded();
       }
@@ -468,7 +475,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary siClipPath(PruningBoundary boundary, SIClipPath cp) {
     assert(_lastPathData != null);
-    if (cp.prunedBy(const {}, const {}, boundary) != null) {
+    if (cp.prunedBy({}, {}, boundary) != null) {
       if (_groupStack.isNotEmpty) {
         _groupStack.last.generateGroupIfNeeded();
       }
@@ -479,31 +486,90 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary image(PruningBoundary collector, int imageIndex) {
-    throw "@@ TODO";
+  PruningBoundary image(PruningBoundary boundary, int imageIndex) {
+    final SIImage image = _images[imageIndex];
+    if (image.prunedBy({}, {}, boundary) != null) {
+      if (_groupStack.isNotEmpty) {
+        _groupStack.last.generateGroupIfNeeded();
+      }
+      int i = _theCanon.getIndex(_theCanon.images, image)!;
+      builder.image(null, i);
+    }
+    return boundary;
   }
 
   @override
-  PruningBoundary siText(SIText text) {
-    throw "@@ TODO";
+  PruningBoundary siText(
+      PruningBoundary boundary, SIText text, int xIndex, int yIndex) {
+    if (text.prunedBy({}, {}, boundary) != null) {
+      if (_groupStack.isNotEmpty) {
+        _groupStack.last.generateGroupIfNeeded();
+      }
+      final c = _theCanon;
+      xIndex = c.getIndex(c.floatLists, _floatLists[xIndex])!;
+      yIndex = c.getIndex(c.floatLists, _floatLists[yIndex])!;
+      int textIndex = c.getIndex(c.strings, text.text)!;
+      SITextAttributes ta = text.attributes;
+      int fontFamilyIndex = c.getIndex(c.strings, ta.fontFamily)!;
+      SIPaint p = text.siPaint;
+      builder.text(null, xIndex, yIndex, textIndex, ta, fontFamilyIndex, p);
+    }
+    return boundary;
   }
 }
 
-class _PruningBuilder extends _SICompactBuilder<CompactChildData>
+class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
     with _SICompactPathBuilder {
+  final Rect viewport;
+  final Color? currentColor;
+
   @override
   void get initial => null;
 
   _PruningBuilder(bool bigFloats, ByteSink childrenSink, FloatSink args,
-      FloatSink transforms, Rect viewport, {required bool warn})
-      : super(
-            bigFloats,
-            childrenSink,
-            DataOutputSink(childrenSink, Endian.little),
-            args,
-            transforms,
-            viewport,
+      FloatSink transforms, this.viewport,
+      {required bool warn, required this.currentColor})
+      : super(bigFloats, childrenSink,
+            DataOutputSink(childrenSink, Endian.little), args, transforms,
             warn: warn);
+
+  @override
+  void init(void collector, List<SIImage> images, List<String> strings,
+      List<List<double>> floatLists) {
+    // This is a little tricky.  When pruning, we collect the canonicalized
+    // data on the fly, and only provide it to our supertype at the end,
+    // right before building the SI, so we need to discard this data here, which
+    // comes from the graph being pruned.
+  }
+
+  ///
+  /// Set the canonicalized data.  This can be done right before
+  /// calling `si`.
+  ///
+  void setCanon(CanonicalizedData<SIImage> canon) {
+    super.init(null, canon.toList(canon.images), canon.toList(canon.strings),
+        canon.toList(canon.floatLists));
+  }
+
+  ScalableImageCompact get si {
+    assert(done);
+    return ScalableImageCompact._p(
+        bigFloats: bigFloats,
+        width: width,
+        height: height,
+        tintColor: (tintColor == null) ? null : Color(tintColor!),
+        tintMode: tintMode.asBlendMode,
+        currentColor: currentColor,
+        numPaths: numPaths,
+        numPaints: numPaints,
+        strings: strings,
+        floatLists: floatLists,
+        images: images,
+        children: childrenSink.toList(),
+        args: args.toList(),
+        transforms: transforms.toList(),
+        viewport: viewport);
+  }
 }
 
 class _PruningEntry {
@@ -521,8 +587,7 @@ class _PruningEntry {
       return;
     }
     parent?.generateGroupIfNeeded();
-    throw UnimplementedError("@@ TODO");
-    // visitor.builder.group(null, transform);
+    visitor.builder.group(null, transform);
     generated = true;
   }
 
@@ -580,12 +645,13 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
 
   @override
   PruningBoundary? image(PruningBoundary? collector, int imageIndex) {
-    throw "@@ TODO";
+    return combine(boundary, _images[imageIndex].getBoundary());
   }
 
   @override
-  PruningBoundary? siText(SIText text) {
-    throw "@@ TODO";
+  PruningBoundary? siText(
+      PruningBoundary? boundary, SIText text, int xIndex, int yIndex) {
+    return combine(boundary, text.getBoundary());
   }
 }
 
@@ -663,13 +729,15 @@ abstract class _SICompactBuilder<PathDataT extends Object>
   }
 }
 
-class SICompactBuilder extends _SICompactBuilder<String>
+class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
     with SIStringPathMaker {
+  final Color? currentColor;
+
   SICompactBuilder._p(bool bigFloats, ByteSink childrenSink, FloatSink args,
-      FloatSink transforms, {required bool warn, Color? currentColor})
+      FloatSink transforms, {required bool warn, this.currentColor})
       : super(bigFloats, childrenSink,
-            DataOutputSink(childrenSink, Endian.little), args, transforms, null,
-            warn: warn, currentColor: currentColor);
+            DataOutputSink(childrenSink, Endian.little), args, transforms,
+            warn: warn);
 
   @override
   void get initial => null;
@@ -685,5 +753,26 @@ class SICompactBuilder extends _SICompactBuilder<String>
     } finally {
       cs.close();
     }
+  }
+
+  ScalableImageCompact get si {
+    assert(done);
+    return ScalableImageCompact._p(
+        bigFloats: bigFloats,
+        width: width,
+        height: height,
+        tintColor: (tintColor == null) ? null : Color(tintColor!),
+        tintMode: tintMode.asBlendMode,
+        currentColor: currentColor,
+        numPaths: numPaths,
+        numPaints: numPaints,
+        strings: strings,
+        floatLists: floatLists,
+        images:
+            List<SIImage>.generate(images.length, (i) => SIImage(images[i])),
+        children: childrenSink.toList(),
+        args: args.toList(),
+        transforms: transforms.toList(),
+        viewport: null);
   }
 }

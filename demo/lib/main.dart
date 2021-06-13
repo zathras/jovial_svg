@@ -328,18 +328,18 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 
   void _changeZoomPrune() => setState(() {
-    if (_originalViewport != null) {
-      si = si!.withNewViewport(_originalViewport!);
-      _originalViewport = null;
-    } else {
-      Rect r = _originalViewport = si!.viewport;
-      // Card height/width:
-      final ch = r.height / 5;
-      final cw = r.width / 13;
-      si = si!.withNewViewport(Rect.fromLTWH(9*cw, 2*ch, 3*cw, ch),
-      prune: true);
-    }
-  });
+        if (_originalViewport != null) {
+          si = si!.withNewViewport(_originalViewport!);
+          _originalViewport = null;
+        } else {
+          Rect r = _originalViewport = si!.viewport;
+          // Card height/width:
+          final ch = r.height / 5;
+          final cw = r.width / 13;
+          si = si!.withNewViewport(Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
+              prune: true);
+        }
+      });
 }
 
 enum AssetType { svg, compact, avd, si }

@@ -55,7 +55,7 @@ class SvgParseGraph {
     SvgGroup? newRoot = root.resolve(idLookup, rootPaint, builder.warn);
     builder.vector(
         width: width, height: height, tintColor: null, tintMode: null);
-    final theCanon = SvgCanonicalizedData();
+    final theCanon = CanonicalizedData<SIImageData>();
     newRoot?.collectCanon(theCanon);
     builder.init(
         null,
@@ -67,41 +67,13 @@ class SvgParseGraph {
   }
 }
 
-class SvgCanonicalizedData {
-  final Map<SIImageData, int> images = {};
-  final Map<String, int> strings = {};
-  final Map<List<double>, int> floatLists = HashMap(
-      equals: (List<double> k1, List<double> k2) => quiver.listsEqual(k1, k2),
-      hashCode: (List<double> k) => quiver.hashObjects(k));
-
-  int? getIndex<T extends Object>(Map<T, int> map, T? value) {
-    if (value == null) {
-      return null;
-    }
-    final len = map.length;
-    return map.putIfAbsent(value, () => len);
-  }
-
-  List<T> toList<T>(Map<T, int> map) {
-    if (map.isEmpty) {
-      return List<T>.empty();
-    }
-    T random = map.entries.first.key;
-    final r = List<T>.filled(map.length, random);
-    for (final MapEntry<T, int> e in map.entries) {
-      r[e.value] = e.key;
-    }
-    return r;
-  }
-}
-
 abstract class SvgNode {
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn);
 
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta);
 
-  void collectCanon(SvgCanonicalizedData canon);
+  void collectCanon(CanonicalizedData<SIImageData> canon);
 }
 
 abstract class SvgInheritableAttributes {
@@ -262,7 +234,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final currTA = cascadeText(ta);
     final cascaded = cascadePaint(ancestor, idLookup);
@@ -278,7 +250,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void collectCanon(SvgCanonicalizedData canon) {
+  void collectCanon(CanonicalizedData<SIImageData> canon) {
     canon.getIndex(canon.strings, textAttributes.fontFamily);
     for (final ch in children) {
       ch.collectCanon(canon);
@@ -297,7 +269,7 @@ class SvgDefs extends SvgGroup {
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(false);
   }
@@ -329,12 +301,12 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void collectCanon(SvgCanonicalizedData canon) {
+  void collectCanon(CanonicalizedData<SIImageData> canon) {
     assert(false);
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(false);
   }
@@ -343,10 +315,10 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
 abstract class SvgPathMaker extends SvgInheritableAttributes
     implements SvgNode {
   @override
-  void collectCanon(SvgCanonicalizedData canon) {}
+  void collectCanon(CanonicalizedData<SIImageData> canon) {}
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final cascaded = cascadePaint(ancestor, idLookup);
     if (transform != null) {
@@ -591,13 +563,13 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     // Do nothing - gradients are included in SIPaint
   }
 
   @override
-  void collectCanon(SvgCanonicalizedData canon) {}
+  void collectCanon(CanonicalizedData<SIImageData> canon) {}
 }
 
 class SvgImage extends SvgInheritableAttributes implements SvgNode {
@@ -614,7 +586,7 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   static final Uint8List _emptyData = Uint8List(0);
 
   @override
-  void collectCanon(SvgCanonicalizedData canon) {
+  void collectCanon(CanonicalizedData<SIImageData> canon) {
     final sid = SIImageData(
         x: x, y: y, width: width, height: height, encoded: imageData);
     _imageNumber = canon.getIndex(canon.images, sid)!;
@@ -630,7 +602,7 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(_imageNumber > -1);
     if (transform != null) {
@@ -665,7 +637,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void build(SIBuilder<String, SIImageData> builder, SvgCanonicalizedData canon,
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final cascaded = cascadePaint(ancestor, idLookup);
     if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
@@ -692,7 +664,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void collectCanon(SvgCanonicalizedData canon) {
+  void collectCanon(CanonicalizedData canon) {
     xIndex = canon.getIndex(canon.floatLists, x)!;
     yIndex = canon.getIndex(canon.floatLists, y)!;
     textIndex = canon.getIndex(canon.strings, text)!;

@@ -605,13 +605,13 @@ class SIImage extends SIRenderable {
 }
 
 class SIText extends SIRenderable {
-  final String _text;
+  final String text;
   final List<double> _x;
   final List<double> _y;
-  final SITextAttributes _attr;
-  final SIPaint _paint;
+  final SITextAttributes attributes;
+  final SIPaint siPaint;
 
-  SIText(this._text, this._x, this._y, this._attr, this._paint);
+  SIText(this.text, this._x, this._y, this.attributes, this.siPaint);
 
   @override
   bool operator ==(final Object other) {
@@ -622,15 +622,15 @@ class SIText extends SIRenderable {
     } else {
       return quiver.listsEqual(_x, other._x) &&
           quiver.listsEqual(_y, other._y) &&
-          _text == other._text &&
-          _attr == other._attr &&
-          _paint == other._paint;
+          text == other.text &&
+          attributes == other.attributes &&
+          siPaint == other.siPaint;
     }
   }
 
   @override
   int get hashCode => quiver.hash4(quiver.hashObjects(_x),
-      quiver.hashObjects(_y), _text, quiver.hash2(_attr, _paint));
+      quiver.hashObjects(_y), text, quiver.hash2(attributes, siPaint));
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());
@@ -685,7 +685,7 @@ class SIText extends SIRenderable {
 
   @override
   void paint(ui.Canvas c, ui.Color currentColor) {
-    final Paint? foreground = _getPaint(_paint.fillColor, currentColor);
+    final Paint? foreground = _getPaint(siPaint.fillColor, currentColor);
     if (foreground == null) {
       return;
     }
@@ -701,17 +701,17 @@ class SIText extends SIRenderable {
     // but we need currColor for the text style.  This node can be reused,
     // so we can't guarantee that's a constant.  Fortunately, text performance
     // isn't a big part of SVG rendering performance most fo the time.
-    final len = min(min(_x.length, _y.length), _text.length);
-    final fam = (_attr.fontFamily == '') ? null : _attr.fontFamily;
-    final sz = _attr.fontSize;
-    final FontStyle style = _attr.fontStyle.asFontStyle;
-    final FontWeight weight = _attr.fontWeight.asFontWeight;
+    final len = min(min(_x.length, _y.length), text.length);
+    final fam = (attributes.fontFamily == '') ? null : attributes.fontFamily;
+    final sz = attributes.fontSize;
+    final FontStyle style = attributes.fontStyle.asFontStyle;
+    final FontWeight weight = attributes.fontWeight.asFontWeight;
     for (int i = 0; i < len; i++) {
       final String s;
       if (i == len - 1) {
-        s = _text.substring(i, _text.length);
+        s = text.substring(i, text.length);
       } else {
-        s = _text.substring(i, i + 1);
+        s = text.substring(i, i + 1);
       }
       final span = TextSpan(
           style: TextStyle(
