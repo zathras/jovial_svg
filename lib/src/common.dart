@@ -42,6 +42,7 @@ import 'package:flutter/material.dart';
 import 'package:quiver/core.dart' as quiver;
 import 'package:quiver/collection.dart' as quiver;
 
+import '../jovial_svg.dart';
 import 'affine.dart';
 import 'common_noui.dart';
 
@@ -492,9 +493,22 @@ class SIImage extends SIRenderable {
   final SIImageData _data;
   ui.Image? _decoded;
   ui.Codec? _codec;
-  // ui.ImageDescriptor? _descriptor;
+  ui.ImmutableBuffer? _buf;
+  ui.ImageDescriptor? _descriptor;
 
   SIImage(this._data);
+
+  bool get _disposeBuf =>
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeBoth ||
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeImmutableBuffer;
+
+  bool get _disposeDescriptor =>
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeBoth ||
+          ScalableImage.imageDisposeBugWorkaround ==
+              ImageDisposeBugWorkaround.disposeImageDescriptor;
 
   double get x => _data.x;
   double get y => _data.y;
@@ -529,35 +543,28 @@ class SIImage extends SIRenderable {
     assert(_decoded == null);
     final buf = await ui.ImmutableBuffer.fromUint8List(encoded);
     final des = await ui.ImageDescriptor.encoded(buf);
-    // It's not documented whether ImageDescriptor takes over ownership of
-    // buf, or if we're supposed to call buf.dispose().  After some
-    // trial-and-error, it appears that it's the former, that is, we're
-    // not supposed to call buf.dispose.  Or, it could be the bug(s) addressed
-    // by this:  https://github.com/flutter/engine/pull/26435
-    //
-    // For now, I'll just refrain from disposing buf.  This area looks to
-    // be pretty flaky (as of June 2021), what with ImageDescriptor.dispose()
-    // not being implemented.
-    //
-    // https://github.com/flutter/flutter/issues/83764
-    // https://github.com/flutter/flutter/issues/83908
-    // https://github.com/flutter/flutter/issues/83910
-    //
-    // TODO:  Revisit this when this area of Flutter is less flaky
     final codec = _codec = await des.instantiateCodec();
     final decoded = (await codec.getNextFrame()).image;
     if (_timesPrepared > 0) {
       _decoded = decoded;
       _codec = codec;
-      // _descriptor = des;
+      // see [ImageDisposeBugWorkaround].
+      if (_disposeDescriptor) {
+        _descriptor = des;
+      }
+      if (_disposeBuf) {
+        _buf = buf;
+      }
     } else {
       decoded.dispose(); // Too late!
       codec.dispose();
       // https://github.com/flutter/flutter/issues/83421:
-      // _descriptor?.dispose();
-      // Further, it's not clear from the documentation if we're *supposed*
-      // to call it, given that we dispose the codec.  Once it's implemented,
-      // it will be possible to test this.
+      if (_disposeDescriptor) {
+        des.dispose();
+      }
+      if (_disposeBuf) {
+        buf.dispose();
+      }
     }
   }
 
@@ -570,11 +577,12 @@ class SIImage extends SIRenderable {
     if (_timesPrepared == 0) {
       _decoded?.dispose(); // Could be null if prepare() is still running
       _codec?.dispose();
+      _descriptor?.dispose();
+      _buf?.dispose();
       _decoded = null;
-      // https://github.com/flutter/flutter/issues/83421:
-      // _descriptor?.dispose();
-      // Further, it's not clear from the documentation if we're *supposed*
-      // to call it, given that we dispose the codec.
+      _codec = null;
+      _descriptor = null;
+      _buf = null;
     }
   }
 

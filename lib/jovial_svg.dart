@@ -326,6 +326,61 @@ abstract class ScalableImage extends _PackageInitializer {
 
   @protected
   void paintChildren(Canvas c, Color currentColor);
+
+  ///
+  /// Set the global policy as regards the various bugs in the `dispose()`
+  /// methods for parts of the Flutter image system.  When fixes for the
+  /// various bugs are in the main Flutter release, the default value of
+  /// this variable may be updated to reflect the new platform.
+  ///
+  /// See the comments in [ImageDisposeBugWorkaround].
+  ///
+  static ImageDisposeBugWorkaround imageDisposeBugWorkaround =
+      ImageDisposeBugWorkaround.disposeNeither;
+}
+
+///
+/// As of the date of publication of this library, there are several bugs
+/// in the most current shipped version of Flutter involving the `dispose()`
+/// method of `ImageDescriptor` and `ImmutableImageBuffer`.  The only safe
+/// thing to do with this version of Flutter is to refrain from calling
+/// `dispose()` on these objects.  This is non-optimal, since it is a potential
+/// memory leak.  Even if a future version of Flutter correctly uses
+/// finalization to eventually dispose of the native memory backing these
+/// objects, large amounts of native memory might be retained for a significant
+/// amount of time, until the Dart objects are eventually reclaimed and
+/// finalized.
+///
+/// For this reason, a setting to call `dispose()` on one or both of these
+/// objects is exposed.  That way, an application can cause `dispose()` to be
+/// called when the Flutter libraries are fixed, even if `jovial_svg` is not
+/// updated to follow the Flutter releases.  In addition, `jovial_svg` should
+/// be conservative about following the latest Flutter releases too closely,
+/// as regards the default behavior.
+///
+/// Further, it's not presently documented if client code is supposed to call
+/// `ImmutableImageBuffer.dispose()` after handing the buffer off to
+/// `ImageDescriptor`.  The most reasonable answer is "yes" - typically, one
+/// uses reference counting internally for this sort of thing - but given
+/// the instability of this area of Flutter, counting on the eventual
+/// specification going either way would be risky.  For this reason, we separate
+/// out the two `dispose()` calls in the global setting.
+///
+/// See also [ScalableImage.imageDisposeBugWorkaround], where clients of this
+/// library can change the behavior.
+///
+/// Relevant bugs on Flutter include:
+///   * https://github.com/flutter/flutter/issues/83421:
+///   * https://github.com/flutter/flutter/issues/83764
+///   * https://github.com/flutter/flutter/issues/83908
+///   * https://github.com/flutter/flutter/issues/83910
+///
+/// Note that this may have been fixed by
+/// https://github.com/flutter/engine/pull/26435, but as of the date of this
+/// library's publication, that had not yet been released.
+///
+enum ImageDisposeBugWorkaround {
+  disposeImageDescriptor, disposeImmutableBuffer, disposeNeither, disposeBoth
 }
 
 class _PackageInitializer {
