@@ -13,7 +13,7 @@ that are applicable to static images, plus commonly-used elements from
 [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying scalable images is provided.
 
-![](https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png)
+<img width="100%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
 
 ## Getting Started
 
