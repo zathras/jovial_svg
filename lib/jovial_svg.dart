@@ -63,6 +63,20 @@ import 'src/compact.dart';
 import 'src/dag.dart';
 import 'src/svg_parser.dart';
 
+///
+/// The main entry point to this library.  This class features several
+/// static methods to load a [ScalableImage] from various sources.  It
+/// provides two in-memory representations:  a memory-saving "compact"
+/// representation, as well as a faster internal graph structure.  Provision
+/// is given to set a viewport, and prune away nodes that are outside 
+/// this viewport.  In this way, several smaller "views" onto a larger
+/// SI asset can be produced, with maximal resource sharing between the
+/// different assets.
+///
+/// A [ScalableImage] can be used directly, e.g. using a Flutter
+/// `CustomPaint` widget, or the `ScalableImageWidget` defined in the
+/// `jovial_svg.widget` library can be used.
+///
 abstract class ScalableImage extends _PackageInitializer {
 
   /// Width, in pixels.
