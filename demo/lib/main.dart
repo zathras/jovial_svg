@@ -29,6 +29,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -112,6 +113,7 @@ class DemoScreen extends StatefulWidget {
 class _DemoScreenState extends State<DemoScreen> {
   ScalableImage? si;
   String? errorMessage;
+  String? assetName;
   int assetIndex = 0;
   var assetType = AssetType.si;
   double _scale = 0;
@@ -119,14 +121,47 @@ class _DemoScreenState extends State<DemoScreen> {
   Rect? _originalViewport;
   double get _multiplier => pow(2.0, _scale).toDouble();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
+  HttpClient? _http;
 
-  _DemoScreenState(this.si);
+  _DemoScreenState(this.si) {
+    assetName = assets[assetIndex].fileName(assetType)?.substring(7);
+  }
 
   List<Asset> get assets => widget.assets;
 
   void _launch() {
     final String name = assets[assetIndex].svg;
     launch('$_IMAGE_BASE_URL/$name', forceWebView: true);
+  }
+
+  void _pasteURL(BuildContext context) {
+    unawaited(() async {
+      String? url = '';
+      String? error;
+      try {
+        url = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+        if (url == null || url == '') {
+          error = 'Empty clipboard';
+        } else {
+          _http ??= HttpClient();
+          final request = _http!.getUrl(Uri.parse(url));
+          final newSI = await ScalableImage.fromSvgHttpRequest(request);
+          setState(() {
+            assetType = AssetType.svg;
+            assetName = url;
+            si = newSI;
+            _originalViewport = null;
+          });
+        }
+      } catch (e) {
+        error = 'Error accessing clipboard:  $e';
+      }
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)));
+        return;
+      }
+    }());
   }
 
   @override
@@ -140,8 +175,7 @@ class _DemoScreenState extends State<DemoScreen> {
             'assets/other/jupiter.si',
             currentColor: Colors.yellow.shade300,
           )),
-          title: Text(widget.title +
-              ' - ${assets[assetIndex].fileName(assetType)?.substring(7)}'),
+          title: Text('${widget.title} - ${assetName}')
         ),
         body: Column(children: [
           SizedBox(height: 5),
@@ -248,13 +282,20 @@ class _DemoScreenState extends State<DemoScreen> {
                             value: _originalViewport != null,
                             onChanged: (_) => _changeZoomPrune())
                       ])),
-                  SizedBox(width: 30),
+                  SizedBox(width: 10),
                   ElevatedButton(
                       onPressed: () {
                         _launch();
                       },
-                      child: Text('Browser')),
-                  SizedBox(width: 30),
+                      child: Text('Browser'),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      _pasteURL(context);
+                    },
+                    child: Text('Paste URL'),
+                  ),
                 ]),
           ),
           SizedBox(height: 10),
@@ -292,6 +333,7 @@ class _DemoScreenState extends State<DemoScreen> {
         si = newSI;
         _originalViewport = null;
         errorMessage = err;
+        assetName = assets[assetIndex].fileName(assetType)?.substring(7);
       });
     }());
   }

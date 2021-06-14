@@ -42,14 +42,17 @@ POSSIBILITY OF SUCH DAMAGE.
 ///  [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/),
 //// that are applicable to static images, plus commonly-used elements from
 ///  [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  More details
-///  about the supported SVG profile can be found at the README on the
+///  about the supported SVG profile can be found in the top-level
+///  documentation, or in the 
 ///  [github repo](https://github.com/zathras/jovial_svg).
 ///
-///  A `.si` file can be created with `dart run jovial_svg:svg_to_si`
+///  A compact `.si` file can be created with `dart run jovial_svg:svg_to_si`
 ///  or `dart run jovial_svg:avd_to_si`.
 ///
 library jovial_svg;
 
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -281,6 +284,28 @@ abstract class ScalableImage extends _PackageInitializer {
       Color? currentColor}) async {
     final String src = await b.loadString(key, cache: false);
     return fromSvgString(src,
+        compact: compact,
+        bigFloats: bigFloats,
+        warn: warn,
+        currentColor: currentColor);
+  }
+
+  ///
+  /// Parse an SVG XML document from a URL to a scalable image.  Usage:
+  /// ```
+  /// HttpClient client = HttpClient();
+  /// final si = await ScalableImage.fromSvgHttpRequest(
+  ///     client.getUrl(Uri.parse('https://jovial.com/images/jupiter.svg')));
+  /// ```
+  ///
+  static Future<ScalableImage> fromSvgHttpRequest(Future<HttpClientRequest> request,
+      {bool compact = false,
+        bool bigFloats = false,
+        bool warn = true,
+        Color? currentColor}) async {
+    final HttpClientResponse response = await (await request).close();
+    final String content = await response.transform(utf8.decoder).join();
+    return fromSvgString(content,
         compact: compact,
         bigFloats: bigFloats,
         warn: warn,

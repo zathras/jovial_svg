@@ -23,10 +23,17 @@ SOFTWARE.
  */
 
 ///
-/// Widget support for displaying a [ScalableImage].
+/// Widget support for displaying a [ScalableImage].  The image can be
+/// automatically scaled by the widget, and fit into the available area
+/// with a `BoxFit` and an `Alignment`.
+///
+/// [ScalableImageWidget]
+/// will, if needed, asynchronously load a [ScalableImage] asset, and will
+/// asynchronously prepare any embedded pixel-based images.
 ///
 library jovial_svg.widget;
 
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
@@ -44,6 +51,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
 
   ///
   /// Create a lightweight widget to display a pre-loaded [ScalableImage].
+  /// This is the preferred constructor, because the widget can display the
+  /// SI immediately.  It does, however, place responsibility for any
+  /// asynchronous loading on the caller.
   ///
   /// If the [ScalableImage] contains embedded images, it is recommended
   /// that the caller await a call to [ScalableImage.prepareImages()] before
@@ -61,9 +71,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
       _SyncSIWidget(key, si, fit, alignment, clip, scale);
 
   ///
-  /// Create a widget to load and then render an [ScalableImage].  In a production
-  /// application, pre-loading te [ScalableImage] is preferable, because the
-  /// asynchronous loading might cause a momentary flash.
+  /// Create a widget to load and then render an [ScalableImage].  In a 
+  // production application, pre-loading the [ScalableImage] is preferable, 
+  /// because the asynchronous loading might cause a momentary flash.
   ///
   factory ScalableImageWidget.fromSISource(
           {Key? key,
@@ -256,33 +266,66 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 }
 
 ///
-/// An asynchronous source of a [ScalableImage]
+/// An asynchronous source of a [ScalableImage].  This is used for asynchronous
+/// loading of an SI asset by a [ScalableImageWidget], with built-in support
+/// for loading from an AssetBundle.  This class could be subclassed, e.g.
+/// for loading from other network sources.
+///
+/// If new subclasses are written, attention is drawn to the need to implement
+/// `operator ==` and `hashCode`.
 ///
 abstract class ScalableImageSource {
   Future<ScalableImage> get si;
 
   ///
   /// Compare this source to another.  Subclasses must override this, so that
-  /// different instances equivalent sources give true.  This will avoid
+  /// different instances of equivalent sources give true.  This will avoid
   /// unnecessary rebuilding of [ScalableImage] objects.
   ///
   @override
   bool operator ==(Object other);
 
+  ///
+  /// Compute the hash code for this source.  Subclasses must override this,
+  /// so that different instances of equivalent sources give the same hash
+  /// code.  This will avoid unnecessary rebuilding of [ScalableImage]
+  /// objects.
+  ///
   @override
   int get hashCode;
 
   ///
-  /// Get an [ScalableImage] by parsing an Android Vector Drawable XML file.  In
+  /// Get a [ScalableImage] by parsing an Android Vector Drawable XML file from
+  /// an asset bundle.  In
   /// a production app, it's better to pre-compile the file -- see
   /// [ScalableImageSource.fromSI]
   ///
   static ScalableImageSource fromAvd(AssetBundle bundle, String key) =>
       _AvdBundleSource(bundle, key);
 
+  ///
+  /// Get a [ScalableImage] by parsing an SVG XML file from
+  /// an asset bundle.  In
+  /// a production app, it's better to pre-compile the file -- see
+  /// [ScalableImageSource.fromSI]
+  ///
   static ScalableImageSource fromSvg(AssetBundle bundle, String key,
           {Color? currentColor}) =>
       _SvgBundleSource(bundle, key, currentColor);
+
+  ///
+  /// Get a [ScalableImage] by parsing an SVG XML file from
+  /// a http: or https: URL.
+  ///
+  static ScalableImageSource fromSvgHttpUrl(Uri url, {Color? currentColor, HttpClient? client}) =>
+      _SvgHttpSource(url, currentColor, client);
+
+  ///
+  /// Get a [ScalableImage] by reading a pre-compiled `.si` file. 
+  /// These files can be produced with
+  ///  `dart run jovial_svg:svg_to_si` or `dart run jovial_svg:avd_to_si`.
+  ///  Pre-compiled files load about an order of magnitude faster.
+  ///
 
   static ScalableImageSource fromSI(AssetBundle bundle, String key,
           {Color? currentColor}) =>
@@ -335,6 +378,34 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode => 0x544f0d11 ^ quiver.hash3(bundle, key, currentColor);
+}
+
+class _SvgHttpSource extends ScalableImageSource {
+  final Uri url;
+  final Color? currentColor;
+  final HttpClient? client;
+
+  _SvgHttpSource(this.url, this.currentColor, this.client);
+
+  @override
+  Future<ScalableImage> get si {
+    final c = client ?? HttpClient();
+    final req = c.getUrl(url);
+    return ScalableImage.fromSvgHttpRequest(req, currentColor: currentColor);
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (other is _SvgHttpSource) {
+      return url == other.url &&
+          currentColor == other.currentColor;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => 0xf7972f9b ^ quiver.hash2(url, currentColor);
 }
 
 class _SIBundleSource extends ScalableImageSource {
