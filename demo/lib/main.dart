@@ -39,6 +39,9 @@ import 'package:pedantic/pedantic.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+const _IMAGE_BASE_URL =
+    'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final json = await rootBundle.loadString('assets/manifest.json');
@@ -123,7 +126,7 @@ class _DemoScreenState extends State<DemoScreen> {
 
   void _launch() {
     final String name = assets[assetIndex].svg;
-    launch('https://freeshell.de/~jovial/jovial_svg/$name', forceWebView: true);
+    launch('$_IMAGE_BASE_URL/$name', forceWebView: true);
   }
 
   @override

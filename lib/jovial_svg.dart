@@ -28,6 +28,26 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
+///
+/// This library offers a static [ScalableImage] that can be loaded from:
+///
+///   *  An SVG file.
+///   *  An Android Vector Drawable file
+///   *  A more compact and much more efficient `.si` file that was
+///      compiled from an SVG or AVD file.
+///
+///  A robust profile of SVG targeted at static images is supported.  It
+///  generally consists of the features that are relevant to static images
+///  defined in 
+///  [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/),
+//// that are applicable to static images, plus commonly-used elements from
+///  [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  More details
+///  about the supported SVG profile can be found at the README on the
+///  [github repo](https://github.com/zathras/jovial_svg).
+///
+///  A `.si` file can be created with `dart run jovial_svg:svg_to_si`
+///  or `dart run jovial_svg:avd_to_si`.
+///
 library jovial_svg;
 
 import 'dart:typed_data';
@@ -44,10 +64,22 @@ import 'src/dag.dart';
 import 'src/svg_parser.dart';
 
 abstract class ScalableImage extends _PackageInitializer {
+
+  /// Width, in pixels.
   final double? width;
+
+  /// Height, in pixels.
   final double? height;
+
   Rect? _viewport;
+
+  /// [BlendMode] for applying the [tintColor].
   final BlendMode tintMode;
+
+  /// Color used to tint the ScalableImage.  This feature, inspired by
+  /// Android's tinting, allows you to apply a tint color to the entire asset.
+  /// This can be used, for example, to color icons according to an application
+  /// theme.
   final Color? tintColor;
 
   ///
@@ -64,11 +96,19 @@ abstract class ScalableImage extends _PackageInitializer {
   ///
   final Color currentColor;
 
+  ///
+  /// A protected constructor, for internal use.  See the static methods
+  /// to create a ScalableImage.
+  ///
   @protected
   ScalableImage(this.width, this.height, this.tintColor, this.tintMode,
       this._viewport, this.images, Color? currentColor)
       : currentColor = currentColor ?? Colors.black;
 
+  ///
+  /// A protected constructor, for internal use.  See the static methods
+  /// to create a ScalableImage.
+  ///
   @protected
   ScalableImage.modifiedFrom(ScalableImage other,
       {required Rect? viewport,
@@ -92,9 +132,11 @@ abstract class ScalableImage extends _PackageInitializer {
     }
   }
 
-  /// Give the viewport for this scalable image.  By default, it's determined
-  /// by the parameters in the original asset, but see also
+  ///
+  /// Give the viewport for this scalable image, in pixels.  By default,
+  /// it's determined by the parameters in the original asset, but see also
   /// [ScalableImage.withNewViewport]
+  ///
   Rect get viewport {
     if (_viewport != null) {
       return _viewport!;
@@ -107,13 +149,19 @@ abstract class ScalableImage extends _PackageInitializer {
     return getBoundary()?.getBounds() ?? Rect.zero;
   }
 
+  ///
+  /// Protected method that calculates the boundary of this ScalableImage
+  /// by doing a full tree traversal.
+  ///
+  @protected
   PruningBoundary? getBoundary();
 
   ///
   /// Return a copy of this SI with a different viewport.
   /// The bulk of the data is shared between the original and the copy.
   /// If prune is true, it attempts to prune paths that are outside of
-  /// the new viewport.
+  /// the new viewport.  Pruning away unneeded nodes will speed up
+  /// rendering of the resulting [ScalableImage].
   ///
   /// Pruning is an expensive operation.  There might be edge cases where
   /// it is overly aggressive:  It assumes that the rendered path is completely
@@ -154,7 +202,8 @@ abstract class ScalableImage extends _PackageInitializer {
   ///
   /// Create an image from a `.si` file in an asset bundle.
   /// Loading a `.si` file is considerably faster than parsing an SVG
-  /// or AVD file - about 30x faster in informal measurements.  A `.si`
+  /// or AVD file - about 5-10x faster in informal measurements, for
+  /// reasonably large files.  A `.si`
   /// file can be created with `dart run jovial_svg:svg_to_si` or
   /// `dart run jovial_svg:avd_to_si`.
   ///
@@ -313,6 +362,9 @@ abstract class ScalableImage extends _PackageInitializer {
     }
   }
 
+  ///
+  /// Paint this ScalableImage to the canvas c.
+  ///
   void paint(Canvas c) {
     Rect vp = viewport;
     c.translate(-vp.left, -vp.top);
@@ -324,6 +376,9 @@ abstract class ScalableImage extends _PackageInitializer {
     }
   }
 
+  ///
+  /// Protected method to paint the children of this ScalableImage.
+  ///
   @protected
   void paintChildren(Canvas c, Color currentColor);
 

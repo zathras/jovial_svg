@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+///
+/// Widget support for displaying a [ScalableImage].
+///
 library jovial_svg.widget;
 
 import 'dart:math';
@@ -253,7 +256,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 }
 
 ///
-/// An asynchronous source of an [ScalableImage]
+/// An asynchronous source of a [ScalableImage]
 ///
 abstract class ScalableImageSource {
   Future<ScalableImage> get si;
