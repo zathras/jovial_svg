@@ -64,6 +64,7 @@ Future<void> main() async {
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
   final firstSI = await assets[0].forType(AssetType.si, rootBundle);
+  await(firstSI.prepareImages());
   runApp(Demo(assets, firstSI));
 }
 
@@ -72,7 +73,7 @@ class Demo extends StatelessWidget {
   final ScalableImage firstSI;
 
   Demo(this.assets, this.firstSI);
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -150,9 +151,11 @@ class _DemoScreenState extends State<DemoScreen> {
           _http ??= HttpClient();
           final request = _http!.getUrl(Uri.parse(url));
           final newSI = await ScalableImage.fromSvgHttpRequest(request);
+          await newSI.prepareImages();
           setState(() {
             assetType = AssetType.svg;
             assetName = url;
+            si?.unprepareImages();
             si = newSI;
             _originalViewport = null;
           });
@@ -330,8 +333,10 @@ class _DemoScreenState extends State<DemoScreen> {
         print(e);
         print(st);
       }
+      await newSI?.prepareImages();
       setState(() {
         assetType = v;
+        si?.unprepareImages();
         si = newSI;
         _originalViewport = null;
         errorMessage = err;
@@ -374,19 +379,32 @@ class _DemoScreenState extends State<DemoScreen> {
     }
   }
 
-  void _changeZoomPrune() => setState(() {
-        if (_originalViewport != null) {
-          si = si!.withNewViewport(_originalViewport!);
-          _originalViewport = null;
-        } else {
-          Rect r = _originalViewport = si!.viewport;
-          // Card height/width:
-          final ch = r.height / 5;
-          final cw = r.width / 13;
-          si = si!.withNewViewport(Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
-              prune: true);
-        }
-      });
+  void _changeZoomPrune() => unawaited(() async {
+    final oldSI = si;
+    Rect? vp = _originalViewport;
+    if (oldSI == null) {
+      return;
+    }
+    final ScalableImage newSI;
+    final Rect? nextOriginalViewport;
+    if (vp != null) {
+      newSI = oldSI.withNewViewport(vp);  // Restore original viewport
+      nextOriginalViewport = null;
+    } else {
+      nextOriginalViewport = vp = oldSI.viewport;
+      // Card height/width:
+      final ch = vp.height / 5;
+      final cw = vp.width / 13;
+      newSI = oldSI.withNewViewport(Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
+          prune: true);
+    }
+    await newSI.prepareImages();
+    oldSI.unprepareImages();
+    setState(() {
+      si = newSI;
+      _originalViewport = nextOriginalViewport;
+    });
+  }());
 }
 
 enum AssetType { si, compact, svg, avd }
