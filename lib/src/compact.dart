@@ -90,8 +90,8 @@ class ScalableImageCompact extends ScalableImage
         _children = children,
         _args = args,
         _transforms = transforms,
-        super(width, height, tintColor, tintMode, viewport, images,
-            currentColor);
+        super(
+            width, height, tintColor, tintMode, viewport, images, currentColor);
 
   @override
   ScalableImageCompact withNewViewport(Rect viewport,

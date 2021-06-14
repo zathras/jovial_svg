@@ -297,8 +297,8 @@ abstract class ScalableImage extends _PackageInitializer {
   Future<void> prepareImages() async {
     // Start preparing them all, with no await, so that the prepare count
     // is immediately incremented.
-    final waiting = List<Future<void>>.generate(
-        images.length, (i) => images[i].prepare());
+    final waiting =
+        List<Future<void>>.generate(images.length, (i) => images[i].prepare());
     for (final w in waiting) {
       await w;
     }
@@ -380,7 +380,10 @@ abstract class ScalableImage extends _PackageInitializer {
 /// library's publication, that had not yet been released.
 ///
 enum ImageDisposeBugWorkaround {
-  disposeImageDescriptor, disposeImmutableBuffer, disposeNeither, disposeBoth
+  disposeImageDescriptor,
+  disposeImmutableBuffer,
+  disposeNeither,
+  disposeBoth
 }
 
 class _PackageInitializer {

@@ -300,10 +300,11 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     if (_hashCode == null) {
       assert(!_hashing);
       _hashing = true;
-      _hashCode = quiver.hash2(
-        quiver.hashObjects(_renderables),
-        transform.hashCode,
-      );
+      _hashCode = 0xfddf5e28 ^
+          quiver.hash2(
+            quiver.hashObjects(_renderables),
+            transform.hashCode,
+          );
       _hashing = false;
     }
     return _hashCode!;

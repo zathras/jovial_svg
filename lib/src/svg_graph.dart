@@ -157,16 +157,18 @@ class SvgPaint {
       strokeDashOffset: null);
 
   @override
-  int get hashCode => quiver.hash4(
-      fillColor,
-      fillAlpha,
-      quiver.hash4(strokeColor, strokeAlpha, strokeWidth, strokeMiterLimit),
+  int get hashCode =>
+      0x5390dc64 ^
       quiver.hash4(
-          currentColor,
-          strokeJoin,
-          strokeCap,
-          quiver.hash3(fillType, strokeDashOffset,
-              quiver.hashObjects(strokeDashArray ?? <double>[]))));
+          fillColor,
+          fillAlpha,
+          quiver.hash4(strokeColor, strokeAlpha, strokeWidth, strokeMiterLimit),
+          quiver.hash4(
+              currentColor,
+              strokeJoin,
+              strokeCap,
+              quiver.hash3(fillType, strokeDashOffset,
+                  quiver.hashObjects(strokeDashArray ?? <double>[]))));
 
   @override
   bool operator ==(Object other) {
@@ -206,7 +208,6 @@ class SvgPaint {
 }
 
 class SvgGroup extends SvgInheritableAttributes implements SvgNode {
-
   var children = List<SvgNode>.empty(growable: true);
 
   SvgGroup();
@@ -428,7 +429,8 @@ class SvgRect extends SvgPathMaker {
   }
 
   @override
-  int get hashCode => quiver.hash3(quiver.hash4(x, y, width, height), rx, ry);
+  int get hashCode =>
+      0x04acdf77 ^ quiver.hash3(quiver.hash4(x, y, width, height), rx, ry);
 }
 
 class SvgEllipse extends SvgPathMaker {
@@ -478,7 +480,7 @@ class SvgEllipse extends SvgPathMaker {
   }
 
   @override
-  int get hashCode => quiver.hash4(cx, cy, rx, ry);
+  int get hashCode => 0x795d8ece ^ quiver.hash4(cx, cy, rx, ry);
 }
 
 class SvgPoly extends SvgPathMaker {
@@ -529,7 +531,8 @@ class SvgPoly extends SvgPathMaker {
   }
 
   @override
-  int get hashCode => quiver.hash2(close, quiver.hashObjects(points));
+  int get hashCode =>
+      0xf4e007c0 ^ quiver.hash2(close, quiver.hashObjects(points));
 }
 
 class SvgGradientNode implements SvgNode {
@@ -948,11 +951,9 @@ class SvgLinearGradientColor extends SvgGradientColor {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
-    final colors = List<SIColor>.generate(
-        stops.length,
-        (i) => stops[i]
-            .color
-            .toSIColor(stops[i].alpha, cascadedCurrentColor), growable: false);
+    final colors = List<SIColor>.generate(stops.length,
+        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+        growable: false);
     return SILinearGradientColor(
         x1: x1R,
         y1: y1R,
@@ -1050,9 +1051,11 @@ class SvgSweepGradientColor extends SvgGradientColor {
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
     final stops = stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset, growable: false);
+    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
+        growable: false);
     final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor), growable: false);
+        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+        growable: false);
     return SISweepGradientColor(
         cx: cxR,
         cy: cyR,

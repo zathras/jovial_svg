@@ -318,7 +318,8 @@ class CompactTraverser<R, IM> {
       final Affine? transform =
           _getTransform(hasTransform, hasTransformNumber, children);
       final len = _readSmallishInt(children);
-      final stops = List<double>.generate(len, (_) => args.get(), growable: false);
+      final stops =
+          List<double>.generate(len, (_) => args.get(), growable: false);
       final colors = List<SIColor>.generate(len, (_) {
         final ct = children.readUnsignedByte();
         assert(ct != 3);
@@ -620,7 +621,7 @@ class CompactChildData {
   }
 
   @override
-  int get hashCode => quiver.hash2(children.seek, args.seek);
+  int get hashCode => 0x4f707180 ^ quiver.hash2(children.seek, args.seek);
 
   @override
   String toString() => '_CompactPathData(${children.seek}, ${args.seek})';

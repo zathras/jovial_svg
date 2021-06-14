@@ -305,7 +305,7 @@ class _AvdBundleSource extends ScalableImageSource {
   }
 
   @override
-  int get hashCode => quiver.hash2(bundle.hashCode, key.hashCode);
+  int get hashCode => 0x94fadcba ^ quiver.hash2(bundle.hashCode, key.hashCode);
 }
 
 class _SvgBundleSource extends ScalableImageSource {
@@ -331,7 +331,7 @@ class _SvgBundleSource extends ScalableImageSource {
   }
 
   @override
-  int get hashCode => quiver.hash3(bundle, key, currentColor);
+  int get hashCode => 0x544f0d11 ^ quiver.hash3(bundle, key, currentColor);
 }
 
 class _SIBundleSource extends ScalableImageSource {
@@ -357,5 +357,5 @@ class _SIBundleSource extends ScalableImageSource {
   }
 
   @override
-  int get hashCode => quiver.hash3(bundle, key, currentColor);
+  int get hashCode => 0xf67cd716 ^ quiver.hash3(bundle, key, currentColor);
 }

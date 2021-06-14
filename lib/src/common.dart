@@ -485,7 +485,7 @@ class SIPath extends SIRenderable {
   }
 
   @override
-  int get hashCode => quiver.hash2(path, siPaint);
+  int get hashCode => 0xa8f8de16 ^ quiver.hash2(path, siPaint);
 }
 
 class SIImage extends SIRenderable {
@@ -507,8 +507,8 @@ class SIImage extends SIRenderable {
   bool get _disposeDescriptor =>
       ScalableImage.imageDisposeBugWorkaround ==
           ImageDisposeBugWorkaround.disposeBoth ||
-          ScalableImage.imageDisposeBugWorkaround ==
-              ImageDisposeBugWorkaround.disposeImageDescriptor;
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeImageDescriptor;
 
   double get x => _data.x;
   double get y => _data.y;
@@ -613,8 +613,10 @@ class SIImage extends SIRenderable {
   }
 
   @override
-  int get hashCode => quiver.hash2(
-      quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
+  int get hashCode =>
+      0xc36c5d4e ^
+      quiver.hash2(
+          quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
 }
 
 class SIText extends SIRenderable {
@@ -642,8 +644,10 @@ class SIText extends SIRenderable {
   }
 
   @override
-  int get hashCode => quiver.hash4(quiver.hashObjects(_x),
-      quiver.hashObjects(_y), text, quiver.hash2(attributes, siPaint));
+  int get hashCode =>
+      0x238cbb88 ^
+      quiver.hash4(quiver.hashObjects(_x), quiver.hashObjects(_y), text,
+          quiver.hash2(attributes, siPaint));
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(getTextBounds());

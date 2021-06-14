@@ -132,8 +132,10 @@ class SIImageData {
   }
 
   @override
-  int get hashCode => quiver.hash4(
-      x, y, width, quiver.hash2(height, quiver.hashObjects(encoded)));
+  int get hashCode =>
+      0x88d32bbf ^
+      quiver.hash4(
+          x, y, width, quiver.hash2(height, quiver.hashObjects(encoded)));
 }
 
 class SIPaint {
@@ -178,11 +180,13 @@ class SIPaint {
       strokeDashOffset: null);
 
   @override
-  int get hashCode => quiver.hash4(
-      quiver.hash2(fillColor, strokeColor),
-      quiver.hash4(strokeWidth, strokeMiterLimit, strokeJoin, strokeCap),
-      quiver.hash2(fillType, strokeDashOffset),
-      quiver.hashObjects(strokeDashArray ?? <double>[]));
+  int get hashCode =>
+      0x5ed55563 ^
+      quiver.hash4(
+          quiver.hash2(fillColor, strokeColor),
+          quiver.hash4(strokeWidth, strokeMiterLimit, strokeJoin, strokeCap),
+          quiver.hash2(fillType, strokeDashOffset),
+          quiver.hashObjects(strokeDashArray ?? <double>[]));
 
   @override
   bool operator ==(Object other) {
@@ -310,11 +314,13 @@ class SILinearGradientColor extends SIGradientColor {
   }
 
   @override
-  int get hashCode => quiver.hash4(
-      quiver.hash4(x1, y1, x2, y2),
-      quiver.hashObjects(colors),
-      quiver.hashObjects(stops),
-      quiver.hash3(spreadMethod, transform, objectBoundingBox));
+  int get hashCode =>
+      0x11830c9f ^
+      quiver.hash4(
+          quiver.hash4(x1, y1, x2, y2),
+          quiver.hashObjects(colors),
+          quiver.hashObjects(stops),
+          quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
 class SIRadialGradientColor extends SIGradientColor {
@@ -355,11 +361,13 @@ class SIRadialGradientColor extends SIGradientColor {
   }
 
   @override
-  int get hashCode => quiver.hash4(
-      quiver.hash3(cx, cy, r),
-      quiver.hashObjects(colors),
-      quiver.hashObjects(stops),
-      quiver.hash3(spreadMethod, transform, objectBoundingBox));
+  int get hashCode =>
+      0x2b22739d ^
+      quiver.hash4(
+          quiver.hash3(cx, cy, r),
+          quiver.hashObjects(colors),
+          quiver.hashObjects(stops),
+          quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
 class SISweepGradientColor extends SIGradientColor {
@@ -370,14 +378,14 @@ class SISweepGradientColor extends SIGradientColor {
 
   SISweepGradientColor(
       {required this.cx,
-        required this.cy,
-        required this.startAngle,
-        required this.endAngle,
-        required List<SIColor> colors,
-        required List<double> stops,
-        required bool objectBoundingBox,
-        required SIGradientSpreadMethod spreadMethod,
-        required Affine? transform})
+      required this.cy,
+      required this.startAngle,
+      required this.endAngle,
+      required List<SIColor> colors,
+      required List<double> stops,
+      required bool objectBoundingBox,
+      required SIGradientSpreadMethod spreadMethod,
+      required Affine? transform})
       : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
@@ -403,11 +411,13 @@ class SISweepGradientColor extends SIGradientColor {
   }
 
   @override
-  int get hashCode => quiver.hash4(
-      quiver.hash4(cx, cy, startAngle, endAngle),
-      quiver.hashObjects(colors),
-      quiver.hashObjects(stops),
-      quiver.hash3(spreadMethod, transform, objectBoundingBox));
+  int get hashCode =>
+      0x5ccb43d2 ^
+      quiver.hash4(
+          quiver.hash4(cx, cy, startAngle, endAngle),
+          quiver.hashObjects(colors),
+          quiver.hashObjects(stops),
+          quiver.hash3(spreadMethod, transform, objectBoundingBox));
 }
 
 class SIColorVisitor {
@@ -907,7 +917,8 @@ class SITextAttributes {
   }
 
   @override
-  int get hashCode => quiver.hash4(fontFamily, fontStyle, fontWeight, fontSize);
+  int get hashCode =>
+      0xa7cb9e84 ^ quiver.hash4(fontFamily, fontStyle, fontWeight, fontSize);
 }
 
 ///

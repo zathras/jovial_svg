@@ -102,8 +102,10 @@ abstract class Affine {
       p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2));
 
   @override
-  int get hashCode => quiver.hash4(_get(0, 0), _get(0, 1), _get(0, 2),
-      quiver.hash3(_get(1, 0), _get(1, 1), _get(1, 2)));
+  int get hashCode =>
+      0x6a41efee ^
+      quiver.hash4(_get(0, 0), _get(0, 1), _get(0, 2),
+          quiver.hash3(_get(1, 0), _get(1, 1), _get(1, 2)));
 
   @override
   bool operator ==(Object other) => _equals(other);

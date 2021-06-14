@@ -745,7 +745,8 @@ class _SvgParserEventHandler with XmlEventVisitor {
 class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
-  StreamSvgParser(this._input, SIBuilder<String, SIImageData> builder, {bool warn = true})
+  StreamSvgParser(this._input, SIBuilder<String, SIImageData> builder,
+      {bool warn = true})
       : super(warn, builder);
 
   static StreamSvgParser fromByteStream(
@@ -767,7 +768,8 @@ class StreamSvgParser extends SvgParser {
 class StringSvgParser extends SvgParser {
   final String _input;
 
-  StringSvgParser(this._input, SIBuilder<String, SIImageData> builder, {bool warn = true})
+  StringSvgParser(this._input, SIBuilder<String, SIImageData> builder,
+      {bool warn = true})
       : super(warn, builder);
 
   /// Throws a [ParseError] or other exception in case of error.

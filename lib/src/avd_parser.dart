@@ -525,7 +525,7 @@ abstract class AvdParser extends GenericParser {
       if (a.name == 'android:color') {
         color = getColor(a.value);
       } else if (a.name == 'android:offset') {
-          offset = getFloat(a.value);
+        offset = getFloat(a.value);
       } else {
         throw ParseError('Unexpected attribute ${a.name}');
       }
@@ -535,7 +535,8 @@ abstract class AvdParser extends GenericParser {
     } else if (offset == null) {
       throw ParseError('Missing stop offset');
     }
-    _currGradient!.addStop(SvgGradientStop(offset, SvgColor.value(color), 0xff));
+    _currGradient!
+        .addStop(SvgGradientStop(offset, SvgColor.value(color), 0xff));
   }
 
   void _finishGradient(SvgGradientColor g) {
