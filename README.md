@@ -15,11 +15,44 @@ are supported.  A widget for displaying scalable images is provided.
 
 ![](https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png)
 
-To try out the library, see the demo program at
-[github](https://github.com/zathras/jovial_svg/tree/main/demo).  It's mostly
-intended to be run on the desktop.  It lets you cycle through a series of test
+## Getting Started
+
+An SVG can be parsed into a `ScalableImage` and displayed in a
+`ScalableImageWidget` like this:
+```
+MaterialApp(
+  title: 'SVG Minimal Sample',
+  home: ScalableImageWidget.fromSISource(
+      si: ScalableImageSource.fromSvgHttpUrl(
+          Uri.parse('https://jovial.com/images/jupiter.svg'))));
+```
+A [minimal application](https://github.com/zathras/jovial_svg/tree/main/sample) is
+available as a sample.
+
+Parsing an XML file isn't terribly efficient, and it's generally better to
+do any asynchronous loading before building a widget tree.  This package 
+includes tools to make its use more efficient in these ways.  
+
+The `svg_to_si` program compiles an SVG file into a much more efficient 
+binary representation, suitable for inclusion in an asset bundle.  
+It can be run with `dart run jovial_svg:svg_to_si`, or if you have an
+Android Vector Drawable, `dart run jovial_svg:avd_to_si`.  You can pre-load
+a `ScalableImage` using various static methods defined on the class, and use
+it synchronously with `ScalableImageWidget`, or directly with a Flutter
+`CustomPaint`.
+
+## Demo Program
+
+To try out the library, see the 
+[demo program](https://github.com/zathras/jovial_svg/tree/main/demo).  It's 
+mostly intended to be run on the desktop, though it will run fine on other
+platforms.  It lets you cycle through a series of test
 images, including several taken from an open-source card game
-([Aisleriot](https://wiki.gnome.org/Apps/Aisleriot)).
+([Aisleriot](https://wiki.gnome.org/Apps/Aisleriot)).  The demo also lets
+you paste a URL to an SVG asset into the program; it then loads and renders
+it.
+
+## Supported SVG Profile
 
 SVG profile notes:
 

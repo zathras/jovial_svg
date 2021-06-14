@@ -123,11 +123,15 @@ class _DemoScreenState extends State<DemoScreen> {
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
   HttpClient? _http;
 
-  _DemoScreenState(this.si) {
-    assetName = assets[assetIndex].fileName(assetType)?.substring(7);
-  }
+  _DemoScreenState(this.si);
 
   List<Asset> get assets => widget.assets;
+
+  @override
+  void initState() {
+    super.initState();
+    assetName = assets[assetIndex].fileName(assetType)?.substring(7);
+  }
 
   void _launch() {
     final String name = assets[assetIndex].svg;
@@ -175,7 +179,7 @@ class _DemoScreenState extends State<DemoScreen> {
             'assets/other/jupiter.si',
             currentColor: Colors.yellow.shade300,
           )),
-          title: Text('${widget.title} - ${assetName}')
+          title: Text('${widget.title} - $assetName')
         ),
         body: Column(children: [
           SizedBox(height: 5),
@@ -213,13 +217,11 @@ class _DemoScreenState extends State<DemoScreen> {
                       width: 260,
                       child: Row(children: [
                         Text('SI',
-                            style: (asset.si == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
+                            style: const TextStyle()),
                         Radio(
                             value: AssetType.si,
                             groupValue: assetType,
-                            onChanged: asset.si == null ? null : _setType),
+                            onChanged: _setType),
                         Spacer(),
                         Text('Compact'),
                         Radio(

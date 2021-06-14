@@ -403,7 +403,7 @@ class SIPath extends SIRenderable {
       _paint.strokeJoin = siPaint.strokeJoin.asStrokeJoin;
       _paint.strokeMiterLimit = siPaint.strokeMiterLimit;
       final List<double>? sda = siPaint.strokeDashArray;
-      if (sda == null || sda.length < 1) {
+      if (sda == null || sda.isEmpty) {
         c.drawPath(path, _paint);
         return;
       }
