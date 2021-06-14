@@ -379,8 +379,14 @@ abstract class ScalableImage extends _PackageInitializer {
   /// has been prepared shares the image instances, as could happen with
   /// viewport setting.).  This method may be called multiple
   /// times on the same ScalingImage.  Each call to prepareImages() must be
-  /// balanced with a call to `unprepareImages()` to release the image
+  /// balanced with a call to [unprepareImages] to enable releasing the image
   /// resources -- see `Image.dispose()` in the Flutter library.
+  ///
+  /// As mentioned above, images may be shared between multiple [ScalableImage]
+  /// objects.  For this reason, a count of the number of prepare calls is
+  /// maintained for each image node.  Users of this library should call
+  /// [prepareImages] each time a new [ScalableImage] is created, and
+  /// [unprepareImages] when the [ScalableImage] is no longer needed.
   ///
   Future<void> prepareImages() async {
     // Start preparing them all, with no await, so that the prepare count
@@ -393,7 +399,12 @@ abstract class ScalableImage extends _PackageInitializer {
   }
 
   ///
-  /// Undo the effects of [prepareImages], releasing resources.
+  /// Undo the effects of [prepareImages].  When the count of outstanding
+  /// prepare calls falls to zero for a given image, native resources are
+  /// released by calling `dispose()` on the relevant objects.
+  ///
+  /// Note that a given image can be shared by multiple [ScalableImage]
+  /// instances.  This is discussed in [prepareImages].
   ///
   void unprepareImages() {
     for (final im in images) {

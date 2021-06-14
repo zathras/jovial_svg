@@ -46,11 +46,16 @@ import 'package:quiver/core.dart' as quiver;
 
 import 'jovial_svg.dart';
 
+///
+/// A widget for displaying a [ScalableImage].  The image can be
+/// automatically scaled by the widget, and fit into the available area
+/// with a `BoxFit` and an `Alignment`.
+///
 abstract class ScalableImageWidget extends StatefulWidget {
   ScalableImageWidget._p(Key? key) : super(key: key);
 
   ///
-  /// Create a lightweight widget to display a pre-loaded [ScalableImage].
+  /// Create a widget to display a pre-loaded [ScalableImage].
   /// This is the preferred constructor, because the widget can display the
   /// SI immediately.  It does, however, place responsibility for any
   /// asynchronous loading on the caller.
