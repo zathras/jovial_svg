@@ -23,13 +23,7 @@ SOFTWARE.
  */
 
 ///
-/// Widget support for displaying a [ScalableImage].  The image can be
-/// automatically scaled by the widget, and fit into the available area
-/// with a `BoxFit` and an `Alignment`.
-///
-/// [ScalableImageWidget]
-/// will, if needed, asynchronously load a [ScalableImage] asset, and will
-/// asynchronously prepare any embedded pixel-based images.
+/// Internal widget library - exported with jovial_svg
 ///
 library jovial_svg.widget;
 
@@ -44,7 +38,7 @@ import 'package:flutter/widgets.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:quiver/core.dart' as quiver;
 
-import 'jovial_svg.dart';
+import 'exported.dart';
 
 ///
 /// A widget for displaying a [ScalableImage].  The image can be
@@ -66,6 +60,14 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// this is not done, there might be a delay after the widget is created
   /// while the image(s) are decoded.
   ///
+  /// [fit] controls how the scalable image is scaled within the widget.  If
+  /// fit does not control scaling, then [scale] is used.
+  ///
+  /// [alignment] sets the alignment of the scalable image within the widget.
+  ///
+  /// [clip], if true, will cause the widget to enforce the boundaries of
+  /// the scalable image.
+  ///
   factory ScalableImageWidget(
           {Key? key,
           required ScalableImage si,
@@ -77,8 +79,17 @@ abstract class ScalableImageWidget extends StatefulWidget {
 
   ///
   /// Create a widget to load and then render an [ScalableImage].  In a
-  // production application, pre-loading the [ScalableImage] is preferable,
-  /// because the asynchronous loading might cause a momentary flash.
+  /// production application, pre-loading the [ScalableImage] is preferable,
+  /// because the asynchronous loading that is necessary with an asynchronous
+  /// source might cause a momentary flash.
+  ///
+  /// [fit] controls how the scalable image is scaled within the widget.  If
+  /// fit does not control scaling, then [scale] is used.
+  ///
+  /// [alignment] sets the alignment of the scalable image within the widget.
+  ///
+  /// [clip], if true, will cause the widget to enforce the boundaries of
+  /// the scalable image.
   ///
   factory ScalableImageWidget.fromSISource(
           {Key? key,
@@ -272,9 +283,9 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 
 ///
 /// An asynchronous source of a [ScalableImage].  This is used for asynchronous
-/// loading of an SI asset by a [ScalableImageWidget], with built-in support
-/// for loading from an AssetBundle.  This class could be subclassed, e.g.
-/// for loading from other network sources.
+/// loading of an SI asset by a [ScalableImageWidget], e.g
+/// from an AssetBundle.  This class may be subclassed by clients of this
+/// library, e.g. for loading from other network sources.
 ///
 /// If new subclasses are written, attention is drawn to the need to implement
 /// `operator ==` and `hashCode`.
@@ -284,11 +295,13 @@ abstract class ScalableImageSource {
 
   ///
   /// Compare this source to another.  Subclasses must override this, so that
-  /// different instances of equivalent sources give true.  This will avoid
+  /// different instances of equivalent sources give true.  This avoids
   /// unnecessary rebuilding of [ScalableImage] objects.
   ///
   @override
-  bool operator ==(Object other);
+  bool operator ==(Object other) {
+    throw StateError('Must be overridden by subclasses');
+  }
 
   ///
   /// Compute the hash code for this source.  Subclasses must override this,
@@ -297,7 +310,9 @@ abstract class ScalableImageSource {
   /// objects.
   ///
   @override
-  int get hashCode;
+  int get hashCode {
+    throw StateError('Must be overridden by subclasses');
+  }
 
   ///
   /// Get a [ScalableImage] by parsing an Android Vector Drawable XML file from
@@ -305,8 +320,20 @@ abstract class ScalableImageSource {
   /// a production app, it's better to pre-compile the file -- see
   /// [ScalableImageSource.fromSI]
   ///
-  static ScalableImageSource fromAvd(AssetBundle bundle, String key) =>
-      _AvdBundleSource(bundle, key);
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  It will
+  /// occupy perhaps an order of magnitude less memory, but render perhaps
+  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// unrecognized tags and/or tag attributes.
+  ///
+  static ScalableImageSource fromAvd(AssetBundle bundle, String key,
+          {bool compact = false, bool bigFloats = false, bool warn = true}) =>
+      _AvdBundleSource(bundle, key,
+          compact: compact, bigFloats: bigFloats, warn: warn);
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -314,23 +341,57 @@ abstract class ScalableImageSource {
   /// a production app, it's better to pre-compile the file -- see
   /// [ScalableImageSource.fromSI]
   ///
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  It will
+  /// occupy perhaps an order of magnitude less memory, but render perhaps
+  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// unrecognized tags and/or tag attributes.
+  ///
+  /// See also [ScalableImage.currentColor].
+  ///
   static ScalableImageSource fromSvg(AssetBundle bundle, String key,
-          {Color? currentColor}) =>
-      _SvgBundleSource(bundle, key, currentColor);
+          {Color? currentColor,
+          bool compact = false,
+          bool bigFloats = false,
+          bool warn = true}) =>
+      _SvgBundleSource(bundle, key, currentColor,
+          compact: compact, bigFloats: bigFloats, warn: warn);
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
   /// a http: or https: URL.
   ///
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  It will
+  /// occupy perhaps an order of magnitude less memory, but render perhaps
+  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// unrecognized tags and/or tag attributes.
+  ///
+  /// See also [ScalableImage.currentColor].
+  ///
   static ScalableImageSource fromSvgHttpUrl(Uri url,
-          {Color? currentColor, HttpClient? client}) =>
-      _SvgHttpSource(url, currentColor, client);
+          {Color? currentColor, HttpClient? client,
+            bool compact = false,
+            bool bigFloats = false,
+            bool warn = true}) =>
+      _SvgHttpSource(url, currentColor, client,
+          compact: compact, bigFloats: bigFloats, warn: warn);
 
   ///
   /// Get a [ScalableImage] by reading a pre-compiled `.si` file.
   /// These files can be produced with
   ///  `dart run jovial_svg:svg_to_si` or `dart run jovial_svg:avd_to_si`.
   ///  Pre-compiled files load about an order of magnitude faster.
+  ///
+  /// See also [ScalableImage.currentColor].
   ///
 
   static ScalableImageSource fromSI(AssetBundle bundle, String key,
@@ -341,76 +402,114 @@ abstract class ScalableImageSource {
 class _AvdBundleSource extends ScalableImageSource {
   final AssetBundle bundle;
   final String key;
+  final bool compact;
+  final bool bigFloats;
+  final bool warn;
 
-  _AvdBundleSource(this.bundle, this.key);
+  _AvdBundleSource(this.bundle, this.key,
+      {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si => ScalableImage.fromAvdAsset(bundle, key);
+  Future<ScalableImage> get si => ScalableImage.fromAvdAsset(bundle, key,
+      compact: compact, bigFloats: bigFloats, warn: warn);
 
   @override
   bool operator ==(final Object other) {
     if (other is _AvdBundleSource) {
-      return bundle == other.bundle && key == other.key;
+      return bundle == other.bundle &&
+          key == other.key &&
+          compact == other.compact &&
+          bigFloats == other.bigFloats &&
+          warn == other.warn;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => 0x94fadcba ^ quiver.hash2(bundle.hashCode, key.hashCode);
+  int get hashCode =>
+      0x94fadcba ^
+      quiver.hash4(bundle, key, compact, quiver.hash2(bigFloats, warn));
 }
 
 class _SvgBundleSource extends ScalableImageSource {
   final AssetBundle bundle;
   final String key;
   final Color? currentColor;
+  final bool compact;
+  final bool bigFloats;
+  final bool warn;
 
-  _SvgBundleSource(this.bundle, this.key, this.currentColor);
+  _SvgBundleSource(this.bundle, this.key, this.currentColor,
+      {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si =>
-      ScalableImage.fromSvgAsset(bundle, key, currentColor: currentColor);
+  Future<ScalableImage> get si => ScalableImage.fromSvgAsset(bundle, key,
+      currentColor: currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      warn: warn);
 
   @override
   bool operator ==(final Object other) {
     if (other is _SvgBundleSource) {
       return bundle == other.bundle &&
           key == other.key &&
-          currentColor == other.currentColor;
+          currentColor == other.currentColor &&
+          compact == other.compact &&
+          bigFloats == other.bigFloats &&
+          warn == other.warn;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => 0x544f0d11 ^ quiver.hash3(bundle, key, currentColor);
+  int get hashCode =>
+      0x544f0d11 ^
+      quiver.hash4(
+          bundle, key, currentColor, quiver.hash3(compact, bigFloats, warn));
 }
 
 class _SvgHttpSource extends ScalableImageSource {
   final Uri url;
   final Color? currentColor;
   final HttpClient? client;
+  final bool compact;
+  final bool bigFloats;
+  final bool warn;
 
-  _SvgHttpSource(this.url, this.currentColor, this.client);
+  _SvgHttpSource(this.url, this.currentColor, this.client,
+      {required this.compact, required this.bigFloats, required this.warn});
 
   @override
   Future<ScalableImage> get si {
     final c = client ?? HttpClient();
     final req = c.getUrl(url);
-    return ScalableImage.fromSvgHttpRequest(req, currentColor: currentColor);
+    return ScalableImage.fromSvgHttpRequest(req,
+        currentColor: currentColor,
+        compact: compact,
+        bigFloats: bigFloats,
+        warn: warn);
   }
 
   @override
   bool operator ==(final Object other) {
     if (other is _SvgHttpSource) {
-      return url == other.url && currentColor == other.currentColor;
+      return url == other.url &&
+          currentColor == other.currentColor &&
+          compact == other.compact &&
+          bigFloats == other.bigFloats &&
+          warn == other.warn;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => 0xf7972f9b ^ quiver.hash2(url, currentColor);
+  int get hashCode =>
+      0xf7972f9b ^
+      quiver.hash4(url, currentColor, compact, quiver.hash2(bigFloats, warn));
 }
 
 class _SIBundleSource extends ScalableImageSource {

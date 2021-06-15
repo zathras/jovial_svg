@@ -47,15 +47,15 @@ import 'dag.dart';
 import 'common.dart';
 import 'common_noui.dart';
 import 'compact_noui.dart';
+import 'exported.dart';
 import 'path_noui.dart';
-import '../jovial_svg.dart';
 import 'path.dart';
 
 ///
 /// A Scalable Image that's represented by a compact packed binary format
 /// that is interpreted when rendering.
 ///
-class ScalableImageCompact extends ScalableImage
+class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
   @override
   final bool bigFloats;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jovial_svg/widget.dart';
+import 'package:jovial_svg/jovial_svg.dart';
 
 void main() {
   runApp(MinimalSample());

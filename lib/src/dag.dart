@@ -44,7 +44,7 @@ import 'package:quiver/collection.dart' as quiver;
 import 'affine.dart';
 import 'common.dart';
 import 'common_noui.dart';
-import '../jovial_svg.dart';
+import 'exported.dart';
 import 'path.dart';
 import 'path_noui.dart';
 
@@ -53,7 +53,7 @@ import 'path_noui.dart';
 /// acyclic graph.  This is the fastest to render, at the price
 /// of memory usage
 ///
-class ScalableImageDag extends ScalableImage
+class ScalableImageDag extends ScalableImageBase
     with _SIParentNode
     implements _SIParentBuilder {
   @override
