@@ -200,6 +200,7 @@ abstract class SvgParser extends GenericParser {
       }
     }
     _processInheritable(root, attrs);
+    _processOpacity(root, attrs, warnGroup: true);
     _warnUnusedAttributes(attrs);
     final r = svg = SvgParseGraph(root, width, height);
     _parentStack.add(r.root);
@@ -209,6 +210,7 @@ abstract class SvgParser extends GenericParser {
     final group = SvgGroup();
     _processId(group, attrs);
     _processInheritable(group, attrs);
+    _processOpacity(group, attrs, warnGroup: true);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(group);
     _parentStack.add(group);
@@ -592,14 +594,20 @@ abstract class SvgParser extends GenericParser {
   /// In this case, a simple workaround is to treat an opacity attribute
   /// _defined_ _on_ _the_ _leaf_ as a default value.
   ///
-  /// Opacity on a group means something very, very different, of course.
-  /// s. 14.5 specifies this well.
+  /// Opacity on a group means something very, very different when members
+  /// of the group overlap, or when a use node is a child.
+  /// SVG s. 14.5 specifies this well.
   ///
-  void _processOpacity(
-      SvgInheritableAttributes node, Map<String, String> attrs) {
+  void _processOpacity(SvgInheritableAttributes node, Map<String, String> attrs,
+      {bool warnGroup = false}) {
     final SvgPaint p = node.paint;
     if (p.fillAlpha == null || p.strokeAlpha == null) {
       final alpha = getAlpha(attrs.remove('opacity'));
+      if (warnGroup && alpha != null) {
+        if (attributesIgnored.add('$_currTag:opacity')) {
+          print('    opacity in <g> is only partially supported -- see README');
+        }
+      }
       p.fillAlpha ??= alpha;
       p.strokeAlpha ??= alpha;
     }
