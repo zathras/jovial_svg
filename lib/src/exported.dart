@@ -492,7 +492,7 @@ abstract class ScalableImage extends _PackageInitializer {
   /// not done, images will be invisible (unless a different ScalableImage that
   /// has been prepared shares the image instances, as could happen with
   /// viewport setting.).  This method may be called multiple
-  /// times on the same ScalingImage.  Each call to prepareImages() must be
+  /// times on the same ScalableImage.  Each call to prepareImages() must be
   /// balanced with a call to [unprepareImages] to enable releasing the image
   /// resources -- see `Image.dispose()` in the Flutter library.
   ///
@@ -511,6 +511,8 @@ abstract class ScalableImage extends _PackageInitializer {
   ///
   /// Note that a given image can be shared by multiple [ScalableImage]
   /// instances.  This is discussed in [prepareImages].
+  ///
+  /// See also [imageDisposeBugWorkaround].
   ///
   void unprepareImages();
 
