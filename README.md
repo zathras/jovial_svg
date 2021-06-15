@@ -72,8 +72,14 @@ SVG profile notes:
   *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   *  Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
+  *  `fill-opacity` and `stroke-opacity` are supported, but the object/group
+     `opacity` property is not (cf. SVG 1.1 s. 14.5).  It was eliminated
+     from SVG Tiny 1.2, probably because it is expensive and complex to
+     implement.
   *  A DOM and features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
+  *  The clipPath element is not supported (cf. SVG 1.1 14.3.5).  It is not
+     defined for SVG Tiny 1.2.
   *  Text restrictions:
       * Embedded fonts are not supported.  However, the font-family attribute
         is used when selecting a font, and fonts can be included in an 
