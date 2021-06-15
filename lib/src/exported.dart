@@ -351,9 +351,8 @@ abstract class ScalableImage extends _PackageInitializer {
   ///
   /// Parse an SVG XML document from a URL to a scalable image.  Usage:
   /// ```
-  /// HttpClient client = HttpClient();
-  /// final si = await ScalableImage.fromSvgHttpRequest(
-  ///     client.getUrl(Uri.parse('https://jovial.com/images/jupiter.svg')));
+  /// final si = await ScalableImage.fromSvgHttpUrl(
+  ///     Uri.parse('https://jovial.com/images/jupiter.svg'));
   /// ```
   ///
   /// If [compact] is true, the internal representation will occupy
