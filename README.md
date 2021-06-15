@@ -82,7 +82,7 @@ SVG profile notes:
   *  `fill-opacity` and `stroke-opacity` are supported, but the object/group
      `opacity` property is not (cf. SVG 1.1 s. 14.5).  It was eliminated
      from SVG Tiny 1.2, probably because it is expensive and complex to
-     implement.  However, on a leaf node that draws a path, 'opacity' is
+     implement.  However, on a leaf node that draws a path, `opacity` is
      treated as a default value for both `fill-opacity` and 
      `stroke-opacity`
      *  In this case, this simple workaround yields correct
