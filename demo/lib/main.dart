@@ -63,7 +63,7 @@ Future<void> main() async {
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
   final firstSI = await assets[0].forType(AssetType.si, rootBundle);
-  await(firstSI.prepareImages());
+  await (firstSI.prepareImages());
   runApp(Demo(assets, firstSI));
 }
 
@@ -163,8 +163,8 @@ class _DemoScreenState extends State<DemoScreen> {
         error = 'Error accessing clipboard:  $e';
       }
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error)));
         return;
       }
     }());
@@ -175,14 +175,13 @@ class _DemoScreenState extends State<DemoScreen> {
     final asset = assets[assetIndex];
     return Scaffold(
         appBar: AppBar(
-          leading: ScalableImageWidget.fromSISource(
-              si: ScalableImageSource.fromSI(
-            DefaultAssetBundle.of(context),
-            'assets/other/jupiter.si',
-            currentColor: Colors.yellow.shade300,
-          )),
-          title: Text('${widget.title} - $assetName')
-        ),
+            leading: ScalableImageWidget.fromSISource(
+                si: ScalableImageSource.fromSI(
+              DefaultAssetBundle.of(context),
+              'assets/other/jupiter.si',
+              currentColor: Colors.yellow.shade300,
+            )),
+            title: Text('${widget.title} - $assetName')),
         body: Column(children: [
           SizedBox(height: 5),
           Center(
@@ -218,8 +217,7 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 260,
                       child: Row(children: [
-                        Text('SI',
-                            style: const TextStyle()),
+                        Text('SI', style: const TextStyle()),
                         Radio(
                             value: AssetType.si,
                             groupValue: assetType,
@@ -288,10 +286,10 @@ class _DemoScreenState extends State<DemoScreen> {
                       ])),
                   SizedBox(width: 10),
                   ElevatedButton(
-                      onPressed: () {
-                        _launch();
-                      },
-                      child: Text('Browser'),
+                    onPressed: () {
+                      _launch();
+                    },
+                    child: Text('Browser'),
                   ),
                   SizedBox(width: 10),
                   ElevatedButton(
@@ -379,31 +377,32 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 
   void _changeZoomPrune() => unawaited(() async {
-    final oldSI = si;
-    Rect? vp = _originalViewport;
-    if (oldSI == null) {
-      return;
-    }
-    final ScalableImage newSI;
-    final Rect? nextOriginalViewport;
-    if (vp != null) {
-      newSI = oldSI.withNewViewport(vp);  // Restore original viewport
-      nextOriginalViewport = null;
-    } else {
-      nextOriginalViewport = vp = oldSI.viewport;
-      // Card height/width:
-      final ch = vp.height / 5;
-      final cw = vp.width / 13;
-      newSI = oldSI.withNewViewport(Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
-          prune: true);
-    }
-    await newSI.prepareImages();
-    oldSI.unprepareImages();
-    setState(() {
-      si = newSI;
-      _originalViewport = nextOriginalViewport;
-    });
-  }());
+        final oldSI = si;
+        Rect? vp = _originalViewport;
+        if (oldSI == null) {
+          return;
+        }
+        final ScalableImage newSI;
+        final Rect? nextOriginalViewport;
+        if (vp != null) {
+          newSI = oldSI.withNewViewport(vp); // Restore original viewport
+          nextOriginalViewport = null;
+        } else {
+          nextOriginalViewport = vp = oldSI.viewport;
+          // Card height/width:
+          final ch = vp.height / 5;
+          final cw = vp.width / 13;
+          newSI = oldSI.withNewViewport(
+              Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
+              prune: true);
+        }
+        await newSI.prepareImages();
+        oldSI.unprepareImages();
+        setState(() {
+          si = newSI;
+          _originalViewport = nextOriginalViewport;
+        });
+      }());
 }
 
 enum AssetType { si, compact, svg, avd }

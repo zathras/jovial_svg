@@ -378,10 +378,11 @@ abstract class ScalableImageSource {
   /// See also [ScalableImage.currentColor].
   ///
   static ScalableImageSource fromSvgHttpUrl(Uri url,
-          {Color? currentColor, HttpClient? client,
-            bool compact = false,
-            bool bigFloats = false,
-            bool warn = true}) =>
+          {Color? currentColor,
+          HttpClient? client,
+          bool compact = false,
+          bool bigFloats = false,
+          bool warn = true}) =>
       _SvgHttpSource(url, currentColor, client,
           compact: compact, bigFloats: bigFloats, warn: warn);
 

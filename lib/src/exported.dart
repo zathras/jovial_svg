@@ -604,7 +604,7 @@ abstract class ScalableImageBase extends ScalableImage {
     // Start preparing them all, with no await, so that the prepare count
     // is immediately incremented.
     final waiting =
-    List<Future<void>>.generate(images.length, (i) => images[i].prepare());
+        List<Future<void>>.generate(images.length, (i) => images[i].prepare());
     for (final w in waiting) {
       await w;
     }
