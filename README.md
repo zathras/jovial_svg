@@ -90,27 +90,42 @@ SVG profile notes:
          rotation, apply to text elements).
       * Bi-directional text is not supported
 
+## Goals and Package Evolution
+
 This library was originally written because existing alternatives didn't
 correctly handle many aspects of SVG.  This made it impossible to re-purpose
-existing SVG graphics assets, e.g. from other open-source programs.
+existing SVG graphical assets, e.g. from other open-source programs.  
+Additionally, runtime performance wasn't so good, perhaps due to the overhead
+associated with parsing XML.
 
 It must be said that the SVG specifications are rather large.  SVG 2 notably
 added a rich set of features that aren't needed for a graphics interchange
-format.  SVG in browsers also supports scripting and animation.  Finally, this
-family of specifications has always been somewhat squishy about conformance
+format.  SVG in browsers also supports scripting and animation.  Additionally, 
+this family of specifications has always been somewhat squishy about conformance
 and profiling -- there's a whole set of resources devoted to tracking which
-browsers support which features, and that's with fairly large teams developing
-browsers over decades.
+browsers support which features, and that's with fairly large and well-funded
+teams developing browsers over decades.
 
-However, there are a large set of (quite beautiful!) SVG assets for static
+However, there are a large number of (quite beautiful!) SVG assets for static
 images that generally stay within the bounds of SVG 1.1.  SVG Tiny 1.2 is a
-reasonable collection of the most important parts of SVG 1.1.  One of the 
+reasonable collection of the most important parts of SVG 1.1 - it was intended
+as such (though it has since been essentially abandoned).  One of the 
 challenges in developing this kind of library is deciding which features are 
 essential, and which are gold-plating that are not in wide use.  For this 
-library informed guesses were necessary at some points.  
+library, informed guesses were necessary at some points; SVG Tiny provided
+a solid starting point that a group of experts put considerable thought behind.
 
 If you come across an SVG
 asset that falls within the scope of this library, but which doesn't render,
 please try to narrow down what support would be needed in the library, and 
-submit an image that correctly uses that feature in any bug report.
+submit an image that correctly uses that feature in any bug report.  
+Contributions can be considered too -- and the binary format has plenty of room
+for extensibility.
+
+For the binary format, it is a goal to make it so that new versions of the
+library continue to read old files.  Old versions of the library do not need
+to read new `.si` files, however - the current version will simply fail when 
+it detects the new version number.  `.si` files are intended to be bundled 
+as application resources alongside the library, and not used as a 
+publication format.
 
