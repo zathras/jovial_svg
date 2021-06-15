@@ -1,3 +1,5 @@
-## [0.0.1] - TODO: Add release date.
+## [1.0.0] - Initial Release, June 15, 2021
 
-* TODO: Describe initial release.
+Initial release, after testing on a reasonable sample of SVG images
+believed to be representative.
+
