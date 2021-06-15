@@ -14,5 +14,4 @@ class AvdToSI extends ToSI {
   String get extension => '.xml';
 }
 
-Future<void> main(List<String> arguments) =>
-    AvdToSI().main(arguments);
+Future<void> main(List<String> arguments) => AvdToSI().main(arguments);

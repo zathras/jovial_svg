@@ -34,8 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.exported;
 
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -43,6 +41,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 import 'avd_parser.dart';
 import 'common.dart';
 import 'compact.dart';
@@ -369,14 +368,12 @@ abstract class ScalableImage extends _PackageInitializer {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromSvgHttpRequest(
-      Future<HttpClientRequest> request,
+  static Future<ScalableImage> fromSvgHttpUrl(Uri url,
       {bool compact = false,
       bool bigFloats = false,
       bool warn = true,
       Color? currentColor}) async {
-    final HttpClientResponse response = await (await request).close();
-    final String content = await response.transform(utf8.decoder).join();
+    final String content = await http.read(url);
     return fromSvgString(content,
         compact: compact,
         bigFloats: bigFloats,

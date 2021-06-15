@@ -27,7 +27,6 @@ SOFTWARE.
 ///
 library jovial_svg.widget;
 
-import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
@@ -379,11 +378,10 @@ abstract class ScalableImageSource {
   ///
   static ScalableImageSource fromSvgHttpUrl(Uri url,
           {Color? currentColor,
-          HttpClient? client,
           bool compact = false,
           bool bigFloats = false,
           bool warn = true}) =>
-      _SvgHttpSource(url, currentColor, client,
+      _SvgHttpSource(url, currentColor,
           compact: compact, bigFloats: bigFloats, warn: warn);
 
   ///
@@ -475,19 +473,16 @@ class _SvgBundleSource extends ScalableImageSource {
 class _SvgHttpSource extends ScalableImageSource {
   final Uri url;
   final Color? currentColor;
-  final HttpClient? client;
   final bool compact;
   final bool bigFloats;
   final bool warn;
 
-  _SvgHttpSource(this.url, this.currentColor, this.client,
+  _SvgHttpSource(this.url, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
   Future<ScalableImage> get si {
-    final c = client ?? HttpClient();
-    final req = c.getUrl(url);
-    return ScalableImage.fromSvgHttpRequest(req,
+    return ScalableImage.fromSvgHttpUrl(url,
         currentColor: currentColor,
         compact: compact,
         bigFloats: bigFloats,

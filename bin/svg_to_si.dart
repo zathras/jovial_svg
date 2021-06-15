@@ -1,12 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:args/args.dart';
+import 'package:jovial_misc/io_utils.dart';
 import 'package:jovial_svg/src/common_noui.dart';
 import 'package:jovial_svg/src/compact_noui.dart';
 import 'package:jovial_svg/src/svg_parser.dart';
 
 abstract class ToSI {
-
   String get programName;
   void parse(String src, SIBuilder<String, SIImageData> builder);
   String get extension;
@@ -27,8 +28,7 @@ abstract class ToSI {
 
   Future<void> main(List<String> arguments) async {
     final argp = ArgParser(usageLineLength: 72);
-    argp.addOption('out',
-        abbr: 'o', help: 'output directory');
+    argp.addOption('out', abbr: 'o', help: 'output directory');
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
     final ArgResults results = argp.parse(arguments);
@@ -59,7 +59,7 @@ abstract class ToSI {
           parse(f.readAsStringSync(), b);
         } catch (e) {
           print('');
-          print ('***** Error in ${f.path} : skipping *****');
+          print('***** Error in ${f.path} : skipping *****');
           print('     $e');
           print('');
           continue;
@@ -69,13 +69,11 @@ abstract class ToSI {
         if (outDir == null) {
           out = File(outName);
         } else {
-          final String basename = Uri
-              .file(outName)
-              .pathSegments
-              .last;
+          final String basename = Uri.file(outName).pathSegments.last;
           out = File.fromUri(outDir.uri.resolve(basename));
         }
-        final bytes = b.si.writeToFile(out);
+        final os = DataOutputSink(out.openWrite(), Endian.big);
+        final bytes = b.si.writeToFile(os);
         print('Wrote $bytes bytes to ${out.path}.');
       }
     }
@@ -98,8 +96,7 @@ class SvgToSI extends ToSI {
 
   @override
   void parse(String src, SIBuilder<String, SIImageData> builder) =>
-    StringSvgParser(src, builder).parse();
+      StringSvgParser(src, builder).parse();
 }
 
-Future<void> main(List<String> arguments) =>
-    SvgToSI().main(arguments);
+Future<void> main(List<String> arguments) => SvgToSI().main(arguments);

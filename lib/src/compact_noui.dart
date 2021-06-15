@@ -30,7 +30,6 @@ SOFTWARE.
 library jovial_svg.compact_noui;
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:quiver/core.dart' as quiver;
@@ -428,13 +427,12 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    1 = jovial_svg version 1.0.0, June 2021
   static const int fileVersionNumber = 1;
 
-  int writeToFile(File out) {
+  int writeToFile(DataOutputSink out) {
     int numWritten = 0;
     if (_DEBUG_COMPACT) {
       throw StateError("Can't write file with _DEBUG_COMPACT turned on.");
     }
-    final os = DataOutputSink(out.openWrite(), Endian.big);
-    os.writeUnsignedInt(magicNumber);
+    out.writeUnsignedInt(magicNumber);
     numWritten += 4;
     // There's plenty of extensibility built into this format, if one were
     // to want to extend it while still reading legacy files.  But the
@@ -442,73 +440,73 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     // application, so actually doing anything beyond failing on version #
     // mismatch would probably be overkill, if the format ever does
     // significantly evolve, beyond adding features.
-    os.writeByte(0); // Word align
-    os.writeUnsignedShort(fileVersionNumber);
-    os.writeByte(SIGenericCompactBuilder._flag(width != null, 0) |
+    out.writeByte(0); // Word align
+    out.writeUnsignedShort(fileVersionNumber);
+    out.writeByte(SIGenericCompactBuilder._flag(width != null, 0) |
         SIGenericCompactBuilder._flag(height != null, 1) |
         SIGenericCompactBuilder._flag(bigFloats, 2) |
         SIGenericCompactBuilder._flag(tintColor != null, 3));
     numWritten += 4;
-    os.writeUnsignedInt(_numPaths);
-    os.writeUnsignedInt(_numPaints);
-    os.writeUnsignedInt(_args.length);
-    os.writeUnsignedInt(_transforms.length);
+    out.writeUnsignedInt(_numPaths);
+    out.writeUnsignedInt(_numPaints);
+    out.writeUnsignedInt(_args.length);
+    out.writeUnsignedInt(_transforms.length);
     numWritten += 16;
     // Note that we're word-aligned here.  Keeping the floats word-aligned
     // might speed things up a bit.
     for (final fa in [_args, _transforms]) {
       if (bigFloats) {
         fa as Float64List;
-        os.writeBytes(
+        out.writeBytes(
             fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes));
         numWritten += fa.lengthInBytes;
       } else {
         fa as Float32List;
-        os.writeBytes(
+        out.writeBytes(
             fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes));
         numWritten += fa.lengthInBytes;
       }
     }
-    numWritten += _writeFloatIfNotNull(os, width);
-    numWritten += _writeFloatIfNotNull(os, height);
+    numWritten += _writeFloatIfNotNull(out, width);
+    numWritten += _writeFloatIfNotNull(out, height);
     if (tintColor != null) {
-      os.writeUnsignedInt(colorValue(tintColor!));
-      os.writeByte(blendModeToSI(tintMode).index);
+      out.writeUnsignedInt(colorValue(tintColor!));
+      out.writeByte(blendModeToSI(tintMode).index);
       numWritten += 5;
     }
 
-    numWritten += _writeSmallishInt(os, _strings.length);
+    numWritten += _writeSmallishInt(out, _strings.length);
     for (final s in _strings) {
       final Uint8List x = (const Utf8Encoder()).convert(s);
-      numWritten += _writeSmallishInt(os, x.length);
-      os.writeBytes(x);
+      numWritten += _writeSmallishInt(out, x.length);
+      out.writeBytes(x);
       numWritten += x.length;
     }
 
-    numWritten += _writeSmallishInt(os, _floatLists.length);
+    numWritten += _writeSmallishInt(out, _floatLists.length);
     for (final fl in _floatLists) {
-      numWritten += _writeSmallishInt(os, fl.length);
+      numWritten += _writeSmallishInt(out, fl.length);
       for (final f in fl) {
-        numWritten += _writeFloatIfNotNull(os, f);
+        numWritten += _writeFloatIfNotNull(out, f);
       }
     }
 
-    numWritten += _writeSmallishInt(os, _images.length);
+    numWritten += _writeSmallishInt(out, _images.length);
     for (final IM i in _images) {
       final id = getImageData(i);
-      numWritten += _writeFloatIfNotNull(os, id.x);
-      numWritten += _writeFloatIfNotNull(os, id.y);
-      numWritten += _writeFloatIfNotNull(os, id.width);
-      numWritten += _writeFloatIfNotNull(os, id.height);
-      numWritten += _writeSmallishInt(os, id.encoded.length);
-      os.writeBytes(id.encoded);
+      numWritten += _writeFloatIfNotNull(out, id.x);
+      numWritten += _writeFloatIfNotNull(out, id.y);
+      numWritten += _writeFloatIfNotNull(out, id.width);
+      numWritten += _writeFloatIfNotNull(out, id.height);
+      numWritten += _writeSmallishInt(out, id.encoded.length);
+      out.writeBytes(id.encoded);
       numWritten += id.encoded.length;
     }
 
     // This is last, so we don't need to store the length.
-    os.writeBytes(_children);
+    out.writeBytes(_children);
     numWritten += _children.lengthInBytes;
-    os.close();
+    out.close();
     return numWritten;
   }
 

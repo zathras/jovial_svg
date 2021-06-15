@@ -29,7 +29,6 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -121,7 +120,6 @@ class _DemoScreenState extends State<DemoScreen> {
   Rect? _originalViewport;
   double get _multiplier => pow(2.0, _scale).toDouble();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
-  HttpClient? _http;
 
   _DemoScreenState(this.si);
 
@@ -147,9 +145,7 @@ class _DemoScreenState extends State<DemoScreen> {
         if (url == null || url == '') {
           error = 'Empty clipboard';
         } else {
-          _http ??= HttpClient();
-          final request = _http!.getUrl(Uri.parse(url));
-          final newSI = await ScalableImage.fromSvgHttpRequest(request);
+          final newSI = await ScalableImage.fromSvgHttpUrl(Uri.parse(url));
           await newSI.prepareImages();
           setState(() {
             assetType = AssetType.svg;

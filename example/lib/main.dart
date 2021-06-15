@@ -5,7 +5,6 @@ void main() {
   runApp(MinimalSample());
 }
 
-
 ///
 /// A minimal sample application using `jovial_svg`.  This example lets
 /// [ScalableImageWidget] handle the asynchronous loading, which is resonable
