@@ -228,6 +228,7 @@ abstract class SvgParser extends GenericParser {
     final path = SvgPath(d);
     _processId(path, attrs);
     _processInheritable(path, attrs);
+    _processOpacity(path, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(path);
   }
@@ -255,6 +256,7 @@ abstract class SvgParser extends GenericParser {
     final rect = SvgRect(x, y, width, height, rx, ry);
     _processId(rect, attrs);
     _processInheritable(rect, attrs);
+    _processOpacity(rect, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(rect);
   }
@@ -266,6 +268,7 @@ abstract class SvgParser extends GenericParser {
     final e = SvgEllipse(cx, cy, r, r);
     _processId(e, attrs);
     _processInheritable(e, attrs);
+    _processOpacity(e, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(e);
   }
@@ -278,6 +281,7 @@ abstract class SvgParser extends GenericParser {
     final e = SvgEllipse(cx, cy, rx, ry);
     _processId(e, attrs);
     _processInheritable(e, attrs);
+    _processOpacity(e, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(e);
   }
@@ -290,6 +294,7 @@ abstract class SvgParser extends GenericParser {
     final line = SvgPoly(false, [Point(x1, y1), Point(x2, y2)]);
     _processId(line, attrs);
     _processInheritable(line, attrs);
+    _processOpacity(line, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(line);
   }
@@ -311,6 +316,7 @@ abstract class SvgParser extends GenericParser {
     final line = SvgPoly(close, points);
     _processId(line, attrs);
     _processInheritable(line, attrs);
+    _processOpacity(line, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(line);
   }
@@ -346,6 +352,7 @@ abstract class SvgParser extends GenericParser {
     n.y = getFloatList(attrs.remove('y')) ?? n.y;
     _processId(n, attrs);
     _processInheritable(n, attrs);
+    _processOpacity(n, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(n);
     return n;
@@ -575,6 +582,27 @@ abstract class SvgParser extends GenericParser {
     }
 
     node.transform = getTransform(node.transform, attrs.remove('transform'));
+  }
+
+  ///
+  /// This is a little sneaky.  We don't support SVG 1.1's object and group
+  /// opacity (the 'opacity' attribute, SVG 1.1 s. 14.5).  It is not present
+  /// in Tiny for good reason!  However, some authors seem to use it as a
+  /// shorthand for fill-opacity and/or stroke-opacity on path drawing nodes.
+  /// In this case, a simple workaround is to treat an opacity attribute
+  /// _defined_ _on_ _the_ _leaf_ as a default value.
+  ///
+  /// Opacity on a group means something very, very different, of course.
+  /// s. 14.5 specifies this well.
+  ///
+  void _processOpacity(
+      SvgInheritableAttributes node, Map<String, String> attrs) {
+    final SvgPaint p = node.paint;
+    if (p.fillAlpha == null || p.strokeAlpha == null) {
+      final alpha = getAlpha(attrs.remove('opacity'));
+      p.fillAlpha ??= alpha;
+      p.strokeAlpha ??= alpha;
+    }
   }
 
   MutableAffine? getTransform(MutableAffine? initial, String? s) {

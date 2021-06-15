@@ -82,7 +82,14 @@ SVG profile notes:
   *  `fill-opacity` and `stroke-opacity` are supported, but the object/group
      `opacity` property is not (cf. SVG 1.1 s. 14.5).  It was eliminated
      from SVG Tiny 1.2, probably because it is expensive and complex to
-     implement.
+     implement.  However, on a leaf node that draws a path, 'opacity' is
+     treated as a default value for both `fill-opacity` and 
+     `stroke-opacity`
+     *  In this case, this simple workaround yields correct
+        results.  Some SVG authors seem to confuse the complex and expensive
+        group opacity feature of the `opacity` attribute with the much 
+        simpler `fill-opacity` and `stroke-opacity` drawing attributes; this
+        workaround helps with rendering of such SVG assets.
   *  A DOM and features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
   *  The `clipPath` SVG element is not supported (cf. SVG 1.1 14.3.5).  It 
