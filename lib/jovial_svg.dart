@@ -38,12 +38,12 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 ///  A robust profile of SVG targeted at static images is supported.  It
 ///  generally consists of the features that are relevant to static images
-///  defined in 
+///  defined in
 ///  [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/),
 //// that are applicable to static images, plus commonly-used elements from
 ///  [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  More details
 ///  about the supported SVG profile can be found in the top-level
-///  documentation, or in the 
+///  documentation, or in the
 ///  [github repo](https://github.com/zathras/jovial_svg).
 ///
 ///  A compact `.si` file can be created with `dart run jovial_svg:svg_to_si`
@@ -71,7 +71,7 @@ import 'src/svg_parser.dart';
 /// static methods to load a [ScalableImage] from various sources.  It
 /// provides two in-memory representations:  a memory-saving "compact"
 /// representation, as well as a faster internal graph structure.  Provision
-/// is given to set a viewport, and prune away nodes that are outside 
+/// is given to set a viewport, and prune away nodes that are outside
 /// this viewport.  In this way, several smaller "views" onto a larger
 /// SI asset can be produced, with maximal resource sharing between the
 /// different assets.
@@ -81,7 +81,6 @@ import 'src/svg_parser.dart';
 /// `jovial_svg.widget` library can be used.
 ///
 abstract class ScalableImage extends _PackageInitializer {
-
   /// Width, in pixels.
   final double? width;
 
@@ -298,11 +297,12 @@ abstract class ScalableImage extends _PackageInitializer {
   ///     client.getUrl(Uri.parse('https://jovial.com/images/jupiter.svg')));
   /// ```
   ///
-  static Future<ScalableImage> fromSvgHttpRequest(Future<HttpClientRequest> request,
+  static Future<ScalableImage> fromSvgHttpRequest(
+      Future<HttpClientRequest> request,
       {bool compact = false,
-        bool bigFloats = false,
-        bool warn = true,
-        Color? currentColor}) async {
+      bool bigFloats = false,
+      bool warn = true,
+      Color? currentColor}) async {
     final HttpClientResponse response = await (await request).close();
     final String content = await response.transform(utf8.decoder).join();
     return fromSvgString(content,

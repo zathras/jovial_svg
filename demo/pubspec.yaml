@@ -38,6 +38,7 @@ flutter:
     - assets/svg/gnomangelo.svg
     - assets/svg/gnomangelo_bitmap.svg
     - assets/svg/guyenne-classic.svg
+    - assets/svg/layers.svg
     - assets/svg/ornamental.svg
     - assets/svg/paris-text.svg
     - assets/svg/paris.svg
@@ -74,6 +75,7 @@ flutter:
     - assets/si/dondorf.si
     - assets/si/gnomangelo.si
     - assets/si/gnomangelo_bitmap.si
+    - assets/si/layers.si
     - assets/si/guyenne-classic.si
     - assets/si/ornamental.si
     - assets/si/paris-text.si

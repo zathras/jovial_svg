@@ -76,8 +76,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
       _SyncSIWidget(key, si, fit, alignment, clip, scale);
 
   ///
-  /// Create a widget to load and then render an [ScalableImage].  In a 
-  // production application, pre-loading the [ScalableImage] is preferable, 
+  /// Create a widget to load and then render an [ScalableImage].  In a
+  // production application, pre-loading the [ScalableImage] is preferable,
   /// because the asynchronous loading might cause a momentary flash.
   ///
   factory ScalableImageWidget.fromSISource(
@@ -322,11 +322,12 @@ abstract class ScalableImageSource {
   /// Get a [ScalableImage] by parsing an SVG XML file from
   /// a http: or https: URL.
   ///
-  static ScalableImageSource fromSvgHttpUrl(Uri url, {Color? currentColor, HttpClient? client}) =>
+  static ScalableImageSource fromSvgHttpUrl(Uri url,
+          {Color? currentColor, HttpClient? client}) =>
       _SvgHttpSource(url, currentColor, client);
 
   ///
-  /// Get a [ScalableImage] by reading a pre-compiled `.si` file. 
+  /// Get a [ScalableImage] by reading a pre-compiled `.si` file.
   /// These files can be produced with
   ///  `dart run jovial_svg:svg_to_si` or `dart run jovial_svg:avd_to_si`.
   ///  Pre-compiled files load about an order of magnitude faster.
@@ -402,8 +403,7 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   bool operator ==(final Object other) {
     if (other is _SvgHttpSource) {
-      return url == other.url &&
-          currentColor == other.currentColor;
+      return url == other.url && currentColor == other.currentColor;
     } else {
       return false;
     }

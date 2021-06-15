@@ -294,8 +294,16 @@ extension SIFontStyleMapping on SIFontStyle {
 /// A Mixin for operations on a Group
 ///
 mixin SIGroupHelper {
-  void startPaintGroup(Canvas c, Affine? transform) {
-    c.save();
+  void startPaintGroup(Canvas c, Affine? transform, int? groupAlpha) {
+    if (groupAlpha == null || groupAlpha == 0xff) {
+      c.save();
+    } else {
+      c.saveLayer(
+          null,
+          Paint()
+            ..blendMode = BlendMode.multiply
+            ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff));
+    }
     if (transform != null) {
       c.transform(transform.forCanvas);
     }

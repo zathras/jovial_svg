@@ -40,6 +40,16 @@ import 'affine.dart';
 import 'common_noui.dart';
 import 'path_noui.dart';
 
+///
+/// The graph structure we get when parsing an SVG XML file.  This graph
+/// is used to build a `ScalableImage` via an [SIBuilder].
+///
+/// If, someday, there is a desire to support some kind of DOM that lets
+/// flutter code modify the parse graph, an API could be wrapped around this
+/// structure.  It wouldn't be unreasonable to add a `paint(Canvas)` method
+/// here, on the parse graph, to support the programmatic manipulation of the
+/// parse tree.
+///
 class SvgParseGraph {
   final idLookup = <String, SvgNode>{};
   final SvgGroup root;
@@ -75,10 +85,11 @@ abstract class SvgNode {
   void collectCanon(CanonicalizedData<SIImageData> canon);
 }
 
-abstract class SvgInheritableAttributes {
+abstract class SvgInheritableAttributes implements SvgNode {
   MutableAffine? transform;
   SvgPaint paint = SvgPaint.empty();
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  int? groupAlpha; // Doesn't inherit; instead, a group is created
 
   bool _isInvisible(SvgPaint paint) =>
       (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
@@ -238,10 +249,10 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final currTA = cascadeText(ta);
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (transform == null && children.length == 1) {
+    if (transform == null && groupAlpha == null && children.length == 1) {
       children[0].build(builder, canon, idLookup, cascaded, currTA);
     } else {
-      builder.group(null, transform);
+      builder.group(null, transform, groupAlpha);
       for (final c in children) {
         c.build(builder, canon, idLookup, cascaded, currTA);
       }
@@ -294,6 +305,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
       return null;
     }
     final g = SvgGroup();
+    g.groupAlpha = groupAlpha;
     g.paint = paint;
     g.transform = transform;
     g.children.add(n);
@@ -321,8 +333,8 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (transform != null) {
-      builder.group(null, transform);
+    if (transform != null || groupAlpha != null) {
+      builder.group(null, transform, groupAlpha);
       makePath(builder, cascaded);
       builder.endGroup(null);
     } else {
@@ -603,8 +615,8 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(_imageNumber > -1);
-    if (transform != null) {
-      builder.group(null, transform);
+    if (transform != null || groupAlpha != null) {
+      builder.group(null, transform, groupAlpha);
       builder.image(null, _imageNumber);
       builder.endGroup(null);
     } else {
@@ -649,8 +661,8 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
       fontFamilyIndex = canon.strings[currTA.fontFamily];
       assert(fontFamilyIndex != null);
     }
-    if (transform != null) {
-      builder.group(null, transform);
+    if (transform != null || groupAlpha != null) {
+      builder.group(null, transform, groupAlpha);
       builder.text(
           null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
       builder.endGroup(null);

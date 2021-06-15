@@ -61,7 +61,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R path(R collector, PathDataT pathData, SIPaint paint);
 
-  R group(R collector, Affine? transform);
+  R group(R collector, Affine? transform, int? groupAlpha);
 
   R endGroup(R collector);
 

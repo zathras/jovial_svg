@@ -118,9 +118,11 @@ class CompactTraverser<R, IM> {
             strokeColorType: (code >> 4) & 0x3);
       } else if (code < SIGenericCompactBuilder.CLIPPATH_CODE) {
         // it's GROUP_CODE
-        assert(SIGenericCompactBuilder.GROUP_CODE & 0x3 == 0);
+        assert(SIGenericCompactBuilder.GROUP_CODE & 0x7 == 0);
         collector = group(collector,
-            hasTransform: _flag(code, 0), hasTransformNumber: _flag(code, 1));
+            hasTransform: _flag(code, 0),
+            hasTransformNumber: _flag(code, 1),
+            hasGroupAlpha: _flag(code, 2));
       } else if (code < SIGenericCompactBuilder.IMAGE_CODE) {
         // it's CLIPPATH_CODE
         assert(SIGenericCompactBuilder.CLIPPATH_CODE & 0x1 == 0);
@@ -160,10 +162,13 @@ class CompactTraverser<R, IM> {
   }
 
   R group(R collector,
-      {required bool hasTransform, required bool hasTransformNumber}) {
+      {required bool hasTransform,
+      required bool hasTransformNumber,
+      required bool hasGroupAlpha}) {
     final Affine? transform =
         _getTransform(hasTransform, hasTransformNumber, _children);
-    collector = _visitor.group(collector, transform);
+    final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
+    collector = _visitor.group(collector, transform, groupAlpha);
     if (_DEBUG_COMPACT) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
@@ -416,7 +421,12 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   /// Léo, Burkina Faso, plus 7 for luck.
   ///
   static const int magicNumber = 0xb0b01e07;
-  static const int fileVersionNumber = 0;
+
+  ///
+  /// File versions:
+  ///    0 = not released
+  ///    1 = jovial_svg version 1.0.0, June 2021
+  static const int fileVersionNumber = 1;
 
   int writeToFile(File out) {
     int numWritten = 0;
@@ -831,10 +841,10 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
 
   static const PATH_CODE = 0; // 0..63 (6 bits)
   static const TEXT_CODE = 64; // 64..127 (6 bits)
-  static const GROUP_CODE = 128; // 128..131 (4 bits)
-  static const CLIPPATH_CODE = 132; // 132, 133
-  static const IMAGE_CODE = 134;
-  static const END_GROUP_CODE = 135;
+  static const GROUP_CODE = 128; // 128..135 (3 bits)
+  static const CLIPPATH_CODE = 136; // 136, 137
+  static const IMAGE_CODE = 138;
+  static const END_GROUP_CODE = 139;
 
   bool get done => _done;
 
@@ -914,16 +924,20 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void group(void collector, Affine? transform) {
+  void group(void collector, Affine? transform, int? groupAlpha) {
     int? transformNumber;
     if (transform != null) {
       transformNumber = _writeTransform(transform);
     }
     children.writeByte(GROUP_CODE |
         _flag(transform != null, 0) |
-        _flag(transformNumber != null, 1));
+        _flag(transformNumber != null, 1) |
+        _flag(groupAlpha != null, 2));
     if (transformNumber != null) {
       _writeSmallishInt(children, transformNumber);
+    }
+    if (groupAlpha != null) {
+      children.writeByte(groupAlpha);
     }
     if (_DEBUG_COMPACT) {
       children.writeUnsignedInt(args.length + 100);

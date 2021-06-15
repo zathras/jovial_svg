@@ -387,8 +387,8 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   void get initial => null;
 
   @override
-  void group(void collector, Affine? transform) =>
-      startPaintGroup(canvas, transform);
+  void group(void collector, Affine? transform, int? groupAlpha) =>
+      startPaintGroup(canvas, transform, groupAlpha);
 
   @override
   void endGroup(void collector) => endPaintGroup(canvas);
@@ -449,9 +449,11 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary group(PruningBoundary boundary, Affine? transform) {
+  PruningBoundary group(
+      PruningBoundary boundary, Affine? transform, int? groupAlpha) {
     final parent = _groupStack.isEmpty ? null : _groupStack.last;
-    _groupStack.add(_PruningEntry(boundary, parent, this, transform));
+    _groupStack
+        .add(_PruningEntry(boundary, parent, this, transform, groupAlpha));
     return transformBoundaryFromParent(boundary, transform);
   }
 
@@ -596,18 +598,20 @@ class _PruningEntry {
   final PruningBoundary boundary;
   final _PruningEntry? parent;
   final _PruningVisitor visitor;
-  Affine? transform;
+  final Affine? transform;
+  final int? groupAlpha;
 
   bool generated = false;
 
-  _PruningEntry(this.boundary, this.parent, this.visitor, this.transform);
+  _PruningEntry(this.boundary, this.parent, this.visitor, this.transform,
+      this.groupAlpha);
 
   void generateGroupIfNeeded() {
     if (generated) {
       return;
     }
     parent?.generateGroupIfNeeded();
-    visitor.builder.group(null, transform);
+    visitor.builder.group(null, transform, groupAlpha);
     generated = true;
   }
 
@@ -628,7 +632,8 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? get initial => null;
 
   @override
-  PruningBoundary? group(PruningBoundary? initial, Affine? transform) {
+  PruningBoundary? group(
+      PruningBoundary? initial, Affine? transform, int? groupAlpha) {
     groupStack.add(_BoundaryEntry(initial, transform));
     return null;
   }

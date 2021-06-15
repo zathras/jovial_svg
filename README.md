@@ -73,24 +73,14 @@ SVG profile notes:
      to other gradients, and gradientTransform attributes from SVG 1.1.
   *  Text elements are supported.
   *  Embedded images are supported.
+  *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
+     eliminated from SVG Tiny 1.2.
   *  As per the Tiny spec s. 6.2, full CSS is not supported.  However, the
      `style=` attribute is supported as a way of specifying presentation
      attributes.
   *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   *  Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
-  *  `fill-opacity` and `stroke-opacity` are supported, but the object/group
-     `opacity` property is not (cf. SVG 1.1 s. 14.5).  It was eliminated
-     from SVG Tiny 1.2, probably because it is expensive and complex to
-     implement.  However, the `opacity` attribute is treated as a default 
-     value for both `fill-opacity` and `stroke-opacity`
-     *  Using `opacity` like this works when shapes don't overlap, and
-        there are no `use` tags in the affected render tree.  Some SVG authors
-        seem to confuse the complex and expensive group opacity feature of 
-        the `opacity` attribute with the much simpler `fill-opacity` and 
-        `stroke-opacity` drawing attributes; this workaround helps with 
-        rendering of such SVG assets.  It generally helps more than
-        it hurts.
   *  A DOM and features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
   *  The `clipPath` SVG element is not supported (cf. SVG 1.1 14.3.5).  It 

@@ -270,7 +270,7 @@ abstract class AvdParser extends GenericParser {
     // not mean the viewport of the top-level tree, if we have a parent group
     // that did transformations on the way down.
 
-    builder.group(null, (transform.isIdentity()) ? null : transform);
+    builder.group(null, (transform.isIdentity()) ? null : transform, null);
   }
 
   _AvdPath _parsePath(List<XmlEventAttribute> attrs) {

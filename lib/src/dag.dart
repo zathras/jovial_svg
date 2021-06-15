@@ -235,13 +235,15 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   final List<SIRenderable> _renderables;
   final Affine? transform;
+  final int? groupAlpha;
   int? _hashCode;
 
-  SIGroup(this.transform, Iterable<SIRenderable> renderables)
+  SIGroup(this.transform, Iterable<SIRenderable> renderables, this.groupAlpha)
       : _renderables = List.unmodifiable(renderables);
 
   SIGroup._modified(SIGroup other, this._renderables)
-      : transform = other.transform;
+      : transform = other.transform,
+        groupAlpha = other.groupAlpha;
 
   @override
   List<SIRenderable> _childrenPrunedBy(
@@ -256,7 +258,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   void paint(Canvas c, Color currentColor) {
-    startPaintGroup(c, transform);
+    startPaintGroup(c, transform, groupAlpha);
     for (final r in _renderables) {
       r.paint(c, currentColor);
     }
@@ -290,6 +292,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       return false;
     } else {
       return transform == other.transform &&
+          groupAlpha == other.groupAlpha &&
           quiver.listsEqual(_renderables, other._renderables);
     }
   }
@@ -301,8 +304,9 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       assert(!_hashing);
       _hashing = true;
       _hashCode = 0xfddf5e28 ^
-          quiver.hash2(
+          quiver.hash3(
             quiver.hashObjects(_renderables),
+            groupAlpha,
             transform.hashCode,
           );
       _hashing = false;
@@ -314,12 +318,13 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 class _GroupBuilder implements _SIParentBuilder {
   @override
   final List<SIRenderable> _renderables;
+  final int? groupAlpha;
   final Affine? transform;
 
-  _GroupBuilder(this.transform)
+  _GroupBuilder(this.transform, this.groupAlpha)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
-  SIGroup get group => SIGroup(transform, _renderables);
+  SIGroup get group => SIGroup(transform, _renderables, groupAlpha);
 }
 
 ///
@@ -462,11 +467,11 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  void group(void collector, Affine? transform) {
+  void group(void collector, Affine? transform, int? groupAlpha) {
     if (transform != null) {
       transform = _daggerize(transform);
     }
-    final g = _GroupBuilder(transform);
+    final g = _GroupBuilder(transform, groupAlpha);
     _parentStack.add(g);
   }
 
