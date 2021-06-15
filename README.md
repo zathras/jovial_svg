@@ -3,7 +3,8 @@
 Robust, efficient rendering of SVG static images, supporting a well-defined 
 profile of SVG and an efficient binary storage format.  Very fast load times 
 result from using this binary format - loading a pre-compiled binary file 
-is usually 5x to 10x faster than parsing an XML SVG file.  
+is usually an order of magnitude faster than parsing an XML SVG file - observed
+speedups for loading larger SVG files range from 5x to 20x.
 
 The supported SVG profile
 includes the parts of 
@@ -31,15 +32,21 @@ available as a sample.
 
 Parsing an XML file isn't terribly efficient, and it's generally better to
 do any asynchronous loading before building a widget tree.  This package 
-includes tools to make its use more efficient in these ways.  
+includes tools to make its use more efficient in bot of these aspects.  
 
 The `svg_to_si` program compiles an SVG file into a much more efficient 
 binary representation, suitable for inclusion in an asset bundle.  
 It can be run with `dart run jovial_svg:svg_to_si`, or if you have an
-Android Vector Drawable, `dart run jovial_svg:avd_to_si`.  You can pre-load
-a `ScalableImage` using various static methods defined on the class, and use
-it synchronously with `ScalableImageWidget`, or directly with a Flutter
-`CustomPaint`.
+Android Vector Drawable, `dart run jovial_svg:avd_to_si`.  This speeds
+runtime loading by an order of magnitude.
+
+In order to avoid a visual flash while assets are asynchronously loaded,
+you can pre-load a `ScalableImage` using various static methods defined 
+on the class.  You can also proactively cause any embedded images to be
+decoded before first display.  Once ready, your `ScalableImage` can be used
+synchronously with `ScalableImageWidget`, or directly with a Flutter
+`CustomPaint`.  `ScalableImageWidget` also has an option for the widget
+to do the asynchronous operations, for convenience and/or quick prototyping.
 
 ## Demo Program
 
@@ -58,8 +65,8 @@ SVG profile notes:
 
   *  SVG paths and transforms are of course supported.
   *  The `use` element is supported (including forward references).
-  *  Stroke modifiers like stroke-linecap, stroke-linejoin and
-     stroke-miterlimit are supported.
+  *  Stroke modifiers like `stroke-linecap`, `stroke-linejoin` and
+     `stroke-miterlimit` are supported.
   *  The `stroke-dasharray` and `stroke-dashoffset` attributes are
      supported (cf. Tiny s. 11.4).
   *  Gradients are supported, and additionally support xlink:href attributes 
@@ -78,12 +85,14 @@ SVG profile notes:
      implement.
   *  A DOM and features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
-  *  The clipPath element is not supported (cf. SVG 1.1 14.3.5).  It is not
-     defined for SVG Tiny 1.2.
+  *  The `clipPath` SVG element is not supported (cf. SVG 1.1 14.3.5).  It 
+     is not defined for SVG Tiny 1.2.  (The more restricted Android Vector
+     Drawable `clipPath` is supported for AVD files, however.)
   *  Text restrictions:
       * Embedded fonts are not supported.  However, the font-family attribute
         is used when selecting a font, and fonts can be included in an 
-        application that uses this library.
+        application that uses this library.  For example, the demo program
+        includes the "ROLLERBALL 1975" font.
       * `textArea` is not supported (not in SVG 1.1).
       * `font-variant` (`small-caps`) is not supported.
       * `rotate` is not supported (but normal transformations, including 
