@@ -16,3 +16,5 @@ believed to be representative.
   `flutter_launcher_icons`
 
 ## [1.0.3] - update homepage for dart.dev listing, June 16l, 2021
+
+## [1.0.4] - Add github links for dart.dev listing, June 16l, 2021
