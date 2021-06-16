@@ -1,6 +1,6 @@
 name: jovial_svg
 description: Robust rendering of SVG static images, supporting a well-defined profile of SVG and an efficient binary storage format.
-version: 1.0.1
+version: 1.0.2
 homepage:  https://github.com/zathras/jovial_svg
 
 environment:
@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   xml: ^5.1.0
-  args: ^2.1.0
+  args: ^2.0.0
   pedantic: ^1.0.8
   quiver: ^3.0.1
   vector_math: ^2.1.0

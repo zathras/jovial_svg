@@ -9,3 +9,8 @@ believed to be representative.
   - This did involve an API change, but the old version was on pub.dev
     for maybe an hour, so I'm not considering this a breaking change.
 - Ran dartfmt on bin directory
+
+## [1.0.2] - resolve dependency conflict, June 16, 2021
+
+- Back off version of args to 2.0.0, to eliminate conflict with 
+  `flutter_launcher_icons`
