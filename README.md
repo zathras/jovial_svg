@@ -14,6 +14,10 @@ that are applicable to static images, plus commonly-used elements from
 [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
 
+The library is [published to `pub.dev`](https://pub.dev/packages/jovial_svg),
+where you can also find the
+[dartdocs](https://pub.dev/documentation/jovial_svg/latest/jovial_svg/jovial_svg-library.html).
+
 <img width="100%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
 
 ## Getting Started
