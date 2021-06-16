@@ -62,4 +62,4 @@ class AssetsPreLoaded extends StatelessWidget {
 }
 ```
 
-Both of these examples are in the `examples` directory.
+Both of these examples are in the `example` directory.
