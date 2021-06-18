@@ -422,7 +422,10 @@ abstract class SvgParser extends GenericParser {
     if (g == null) {
       throw ParseError('<stop> outside of gradient');
     }
-    final SvgColor color = getSvgColor(attrs.remove('stop-color')?.trim());
+
+    //default stop-color is 'black'. Ref https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stop-color
+    final SvgColor color =
+        getSvgColor(attrs.remove('stop-color')?.trim() ?? 'black');
     if (color != SvgColor.inherit &&
         color != SvgColor.currentColor &&
         !(color is SvgValueColor)) {
