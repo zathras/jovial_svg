@@ -18,3 +18,9 @@ believed to be representative.
 ## [1.0.3] - update homepage for dart.dev listing, June 16, 2021
 
 ## [1.0.4] - Add github links for dart.dev listing, June 16, 2021
+
+## [1.0.5] - Upcoming
+
+- Make default stop-color black in gradients (thanks, 
+  [Jarle](https://github.com/jarlestabell)).
+
