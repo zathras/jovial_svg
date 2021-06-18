@@ -1,6 +1,6 @@
 name: jovial_svg
 description: SVG - Robust rendering of Scalable Vector Graphic images, supporting a well-defined profile of SVG and a fast-loading binary storage format.
-version: 1.0.4
+version: 1.0.5-upcoming
 homepage:  https://bill.jovial.com/
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
   pedantic: ^1.0.8
   quiver: ^3.0.0
   vector_math: ^2.1.0
-  jovial_misc: ^0.6.1
+  jovial_misc: ^0.8.0
   http: ^0.13.0
   flutter:
     sdk: flutter

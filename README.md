@@ -31,8 +31,7 @@ MaterialApp(
       si: ScalableImageSource.fromSvgHttpUrl(
           Uri.parse('https://jovial.com/images/jupiter.svg'))));
 ```
-A sample [minimal application](https://github.com/zathras/jovial_svg/tree/main/sample) is
-available.
+A sample [minimal application](https://github.com/zathras/jovial_svg/tree/main/example) is available.
 
 Parsing an XML file isn't terribly efficient, and it's generally better to
 do any asynchronous loading before building a widget tree.  This package 

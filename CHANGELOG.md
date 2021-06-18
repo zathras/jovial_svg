@@ -15,6 +15,6 @@ believed to be representative.
 - Back off version of args to 2.0.0, to eliminate conflict with 
   `flutter_launcher_icons`
 
-## [1.0.3] - update homepage for dart.dev listing, June 16l, 2021
+## [1.0.3] - update homepage for dart.dev listing, June 16, 2021
 
-## [1.0.4] - Add github links for dart.dev listing, June 16l, 2021
+## [1.0.4] - Add github links for dart.dev listing, June 16, 2021
