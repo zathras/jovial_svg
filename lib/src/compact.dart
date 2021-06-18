@@ -402,8 +402,7 @@ abstract class _CompactVisitor<R>
 class _PaintingVisitor extends _CompactVisitor<void> {
   final Canvas canvas;
 
-  _PaintingVisitor(this.canvas, RenderContext context)
-      : super(context);
+  _PaintingVisitor(this.canvas, RenderContext context) : super(context);
 
   @override
   void get initial => null;
@@ -419,7 +418,6 @@ class _PaintingVisitor extends _CompactVisitor<void> {
     endPaintGroup(canvas);
     popContext();
   }
-
 
   @override
   void siPath(void collector, SIPath path) => path.paint(canvas, context);
@@ -455,8 +453,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
             viewport,
             currentColor: si.currentColor,
             warn: false),
-        super(RenderContext.root(si, Colors.black))
-  {
+        super(RenderContext.root(si, Colors.black)) {
     builder.vector(
         width: viewport.width,
         height: viewport.height,
@@ -659,7 +656,8 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
 
   final _groupStack = List<PruningBoundary?>.empty(growable: true);
 
-  _BoundaryVisitor(ScalableImageCompact si) : super(RenderContext.root(si, Colors.black));
+  _BoundaryVisitor(ScalableImageCompact si)
+      : super(RenderContext.root(si, Colors.black));
 
   @override
   PruningBoundary? get initial => null;

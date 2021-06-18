@@ -73,7 +73,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
       int? fontFamilyIndex, SIPaint paint);
 
   /// Check any invariants that should be true at the end of a traversal
-  void assertDone() { }
+  void assertDone() {}
 }
 
 abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {

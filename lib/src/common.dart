@@ -692,18 +692,15 @@ class SIText extends SIRenderable implements _HasBounds {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          _setLinearGradient(
-              p, c, _gradientXform(c, this, context), context);
+          _setLinearGradient(p, c, _gradientXform(c, this, context), context);
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          _setRadialGradient(
-              p, c, _gradientXform(c, this, context), context);
+          _setRadialGradient(p, c, _gradientXform(c, this, context), context);
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
-          _setSweepGradient(
-              p, c, _gradientXform(c, this, context), context);
+          _setSweepGradient(p, c, _gradientXform(c, this, context), context);
         }));
     return r;
   }

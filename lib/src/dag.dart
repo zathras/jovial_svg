@@ -119,7 +119,9 @@ class ScalableImageDag extends ScalableImageBase
         tintMode: tintMode);
   }
 
-  @override RenderContext get context => _context ??= RenderContext.root(this, currentColor);
+  @override
+  RenderContext get context =>
+      _context ??= RenderContext.root(this, currentColor);
 
   @override
   ScalableImage withNewViewport(Rect viewport,
@@ -480,7 +482,9 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     if (transform != null) {
       transform = _daggerize(transform);
     }
-    final g = _GroupBuilder(RenderContext(_parentStack.last.context, transform: transform), groupAlpha);
+    final g = _GroupBuilder(
+        RenderContext(_parentStack.last.context, transform: transform),
+        groupAlpha);
     _parentStack.add(g);
   }
 
