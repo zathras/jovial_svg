@@ -163,10 +163,10 @@ class ScalableImageCompact extends ScalableImageBase
 
   @override
   void paintChildren(Canvas c, Color currentColor) =>
-      accept(_PaintingVisitor(c, currentColor));
+      accept(_PaintingVisitor(c, RenderContext.root(this, currentColor)));
 
   @override
-  PruningBoundary? getBoundary() => accept(_BoundaryVisitor());
+  PruningBoundary? getBoundary() => accept(_BoundaryVisitor(this));
 
   R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) {
     final t = CompactTraverser<R, SIImage>(
@@ -333,6 +333,10 @@ abstract class _CompactVisitor<R>
   late final List<String> _strings;
   late final List<List<double>> _floatLists;
   late final List<SIImage> _images;
+  RenderContext _context;
+  RenderContext get context => _context;
+
+  _CompactVisitor(this._context);
 
   @override
   R init(R collector, List<SIImage> images, List<String> strings,
@@ -375,38 +379,62 @@ abstract class _CompactVisitor<R>
   }
 
   R siText(R collector, SIText text, int xIndex, int yIndex);
+
+  void pushContext(RenderContext c) {
+    assert(c.parent == _context);
+    _context = c;
+  }
+
+  void popContext() {
+    final c = _context.parent;
+    if (c == null) {
+      throw StateError('More pops than pushes');
+    }
+    _context = c;
+  }
+
+  @override
+  void assertDone() {
+    assert(_context.parent == null);
+  }
 }
 
 class _PaintingVisitor extends _CompactVisitor<void> {
   final Canvas canvas;
-  final Color currentColor;
 
-  _PaintingVisitor(this.canvas, this.currentColor);
+  _PaintingVisitor(this.canvas, RenderContext context)
+      : super(context);
 
   @override
   void get initial => null;
 
   @override
-  void group(void collector, Affine? transform, int? groupAlpha) =>
-      startPaintGroup(canvas, transform, groupAlpha);
+  void group(void collector, Affine? transform, int? groupAlpha) {
+    startPaintGroup(canvas, transform, groupAlpha);
+    pushContext(RenderContext(context, transform: transform));
+  }
 
   @override
-  void endGroup(void collector) => endPaintGroup(canvas);
+  void endGroup(void collector) {
+    endPaintGroup(canvas);
+    popContext();
+  }
+
 
   @override
-  void siPath(void collector, SIPath path) => path.paint(canvas, currentColor);
+  void siPath(void collector, SIPath path) => path.paint(canvas, context);
 
   @override
   void siClipPath(void collector, SIClipPath path) =>
-      path.paint(canvas, currentColor);
+      path.paint(canvas, context);
 
   @override
   void image(void collector, int imageIndex) =>
-      _images[imageIndex].paint(canvas, currentColor);
+      _images[imageIndex].paint(canvas, context);
 
   @override
   void siText(void collector, SIText text, int xIndex, int yIndex) =>
-      text.paint(canvas, currentColor);
+      text.paint(canvas, context);
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
@@ -426,7 +454,9 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
             (si.bigFloats) ? Float64Sink() : Float32Sink(),
             viewport,
             currentColor: si.currentColor,
-            warn: false) {
+            warn: false),
+        super(RenderContext.root(si, Colors.black))
+  {
     builder.vector(
         width: viewport.width,
         height: viewport.height,
@@ -454,7 +484,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
     final parent = _groupStack.isEmpty ? null : _groupStack.last;
     _groupStack
         .add(_PruningEntry(boundary, parent, this, transform, groupAlpha));
-    return transformBoundaryFromParent(boundary, transform);
+    pushContext(RenderContext(context, transform: transform));
+    return context.transformBoundaryFromParent(boundary);
   }
 
   @override
@@ -462,6 +493,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
     final us = _groupStack.last;
     _groupStack.length = _groupStack.length - 1;
     us.endGroupIfNeeded();
+    popContext();
     return us.boundary;
   }
 
@@ -624,9 +656,10 @@ class _PruningEntry {
 
 class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? boundary;
-  final groupStack = List<_BoundaryEntry>.empty(growable: true);
 
-  _BoundaryVisitor();
+  final _groupStack = List<PruningBoundary?>.empty(growable: true);
+
+  _BoundaryVisitor(ScalableImageCompact si) : super(RenderContext.root(si, Colors.black));
 
   @override
   PruningBoundary? get initial => null;
@@ -634,17 +667,18 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   @override
   PruningBoundary? group(
       PruningBoundary? initial, Affine? transform, int? groupAlpha) {
-    groupStack.add(_BoundaryEntry(initial, transform));
+    pushContext(RenderContext(context, transform: transform));
+    _groupStack.add(initial);
     return null;
   }
 
   @override
   PruningBoundary? endGroup(PruningBoundary? children) {
-    _BoundaryEntry us = groupStack.last;
-    groupStack.length = groupStack.length - 1;
-
-    return combine(
-        us.initial, us.transformBoundaryFromChildren(children, us.transform));
+    PruningBoundary? us = _groupStack.last;
+    _groupStack.length = _groupStack.length - 1;
+    RenderContext ctx = context;
+    popContext();
+    return combine(us, ctx.transformBoundaryFromChildren(children));
   }
 
   @override
@@ -678,13 +712,6 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
       PruningBoundary? boundary, SIText text, int xIndex, int yIndex) {
     return combine(boundary, text.getBoundary());
   }
-}
-
-class _BoundaryEntry with SIGroupHelper {
-  final PruningBoundary? initial;
-  final Affine? transform;
-
-  _BoundaryEntry(this.initial, this.transform);
 }
 
 mixin _SICompactPathBuilder {

@@ -578,6 +578,7 @@ abstract class ScalableImageBase extends ScalableImage {
     }
   }
 
+  @override
   Rect get viewport {
     if (_viewport != null) {
       return _viewport!;
@@ -608,12 +609,14 @@ abstract class ScalableImageBase extends ScalableImage {
     }
   }
 
+  @override
   void unprepareImages() {
     for (final im in images) {
       im.unprepare();
     }
   }
 
+  @override
   void paint(Canvas c) {
     Rect vp = viewport;
     c.translate(-vp.left, -vp.top);

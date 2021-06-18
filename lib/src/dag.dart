@@ -59,6 +59,8 @@ class ScalableImageDag extends ScalableImageBase
   @override
   final List<SIRenderable> _renderables;
 
+  RenderContext? _context;
+
   ScalableImageDag(
       {required double? width,
       required double? height,
@@ -117,6 +119,8 @@ class ScalableImageDag extends ScalableImageBase
         tintMode: tintMode);
   }
 
+  @override RenderContext get context => _context ??= RenderContext.root(this, currentColor);
+
   @override
   ScalableImage withNewViewport(Rect viewport,
       {bool prune = false, double pruningTolerance = 0}) {
@@ -154,8 +158,9 @@ class ScalableImageDag extends ScalableImageBase
 
   @override
   void paintChildren(Canvas c, Color currentColor) {
+    final context = RenderContext.root(this, currentColor);
     for (final r in _renderables) {
-      r.paint(c, currentColor);
+      r.paint(c, context);
     }
   }
 
@@ -182,6 +187,7 @@ class ScalableImageDag extends ScalableImageBase
 
 abstract class _SIParentBuilder {
   List<SIRenderable> get _renderables;
+  RenderContext get context;
 }
 
 abstract class _SIParentNode {
@@ -234,33 +240,34 @@ abstract class _SIParentNode {
 class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   final List<SIRenderable> _renderables;
-  final Affine? transform;
   final int? groupAlpha;
   int? _hashCode;
+  final RenderContext context;
 
-  SIGroup(this.transform, Iterable<SIRenderable> renderables, this.groupAlpha)
+  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.context)
       : _renderables = List.unmodifiable(renderables);
 
   SIGroup._modified(SIGroup other, this._renderables)
-      : transform = other.transform,
+      : context = other.context,
         groupAlpha = other.groupAlpha;
 
   @override
   List<SIRenderable> _childrenPrunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
-    b = transformBoundaryFromParent(b, transform);
+    b = context.transformBoundaryFromParent(b);
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
   @override
   PruningBoundary? getBoundary() =>
-      transformBoundaryFromChildren(super.getBoundary(), transform);
+      context.transformBoundaryFromChildren(super.getBoundary());
 
   @override
-  void paint(Canvas c, Color currentColor) {
-    startPaintGroup(c, transform, groupAlpha);
+  void paint(Canvas c, RenderContext parentContext) {
+    assert(parentContext == context.parent);
+    startPaintGroup(c, context.transform, groupAlpha);
     for (final r in _renderables) {
-      r.paint(c, currentColor);
+      r.paint(c, context);
     }
     endPaintGroup(c);
   }
@@ -291,13 +298,14 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     } else if (!(other is SIGroup)) {
       return false;
     } else {
-      return transform == other.transform &&
+      return context == other.context &&
           groupAlpha == other.groupAlpha &&
           quiver.listsEqual(_renderables, other._renderables);
     }
   }
 
   bool _hashing = false;
+
   @override
   int get hashCode {
     if (_hashCode == null) {
@@ -307,7 +315,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
           quiver.hash3(
             quiver.hashObjects(_renderables),
             groupAlpha,
-            transform.hashCode,
+            context,
           );
       _hashing = false;
     }
@@ -319,12 +327,13 @@ class _GroupBuilder implements _SIParentBuilder {
   @override
   final List<SIRenderable> _renderables;
   final int? groupAlpha;
-  final Affine? transform;
+  @override
+  final RenderContext context;
 
-  _GroupBuilder(this.transform, this.groupAlpha)
+  _GroupBuilder(this.context, this.groupAlpha)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
-  SIGroup get group => SIGroup(transform, _renderables, groupAlpha);
+  SIGroup get group => SIGroup(_renderables, groupAlpha, context);
 }
 
 ///
@@ -471,7 +480,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     if (transform != null) {
       transform = _daggerize(transform);
     }
-    final g = _GroupBuilder(transform, groupAlpha);
+    final g = _GroupBuilder(RenderContext(_parentStack.last.context, transform: transform), groupAlpha);
     _parentStack.add(g);
   }
 

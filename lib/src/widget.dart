@@ -211,8 +211,9 @@ class _SIPainter extends CustomPainter {
     }
     final extraX = size.width - vp.width * sx;
     final extraY = size.height - vp.height * sy;
-    canvas.translate(
-        (1 + _alignment.x) * extraX / 2, (1 + _alignment.y) * extraY / 2);
+    final tx = (1 + _alignment.x) * extraX / 2;
+    final ty = (1 + _alignment.y) * extraY / 2;
+    canvas.translate(tx, ty);
     canvas.scale(sx, sy);
     _si.paint(canvas);
   }

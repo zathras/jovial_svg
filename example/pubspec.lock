@@ -108,7 +108,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.4"
+    version: "1.0.5-upcoming"
   matcher:
     dependency: transitive
     description:

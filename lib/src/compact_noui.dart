@@ -94,7 +94,9 @@ class CompactTraverser<R, IM> {
 
   R traverse(R collector) {
     collector = _visitor.init(collector, _images, _strings, _floatLists);
-    return traverseGroup(collector);
+    final r = traverseGroup(collector);
+    _visitor.assertDone();
+    return r;
   }
 
   R traverseGroup(R collector) {
