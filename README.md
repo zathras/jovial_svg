@@ -17,6 +17,9 @@ are supported.  A widget for displaying these scalable images is provided.
 The library is [published to `pub.dev`](https://pub.dev/packages/jovial_svg),
 where you can also find the
 [dartdocs](https://pub.dev/documentation/jovial_svg/latest/jovial_svg/jovial_svg-library.html).
+It's used for the jupiter icon in
+[JRPN](https://jrpn.jovial.com), and for the cards in
+[Jovial Aisleriot](https://aisleriot.jovial.com/).
 
 <img width="100%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
 
