@@ -167,7 +167,7 @@ abstract class ScalableImage {
   /// The pruning tolerance allows you to prune away paths that are
   /// just slightly within the new viewport.  A positive sub-pixel
   /// tolerance might reduce the size of the new image with no
-  /// discernable visual impact.
+  /// discernible visual impact.
   ScalableImage withNewViewport(Rect viewport,
       {bool prune = false, double pruningTolerance = 0});
 
@@ -187,8 +187,16 @@ abstract class ScalableImage {
   /// Returns this SI as an in-memory directed acyclic graph of nodes.
   /// As compared to a compact scalable image, the DAG representation can
   /// be expected to render somewhat faster, at a significant cost in
-  /// memory.  In informal measurements, the DAG representation rendered
-  /// about 3x faster.  Building a graph structure out of Dart objects might
+  /// memory.  In informal measurements, the DAG representation's paint method
+  /// ran about 3x faster.
+  ///
+  /// Note, however, that it would not be surprising for the dominant factor
+  /// in framerate to be a bottleneck elsewhere in the rendering pipeline,
+  /// e.g. in the GPU.  Under these circumstances, there might be no
+  /// significant overall rendering performance difference between the compact
+  /// and the DAG representations.
+  ///
+  /// Building a graph structure out of Dart objects might
   /// increase memory usage by an order of magnitude.
   ///
   /// If this image is already a DAG, this method just returns it.
@@ -204,9 +212,8 @@ abstract class ScalableImage {
   /// `dart run jovial_svg:avd_to_si`.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
   ///
   /// See also [ScalableImage.currentColor].
   ///
@@ -230,9 +237,8 @@ abstract class ScalableImage {
   /// `dart run jovial_svg:avd_to_si`.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
   ///
   /// See also [ScalableImage.currentColor].
   ///
@@ -250,9 +256,10 @@ abstract class ScalableImage {
   /// Parse an SVG XML string to a scalable image
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -283,9 +290,10 @@ abstract class ScalableImage {
   /// from [b] and parse it into a scalable image.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -315,9 +323,10 @@ abstract class ScalableImage {
   /// ```
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -344,9 +353,10 @@ abstract class ScalableImage {
   /// and parse it into a scalable image.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -372,9 +382,10 @@ abstract class ScalableImage {
   /// Parse an Android Vector Drawable XML string to a scalable image.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -399,9 +410,10 @@ abstract class ScalableImage {
   /// from [b] and parse it into a scalable image.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
@@ -420,9 +432,10 @@ abstract class ScalableImage {
   /// and parse it into a scalable image.
   ///
   /// If [compact] is true, the internal representation will occupy
-  /// significantly less memory, at the expense of rendering time.  It will
-  /// occupy perhaps an order of magnitude less memory, but render perhaps
-  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
