@@ -44,6 +44,13 @@ import 'exported.dart';
 /// automatically scaled by the widget, and fit into the available area
 /// with a `BoxFit` and an `Alignment`.
 ///
+/// Note that rendering a scalable image can be time-consuming if the
+/// underlying scene is complex.  Notably, GPU performance can be a
+/// bottleneck.  If animations are played over an unchanging [ScalableImage],
+/// wrapping the
+/// [ScalableImageWidget] in Flutter's `RepaintBoundary`
+/// might result in significantly better performance.
+///
 abstract class ScalableImageWidget extends StatefulWidget {
   ScalableImageWidget._p(Key? key) : super(key: key);
 

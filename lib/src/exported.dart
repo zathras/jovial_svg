@@ -112,6 +112,14 @@ enum ImageDisposeBugWorkaround {
 /// `ScalableImageWidget` defined in the
 /// `jovial_svg.widget` library.
 ///
+/// Note that rendering a scalable image can be time-consuming if the
+/// underlying scene is complex.  Notably, GPU performance can be a
+/// bottleneck.  If one or more [ScalableImage] instances is used in animation,
+/// or has animation played over it, it might be worthwhile to cache
+/// a pre-rendered version of the [ScalableImage].  cf. Flutter's
+/// `Picture.toImage` and the notes about `RepaintBoundary` in
+/// `ScalableImageWidget`.
+///
 abstract class ScalableImage {
   /// Width, in pixels.
   final double? width;
