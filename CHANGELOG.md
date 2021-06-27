@@ -24,3 +24,9 @@ believed to be representative.
 - Make default stop-color black in gradients (thanks, 
   [Jarle](https://github.com/jarlestabell)).
 - Add informative documentation about rendering performance.
+
+## [1.0.6] - June 27, 2021
+
+- Library seems stable, so spinning a release because pub.dev wants
+  a trivial dartfmt run, and I suppose this might influence the search
+  algorithm.

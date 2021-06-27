@@ -96,7 +96,6 @@ enum ImageDisposeBugWorkaround {
   disposeBoth
 }
 
-
 ///
 /// The main entry point to this library.  This class features several
 /// static methods to load a [ScalableImage] from various sources.  It
