@@ -30,3 +30,7 @@ believed to be representative.
 - Library seems stable, so spinning a release because pub.dev wants
   a trivial dartfmt run, and I suppose this might influence the search
   algorithm.
+
+## [1.0.7] - in process
+
+- Address issue 7 (relatively harmless race condition).

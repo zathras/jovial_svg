@@ -158,9 +158,13 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   }
 
   void _registerWithFuture(final Future<void> f) {
-    unawaited(f.then((void _) => setState(() {
+    unawaited(f.then((void _) {
+      if (mounted) {
+        setState(() {
           _painter = _newPainter(widget, false);
-        })));
+        });
+      }
+    }));
   }
 
   @override
@@ -269,7 +273,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 
   void _registerWithFuture(final ScalableImageSource src) {
     unawaited(src.si.then((ScalableImage a) {
-      if (widget._siSource == src) {
+      if (mounted && widget._siSource == src) {
         // If it's not stale, perhaps due to reparenting
         setState(() => _si = a);
       }
