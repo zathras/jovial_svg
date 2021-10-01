@@ -49,11 +49,16 @@ import 'dag.dart';
 import 'svg_parser.dart';
 
 ///
-/// As of the date of publication of this library, there are several bugs
-/// in the most current shipped version of Flutter (2.2.2)
+/// As of Flutter 2.5, this enum is obsolete.  Because `jovial_svg` version
+/// 1.0.7 sets the minimum SDK to 2.14, and 2.14 includes Flutter 2.5, it
+/// should be OK to ignore this.  It is maintained for backwards compatibility
+/// with earlier versions.
+///
+/// As of the initial date of publication of this library, there were several
+/// bugs in the then-current shipped version of Flutter (2.2.2)
 /// involving the `dispose()`
 /// method of `ImageDescriptor` and `ImmutableImageBuffer`.  The only safe
-/// thing to do with this version of Flutter is to refrain from calling
+/// thing to do with this version of Flutter was to refrain from calling
 /// `dispose()` on these objects.  This is non-optimal, since it is a potential
 /// memory leak.  Even if a future version of Flutter correctly uses
 /// finalization to eventually dispose of the native memory backing these
@@ -62,19 +67,19 @@ import 'svg_parser.dart';
 /// finalized.
 ///
 /// For this reason, a setting to call `dispose()` on one or both of these
-/// objects is exposed.  That way, an application can cause `dispose()` to be
+/// objects was exposed.  That way, an application can cause `dispose()` to be
 /// called when the Flutter libraries are fixed, even if `jovial_svg` is not
 /// updated to follow the Flutter releases.  In addition, `jovial_svg` should
 /// be conservative about following the latest Flutter releases too closely,
 /// as regards the default behavior.
 ///
-/// Further, it's not presently documented if client code is supposed to call
+/// Further, it was not documented if client code was supposed to call
 /// `ImmutableImageBuffer.dispose()` after handing the buffer off to
 /// `ImageDescriptor`.  The most reasonable answer is "yes" - typically, one
 /// uses reference counting internally for this sort of thing - but given
 /// the instability of this area of Flutter, counting on the eventual
-/// specification going either way would be risky.  For this reason, we separate
-/// out the two `dispose()` calls in the global setting.
+/// specification going either way would have been risky.  For this reason,
+/// we separate out the two `dispose()` calls in the global setting.
 ///
 /// See also [ScalableImage.imageDisposeBugWorkaround], where clients of this
 /// library can change the behavior.
@@ -85,9 +90,10 @@ import 'svg_parser.dart';
 ///   * https://github.com/flutter/flutter/issues/83908
 ///   * https://github.com/flutter/flutter/issues/83910
 ///
-/// Note that this may have been fixed by
+/// Note that these may have been fixed by
 /// https://github.com/flutter/engine/pull/26435, but as of the date of this
-/// library's publication, that had not yet been released.
+/// library's initial publication, that had not yet been released.  As of
+/// Flutter 2.5, it has been.
 ///
 enum ImageDisposeBugWorkaround {
   disposeImageDescriptor,
@@ -498,14 +504,17 @@ abstract class ScalableImage {
 
   ///
   /// Set the global policy as regards the various bugs in the `dispose()`
-  /// methods for parts of the Flutter image system.  When fixes for the
-  /// various bugs are in the main Flutter release, the default value of
-  /// this variable may be updated to reflect the new platform.
+  /// methods for parts of the Flutter image system.  As of Flutter 2.5.0,
+  /// these bugs appear to have been fixed, so the library default was changed
+  /// from `disposeNeither` to `disposeBoth` in `jovial_svg` version 1.0.7.
+  /// Assuming there is no regression in Flutter, and that the Flutter bugs
+  /// were completely fixed, client code should not need to change this
+  /// default.
   ///
   /// See [ImageDisposeBugWorkaround].
   ///
   static ImageDisposeBugWorkaround imageDisposeBugWorkaround =
-      ImageDisposeBugWorkaround.disposeNeither;
+      ImageDisposeBugWorkaround.disposeBoth;
 }
 
 ///
