@@ -97,14 +97,19 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [clip], if true, will cause the widget to enforce the boundaries of
   /// the scalable image.
   ///
+  /// [cache] is used to share [ScalableImage] instances.  If null,
+  /// [ScalableImageCache.defaultCache] will be used.
+  ///
   factory ScalableImageWidget.fromSISource(
           {Key? key,
           required ScalableImageSource si,
           BoxFit fit = BoxFit.contain,
           Alignment alignment = Alignment.center,
           bool clip = true,
-          double scale = 1}) =>
-      _AsyncSIWidget(key, si, fit, alignment, clip, scale);
+          double scale = 1,
+          ScalableImageCache? cache}) =>
+      _AsyncSIWidget(key, si, fit, alignment, clip, scale,
+          cache ?? ScalableImageCache.defaultCache);
 }
 
 class _SyncSIWidget extends ScalableImageWidget {
@@ -244,9 +249,10 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
+  final ScalableImageCache _cache;
 
   _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
-      this._clip, this._scale)
+      this._clip, this._scale, this._cache)
       : super._p(key);
 
   @override
@@ -259,20 +265,29 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   @override
   void initState() {
     super.initState();
-    _registerWithFuture(widget._siSource);
+    Future<ScalableImage> si = widget._cache.addReference(widget._siSource);
+    _registerWithFuture(widget._siSource, si);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget._cache.removeReference(widget._siSource);
   }
 
   @override
   void didUpdateWidget(_AsyncSIWidget old) {
     super.didUpdateWidget(old);
     if (old._siSource != widget._siSource) {
+      widget._cache.removeReference(old._siSource);
+      Future<ScalableImage> si = widget._cache.addReference(widget._siSource);
       _si = null;
-      _registerWithFuture(widget._siSource);
+      _registerWithFuture(widget._siSource, si);
     }
   }
 
-  void _registerWithFuture(final ScalableImageSource src) {
-    unawaited(src.si.then((ScalableImage a) {
+  void _registerWithFuture(ScalableImageSource src, Future<ScalableImage> si) {
+    unawaited(si.then((ScalableImage a) {
       if (mounted && widget._siSource == src) {
         // If it's not stale, perhaps due to reparenting
         setState(() => _si = a);
@@ -302,6 +317,17 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 /// `operator ==` and `hashCode`.
 ///
 abstract class ScalableImageSource {
+  ///
+  /// Get the ScalableImage from this source.  If called multiple times, this
+  /// method should return the same [Future] instance.
+  ///
+  /// NOTE:  For backwards compatibility reasons, callers should not rely on
+  /// getting the same future for subsequent calls, because
+  /// this requirement was not documented in earlier versions of this library.
+  /// However, all implementers of [ScalableImageSource] in the `jovial_svg`
+  /// library do return the same instance, which can be helpful for instance
+  /// sharing between image caches.
+  ///
   Future<ScalableImage> get si;
 
   ///
@@ -416,13 +442,16 @@ class _AvdBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
+  Future<ScalableImage>? _si;
 
   _AvdBundleSource(this.bundle, this.key,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si => ScalableImage.fromAvdAsset(bundle, key,
-      compact: compact, bigFloats: bigFloats, warn: warn);
+  Future<ScalableImage> get si =>
+      _si ??
+      (_si = ScalableImage.fromAvdAsset(bundle, key,
+          compact: compact, bigFloats: bigFloats, warn: warn));
 
   @override
   bool operator ==(final Object other) {
@@ -450,16 +479,19 @@ class _SvgBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
+  Future<ScalableImage>? _si;
 
   _SvgBundleSource(this.bundle, this.key, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si => ScalableImage.fromSvgAsset(bundle, key,
-      currentColor: currentColor,
-      compact: compact,
-      bigFloats: bigFloats,
-      warn: warn);
+  Future<ScalableImage> get si =>
+      _si ??
+      (_si = ScalableImage.fromSvgAsset(bundle, key,
+          currentColor: currentColor,
+          compact: compact,
+          bigFloats: bigFloats,
+          warn: warn));
 
   @override
   bool operator ==(final Object other) {
@@ -488,18 +520,19 @@ class _SvgHttpSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
+  Future<ScalableImage>? _si;
 
   _SvgHttpSource(this.url, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si {
-    return ScalableImage.fromSvgHttpUrl(url,
-        currentColor: currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warn: warn);
-  }
+  Future<ScalableImage> get si =>
+      _si ??
+      (_si = ScalableImage.fromSvgHttpUrl(url,
+          currentColor: currentColor,
+          compact: compact,
+          bigFloats: bigFloats,
+          warn: warn));
 
   @override
   bool operator ==(final Object other) {
@@ -524,12 +557,15 @@ class _SIBundleSource extends ScalableImageSource {
   final AssetBundle bundle;
   final String key;
   final Color? currentColor;
+  Future<ScalableImage>? _si;
 
   _SIBundleSource(this.bundle, this.key, this.currentColor);
 
   @override
   Future<ScalableImage> get si =>
-      ScalableImage.fromSIAsset(bundle, key, currentColor: currentColor);
+      _si ??
+      (_si =
+          ScalableImage.fromSIAsset(bundle, key, currentColor: currentColor));
 
   @override
   bool operator ==(final Object other) {
@@ -544,4 +580,141 @@ class _SIBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode => 0xf67cd716 ^ quiver.hash3(bundle, key, currentColor);
+}
+
+// An entry in the cache, which might be held on the LRU list.  The LRU list
+// is doubly-linked and wraps around to a dummy head node.
+//
+// Flutter's LinkedListEntry<T> didn't quite fit, and it's not like a
+// doubly-linked list is hard, anyway.
+class _CacheEntry {
+  ScalableImageSource? _siSrc;
+  Future<ScalableImage>? _si;
+  int _refCount = 0;
+  _CacheEntry? _moreRecent;
+  _CacheEntry? _lessRecent;
+}
+
+///
+/// A cache of futures derived from [ScalableImageSource] instances.  Creating
+/// a cache with a non-zero size could make sense as part of the state of a
+/// stateful widget that builds entries on demand, and that uses
+/// [ScalableImageWidget.fromSISource] to asynchronously load scalable images.
+/// See, for example, `cache.dart` in the `example` directory.
+
+///
+class ScalableImageCache {
+  final _canonicalized = <ScalableImageSource, _CacheEntry>{};
+
+  int _size;
+
+  // List of unreferenced ScalableImageSource instances, stored as a
+  // doubly-linked list with a dummy head node.  The most recently
+  // used is _lruList._lessRecent, and the least recently used is
+  // _lruList._moreRecent.
+  final _lruList = _CacheEntry();
+
+  ///
+  /// Create an image cache that holds up to [size] image sources.
+  /// A [ScalableImageCache] will always keep referenced [ScalableImageSource]
+  /// instances, even if this exceeds the cache size.  In this case, no
+  /// unreferenced images would be kept.
+  ///
+  ScalableImageCache({int size = 0}) : _size = size {
+    _lruList._lessRecent = _lruList;
+    _lruList._moreRecent = _lruList;
+  }
+
+  ///
+  /// A default cache.  By default, this cache holds zero unreferenced
+  /// image sources.
+  ///
+  static final defaultCache = ScalableImageCache();
+
+  ///
+  /// The size of the cache.  If the cache holds unreferenced images, the total
+  /// number of images will be held to this size.
+  ///
+  int get size => _size;
+  set size(int val) {
+    if (val < 0) {
+      throw ArgumentError.value(val, 'cache size');
+    }
+    _size = size;
+    _trimLRU();
+  }
+
+  ///
+  /// Called when a [ScalableImageSource] is referenced,
+  /// e.g. in a stateful widget's [State] object's `initState` method.
+  /// Returns a Future for the scalable image.  Always
+  /// returns the same Future as previously returned if the given source is
+  /// in the cache.
+  ///
+  /// Application code should use the returned future, and not use
+  /// [ScalableImageSource.si] directly.
+  ///
+  Future<ScalableImage> addReference(ScalableImageSource src) {
+    _CacheEntry? e = _canonicalized[src];
+    if (e == null) {
+      e = _CacheEntry();
+      e._siSrc = src;
+      e._si = src.si;
+      _canonicalized[src] = e;
+    } else if (e._lessRecent != null) {
+      // Now it's referenced, so we take it off the LRU list.
+      assert(e._refCount == 0);
+      e._lessRecent!._moreRecent = e._moreRecent;
+      e._moreRecent!._lessRecent = e._lessRecent;
+      e._lessRecent = e._moreRecent = null;
+    } else {
+      assert(e._refCount > 0);
+    }
+    e._refCount++;
+    return e._si!;
+  }
+
+  ///
+  /// Called when a source is derereferenced,
+  /// e.g. by a stateful widget's [State] object being disposed.
+  ///
+  void removeReference(ScalableImageSource src) {
+    _CacheEntry? e = _canonicalized[src];
+    if (e == null) {
+      assert(false);
+      return;
+    }
+    assert(e._refCount > 0);
+    e._refCount--;
+    if (e._refCount == 0) {
+      _addToLRU(e);
+    }
+  }
+
+  void _addToLRU(_CacheEntry e) {
+    assert(e._moreRecent == null);
+    if (_size > 0) {
+      // e is now the most recent.  _lruList.lessRecent points to the
+      // most recent, and _lruList.moreRecent points to the least recent.
+      // Remember, the list wraps around at the dummy head node.
+      e._moreRecent = _lruList;
+      e._lessRecent = _lruList._lessRecent;
+      _lruList._lessRecent!._moreRecent = e;
+      _lruList._lessRecent = e;
+
+      _trimLRU();
+    }
+  }
+
+  void _trimLRU() {
+    while (_lruList._lessRecent != _lruList && _canonicalized.length > _size) {
+      // While lruList isn't empty, and we're over our capacity
+      final victim = _lruList._moreRecent!; // That's the least recently used
+      assert(victim != _lruList);
+      final _CacheEntry? removed = _canonicalized.remove(victim._siSrc);
+      assert(removed != null);
+      victim._moreRecent!._lessRecent = victim._lessRecent;
+      victim._lessRecent!._moreRecent = victim._moreRecent;
+    }
+  }
 }

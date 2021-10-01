@@ -63,4 +63,5 @@ POSSIBILITY OF SUCH DAMAGE.
 library jovial_svg;
 
 export 'src/exported.dart' show ScalableImage, ImageDisposeBugWorkaround;
-export 'src/widget.dart' show ScalableImageWidget, ScalableImageSource;
+export 'src/widget.dart'
+    show ScalableImageWidget, ScalableImageSource, ScalableImageCache;

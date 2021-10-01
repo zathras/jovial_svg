@@ -34,3 +34,4 @@ believed to be representative.
 ## [1.0.7] - in process
 
 - Address issue 7 (relatively harmless race condition).
+- Add ScalableImageCache (issue 6)
