@@ -790,16 +790,13 @@ class RenderContext {
   final Color currentColor;
   final Affine? transform;
 
-  RenderContext(RenderContext parent, {Color? currentColor, Affine? transform})
+  RenderContext(RenderContext this.parent,
+      {Color? currentColor, this.transform})
       : root = parent.root,
-        parent = parent,
-        currentColor = currentColor ?? parent.currentColor,
-        transform = transform;
+        currentColor = currentColor ?? parent.currentColor;
 
-  RenderContext.root(ScalableImage root, Color currentColor)
-      : root = root,
-        parent = null,
-        currentColor = currentColor,
+  RenderContext.root(this.root, this.currentColor)
+      : parent = null,
         transform = null;
 
   PruningBoundary? transformBoundaryFromChildren(PruningBoundary? b) {

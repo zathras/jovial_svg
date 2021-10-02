@@ -12,7 +12,9 @@ linter:
         await_only_futures: true
         exhaustive_cases: true
         avoid_print: false
-        prefer_initializing_formals: false
+        # avoid_print is a new lint as of 1.14.  This library uses print to send warnings
+        # to the developer, but of course we expect them to be turned off in production
+        # code.
 
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.

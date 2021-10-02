@@ -99,9 +99,8 @@ abstract class AbstractPathParser {
   PointT? _nextQuadControl;
   PointT _currentPoint;
 
-  AbstractPathParser(PathBuilder builder)
-      : builder = builder,
-        _initialPoint = const PointT(0, 0),
+  AbstractPathParser(this.builder)
+      : _initialPoint = const PointT(0, 0),
         _currentPoint = const PointT(0, 0);
 
   ///
