@@ -38,7 +38,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const _IMAGE_BASE_URL =
+const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
@@ -70,7 +70,7 @@ class Demo extends StatelessWidget {
   final List<Asset> assets;
   final ScalableImage firstSI;
 
-  Demo(this.assets, this.firstSI);
+  const Demo(this.assets, this.firstSI, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +92,7 @@ class Demo extends StatelessWidget {
 }
 
 class DemoScreen extends StatefulWidget {
-  DemoScreen(
+  const DemoScreen(
       {Key? key,
       required this.title,
       required this.bundle,
@@ -106,7 +106,7 @@ class DemoScreen extends StatefulWidget {
   final AssetBundle bundle;
 
   @override
-  _DemoScreenState createState() => _DemoScreenState(firstSI);
+  _DemoScreenState createState() => _DemoScreenState();
 }
 
 class _DemoScreenState extends State<DemoScreen> {
@@ -121,19 +121,20 @@ class _DemoScreenState extends State<DemoScreen> {
   double get _multiplier => pow(2.0, _scale).toDouble();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
 
-  _DemoScreenState(this.si);
+  _DemoScreenState();
 
   List<Asset> get assets => widget.assets;
 
   @override
   void initState() {
     super.initState();
+    si = widget.firstSI;
     assetName = assets[assetIndex].fileName(assetType)?.substring(7);
   }
 
   void _launch() {
     final String name = assets[assetIndex].svg;
-    launch('$_IMAGE_BASE_URL/$name', forceWebView: true);
+    launch('$_imageBaseURL/$name', forceWebView: true);
   }
 
   void _pasteURL(BuildContext context) {
@@ -179,13 +180,13 @@ class _DemoScreenState extends State<DemoScreen> {
             )),
             title: Text('${widget.title} - $assetName')),
         body: Column(children: [
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Center(
             child: Wrap(
                 spacing: 10,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  SizedBox(width: 0),
+                  const SizedBox(width: 0),
                   SizedBox(
                       width: 130,
                       child: Row(children: [
@@ -196,9 +197,9 @@ class _DemoScreenState extends State<DemoScreen> {
                                   _setType(AssetType.si);
                                 }
                               : null,
-                          child: Icon(Icons.arrow_left),
+                          child: const Icon(Icons.arrow_left),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         ElevatedButton(
                           onPressed: (assetIndex + 1 < assets.length)
                               ? () {
@@ -206,31 +207,31 @@ class _DemoScreenState extends State<DemoScreen> {
                                   _setType(AssetType.si);
                                 }
                               : null,
-                          child: Icon(Icons.arrow_right),
+                          child: const Icon(Icons.arrow_right),
                         ),
                       ])),
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   SizedBox(
                       width: 260,
                       child: Row(children: [
-                        Text('SI', style: const TextStyle()),
+                        const Text('SI', style: TextStyle()),
                         Radio(
                             value: AssetType.si,
                             groupValue: assetType,
                             onChanged: _setType),
-                        Spacer(),
-                        Text('Compact'),
+                        const Spacer(),
+                        const Text('Compact'),
                         Radio(
                             value: AssetType.compact,
                             groupValue: assetType,
                             onChanged: _setType),
-                        Spacer(),
-                        Text('SVG'),
+                        const Spacer(),
+                        const Text('SVG'),
                         Radio(
                             value: AssetType.svg,
                             groupValue: assetType,
                             onChanged: _setType),
-                        Spacer(),
+                        const Spacer(),
                         Text('AVD',
                             style: (asset.avd == null)
                                 ? const TextStyle(color: Colors.grey)
@@ -240,7 +241,7 @@ class _DemoScreenState extends State<DemoScreen> {
                             groupValue: assetType,
                             onChanged: asset.avd == null ? null : _setType),
                       ])),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   SizedBox(
                       width: 300,
                       child: Row(children: [
@@ -257,7 +258,7 @@ class _DemoScreenState extends State<DemoScreen> {
                                 },
                         ),
                         _fitToScreen
-                            ? Text('')
+                            ? const Text('')
                             : Text(
                                 'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
                                 textAlign: TextAlign.left),
@@ -265,7 +266,7 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 140,
                       child: Row(children: [
-                        Text('Fit to screen:  '),
+                        const Text('Fit to screen:  '),
                         Checkbox(
                             value: _fitToScreen,
                             onChanged: (_) => setState(() {
@@ -275,28 +276,28 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 120,
                       child: Row(children: [
-                        Text('Zoom/Prune'),
+                        const Text('Zoom/Prune'),
                         Checkbox(
                             value: _originalViewport != null,
                             onChanged: (_) => _changeZoomPrune())
                       ])),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
                       _launch();
                     },
-                    child: Text('Browser'),
+                    child: const Text('Browser'),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: () {
                       _pasteURL(context);
                     },
-                    child: Text('Paste URL'),
+                    child: const Text('Paste URL'),
                   ),
                 ]),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Expanded(
               child: _maybeScrolling(si == null
                   ? Text(errorMessage ?? '???')
@@ -340,7 +341,7 @@ class _DemoScreenState extends State<DemoScreen> {
 
   Widget _maybeScrolling(Widget scrollee) {
     if (_fitToScreen) {
-      return Container(padding: EdgeInsets.all(5), child: scrollee);
+      return Container(padding: const EdgeInsets.all(5), child: scrollee);
     } else {
       // The ValueKey works around a bug with InteractiveViewer, where it
       // doesn't ensure that content is re-scrolled to make it visible when
@@ -362,7 +363,7 @@ class _DemoScreenState extends State<DemoScreen> {
       //
       // cf. https://github.com/flutter/flutter/issues/83628
       return Container(
-          padding: EdgeInsets.all(5),
+          padding: const EdgeInsets.all(5),
           child: InteractiveViewer(
               key: ValueKey(Tuple2(_scale, si)),
               constrained: false,

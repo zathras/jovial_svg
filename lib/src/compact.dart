@@ -202,7 +202,7 @@ class ScalableImageCompact extends ScalableImageBase
   SITintMode blendModeToSI(BlendMode b) => SITintModeMapping.fromBlendMode(b);
 
   @override
-  int colorValue(Color c) => c.value;
+  int colorValue(Color tintColor) => tintColor.value;
 
   static ScalableImageCompact fromByteData(ByteData data,
           {Color? currentColor}) =>
@@ -405,7 +405,7 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   _PaintingVisitor(this.canvas, RenderContext context) : super(context);
 
   @override
-  void get initial => null;
+  void get initial  { }
 
   @override
   void group(void collector, Affine? transform, int? groupAlpha) {
@@ -575,7 +575,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   final Color? currentColor;
 
   @override
-  void get initial => null;
+  void get initial { }
 
   _PruningBuilder(bool bigFloats, ByteSink childrenSink, FloatSink args,
       FloatSink transforms, this.viewport,
@@ -752,7 +752,7 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
             warn: warn);
 
   @override
-  void get initial => null;
+  void get initial { }
 
   factory SICompactBuilder(
       {required bool bigFloats, required bool warn, Color? currentColor}) {

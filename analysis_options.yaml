@@ -1,7 +1,6 @@
 
-# include: package:flutter_lints/flutter.yaml
-include: package:pedantic/analysis_options.yaml
-# include: package:flutter_lints/flutter.yaml
+include: package:flutter_lints/flutter.yaml
+# include: package:pedantic/analysis_options.yaml
 
 linter:
     rules:
@@ -13,6 +12,8 @@ linter:
         comment_references: true
         await_only_futures: true
         exhaustive_cases: true
+        avoid_print: false
+        prefer_initializing_formals: false
 
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.

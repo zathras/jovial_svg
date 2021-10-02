@@ -52,7 +52,7 @@ import 'exported.dart';
 /// might result in significantly better performance.
 ///
 abstract class ScalableImageWidget extends StatefulWidget {
-  ScalableImageWidget._p(Key? key) : super(key: key);
+  const ScalableImageWidget._p(Key? key) : super(key: key);
 
   ///
   /// Create a widget to display a pre-loaded [ScalableImage].
@@ -119,21 +119,17 @@ class _SyncSIWidget extends ScalableImageWidget {
   final bool _clip;
   final double _scale;
 
-  _SyncSIWidget(
+  const _SyncSIWidget(
       Key? key, this._si, this._fit, this._alignment, this._clip, this._scale)
       : super._p(key);
 
   @override
-  State<StatefulWidget> createState() => _SyncSIWidgetState(this);
+  State<StatefulWidget> createState() => _SyncSIWidgetState();
 }
 
 class _SyncSIWidgetState extends State<_SyncSIWidget> {
-  _SIPainter _painter;
-  Size _size;
-
-  _SyncSIWidgetState(_SyncSIWidget initial)
-      : _painter = _newPainter(initial, true),
-        _size = _newSize(initial);
+  late _SIPainter _painter;
+  late Size _size;
 
   static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) =>
       _SIPainter(w._si, w._fit, w._alignment, w._clip, preparing);
@@ -144,6 +140,8 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   @override
   void initState() {
     super.initState();
+    _painter = _newPainter(widget, true);
+    _size = _newSize(widget);
     _registerWithFuture(widget._si.prepareImages());
   }
 
@@ -251,7 +249,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final double _scale;
   final ScalableImageCache _cache;
 
-  _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
+  const _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
       this._clip, this._scale, this._cache)
       : super._p(key);
 
@@ -299,7 +297,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   Widget build(BuildContext context) {
     final si = _si;
     if (si == null) {
-      return Container(width: 1, height: 1);
+      return const SizedBox(width: 1, height: 1);
     } else {
       return _SyncSIWidget(null, si, widget._fit, widget._alignment,
           widget._clip, widget._scale);

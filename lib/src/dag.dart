@@ -265,11 +265,11 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       context.transformBoundaryFromChildren(super.getBoundary());
 
   @override
-  void paint(Canvas c, RenderContext parentContext) {
-    assert(parentContext == context.parent);
-    startPaintGroup(c, context.transform, groupAlpha);
+  void paint(Canvas c, RenderContext context) {
+    assert(context == this.context.parent);
+    startPaintGroup(c, this.context.transform, groupAlpha);
     for (final r in _renderables) {
-      r.paint(c, context);
+      r.paint(c, this.context);
     }
     endPaintGroup(c);
   }
@@ -297,7 +297,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is SIGroup)) {
+    } else if (other is! SIGroup) {
       return false;
     } else {
       return context == other.context &&
@@ -373,11 +373,11 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   PathDataT immutableKey(PathDataT key);
 
   @override
-  void get initial => null;
+  void get initial { }
 
   @override
-  void path(void collector, PathDataT pathData, SIPaint siPaint) {
-    final p = _daggerize(SIPath(_getPath(pathData), _daggerize(siPaint)));
+  void path(void collector, PathDataT pathData, SIPaint paint) {
+    final p = _daggerize(SIPath(_getPath(pathData), _daggerize(paint)));
     addRenderable(p);
   }
 
@@ -397,16 +397,16 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  PathBuilder? startPath(SIPaint siPaint, Object key) {
+  PathBuilder? startPath(SIPaint paint, Object key) {
     final p = _paths[key];
     if (p != null) {
-      final sip = _daggerize(SIPath(p, siPaint));
+      final sip = _daggerize(SIPath(p, paint));
       addRenderable(sip);
       return null;
     }
     return UIPathBuilder(onEnd: (pb) {
       _paths[key] = pb.path;
-      final p = _daggerize(SIPath(pb.path, siPaint));
+      final p = _daggerize(SIPath(pb.path, paint));
       addRenderable(p);
     });
   }
@@ -414,9 +414,9 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
   @override
-  void init(void collector, List<IM> images, List<String> strings,
+  void init(void collector, List<IM> im, List<String> strings,
       List<List<double>> floatLists) {
-    _images = convertImages(images);
+    _images = convertImages(im);
     _strings = strings;
     _floatLists = floatLists;
     assert(_si == null);
@@ -434,15 +434,15 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   List<SIImage> convertImages(List<IM> images);
 
   @override
-  void image(void collector, int imageNumber) =>
-      addRenderable(_images[imageNumber]);
+  void image(void collector, int imageIndex) =>
+      addRenderable(_images[imageIndex]);
 
   @override
   @mustCallSuper
   void text(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
+      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
     addRenderable(SIText(_strings[textIndex], _floatLists[xIndex],
-        _floatLists[yIndex], ta, _daggerize(p)));
+        _floatLists[yIndex], a, _daggerize(paint)));
   }
 
   ScalableImageDag get si {

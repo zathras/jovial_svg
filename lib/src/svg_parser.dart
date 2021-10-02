@@ -428,7 +428,7 @@ abstract class SvgParser extends GenericParser {
         getSvgColor(attrs.remove('stop-color')?.trim() ?? 'black');
     if (color != SvgColor.inherit &&
         color != SvgColor.currentColor &&
-        !(color is SvgValueColor)) {
+        color is! SvgValueColor) {
       throw ParseError('Illegal color value for gradient stop:  $color');
     }
     int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;

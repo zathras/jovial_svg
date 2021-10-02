@@ -359,7 +359,7 @@ class SIClipPath extends SIRenderable {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is SIClipPath)) {
+    } else if (other is! SIClipPath) {
       return false;
     } else {
       return path == other.path;
@@ -483,7 +483,7 @@ class SIPath extends SIRenderable implements _HasBounds {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is SIPath)) {
+    } else if (other is! SIPath) {
       return false;
     } else {
       return path == other.path && siPaint == other.siPaint;
@@ -607,7 +607,7 @@ class SIImage extends SIRenderable {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is SIImage)) {
+    } else if (other is! SIImage) {
       return false;
     } else {
       return x == other.x &&
@@ -638,7 +638,7 @@ class SIText extends SIRenderable implements _HasBounds {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is SIText)) {
+    } else if (other is! SIText) {
       return false;
     } else {
       return quiver.listsEqual(_x, other._x) &&
@@ -825,7 +825,7 @@ class RenderContext {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is RenderContext)) {
+    } else if (other is! RenderContext) {
       return false;
     } else {
       //  Two render contexts are equivalent even if they are rooted at

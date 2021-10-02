@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 /// A sample application to demonstrate using ScalableImageCache
@@ -10,6 +10,8 @@ void main() {
 /// race condition issue 7 (https://github.com/zathras/jovial_svg/issues/7).
 
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      home: const HomePage(),
     );
   }
 }
@@ -33,16 +35,18 @@ class HomePage extends StatelessWidget {
   // so you can see reloading if you scroll all the way back and forth.
   static final ScalableImageCache svgCache = ScalableImageCache(size: 70);
 
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Issues 6, 7'),
+        title: const Text('Issues 6, 7'),
       ),
       body: GridView.builder(
           itemCount: svgs.length,
           gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5),
+              const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5),
           itemBuilder: (context, index) {
             return GridTile(
               child: ScalableImageWidget.fromSISource(

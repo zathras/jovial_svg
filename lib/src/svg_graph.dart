@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 /*
 Copyright (c) 2021 William Foote
 
@@ -155,7 +157,7 @@ class SvgPaint {
 
   factory SvgPaint.initial() => SvgPaint(
       currentColor: SvgColor.currentColor, // Inherit from SVG container
-      fillColor: SvgValueColor(0xff000000),
+      fillColor: const SvgValueColor(0xff000000),
       fillAlpha: 0xff,
       strokeColor: SvgColor.none,
       strokeAlpha: 0xff,
@@ -876,7 +878,7 @@ class _SvgColorReference extends SvgColor {
   @override
   SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) {
     final n = ids[id];
-    if (!(n is SvgGradientNode)) {
+    if (n is! SvgGradientNode) {
       throw ParseError('Gradient $id not found');
     }
     return n.gradient;

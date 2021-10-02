@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
 void main() {
-  runApp(MinimalSample());
+  runApp(const MinimalSample());
 }
 
 ///
@@ -11,6 +11,8 @@ void main() {
 /// for a prototype.
 ///
 class MinimalSample extends StatelessWidget {
+  const MinimalSample({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

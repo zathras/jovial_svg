@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 /*
 MIT License
 
@@ -38,7 +40,7 @@ import 'affine.dart';
 import 'common_noui.dart';
 import 'path_noui.dart';
 
-const _DEBUG_COMPACT = false;
+const _debugCompact = false;
 
 ///
 /// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
@@ -170,7 +172,7 @@ class CompactTraverser<R, IM> {
         _getTransform(hasTransform, hasTransformNumber, _children);
     final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
     collector = _visitor.group(collector, transform, groupAlpha);
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
       int d = _children.readUnsignedShort();
@@ -191,7 +193,7 @@ class CompactTraverser<R, IM> {
         hasPaintNumber: hasPaintNumber,
         fillColorType: fillColorType,
         strokeColorType: strokeColorType);
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek, '$currArgSeek, $_args');
     }
@@ -231,7 +233,7 @@ class CompactTraverser<R, IM> {
   R clipPath(R collector, {required bool hasPathNumber}) {
     final CompactChildData pathData = _getPathData(hasPathNumber);
     collector = _visitor.clipPath(collector, pathData);
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
     }
@@ -431,7 +433,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       throw StateError("Can't write file with _DEBUG_COMPACT turned on.");
     }
     out.writeUnsignedInt(magicNumber);
@@ -620,7 +622,7 @@ class CompactChildData {
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (!(other is CompactChildData)) {
+    } else if (other is! CompactChildData) {
       return false;
     } else {
       final r =
@@ -861,7 +863,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   int get numPaints => _paintShare.length;
 
   @override
-  void get initial => null;
+  void get initial { }
 
   static int _flag(bool v, int bit) => v ? (1 << bit) : 0;
 
@@ -900,9 +902,9 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void init(void collector, List<IM> images, List<String> strings,
+  void init(void collector, List<IM> im, List<String> strings,
       List<List<double>> floatLists) {
-    this.images = images;
+    images = im;
     this.strings = strings;
     this.floatLists = floatLists;
   }
@@ -918,7 +920,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
       assert(len + 1 == _pathShare.length);
       makePath(pathData, CompactPathBuilder(this), warn: warn);
     }
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       children.writeUnsignedInt(args.length + 100);
     }
   }
@@ -939,7 +941,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     if (groupAlpha != null) {
       children.writeByte(groupAlpha);
     }
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       children.writeUnsignedInt(args.length + 100);
       children.writeUnsignedShort(_debugGroupDepth++);
     }
@@ -948,39 +950,39 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   @override
   void endGroup(void collector) {
     children.writeByte(END_GROUP_CODE);
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       _debugGroupDepth--;
     }
   }
 
   @override
-  void path(void collector, PathDataT pathData, SIPaint siPaint) {
+  void path(void collector, PathDataT pathData, SIPaint paint) {
     Object? key = immutableKey(pathData);
-    final pb = startPath(siPaint, key);
+    final pb = startPath(paint, key);
     if (pb != null) {
       makePath(pathData, pb, warn: false);
     }
   }
 
   @override
-  void image(void collector, imageNumber) {
+  void image(void collector, int imageIndex) {
     children.writeByte(IMAGE_CODE);
-    _writeSmallishInt(children, imageNumber);
+    _writeSmallishInt(children, imageIndex);
   }
 
   @override
   void text(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
-    final int? paintNumber = _paintShare[p];
+      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
+    final int? paintNumber = _paintShare[paint];
     children.writeByte(TEXT_CODE |
         _flag(paintNumber != null, 0) |
         _flag(fontFamilyIndex != null, 1) |
-        (_getColorType(p.fillColor) << 2) |
-        (_getColorType(p.strokeColor) << 4));
+        (_getColorType(paint.fillColor) << 2) |
+        (_getColorType(paint.strokeColor) << 4));
     if (paintNumber != null) {
       _writeSmallishInt(children, paintNumber);
     } else {
-      _writePaint(p);
+      _writePaint(paint);
     }
     _writeSmallishInt(children, xIndex);
     _writeSmallishInt(children, yIndex);
@@ -988,8 +990,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     if (fontFamilyIndex != null) {
       _writeSmallishInt(children, fontFamilyIndex);
     }
-    children.writeByte(ta.fontStyle.index | (ta.fontWeight.index << 1));
-    _writeFloat(ta.fontSize);
+    children.writeByte(a.fontStyle.index | (a.fontWeight.index << 1));
+    _writeFloat(a.fontSize);
   }
 
   int _getColorType(SIColor c) {
@@ -1092,27 +1094,27 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  PathBuilder? startPath(SIPaint siPaint, Object? pathKey) {
-    final int? pathNumber = _pathShare[pathKey];
-    final int? paintNumber = _paintShare[siPaint];
+  PathBuilder? startPath(SIPaint paint, Object? key) {
+    final int? pathNumber = _pathShare[key];
+    final int? paintNumber = _paintShare[paint];
     children.writeByte(PATH_CODE |
         _flag(pathNumber != null, 0) |
         _flag(paintNumber != null, 1) |
-        (_getColorType(siPaint.fillColor) << 2) |
-        (_getColorType(siPaint.strokeColor) << 4));
+        (_getColorType(paint.fillColor) << 2) |
+        (_getColorType(paint.strokeColor) << 4));
     if (paintNumber != null) {
       _writeSmallishInt(children, paintNumber);
     } else {
-      _writePaint(siPaint);
+      _writePaint(paint);
     }
-    if (_DEBUG_COMPACT) {
+    if (_debugCompact) {
       children.writeUnsignedInt(args.length + 100);
     }
     if (pathNumber != null) {
       _writeSmallishInt(children, pathNumber);
       return null;
     } else {
-      final len = _pathShare[pathKey] = _pathShare.length;
+      final len = _pathShare[key] = _pathShare.length;
       assert(len + 1 == _pathShare.length);
       return CompactPathBuilder(this);
     }

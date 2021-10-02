@@ -15,7 +15,7 @@ void main() async {
 class AssetsPreLoaded extends StatelessWidget {
   final ScalableImage icon;
 
-  AssetsPreLoaded(this.icon);
+  const AssetsPreLoaded(this.icon, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
