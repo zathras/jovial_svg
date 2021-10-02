@@ -11,12 +11,13 @@ environment:
     #  to change the value of ScalableImage.imageDisposeBugWorkaround back
     #  to disposeNeither, as was the case in jovial_svg 1.0.6 and prior.
     #
-    #  Flutter 2.5 was introduced with SDK version 2.14.
+    #  Flutter 2.5 was introduced with SDK version 2.14.  Note that 
+    #  2.14 is also required for the migration away from Google's
+    #  "pedantic," since unawaited was moved to async.
 
 dependencies:
   xml: ^5.1.0
   args: ^2.0.0
-  pedantic: ^1.0.8
   quiver: ^3.0.0
   vector_math: ^2.1.0
   jovial_misc: ^0.8.0

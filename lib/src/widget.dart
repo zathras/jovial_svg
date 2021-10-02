@@ -27,6 +27,7 @@ SOFTWARE.
 ///
 library jovial_svg.widget;
 
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
@@ -34,7 +35,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:quiver/core.dart' as quiver;
 
 import 'exported.dart';

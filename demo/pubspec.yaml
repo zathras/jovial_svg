@@ -11,7 +11,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  pedantic: ^1.0.8
   tuple: ^2.0.0
   url_launcher: ^6.0.3
   jovial_svg:
@@ -58,6 +57,7 @@ flutter:
     - assets/svg/tiny_stroke_dasharray_1.svg
     - assets/svg/tiny_stroke_dasharray_2.svg
     - assets/svg/tiny_stroke_dasharray_3.svg
+    - assets/svg/SVG_Logo.svg
     - assets/avd/anglo.xml
     - assets/avd/bellot.xml
     - assets/avd/bonded.xml
@@ -96,3 +96,4 @@ flutter:
     - assets/si/tiny_stroke_dasharray_1.si
     - assets/si/tiny_stroke_dasharray_2.si
     - assets/si/tiny_stroke_dasharray_3.si
+    - assets/si/SVG_Logo.si

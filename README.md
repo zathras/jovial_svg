@@ -41,10 +41,15 @@ do any asynchronous loading before building a widget tree.  This package
 includes tools to make its use more efficient in both of these aspects.  
 
 The `svg_to_si` program compiles an SVG file into a much more efficient 
-binary representation, suitable for inclusion in an asset bundle.  It 
-can be run with `dart run jovial_svg:svg_to_si`, or if you have an
-Android Vector Drawable, `dart run jovial_svg:avd_to_si`.  This speeds
-runtime loading by an order of magnitude.
+binary representation, suitable for inclusion in an asset bundle.  The
+`avd_to_si` program converts an Android Vector Drawable file.  <em>Converting
+to an si file speeds runtime loading by an order of magnitude.</em>  You can
+activate the conversion programs with `dart pub global activate jovial_svg`,
+or you can run them from your project directory like this:
+
+```
+dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg -out output/dir
+```
 
 In order to avoid a visual flash while assets are asynchronously loaded,
 you can pre-load a `ScalableImage` using various static methods defined 
