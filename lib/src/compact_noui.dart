@@ -863,7 +863,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   int get numPaints => _paintShare.length;
 
   @override
-  void get initial { }
+  void get initial {}
 
   static int _flag(bool v, int bit) => v ? (1 << bit) : 0;
 

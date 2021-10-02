@@ -373,7 +373,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   PathDataT immutableKey(PathDataT key);
 
   @override
-  void get initial { }
+  void get initial {}
 
   @override
   void path(void collector, PathDataT pathData, SIPaint paint) {

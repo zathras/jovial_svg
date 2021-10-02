@@ -33,8 +33,8 @@ believed to be representative.
 
 ## [1.0.7] - in process
 
-- Address issue 7 (relatively harmless race condition).
 - Add ScalableImageCache (issue 6)
 - Require Flutter 2.5 / SDK 2.14 (Issue 9)
 - Change imageDisposeBugWorkaround default to clean up memory,
   now that Flutter bug is fixed (Issue 9)
+- Address issue 7 (relatively harmless race condition).

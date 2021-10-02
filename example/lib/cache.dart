@@ -45,8 +45,8 @@ class HomePage extends StatelessWidget {
       ),
       body: GridView.builder(
           itemCount: svgs.length,
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5),
           itemBuilder: (context, index) {
             return GridTile(
               child: ScalableImageWidget.fromSISource(
