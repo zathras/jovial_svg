@@ -97,8 +97,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [clip], if true, will cause the widget to enforce the boundaries of
   /// the scalable image.
   ///
-  /// [cache] is used to share [ScalableImage] instances.  If null,
-  /// [ScalableImageCache.defaultCache] will be used.
+  /// [cache] can used to share [ScalableImage] instances, and avoid excessive
+  /// reloading.  If null, a default cache that retains no unreferenced
+  /// images is used.
   ///
   factory ScalableImageWidget.fromSISource(
           {Key? key,
@@ -109,7 +110,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
           double scale = 1,
           ScalableImageCache? cache}) =>
       _AsyncSIWidget(key, si, fit, alignment, clip, scale,
-          cache ?? ScalableImageCache.defaultCache);
+          cache ?? ScalableImageCache._defaultCache);
 }
 
 class _SyncSIWidget extends ScalableImageWidget {
@@ -627,7 +628,13 @@ class ScalableImageCache {
   /// A default cache.  By default, this cache holds zero unreferenced
   /// image sources.
   ///
-  static final defaultCache = ScalableImageCache();
+  /// This isn't exposed.  On balance, the extremely slight chance of slightly
+  /// more convenient instance-sharing isn't worth the slight chance that
+  /// someone might think it's OK to change the size to something bigger
+  /// than zero, and thereby potentially cause other modules to consume
+  /// memory with large, retained assets.
+  ///
+  static final _defaultCache = ScalableImageCache(size: 0);
 
   ///
   /// The size of the cache.  If the cache holds unreferenced images, the total
