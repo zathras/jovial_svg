@@ -85,9 +85,12 @@ abstract class ScalableImageWidget extends StatefulWidget {
 
   ///
   /// Create a widget to load and then render an [ScalableImage].  In a
-  /// production application, pre-loading the [ScalableImage] is preferable,
-  /// because the asynchronous loading that is necessary with an asynchronous
-  /// source might cause a momentary flash.
+  /// production application, pre-loading the [ScalableImage] and using
+  /// the default constructor is usually preferable, because the 
+  /// asynchronous loading that is necessary with an asynchronous
+  /// source might cause a momentary flash.  If the widget is frequently
+  /// rebuilt, it is generally recommended to provide a [cache] with an
+  /// appropriate lifetime and size.
   ///
   /// [fit] controls how the scalable image is scaled within the widget.  If
   /// fit does not control scaling, then [scale] is used.
@@ -595,8 +598,9 @@ class _CacheEntry {
 }
 
 ///
-/// A cache of futures derived from [ScalableImageSource] instances.  Creating
-/// a cache with a non-zero size could make sense as part of the state of a
+/// An LRU cache of [ScalableImage] futures derived from [ScalableImageSource] 
+/// instances.  A cache with a non-zero size could make 
+/// sense, for example,  as part of the state of a
 /// stateful widget that builds entries on demand, and that uses
 /// [ScalableImageWidget.fromSISource] to asynchronously load scalable images.
 /// See, for example, `cache.dart` in the `example` directory.
