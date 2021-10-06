@@ -564,7 +564,6 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   String toString() =>
       '_SVGHttpSource($url $compact $bigFloats $warn $currentColor)';
-
 }
 
 class _SIBundleSource extends ScalableImageSource {
@@ -596,8 +595,7 @@ class _SIBundleSource extends ScalableImageSource {
   int get hashCode => 0xf67cd716 ^ quiver.hash3(bundle, key, currentColor);
 
   @override
-  String toString() =>
-      '_SIBundleSource($key $bundle $currentColor)';
+  String toString() => '_SIBundleSource($key $bundle $currentColor)';
 }
 
 // An entry in the cache, which might be held on the LRU list.  The LRU list
@@ -725,8 +723,8 @@ class ScalableImageCache {
   void removeReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
-      throw ArgumentError.value(src, 'ScalableImageSource',
-          'Expected value not in cache:  suspected bad hashCode');
+      throw ArgumentError(
+          'Expected value for $src not in cache:  suspected bad hashCode');
     }
     assert(e._refCount > 0);
     assert(e._lessRecent == null);
