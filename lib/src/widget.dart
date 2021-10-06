@@ -707,7 +707,7 @@ class ScalableImageCache {
 
   void _verifyCorrectHash(ScalableImageSource key, ScalableImageSource found) {
     if (key != found) {
-      // Very unexpected; I think this would require a bug in Map.
+      // Very unexpected; I think this would be a bug in Map.
       throw ArgumentError('Found key $found that is != search: $key');
     }
     if (key.hashCode != found.hashCode) {
@@ -717,16 +717,17 @@ class ScalableImageCache {
   }
 
   ///
-  /// Called when a source is derereferenced,
-  /// e.g. by a stateful widget's [State] object being disposed.
+  /// Called when a source is derereferenced, e.g. by a stateful widget's
+  /// [State] object being disposed.  Throws an exception if there had been
+  /// no matching call to [addReference] for this source.
   ///
   void removeReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
-      throw ArgumentError(
-          'Expected value for $src not in cache:  suspected bad hashCode');
+      throw ArgumentError.value(src, 'Not in cache', 'src');
+    } else if (e._refCount <= 0) {
+      throw ArgumentError.value(src, 'Extra attempt to removeReference', 'src');
     }
-    assert(e._refCount > 0);
     assert(e._lessRecent == null);
     assert(e._moreRecent == null);
     e._refCount--;
