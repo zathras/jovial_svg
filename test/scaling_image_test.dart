@@ -71,7 +71,7 @@ class TestSource extends ScalableImageSource {
       tintMode: BlendMode.src,
       viewport: Rect.zero,
       tintColor: Color(0)));
-  final int id = _rand.nextInt(4000);
+  final int id = _rand.nextInt(400);
   final int badHash = 0; // _rand.nextInt(2);   // to try to get failure
 
   @override
@@ -88,14 +88,14 @@ class TestSource extends ScalableImageSource {
 }
 
 void _cacheTest() {
-  final cache = ScalableImageCache(size: 1200);
+  final cache = ScalableImageCache(size: 120);
   final referenced = <ScalableImageSource>[];
-  for (int i = 0; i < 800; i++) {
+  for (int i = 0; i < 80; i++) {
     final s = TestSource();
     referenced.add(s);
     cache.addReference(s);
   }
-  for (int i = 0; i < 100000000; i++) {
+  for (int i = 0; i < 1000000; i++) {
     final v = referenced[i % referenced.length];
     cache.removeReference(v);
     final s = TestSource();

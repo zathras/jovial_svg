@@ -250,11 +250,11 @@ class _SIPainter extends CustomPainter {
 
 class _AsyncSIWidget extends ScalableImageWidget {
   final ScalableImageSource _siSource;
+  final ScalableImageCache _cache;
   final BoxFit _fit;
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
-  final ScalableImageCache _cache;
 
   const _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
       this._clip, this._scale, this._cache)
@@ -283,9 +283,9 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   @override
   void didUpdateWidget(_AsyncSIWidget old) {
     super.didUpdateWidget(old);
-    if (old._siSource != widget._siSource) {
-      widget._cache.removeReference(old._siSource);
+    if (old._siSource != widget._siSource || old._cache != widget._cache) {
       Future<ScalableImage> si = widget._cache.addReference(widget._siSource);
+      old._cache.removeReference(old._siSource);
       _si = null;
       _registerWithFuture(widget._siSource, si);
     }
