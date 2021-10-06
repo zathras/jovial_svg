@@ -24,9 +24,13 @@ SOFTWARE.
 
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jovial_svg/src/affine.dart';
+import 'package:jovial_svg/src/dag.dart';
+import 'package:jovial_svg/src/exported.dart';
+import 'package:jovial_svg/src/widget.dart';
 
 void main() {
   test('Affine sanity check', () {
@@ -55,4 +59,47 @@ void main() {
       }
     }
   });
+  test('cache test', _cacheTest);
+}
+
+class TestSource extends ScalableImageSource {
+  static final _rand = Random(42);
+  final _si = Future.value(ScalableImageDag(
+      width: 1,
+      height: 1,
+      images: [],
+      tintMode: BlendMode.src,
+      viewport: Rect.zero,
+      tintColor: Color(0)));
+  final int id = _rand.nextInt(4000);
+  final int badHash = 0; // _rand.nextInt(2);   // to try to get failure
+
+  @override
+  Future<ScalableImage> get si => _si;
+
+  @override
+  int get hashCode => id + badHash;
+
+  @override
+  bool operator ==(Object other) => (other is TestSource) && id == other.id;
+
+  @override
+  String toString() => 'TestSrc(id=$id, badHash=$badHash)';
+}
+
+void _cacheTest() {
+  final cache = ScalableImageCache(size: 1200);
+  final referenced = <ScalableImageSource>[];
+  for (int i = 0; i < 800; i++) {
+    final s = TestSource();
+    referenced.add(s);
+    cache.addReference(s);
+  }
+  for (int i = 0; i < 100000000; i++) {
+    final v = referenced[i % referenced.length];
+    cache.removeReference(v);
+    final s = TestSource();
+    referenced[i % referenced.length] = s;
+    cache.addReference(s);
+  }
 }

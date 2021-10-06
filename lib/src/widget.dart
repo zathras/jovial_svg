@@ -86,11 +86,14 @@ abstract class ScalableImageWidget extends StatefulWidget {
   ///
   /// Create a widget to load and then render an [ScalableImage].  In a
   /// production application, pre-loading the [ScalableImage] and using
-  /// the default constructor is usually preferable, because the 
+  /// the default constructor is usually preferable, because the
   /// asynchronous loading that is necessary with an asynchronous
   /// source might cause a momentary flash.  If the widget is frequently
   /// rebuilt, it is generally recommended to provide a [cache] with an
   /// appropriate lifetime and size.
+  ///
+  /// For a discussion of caching and potential reloading, see
+  /// https://github.com/zathras/jovial_svg/issues/10.
   ///
   /// [fit] controls how the scalable image is scaled within the widget.  If
   /// fit does not control scaling, then [scale] is used.
@@ -514,6 +517,10 @@ class _SvgBundleSource extends ScalableImageSource {
       0x544f0d11 ^
       quiver.hash4(
           bundle, key, currentColor, quiver.hash3(compact, bigFloats, warn));
+
+  @override
+  String toString() =>
+      '_SVGBundleSource($key $bundle $compact $bigFloats $warn $currentColor)';
 }
 
 class _SvgHttpSource extends ScalableImageSource {
@@ -553,6 +560,11 @@ class _SvgHttpSource extends ScalableImageSource {
   int get hashCode =>
       0xf7972f9b ^
       quiver.hash4(url, currentColor, compact, quiver.hash2(bigFloats, warn));
+
+  @override
+  String toString() =>
+      '_SVGHttpSource($url $compact $bigFloats $warn $currentColor)';
+
 }
 
 class _SIBundleSource extends ScalableImageSource {
@@ -582,6 +594,10 @@ class _SIBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode => 0xf67cd716 ^ quiver.hash3(bundle, key, currentColor);
+
+  @override
+  String toString() =>
+      '_SIBundleSource($key $bundle $currentColor)';
 }
 
 // An entry in the cache, which might be held on the LRU list.  The LRU list
@@ -595,16 +611,21 @@ class _CacheEntry {
   int _refCount = 0;
   _CacheEntry? _moreRecent;
   _CacheEntry? _lessRecent;
+  // Invariant:  If refCount is 0, _moreRecent and _lessRecent are non-null
+  // Invariant:  If _moreRecent is non-null, refCount > 0
+  // Invariant:  If _lessRecent is non-null, refCount > 0
 }
 
 ///
-/// An LRU cache of [ScalableImage] futures derived from [ScalableImageSource] 
-/// instances.  A cache with a non-zero size could make 
+/// An LRU cache of [ScalableImage] futures derived from [ScalableImageSource]
+/// instances.  A cache with a non-zero size could make
 /// sense, for example,  as part of the state of a
 /// stateful widget that builds entries on demand, and that uses
 /// [ScalableImageWidget.fromSISource] to asynchronously load scalable images.
 /// See, for example, `cache.dart` in the `example` directory.
-
+///
+/// For a discussion of caching and potential reloading, see
+/// https://github.com/zathras/jovial_svg/issues/10.
 ///
 class ScalableImageCache {
   final _canonicalized = <ScalableImageSource, _CacheEntry>{};
@@ -670,17 +691,31 @@ class ScalableImageCache {
       e._siSrc = src;
       e._si = src.si;
       _canonicalized[src] = e;
-    } else if (e._lessRecent != null) {
-      // Now it's referenced, so we take it off the LRU list.
-      assert(e._refCount == 0);
-      e._lessRecent!._moreRecent = e._moreRecent;
-      e._moreRecent!._lessRecent = e._lessRecent;
-      e._lessRecent = e._moreRecent = null;
     } else {
-      assert(e._refCount > 0);
+      _verifyCorrectHash(src, e._siSrc!);
+      if (e._lessRecent != null) {
+        // Now it's referenced, so we take it off the LRU list.
+        assert(e._refCount == 0);
+        e._lessRecent!._moreRecent = e._moreRecent;
+        e._moreRecent!._lessRecent = e._lessRecent;
+        e._lessRecent = e._moreRecent = null;
+      } else {
+        assert(e._refCount > 0);
+      }
     }
     e._refCount++;
     return e._si!;
+  }
+
+  void _verifyCorrectHash(ScalableImageSource key, ScalableImageSource found) {
+    if (key != found) {
+      // Very unexpected; I think this would require a bug in Map.
+      throw ArgumentError('Found key $found that is != search: $key');
+    }
+    if (key.hashCode != found.hashCode) {
+      throw ArgumentError('Key $key hash ${key.hashCode} is == existing key '
+          '$found, hash ${found.hashCode}');
+    }
   }
 
   ///
@@ -690,10 +725,12 @@ class ScalableImageCache {
   void removeReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
-      assert(false);
-      return;
+      throw ArgumentError.value(src, 'ScalableImageSource',
+          'Expected value not in cache:  suspected bad hashCode');
     }
     assert(e._refCount > 0);
+    assert(e._lessRecent == null);
+    assert(e._moreRecent == null);
     e._refCount--;
     if (e._refCount == 0) {
       _addToLRU(e);
@@ -721,7 +758,8 @@ class ScalableImageCache {
       final victim = _lruList._moreRecent!; // That's the least recently used
       assert(victim != _lruList);
       final _CacheEntry? removed = _canonicalized.remove(victim._siSrc);
-      assert(removed != null);
+      assert(identical(removed, victim));
+      assert(victim._refCount == 0);
       victim._moreRecent!._lessRecent = victim._lessRecent;
       victim._lessRecent!._moreRecent = victim._moreRecent;
     }
