@@ -5,10 +5,19 @@ void main() {
   runApp(const MyApp());
 }
 
+
+///
+/// A random SVG image to show.  The server ignores the parameter, but our
+/// code is forced to treat each URL like a different image.
+///
+final _demoSvgs = List.generate(100,
+        (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
+
+///
 /// A sample application to demonstrate using ScalableImageCache
 /// (https://github.com/zathras/jovial_svg/issues/6) and to reproduce
 /// race condition issue 7 (https://github.com/zathras/jovial_svg/issues/7).
-
+///
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -19,23 +28,44 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(),
+      home: HomePage(_demoSvgs),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  static final svgs = List.generate(100,
-      (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
-  // A static cache of the SVG images, so that once they are loaded, they
-  // stay loaded.  Another alternative would be to make HomePage stateful,
-  // and tie the lifetime of the cache to the state.
+///
+/// A stateful widget that displays a big list of SVG images.  It loads
+/// them lazily, and uses a cache to avoid excessive reloading.
+///
+class HomePage extends StatefulWidget {
+
+  final List<Uri> svgs;
+
+  HomePage(this.svgs, {Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  ScalableImageCache _svgCache = ScalableImageCache(size: 70);
+  // A cache of the SVG images, to avoid excessive image reloading.
+  // Depending on your application, it might make sense to
+  // make a static cache instead.
   //
   // For this demo, we make it a little smaller than the length of the list,
   // so you can see reloading if you scroll all the way back and forth.
-  static final ScalableImageCache svgCache = ScalableImageCache(size: 70);
 
-  const HomePage({Key? key}) : super(key: key);
+  @override
+  void didUpdateWidget(HomePage old) {
+    super.didUpdateWidget(old);
+    if (old.svgs != widget.svgs) {
+      // If we get re-parented to a new widget with different svgs,
+      // it's reasonable to dump the old cache.  In a real app, we might
+      // adapt the size of the cache to what's being displayed.
+      _svgCache = ScalableImageCache(size: 70);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,14 +74,14 @@ class HomePage extends StatelessWidget {
         title: const Text('Issues 6, 7'),
       ),
       body: GridView.builder(
-          itemCount: svgs.length,
+          itemCount: widget.svgs.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 5),
           itemBuilder: (context, index) {
             return GridTile(
               child: ScalableImageWidget.fromSISource(
-                  cache: svgCache,
-                  si: ScalableImageSource.fromSvgHttpUrl(svgs[index])),
+                  cache: _svgCache,
+                  si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index])),
             );
           }),
     );

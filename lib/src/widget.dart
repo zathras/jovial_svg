@@ -625,6 +625,10 @@ class _CacheEntry {
 /// For a discussion of caching and potential reloading, see
 /// https://github.com/zathras/jovial_svg/issues/10.
 ///
+/// If different caching semantics are desired, user code can implement
+/// [ScalableImageCache]; [ScalableImageWidget] does not use any of its 
+/// private members.
+///
 class ScalableImageCache {
   final _canonicalized = <ScalableImageSource, _CacheEntry>{};
 
