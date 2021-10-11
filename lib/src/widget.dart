@@ -107,6 +107,16 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// reloading.  If null, a default cache that retains no unreferenced
   /// images is used.
   ///
+  /// NOTE:  If no cache is provided, a default of size zero is used.
+  /// There is no provision for client code to change the size of this default
+  /// cache; this is intentional.  Having a system-wide cache would invite
+  /// conflicts in the case where two unrelated modules within a single
+  /// application attempted to set a cache size.  This could even result in
+  /// a too-large cache retaining large SVG assets, perhaps leading to
+  /// memory exhaustion.  Any module or application that wishes
+  /// to have a global cache can simply hold one in a static data member,
+  /// and provide it as the cache parameter to the widgets it manages.
+  ///
   factory ScalableImageWidget.fromSISource(
           {Key? key,
           required ScalableImageSource si,
@@ -752,6 +762,8 @@ class ScalableImageCache {
       _lruList._lessRecent = e;
 
       _trimLRU();
+    } else {
+      _removeFromCanonicalized(e);
     }
   }
 
@@ -760,11 +772,15 @@ class ScalableImageCache {
       // While lruList isn't empty, and we're over our capacity
       final victim = _lruList._moreRecent!; // That's the least recently used
       assert(victim != _lruList);
-      final _CacheEntry? removed = _canonicalized.remove(victim._siSrc);
-      assert(identical(removed, victim));
-      assert(victim._refCount == 0);
+      _removeFromCanonicalized(victim);
       victim._moreRecent!._lessRecent = victim._lessRecent;
       victim._lessRecent!._moreRecent = victim._moreRecent;
     }
+  }
+
+  void _removeFromCanonicalized(_CacheEntry victim) {
+    final _CacheEntry? removed = _canonicalized.remove(victim._siSrc);
+    assert(identical(removed, victim));
+    assert(victim._refCount == 0);
   }
 }
