@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 
+///
+/// A sample application to demonstrate using ScalableImageCache
+/// (https://github.com/zathras/jovial_svg/issues/6).  Providing a
+/// cache can be important to avoid image reloading, particularly 
+/// for a screen that gets rebuilt frequently.
+///
+/// A global cache can be simply held in a static data member.  This demo
+/// shows a more sophisticated cache that's tied to a [StatefulWidget],
+/// so that the cache is GC'd when the screen is no longer being used.
+///
 void main() {
   runApp(const MyApp());
 }
@@ -14,9 +24,7 @@ final _demoSvgs = List.generate(100,
         (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
 
 ///
-/// A sample application to demonstrate using ScalableImageCache
-/// (https://github.com/zathras/jovial_svg/issues/6) and to reproduce
-/// race condition issue 7 (https://github.com/zathras/jovial_svg/issues/7).
+/// Application class for the sample.
 ///
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
