@@ -35,7 +35,7 @@ MaterialApp(
           Uri.parse('https://jovial.com/images/jupiter.svg'))));
 ```
 [Sample applicatons](https://github.com/zathras/jovial_svg/tree/main/example) 
-are available.  The [cache sample](https://github.com/zathras/jovial_svg/tree/main/example/cache.dart) might
+are available.  The [cache sample](https://github.com/zathras/jovial_svg/blob/main/example/lib/cache.dart) might
 be interesting if SVGs are to be loaded over the network.
 
 Parsing an XML file isn't terribly efficient, and it's generally better to
