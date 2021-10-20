@@ -70,7 +70,7 @@ class TestSource extends ScalableImageSource {
       images: [],
       tintMode: BlendMode.src,
       viewport: Rect.zero,
-      tintColor: Color(0)));
+      tintColor: const Color(0x00000000)));
   final int id = _rand.nextInt(400);
   final int badHash = 0; // _rand.nextInt(2);   // to try to get failure
 

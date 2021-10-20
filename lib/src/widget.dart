@@ -84,7 +84,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       _SyncSIWidget(key, si, fit, alignment, clip, scale);
 
   ///
-  /// Create a widget to load and then render an [ScalableImage].  In a
+  /// Create a widget to load and then render a [ScalableImage].  In a
   /// production application, pre-loading the [ScalableImage] and using
   /// the default constructor is usually preferable, because the
   /// asynchronous loading that is necessary with an asynchronous
@@ -107,6 +107,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// reloading.  If null, a default cache that retains no unreferenced
   /// images is used.
   ///
+  /// [reload] forces the [ScalableImage] to be reloaded, e.g. if a networking
+  /// error might have been resolved, or if the asset migh have changed.
+  ///
   /// NOTE:  If no cache is provided, a default of size zero is used.
   /// There is no provision for client code to change the size of this default
   /// cache; this is intentional.  Having a system-wide cache would invite
@@ -118,15 +121,20 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// and provide it as the cache parameter to the widgets it manages.
   ///
   factory ScalableImageWidget.fromSISource(
-          {Key? key,
-          required ScalableImageSource si,
-          BoxFit fit = BoxFit.contain,
-          Alignment alignment = Alignment.center,
-          bool clip = true,
-          double scale = 1,
-          ScalableImageCache? cache}) =>
-      _AsyncSIWidget(key, si, fit, alignment, clip, scale,
-          cache ?? ScalableImageCache._defaultCache);
+      {Key? key,
+      required ScalableImageSource si,
+      BoxFit fit = BoxFit.contain,
+      Alignment alignment = Alignment.center,
+      bool clip = true,
+      double scale = 1,
+      bool reload = false,
+      ScalableImageCache? cache}) {
+    cache = cache ?? ScalableImageCache._defaultCache;
+    if (reload) {
+      cache.forceReload(si);
+    }
+    return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache);
+  }
 }
 
 class _SyncSIWidget extends ScalableImageWidget {
@@ -614,14 +622,20 @@ class _SIBundleSource extends ScalableImageSource {
 // Flutter's LinkedListEntry<T> didn't quite fit, and it's not like a
 // doubly-linked list is hard, anyway.
 class _CacheEntry {
-  ScalableImageSource? _siSrc;
-  Future<ScalableImage>? _si;
+  final ScalableImageSource? _siSrc;
+  final Future<ScalableImage>? _si;
   int _refCount = 0;
   _CacheEntry? _moreRecent;
   _CacheEntry? _lessRecent;
   // Invariant:  If refCount is 0, _moreRecent and _lessRecent are non-null
-  // Invariant:  If _moreRecent is non-null, refCount > 0
-  // Invariant:  If _lessRecent is non-null, refCount > 0
+  // Invariant:  If _moreRecent is null, refCount > 0
+  // Invariant:  If _lessRecent is null, refCount > 0
+
+  _CacheEntry(ScalableImageSource this._siSrc, Future<ScalableImage> this._si);
+
+  _CacheEntry._null()
+      : _siSrc = null,
+        _si = null;
 }
 
 ///
@@ -636,7 +650,7 @@ class _CacheEntry {
 /// https://github.com/zathras/jovial_svg/issues/10.
 ///
 /// If different caching semantics are desired, user code can implement
-/// [ScalableImageCache]; [ScalableImageWidget] does not use any of its 
+/// [ScalableImageCache]; [ScalableImageWidget] does not use any of its
 /// private members.
 ///
 class ScalableImageCache {
@@ -648,7 +662,7 @@ class ScalableImageCache {
   // doubly-linked list with a dummy head node.  The most recently
   // used is _lruList._lessRecent, and the least recently used is
   // _lruList._moreRecent.
-  final _lruList = _CacheEntry();
+  final _lruList = _CacheEntry._null();
 
   ///
   /// Create an image cache that holds up to [size] image sources.
@@ -699,9 +713,7 @@ class ScalableImageCache {
   Future<ScalableImage> addReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
-      e = _CacheEntry();
-      e._siSrc = src;
-      e._si = src.si;
+      e = _CacheEntry(src, src.si);
       _canonicalized[src] = e;
     } else {
       _verifyCorrectHash(src, e._siSrc!);
@@ -747,6 +759,30 @@ class ScalableImageCache {
     e._refCount--;
     if (e._refCount == 0) {
       _addToLRU(e);
+    }
+  }
+
+  ///
+  /// If the image referenced by src is in the cache, force it to be
+  /// reloaded the next time it is used.
+  ///
+  void forceReload(ScalableImageSource src) {
+    final _CacheEntry? old = _canonicalized.remove(src);
+    if (old == null) {
+      return;
+    }
+    final e = _CacheEntry(src, src.si);
+    _canonicalized[src] = e;
+    if (old._refCount > 0) {
+      e._refCount = old._refCount;
+      assert(old._lessRecent == null && old._moreRecent == null);
+    } else {
+      e._lessRecent = old._lessRecent;
+      e._moreRecent = old._moreRecent;
+      assert(e._lessRecent!._moreRecent == old);
+      e._lessRecent!._moreRecent = e;
+      assert(e._moreRecent!._lessRecent == old);
+      e._moreRecent!._lessRecent = e;
     }
   }
 

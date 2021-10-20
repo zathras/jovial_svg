@@ -1,21 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:jovial_svg/jovial_svg.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-
 ///
 /// A random SVG image to show.  The server ignores the parameter, but our
 /// code is forced to treat each URL like a different image.
 ///
 final _demoSvgs = List.generate(100,
-        (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
+    (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
 
 ///
 /// A sample application to show the default behavior, where the cache size
@@ -44,17 +40,15 @@ class MyApp extends StatelessWidget {
 /// cache size is zero.
 ///
 class HomePage extends StatefulWidget {
-
   final List<Uri> svgs;
 
-  HomePage(this.svgs, {Key? key}) : super(key: key);
+  const HomePage(this.svgs, {Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   void didUpdateWidget(HomePage old) {
     super.didUpdateWidget(old);

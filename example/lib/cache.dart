@@ -4,7 +4,7 @@ import 'package:jovial_svg/jovial_svg.dart';
 ///
 /// A sample application to demonstrate using ScalableImageCache
 /// (https://github.com/zathras/jovial_svg/issues/6).  Providing a
-/// cache can be important to avoid image reloading, particularly 
+/// cache can be important to avoid image reloading, particularly
 /// for a screen that gets rebuilt frequently.
 ///
 /// A global cache can be simply held in a static data member.  This demo
@@ -15,13 +15,12 @@ void main() {
   runApp(const MyApp());
 }
 
-
 ///
 /// A random SVG image to show.  The server ignores the parameter, but our
 /// code is forced to treat each URL like a different image.
 ///
 final _demoSvgs = List.generate(100,
-        (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
+    (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
 
 ///
 /// Application class for the sample.
@@ -46,10 +45,9 @@ class MyApp extends StatelessWidget {
 /// them lazily, and uses a cache to avoid excessive reloading.
 ///
 class HomePage extends StatefulWidget {
-
   final List<Uri> svgs;
 
-  HomePage(this.svgs, {Key? key}) : super(key: key);
+  const HomePage(this.svgs, {Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
