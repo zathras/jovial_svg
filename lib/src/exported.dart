@@ -469,6 +469,11 @@ abstract class ScalableImage {
   }
 
   ///
+  /// Creates a new instance of a blank image.
+  ///
+  static ScalableImage blank() => ScalableImageDag.blank();
+
+  ///
   /// Prepare any images in the ScalableImage, by decoding them.  If this is
   /// not done, images will be invisible (unless a different ScalableImage that
   /// has been prepared shares the image instances, as could happen with

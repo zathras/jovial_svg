@@ -73,6 +73,13 @@ class ScalableImageDag extends ScalableImageBase
         super(
             width, height, tintColor, tintMode, viewport, images, currentColor);
 
+  ///
+  /// Creates a new instance of a blank image.
+  ///
+  ScalableImageDag.blank()
+      : _renderables = [],
+        super(null, null, null, BlendMode.srcIn, null, const [], null);
+
   ScalableImageDag._modified(ScalableImageDag other, this._renderables,
       {required Rect? viewport,
       required List<SIImage> images,

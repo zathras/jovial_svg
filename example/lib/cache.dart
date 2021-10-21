@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
+import 'package:http/http.dart' as http;
 
 ///
 /// A sample application to demonstrate using ScalableImageCache
@@ -11,22 +14,31 @@ import 'package:jovial_svg/jovial_svg.dart';
 /// shows a more sophisticated cache that's tied to a [StatefulWidget],
 /// so that the cache is GC'd when the screen is no longer being used.
 ///
-void main() {
-  runApp(const MyApp());
+void main() async {
+  runApp(MyApp(await getSvgs()));
 }
 
 ///
-/// A random SVG image to show.  The server ignores the parameter, but our
-/// code is forced to treat each URL like a different image.
+/// Some SVG images to show.
 ///
-final _demoSvgs = List.generate(100,
-    (index) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$index'));
+Future<List<Uri>> getSvgs() async {
+  final url = Uri.parse('https://pastebin.com/raw/iLn5UqZM');
+  final response = await http.get(url);
+  final svgs = (jsonDecode(response.body) as List).cast<String>();
+  return svgs.map((s) => Uri.parse(s)).toList(growable: false);
+  // If the external assets, above, ever go away, we can do this:
+  // return List.generate(100,
+  //      (i) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$i'));
+  // The parameter is ignored by the server, but it makes the URLs distinct.
+}
 
 ///
 /// Application class for the sample.
 ///
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final List<Uri> svgs;
+
+  const MyApp(this.svgs, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +47,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(_demoSvgs),
+      home: HomePage(svgs),
     );
   }
 }
@@ -87,9 +99,14 @@ class _HomePageState extends State<HomePage> {
             return GridTile(
               child: ScalableImageWidget.fromSISource(
                   cache: _svgCache,
-                  si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index])),
+                  si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index]),
+                  onLoading: _onLoading,
+                  onError: _onError),
             );
           }),
     );
   }
+
+  Widget _onLoading(BuildContext context) => Container(color: Colors.green);
+  Widget _onError(BuildContext context) => Container(color: Colors.red);
 }

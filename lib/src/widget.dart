@@ -108,7 +108,13 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// images is used.
   ///
   /// [reload] forces the [ScalableImage] to be reloaded, e.g. if a networking
-  /// error might have been resolved, or if the asset migh have changed.
+  /// error might have been resolved, or if the asset might have changed.
+  ///
+  /// [onLoading] is called to give a widget to show while the asset is being
+  /// loaded.  It defaults to a 1x1 SizedBox.
+  ///
+  /// [onError] is called to give a widget to show if the asset has failed
+  /// loading.  It defaults to onLoading.
   ///
   /// NOTE:  If no cache is provided, a default of size zero is used.
   /// There is no provision for client code to change the size of this default
@@ -128,12 +134,17 @@ abstract class ScalableImageWidget extends StatefulWidget {
       bool clip = true,
       double scale = 1,
       bool reload = false,
-      ScalableImageCache? cache}) {
+      ScalableImageCache? cache,
+      Widget Function(BuildContext)? onLoading,
+      Widget Function(BuildContext)? onError}) {
+    onLoading ??= _AsyncSIWidget.defaultOnLoading;
+    onError ??= onLoading;
     cache = cache ?? ScalableImageCache._defaultCache;
     if (reload) {
       cache.forceReload(si);
     }
-    return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache);
+    return _AsyncSIWidget(
+        key, si, fit, alignment, clip, scale, cache, onLoading, onError);
   }
 }
 
@@ -273,16 +284,22 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
+  final Widget Function(BuildContext) _onLoading;
+  final Widget Function(BuildContext) _onError;
 
   const _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
-      this._clip, this._scale, this._cache)
+      this._clip, this._scale, this._cache, this._onLoading, this._onError)
       : super._p(key);
 
   @override
   State<StatefulWidget> createState() => _AsyncSIWidgetState();
+
+  static Widget defaultOnLoading(BuildContext c) =>
+      const SizedBox(width: 1, height: 1);
 }
 
 class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
+  static final ScalableImage _error = ScalableImage.blank();
   ScalableImage? _si;
 
   @override
@@ -315,6 +332,10 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         // If it's not stale, perhaps due to reparenting
         setState(() => _si = a);
       }
+    }, onError: (Object _) {
+      if (mounted && widget._siSource == src) {
+        setState(() => _si = _error);
+      }
     }));
   }
 
@@ -322,7 +343,9 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   Widget build(BuildContext context) {
     final si = _si;
     if (si == null) {
-      return const SizedBox(width: 1, height: 1);
+      return widget._onLoading(context);
+    } else if (identical(si, _error)) {
+      return widget._onError(context);
     } else {
       return _SyncSIWidget(null, si, widget._fit, widget._alignment,
           widget._clip, widget._scale);
