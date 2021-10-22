@@ -332,7 +332,10 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         // If it's not stale, perhaps due to reparenting
         setState(() => _si = a);
       }
-    }, onError: (Object _) {
+    }, onError: (Object err) {
+      if (widget._siSource.warn) {
+        print('Error loading:  $err');
+      }
       if (mounted && widget._siSource == src) {
         setState(() => _si = _error);
       }
@@ -387,6 +390,14 @@ abstract class ScalableImageSource {
   /// deprecated [si] getter, which was abstract.
   // ignore: deprecated_member_use_from_same_package
   Future<ScalableImage> createSI() => si;
+
+  ///
+  /// Flag to tell if warnings should be printed if there is a problem
+  /// loading this asset.  For released products, the subclass should have
+  /// a mechanism to set this false.  The default version of this getter always
+  /// returns true.
+  ///
+  bool get warn => true;
 
   ///
   /// Compare this source to another.  Subclasses must override this, so that
@@ -499,6 +510,7 @@ class _AvdBundleSource extends ScalableImageSource {
   final String key;
   final bool compact;
   final bool bigFloats;
+  @override
   final bool warn;
   _AvdBundleSource(this.bundle, this.key,
       {required this.compact, required this.bigFloats, required this.warn});
@@ -535,6 +547,7 @@ class _SvgBundleSource extends ScalableImageSource {
   final Color? currentColor;
   final bool compact;
   final bool bigFloats;
+  @override
   final bool warn;
   _SvgBundleSource(this.bundle, this.key, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
@@ -579,6 +592,7 @@ class _SvgHttpSource extends ScalableImageSource {
   final Color? currentColor;
   final bool compact;
   final bool bigFloats;
+  @override
   final bool warn;
 
   _SvgHttpSource(this.url, this.currentColor,
