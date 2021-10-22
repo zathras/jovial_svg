@@ -364,17 +364,29 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 ///
 abstract class ScalableImageSource {
   ///
-  /// Get the ScalableImage from this source.  If called multiple times, this
-  /// method should return the same [Future] instance.
+  /// Get the ScalableImage from this source.  If called multiple times, it is
+  /// unspecified if the same [Future] instance is returned or not.  Subclasses
+  /// need not override this method.  The default implementation throws a
+  /// [StateError].  See [createSI].
   ///
-  /// NOTE:  For backwards compatibility reasons, callers should not rely on
-  /// getting the same future for subsequent calls, because
-  /// this requirement was not documented in earlier versions of this library.
-  /// However, all implementers of [ScalableImageSource] in the `jovial_svg`
-  /// library do return the same instance, which can be helpful for instance
-  /// sharing between image caches.
+  @Deprecated('Use createSI instead')
+  Future<ScalableImage> get si => throw StateError('Use createSI() instead');
+  // NOTE:  Any subclasses created prior to 1.0.7 will have overridden this
+  // method, because it was abstract.  No code created from 1.0.7 on should
+  // call it, so the StateError is OK.
+
   ///
-  Future<ScalableImage> get si;
+  /// Create a new future that will return a [ScalableImage] from this
+  /// source.  It is normally expected that a new future that returns a new
+  /// image will be returned from each call, but this is not a requirement.
+  /// This method must be overridden by subclasses.
+  ///
+  /// NOTE:  Prior to version 1.0.7, this method did not exist.  For backwards
+  /// compatibility, a default implementation is provided that calls the
+  // ignore: deprecated_member_use_from_same_package
+  /// deprecated [si] getter, which was abstract.
+  // ignore: deprecated_member_use_from_same_package
+  Future<ScalableImage> createSI() => si;
 
   ///
   /// Compare this source to another.  Subclasses must override this, so that
@@ -488,16 +500,15 @@ class _AvdBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
-  Future<ScalableImage>? _si;
-
   _AvdBundleSource(this.bundle, this.key,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si =>
-      _si ??
-      (_si = ScalableImage.fromAvdAsset(bundle, key,
-          compact: compact, bigFloats: bigFloats, warn: warn));
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() => ScalableImage.fromAvdAsset(bundle, key,
+      compact: compact, bigFloats: bigFloats, warn: warn);
 
   @override
   bool operator ==(final Object other) {
@@ -525,19 +536,18 @@ class _SvgBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
-  Future<ScalableImage>? _si;
-
   _SvgBundleSource(this.bundle, this.key, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si =>
-      _si ??
-      (_si = ScalableImage.fromSvgAsset(bundle, key,
-          currentColor: currentColor,
-          compact: compact,
-          bigFloats: bigFloats,
-          warn: warn));
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() => ScalableImage.fromSvgAsset(bundle, key,
+      currentColor: currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      warn: warn);
 
   @override
   bool operator ==(final Object other) {
@@ -570,19 +580,19 @@ class _SvgHttpSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   final bool warn;
-  Future<ScalableImage>? _si;
 
   _SvgHttpSource(this.url, this.currentColor,
       {required this.compact, required this.bigFloats, required this.warn});
 
   @override
-  Future<ScalableImage> get si =>
-      _si ??
-      (_si = ScalableImage.fromSvgHttpUrl(url,
-          currentColor: currentColor,
-          compact: compact,
-          bigFloats: bigFloats,
-          warn: warn));
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() => ScalableImage.fromSvgHttpUrl(url,
+      currentColor: currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      warn: warn);
 
   @override
   bool operator ==(final Object other) {
@@ -611,15 +621,15 @@ class _SIBundleSource extends ScalableImageSource {
   final AssetBundle bundle;
   final String key;
   final Color? currentColor;
-  Future<ScalableImage>? _si;
 
   _SIBundleSource(this.bundle, this.key, this.currentColor);
 
   @override
-  Future<ScalableImage> get si =>
-      _si ??
-      (_si =
-          ScalableImage.fromSIAsset(bundle, key, currentColor: currentColor));
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() =>
+      ScalableImage.fromSIAsset(bundle, key, currentColor: currentColor);
 
   @override
   bool operator ==(final Object other) {
@@ -731,12 +741,12 @@ class ScalableImageCache {
   /// in the cache.
   ///
   /// Application code should use the returned future, and not use
-  /// [ScalableImageSource.si] directly.
+  /// [ScalableImageSource.createSI] directly.
   ///
   Future<ScalableImage> addReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
-      e = _CacheEntry(src, src.si);
+      e = _CacheEntry(src, src.createSI());
       _canonicalized[src] = e;
     } else {
       _verifyCorrectHash(src, e._siSrc!);
@@ -766,7 +776,7 @@ class ScalableImageCache {
   }
 
   ///
-  /// Called when a source is derereferenced, e.g. by a stateful widget's
+  /// Called when a source is dereferenced, e.g. by a stateful widget's
   /// [State] object being disposed.  Throws an exception if there had been
   /// no matching call to [addReference] for this source.
   ///
@@ -794,7 +804,7 @@ class ScalableImageCache {
     if (old == null) {
       return;
     }
-    final e = _CacheEntry(src, src.si);
+    final e = _CacheEntry(src, src.createSI());
     _canonicalized[src] = e;
     if (old._refCount > 0) {
       e._refCount = old._refCount;

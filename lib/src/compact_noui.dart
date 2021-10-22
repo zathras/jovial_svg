@@ -34,6 +34,7 @@ library jovial_svg.compact_noui;
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:quiver/core.dart' as quiver;
 import 'package:jovial_misc/io_utils.dart';
 import 'affine.dart';
@@ -407,14 +408,22 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   double? get height;
 
   bool get bigFloats;
-  int get _numPaths;
-  int get _numPaints;
-  List<String> get _strings;
-  List<List<double>> get _floatLists;
-  List<IM> get _images;
-  Uint8List get _children;
-  List<double> get _args; // Float32List or Float64List
-  List<double> get _transforms; // Float32List or Float64List
+  @protected
+  int get numPaths;
+  @protected
+  int get numPaints;
+  @protected
+  List<String> get strings;
+  @protected
+  List<List<double>> get floatLists;
+  @protected
+  List<IM> get images;
+  @protected
+  Uint8List get children;
+  @protected
+  List<double> get args; // Float32List or Float64List
+  @protected
+  List<double> get transforms; // Float32List or Float64List
   ColorT? get tintColor;
   BlendModeT get tintMode;
 
@@ -451,14 +460,14 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
         SIGenericCompactBuilder._flag(bigFloats, 2) |
         SIGenericCompactBuilder._flag(tintColor != null, 3));
     numWritten += 4;
-    out.writeUnsignedInt(_numPaths);
-    out.writeUnsignedInt(_numPaints);
-    out.writeUnsignedInt(_args.length);
-    out.writeUnsignedInt(_transforms.length);
+    out.writeUnsignedInt(numPaths);
+    out.writeUnsignedInt(numPaints);
+    out.writeUnsignedInt(args.length);
+    out.writeUnsignedInt(transforms.length);
     numWritten += 16;
     // Note that we're word-aligned here.  Keeping the floats word-aligned
     // might speed things up a bit.
-    for (final fa in [_args, _transforms]) {
+    for (final fa in [args, transforms]) {
       if (bigFloats) {
         fa as Float64List;
         out.writeBytes(
@@ -479,24 +488,24 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       numWritten += 5;
     }
 
-    numWritten += _writeSmallishInt(out, _strings.length);
-    for (final s in _strings) {
+    numWritten += _writeSmallishInt(out, strings.length);
+    for (final s in strings) {
       final Uint8List x = (const Utf8Encoder()).convert(s);
       numWritten += _writeSmallishInt(out, x.length);
       out.writeBytes(x);
       numWritten += x.length;
     }
 
-    numWritten += _writeSmallishInt(out, _floatLists.length);
-    for (final fl in _floatLists) {
+    numWritten += _writeSmallishInt(out, floatLists.length);
+    for (final fl in floatLists) {
       numWritten += _writeSmallishInt(out, fl.length);
       for (final f in fl) {
         numWritten += _writeFloatIfNotNull(out, f);
       }
     }
 
-    numWritten += _writeSmallishInt(out, _images.length);
-    for (final IM i in _images) {
+    numWritten += _writeSmallishInt(out, images.length);
+    for (final IM i in images) {
       final id = getImageData(i);
       numWritten += _writeFloatIfNotNull(out, id.x);
       numWritten += _writeFloatIfNotNull(out, id.y);
@@ -508,8 +517,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     }
 
     // This is last, so we don't need to store the length.
-    out.writeBytes(_children);
-    numWritten += _children.lengthInBytes;
+    out.writeBytes(children);
+    numWritten += children.lengthInBytes;
     out.close();
     return numWritten;
   }
@@ -545,28 +554,28 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
 class ScalableImageCompactNoUI
     with ScalableImageCompactGeneric<int, SITintMode, SIImageData> {
   @override
-  final List<String> _strings;
+  final List<String> strings;
 
   @override
-  final List<List<double>> _floatLists;
+  final List<List<double>> floatLists;
 
   @override
-  final List<SIImageData> _images;
+  final List<SIImageData> images;
 
   @override
-  final List<double> _args;
+  final List<double> args;
 
   @override
-  final List<double> _transforms;
+  final List<double> transforms;
 
   @override
-  final Uint8List _children;
+  final Uint8List children;
 
   @override
-  final int _numPaths;
+  final int numPaths;
 
   @override
-  final int _numPaints;
+  final int numPaints;
 
   @override
   final bool bigFloats;
@@ -584,14 +593,14 @@ class ScalableImageCompactNoUI
   final SITintMode tintMode;
 
   ScalableImageCompactNoUI(
-      this._strings,
-      this._floatLists,
-      this._images,
-      this._args,
-      this._transforms,
-      this._children,
-      this._numPaths,
-      this._numPaints,
+      this.strings,
+      this.floatLists,
+      this.images,
+      this.args,
+      this.transforms,
+      this.children,
+      this.numPaths,
+      this.numPaints,
       this.bigFloats,
       this.height,
       this.width,

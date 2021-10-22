@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.dag;
 
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -192,6 +193,14 @@ class ScalableImageDag extends ScalableImageBase
 
   @override
   ScalableImageDag toDag() => this;
+
+  @override
+  Uint8List toSIBytes() {
+    throw StateError('Cannot convert non-compact ScalableImage to .si bytes');
+    // NOTE:  One reason why this is impossible is because Dart's `Path`
+    // object is opaque; it does not let us inspect its contents, so a Dart
+    // `Path` cannot be externalized.
+  }
 }
 
 abstract class _SIParentBuilder {

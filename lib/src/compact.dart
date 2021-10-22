@@ -59,13 +59,13 @@ class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
   @override
   final bool bigFloats;
-  final int _numPaths;
-  final int _numPaints;
-  final List<String> _strings;
-  final List<List<double>> _floatLists;
-  final Uint8List _children;
-  final List<double> _args; // Float32List or Float64List
-  final List<double> _transforms; // Float32List or Float64List
+  final int numPaths;
+  final int numPaints;
+  final List<String> strings;
+  final List<List<double>> floatLists;
+  final Uint8List children;
+  final List<double> args; // Float32List or Float64List
+  final List<double> transforms; // Float32List or Float64List
 
   ScalableImageCompact._p(
       {required this.bigFloats,
@@ -83,13 +83,13 @@ class ScalableImageCompact extends ScalableImageBase
       required List<double> args,
       required List<double> transforms,
       required Rect? viewport})
-      : _numPaths = numPaths,
-        _numPaints = numPaints,
-        _strings = strings,
-        _floatLists = floatLists,
-        _children = children,
-        _args = args,
-        _transforms = transforms,
+      : numPaths = numPaths,
+        numPaints = numPaints,
+        strings = strings,
+        floatLists = floatLists,
+        children = children,
+        args = args,
+        transforms = transforms,
         super(
             width, height, tintColor, tintMode, viewport, images, currentColor);
 
@@ -108,14 +108,14 @@ class ScalableImageCompact extends ScalableImageBase
           tintColor: tintColor,
           tintMode: tintMode,
           currentColor: currentColor,
-          numPaths: _numPaths,
-          numPaints: _numPaints,
-          strings: _strings,
-          floatLists: _floatLists,
+          numPaths: numPaths,
+          numPaints: numPaints,
+          strings: strings,
+          floatLists: floatLists,
           images: images,
-          children: _children,
-          args: _args,
-          transforms: _transforms,
+          children: children,
+          args: args,
+          transforms: transforms,
           viewport: viewport);
     }
   }
@@ -129,14 +129,14 @@ class ScalableImageCompact extends ScalableImageBase
         tintColor: tintColor,
         tintMode: tintMode,
         currentColor: newCurrentColor,
-        numPaths: _numPaths,
-        numPaints: _numPaints,
-        strings: _strings,
-        floatLists: _floatLists,
+        numPaths: numPaths,
+        numPaints: numPaints,
+        strings: strings,
+        floatLists: floatLists,
         images: images,
-        children: _children,
-        args: _args,
-        transforms: _transforms,
+        children: children,
+        args: args,
+        transforms: transforms,
         viewport: viewport);
   }
 
@@ -150,14 +150,14 @@ class ScalableImageCompact extends ScalableImageBase
         tintColor: newTintColor,
         tintMode: newTintMode,
         currentColor: currentColor,
-        numPaths: _numPaths,
-        numPaints: _numPaints,
-        strings: _strings,
-        floatLists: _floatLists,
+        numPaths: numPaths,
+        numPaints: numPaints,
+        strings: strings,
+        floatLists: floatLists,
         images: images,
-        children: _children,
-        args: _args,
-        transforms: _transforms,
+        children: children,
+        args: args,
+        transforms: transforms,
         viewport: viewport);
   }
 
@@ -171,14 +171,14 @@ class ScalableImageCompact extends ScalableImageBase
   R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) {
     final t = CompactTraverser<R, SIImage>(
         bigFloats: bigFloats,
-        strings: _strings,
-        floatLists: _floatLists,
+        strings: strings,
+        floatLists: floatLists,
         images: images,
-        visiteeChildren: _children,
-        visiteeArgs: _args,
-        visiteeTransforms: _transforms,
-        visiteeNumPaths: _numPaths,
-        visiteeNumPaints: _numPaints,
+        visiteeChildren: children,
+        visiteeArgs: args,
+        visiteeTransforms: transforms,
+        visiteeNumPaths: numPaths,
+        visiteeNumPaints: numPaints,
         visitor: visitor);
     R r = t.traverse(visitor.initial);
     return r;
@@ -321,6 +321,15 @@ class ScalableImageCompact extends ScalableImageBase
 
   static int _readSmallishInt(ByteBufferDataInputStream str) =>
       ScalableImageCompactGeneric.readSmallishInt(str);
+
+  @override
+  Uint8List toSIBytes() {
+    final sink = ByteSink();
+    final os = DataOutputSink(sink, Endian.big);
+    writeToFile(os);
+    os.close();
+    return sink.toList();
+  }
 }
 
 ///

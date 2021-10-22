@@ -217,6 +217,14 @@ abstract class ScalableImage {
   ScalableImage toDag();
 
   ///
+  /// Give the bytes of the `.si` file representation of this [ScalableImage],
+  /// if this is the compact representation.  If this is the DAG representation,
+  /// throws a [StateError].  The compact representation is obtained
+  /// by passing a `compact` flag when the image is created.
+  ///
+  Uint8List toSIBytes();
+
+  ///
   /// Create an image from a `.si` file in an asset bundle.
   /// Loading a `.si` file is considerably faster than parsing an SVG
   /// or AVD file - about 5-20x faster in informal measurements, for
