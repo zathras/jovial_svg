@@ -59,12 +59,19 @@ class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
   @override
   final bool bigFloats;
+  @override
   final int numPaths;
+  @override
   final int numPaints;
+  @override
   final List<String> strings;
+  @override
   final List<List<double>> floatLists;
+  @override
   final Uint8List children;
+  @override
   final List<double> args; // Float32List or Float64List
+  @override
   final List<double> transforms; // Float32List or Float64List
 
   ScalableImageCompact._p(
