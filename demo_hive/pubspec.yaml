@@ -1,0 +1,25 @@
+name: demo_hive
+description: Demo of a persistent cache integrated with jovial_svg
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.14.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  jovial_svg:
+    path: ../
+  hive: ^2.0.4
+  path_provider: ^2.0.5
+
+dev_dependencies:
+  flutter_lints: ^1.0.4
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
