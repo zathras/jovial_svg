@@ -37,7 +37,7 @@ MaterialApp(
 [Sample applicatons](https://github.com/zathras/jovial_svg/tree/main/example) 
 are available.  The [cache sample](https://github.com/zathras/jovial_svg/blob/main/example/lib/cache.dart) might
 be interesting if SVGs are to be loaded over the network.  There's also an example
-of extending `jovial_svg` with a [persistent cache](https://github.com/zathras/jovial_svg/blog/main/demo_hive).
+of extending `jovial_svg` with a [persistent cache](https://github.com/zathras/jovial_svg/tree/main/demo_hive).
 
 Parsing an XML file isn't terribly efficient, and it's generally better to
 do any asynchronous loading before building a widget tree.  This package 
