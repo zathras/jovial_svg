@@ -74,7 +74,7 @@ Future<List<String>> getSvgs() async {
   if (hiveBox is LazyBox) {
     json = await (hiveBox as LazyBox).get('svg_list') as String?;
   } else {
-    json = (hiveBox as Box).get('svg_list') as String;
+    json = (hiveBox as Box).get('svg_list') as String?t ;
   }
   if (json != null) {
     print('Got URL list from Hive.');
