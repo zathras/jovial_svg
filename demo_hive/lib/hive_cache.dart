@@ -38,6 +38,10 @@ import 'package:quiver/core.dart' as quiver;
 /// A persistent cache of scalable images originally created from SVG files.
 /// It can use Hive's [LazyBox] or [Box] for the underlying storage.
 ///
+/// This is a simple proof-of-concept implementation.  It never removes
+/// cached images.  A production-quality persistent cache would likely
+/// include at least a strategy to keep the cache from growing too large.
+///
 class HiveSICache {
   final BoxBase<Object> _box;
   // The url is the key, and a Uint8List is the value.  In case of loading
@@ -51,10 +55,6 @@ class HiveSICache {
   ///
   /// Create a new cache that uses the given box for its underlying persistent
   /// storage.
-  ///
-  /// This is a simple proof-of-concept implementation.  It never removes
-  /// cached images.  A production-quality persistent cache would likely
-  /// include at least a strategy to keep the cache from growing too large.
   ///
   HiveSICache(this._box) {
     assert(_box is Box || _box is LazyBox);
@@ -72,7 +72,7 @@ class _HiveSource extends ScalableImageSource {
   final HiveSICache _cache;
   final String _url;
   @override
-  final bool warn;
+  final bool warn; // for the demo, this makes us downright chatty
 
   _HiveSource(this._cache, this._url, {this.warn = true});
 
@@ -92,10 +92,14 @@ class _HiveSource extends ScalableImageSource {
       // If it's in the cache, we can do it synchronously
       Object? cached = (box as Box).get(_url);
       if (cached is Uint8List) {
-        print('    from cache: $_url');
+        if (warn) {
+          print('    from cache: $_url');
+        }
         return Future.value(ScalableImage.fromSIBytes(cached, compact: false));
       } else if (cached is String) {
-        print('    cached error $cached');
+        if (warn) {
+          print('    cached error $cached');
+        }
         return Future.error(cached);
       } else {
         assert(cached == null);
@@ -116,10 +120,14 @@ class _HiveSource extends ScalableImageSource {
       if (box is LazyBox) {
         Object? cached = await (box as LazyBox).get(_url);
         if (cached is Uint8List) {
-          print('    from cache: $_url');
+          if (warn) {
+            print('    from cache: $_url');
+          }
           return ScalableImage.fromSIBytes(cached, compact: false);
         } else if (cached is String) {
-          print('    cached error $cached');
+          if (warn) {
+            print('    cached error $cached');
+          }
           throw cached;
         } else {
           assert(cached == null);
@@ -130,10 +138,14 @@ class _HiveSource extends ScalableImageSource {
                 compact: true, bigFloats: true)
             .createSI();
         await _cache._box.put(_url, si.toSIBytes());
-        print('FROM NETWORK: $_url');
+        if (warn) {
+          print('FROM NETWORK: $_url');
+        }
         return si.toDag();
       } catch (err) {
-        print('Network error $err');
+        if (warn) {
+          print('Network error $err');
+        }
         await _cache._box.put(_url, err.toString());
         // In a production-quality implementation, we'd likely want to
         // make it possible for our caller to retry later.
