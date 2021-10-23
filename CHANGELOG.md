@@ -31,10 +31,12 @@ believed to be representative.
   a trivial dartfmt run, and I suppose this might influence the search
   algorithm.
 
-## [1.0.7] - in process
+## [1.0.7-rc.2] - in process
 
 - Add ScalableImageCache (issue 6)
 - Require Flutter 2.5 / SDK 2.14 (Issue 9)
 - Change imageDisposeBugWorkaround default to clean up memory,
   now that Flutter bug is fixed (Issue 9)
 - Address issue 7 (relatively harmless race condition).
+- Enable persistent cache by exposing write method for compact images
+- Add demo of persistent cache in `demo_hive`
