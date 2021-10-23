@@ -698,7 +698,8 @@ class _CacheEntry {
 ///
 /// If different caching semantics are desired, user code can implement
 /// [ScalableImageCache]; [ScalableImageWidget] does not use any of its
-/// private members.
+/// private members.  See also the `demo_hive` application to see how
+/// [ScalableImageSource] can be extended to load from a persistent cache.
 ///
 class ScalableImageCache {
   final _canonicalized = <ScalableImageSource, _CacheEntry>{};

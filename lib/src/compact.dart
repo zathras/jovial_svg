@@ -81,23 +81,16 @@ class ScalableImageCompact extends ScalableImageBase
       required Color? tintColor,
       required BlendMode tintMode,
       required Color? currentColor,
-      required int numPaths,
-      required int numPaints,
+      required this.numPaths,
+      required this.numPaints,
       required List<SIImage> images,
-      required List<String> strings,
-      required List<List<double>> floatLists,
-      required Uint8List children,
-      required List<double> args,
-      required List<double> transforms,
+      required this.strings,
+      required this.floatLists,
+      required this.children,
+      required this.args,
+      required this.transforms,
       required Rect? viewport})
-      : numPaths = numPaths,
-        numPaints = numPaints,
-        strings = strings,
-        floatLists = floatLists,
-        children = children,
-        args = args,
-        transforms = transforms,
-        super(
+      : super(
             width, height, tintColor, tintMode, viewport, images, currentColor);
 
   @override
