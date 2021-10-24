@@ -58,6 +58,7 @@ class HiveSICache {
   ///
   HiveSICache(this._box) {
     assert(_box is Box || _box is LazyBox);
+    // See https://github.com/hivedb/hive/issues/820
   }
 
   ///
@@ -86,53 +87,43 @@ class _HiveSource extends ScalableImageSource {
   // hashes to different values than other ScalableImageSource subtypes.
 
   @override
-  Future<ScalableImage> createSI() {
-    final box = _cache._box;
-    if (box is Box) {
-      // If it's in the cache, we can do it synchronously
-      Object? cached = (box as Box).get(_url);
-      if (cached is Uint8List) {
-        if (warn) {
-          print('    from cache: $_url');
-        }
-        return Future.value(ScalableImage.fromSIBytes(cached, compact: false));
-      } else if (cached is String) {
-        if (warn) {
-          print('    cached error $cached');
-        }
-        return Future.error(cached);
-      } else {
-        assert(cached == null);
-      }
-    }
-    return _cache._pending.update(_url, (v) => v, ifAbsent: _createSI);
-    // Recording our outstanding request like this prevents us from fetching
-    // the same URL over the network twice, even if our caller requests it
-    // a second time while we're still waiting.
-  }
+  Future<ScalableImage> createSI() =>
+      _cache._pending.update(_url, (v) => v, ifAbsent: _createSI);
+  // Recording our outstanding request like this prevents us from fetching
+  // the same URL over the network twice, even if our caller requests it
+  // a second time while we're still waiting.
 
   Future<ScalableImage> _createSI() async {
     // Note that we *must* await at least one future in the body of this
     // method, so that the return value gets recorded in the _cache._pending
     // map before we try to remove it in the finally block, below.
+    // Even just "await null" is guaranteed to produce the needed behaviour.
+    // See the Dart language specification, version 2.10, section 17.33
+    // (https://dart.dev/guides/language/specifications/DartLangSpec-v2.10.pdf).
     try {
       final box = _cache._box;
+      Object? cached;
       if (box is LazyBox) {
-        Object? cached = await (box as LazyBox).get(_url);
-        if (cached is Uint8List) {
-          if (warn) {
-            print('    from cache: $_url');
-          }
-          return ScalableImage.fromSIBytes(cached, compact: false);
-        } else if (cached is String) {
-          if (warn) {
-            print('    cached error $cached');
-          }
-          throw cached;
-        } else {
-          assert(cached == null);
-        }
+        cached = await (box as LazyBox).get(_url);
+      } else {
+        // It would be slightly more efficient to hoist this synchronous
+        // case outside the future, but it would be less elegant.  In production
+        // code I might well prefer efficiency.
+        cached = (box as Box).get(_url);
+        await null; // This is essential -- comment at start of function.
       }
+      if (cached is Uint8List) {
+        if (warn) {
+          print('    from cache: $_url');
+        }
+        return ScalableImage.fromSIBytes(cached, compact: false);
+      } else if (cached is String) {
+        if (warn) {
+          print('    cached error $cached');
+        }
+        throw cached;
+      }
+      assert(cached == null);
       try {
         final si = await ScalableImageSource.fromSvgHttpUrl(Uri.parse(_url),
                 compact: true, bigFloats: true)
