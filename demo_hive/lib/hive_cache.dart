@@ -110,7 +110,7 @@ class _HiveSource extends ScalableImageSource {
         // case outside the future, but it would be less elegant.  In production
         // code I might well prefer efficiency.
         cached = (box as Box).get(_url);
-        await null; // This is essential -- comment at start of function.
+        await null; // This is essential -- see comment at start of function.
       }
       if (cached is Uint8List) {
         if (warn) {

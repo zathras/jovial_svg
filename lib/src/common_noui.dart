@@ -49,6 +49,11 @@ typedef PointT = Point<double>;
 typedef RadiusT = Point<double>;
 typedef RectT = Rectangle<double>;
 
+///
+/// Visit the elements of a scalable image.  This interface is used to
+/// build an SI representation, and to traverse the compact binary format.
+/// See ../../doc/internals.html for a discussion of the design.
+///
 abstract class SIVisitor<PathDataT, IM, R> {
   R get initial;
 
@@ -91,9 +96,9 @@ abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   void endVector();
 
   ///
-  /// The path data is used to canonicalize paths.  If this path data has
-  /// been seen before, this method will return null, and the scalable image
-  /// will re-use the previously built, equivalent path.
+  /// The path data or other object in [key] is used to canonicalize paths.
+  /// If this path data has been seen before, this method will return null,
+  /// and the scalable image will re-use the previously built, equivalent path.
   ///
   PathBuilder? startPath(SIPaint paint, Object key);
 }

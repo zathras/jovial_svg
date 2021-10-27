@@ -115,7 +115,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.7-rc.2"
+    version: "1.0.7-rc.3"
   js:
     dependency: transitive
     description:
