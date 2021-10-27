@@ -97,8 +97,9 @@ abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
 
   ///
   /// The path data or other object in [key] is used to canonicalize paths.
-  /// If this path data has been seen before, this method will return null,
-  /// and the scalable image will re-use the previously built, equivalent path.
+  /// If the path data identified by [key] has been seen before, this method 
+  /// will return null, and the scalable image will re-use the previously 
+  /// built, equivalent path.
   ///
   PathBuilder? startPath(SIPaint paint, Object key);
 }
