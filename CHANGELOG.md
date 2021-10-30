@@ -31,7 +31,7 @@ believed to be representative.
   a trivial dartfmt run, and I suppose this might influence the search
   algorithm.
 
-## [1.0.7-rc.3] - in process
+## [1.0.7] - October 30, 2021
 
 - Add ScalableImageCache (issue 6)
 - Require Flutter 2.5 / SDK 2.14 (Issue 9)
