@@ -31,6 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import 'dart:typed_data';
 
 import 'package:hive/hive.dart';
+import 'package:jovial_misc/async_fetcher.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:quiver/core.dart' as quiver;
 
@@ -47,10 +48,7 @@ class HiveSICache {
   // The url is the key, and a Uint8List is the value.  In case of loading
   // error, a String error message is stored.
 
-  final Map<String, Future<ScalableImage>> _pending = {};
-  // We record outstanding requests in case the client requests a future
-  // for the same URL again, while the first request is still pending
-  // future completion (e.g. due to network activity).
+  late final _SIFetcher _fetcher;
 
   ///
   /// Create a new cache that uses the given box for its underlying persistent
@@ -59,6 +57,7 @@ class HiveSICache {
   HiveSICache(this._box) {
     assert(_box is Box || _box is LazyBox);
     // See https://github.com/hivedb/hive/issues/820
+    _fetcher = _SIFetcher(this, true);
   }
 
   ///
@@ -67,6 +66,67 @@ class HiveSICache {
   /// previously cached.
   ///
   ScalableImageSource get(String url) => _HiveSource(this, url);
+}
+
+///
+/// Helper to fetch a [ScalableImage] from the cache, or if there's a miss,
+/// from the network.  Using [AsyncCanonicalizingFetcher] for this ensures that
+/// we don't make two network requests for the same resource, even if the
+/// same URL is requested by our caller more than once.
+///
+/// _SiFetcher does not guard against duplicate [ScalableImage] instances, but
+/// that is not needed, because [ScalableImageWidget]'s cache protects against
+/// that.
+///
+class _SIFetcher extends AsyncCanonicalizingFetcher<String, ScalableImage> {
+  final HiveSICache _cache;
+  final bool _warn;
+
+  _SIFetcher(this._cache, this._warn);
+
+  @override
+  Future<ScalableImage> create(String url) async {
+    final box = _cache._box;
+    Object? cached;
+    if (box is LazyBox) {
+      cached = await (box as LazyBox).get(url);
+    } else {
+      // It would be slightly more efficient to hoist this synchronous
+      // case outside the future, but it would be less elegant.  In production
+      // code I might well prefer efficiency.
+      cached = (box as Box).get(url);
+    }
+    if (cached is Uint8List) {
+      if (_warn) {
+        print('    from cache: $url');
+      }
+      return ScalableImage.fromSIBytes(cached, compact: false);
+    } else if (cached is String) {
+      if (_warn) {
+        print('    cached error $cached');
+      }
+      throw cached;
+    }
+    assert(cached == null);
+    try {
+      final si = await ScalableImageSource.fromSvgHttpUrl(Uri.parse(url),
+              compact: true, bigFloats: true)
+          .createSI();
+      await _cache._box.put(url, si.toSIBytes());
+      if (_warn) {
+        print('FROM NETWORK: $url');
+      }
+      return si.toDag();
+    } catch (err) {
+      if (_warn) {
+        print('Network error $err');
+      }
+      await _cache._box.put(url, err.toString());
+      // In a production-quality implementation, we'd likely want to
+      // make it possible for our caller to retry later.
+      rethrow;
+    }
+  }
 }
 
 class _HiveSource extends ScalableImageSource {
@@ -87,64 +147,5 @@ class _HiveSource extends ScalableImageSource {
   // hashes to different values than other ScalableImageSource subtypes.
 
   @override
-  Future<ScalableImage> createSI() =>
-      _cache._pending.update(_url, (v) => v, ifAbsent: _createSI);
-  // Recording our outstanding request like this prevents us from fetching
-  // the same URL over the network twice, even if our caller requests it
-  // a second time while we're still waiting.
-
-  Future<ScalableImage> _createSI() async {
-    // Note that we *must* await at least one future in the body of this
-    // method, so that the return value gets recorded in the _cache._pending
-    // map before we try to remove it in the finally block, below.
-    // Even just "await null" is guaranteed to produce the needed behaviour.
-    // See the Dart language specification, version 2.10, section 17.33
-    // (https://dart.dev/guides/language/specifications/DartLangSpec-v2.10.pdf).
-    try {
-      final box = _cache._box;
-      Object? cached;
-      if (box is LazyBox) {
-        cached = await (box as LazyBox).get(_url);
-      } else {
-        // It would be slightly more efficient to hoist this synchronous
-        // case outside the future, but it would be less elegant.  In production
-        // code I might well prefer efficiency.
-        cached = (box as Box).get(_url);
-        await null; // This is essential -- see comment at start of function.
-      }
-      if (cached is Uint8List) {
-        if (warn) {
-          print('    from cache: $_url');
-        }
-        return ScalableImage.fromSIBytes(cached, compact: false);
-      } else if (cached is String) {
-        if (warn) {
-          print('    cached error $cached');
-        }
-        throw cached;
-      }
-      assert(cached == null);
-      try {
-        final si = await ScalableImageSource.fromSvgHttpUrl(Uri.parse(_url),
-                compact: true, bigFloats: true)
-            .createSI();
-        await _cache._box.put(_url, si.toSIBytes());
-        if (warn) {
-          print('FROM NETWORK: $_url');
-        }
-        return si.toDag();
-      } catch (err) {
-        if (warn) {
-          print('Network error $err');
-        }
-        await _cache._box.put(_url, err.toString());
-        // In a production-quality implementation, we'd likely want to
-        // make it possible for our caller to retry later.
-        rethrow;
-      }
-    } finally {
-      final check = _cache._pending.remove(_url);
-      assert(check != null);
-    }
-  }
+  Future<ScalableImage> createSI() => _cache._fetcher.get(_url);
 }

@@ -105,7 +105,7 @@ SVG profile notes:
   *  Filter effects (SVG s. 15) are not supported.  They are not a part
      of SVG Tiny 1.2.
   *  Text restrictions:
-      * Embedded fonts are not supported.  However, the font-family attribute
+      * Embedded fonts are not supported.  However, the `font-family` attribute
         is used when selecting a font, and fonts can be included in an 
         application that uses this library.  For example, the demo program
         includes the 

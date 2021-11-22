@@ -131,19 +131,19 @@ packages:
     source: hosted
     version: "0.17.0"
   jovial_misc:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: jovial_misc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.1"
+    version: "0.8.2"
   jovial_svg:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "1.0.7-rc.2"
+    version: "1.0.7"
   js:
     dependency: transitive
     description:
