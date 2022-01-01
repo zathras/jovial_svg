@@ -193,14 +193,22 @@ abstract class AvdParser extends GenericParser {
         // be used by the surrounding program.
       } else if (a.name == 'android:name') {
         // don't care
-      } else if (a.name == 'android:width') {
-        width = getFloat(a.value);
-      } else if (a.name == 'android:height') {
-        height = getFloat(a.value);
+      } else if (a.name == 'android:width' || a.name == 'android:height') {
+        // cf. https://github.com/zathras/jovial_svg/issues/14
+        // And AVD's width and height parameters control the size at which it
+        // is rendered in Android, which is irrelevant to us.
+        if (warn) {
+          print('   (ignoring ${a.name} ${a.value}.)');
+        }
       } else if (a.name == 'android:viewportWidth') {
-        width ??= getFloat(a.value);
+        width = getFloat(a.value);
+        // The width of the part of the AVD that contains drawing of interest.
+        // This maps to the ScalableImage's width, and not to  its viewport.
+        // A ScalableImage's viewport is something that's set programmatically,
+        // to present a part of the underlying AVD.
       } else if (a.name == 'android:viewportHeight') {
-        height ??= getFloat(a.value);
+        height = getFloat(a.value);
+        // The height of the part of the AVD that contains drawing of interest.
       } else if (a.name == 'android:tint') {
         tintColor = getColor(a.value.trim().toLowerCase());
       } else if (a.name == 'android:tintMode') {

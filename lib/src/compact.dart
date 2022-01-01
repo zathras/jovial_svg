@@ -37,10 +37,8 @@ library jovial_svg.compact;
 
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:jovial_misc/io_utils.dart';
 import 'affine.dart';
 import 'dag.dart';

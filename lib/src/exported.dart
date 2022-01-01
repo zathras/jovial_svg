@@ -35,12 +35,9 @@ POSSIBILITY OF SUCH DAMAGE.
 library jovial_svg.exported;
 
 import 'dart:typed_data';
-import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'avd_parser.dart';
 import 'common.dart';
@@ -447,6 +444,39 @@ abstract class ScalableImage {
     return fromAvdString(src,
         compact: compact, bigFloats: bigFloats, warn: warn);
   }
+
+  ///
+  /// Parse an Android Vector Drawable XML document from a URL to a scalable
+  /// image.  Usage:
+  /// ```
+  /// final si = await ScalableImage.fromAvdHttpUrl(
+  ///     Uri.parse('https://jovial.com/images/jupiter.avd'));
+  /// ```
+  ///
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  See
+  /// [toDag] for a discussion of the two representations.
+  ///
+  /// If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// unrecognized tags and/or tag attributes.
+  ///
+  /// See also [ScalableImage.currentColor].
+  ///
+  static Future<ScalableImage> fromAvdHttpUrl(Uri url,
+      {bool compact = false,
+        bool bigFloats = false,
+        bool warn = true}) async {
+    final String content = await http.read(url);
+    return fromAvdString(content,
+        compact: compact,
+        bigFloats: bigFloats,
+        warn: warn);
+  }
+
 
   ///
   /// Read a stream containing an Android Vector Drawable in XML format
