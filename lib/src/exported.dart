@@ -467,16 +467,11 @@ abstract class ScalableImage {
   /// See also [ScalableImage.currentColor].
   ///
   static Future<ScalableImage> fromAvdHttpUrl(Uri url,
-      {bool compact = false,
-        bool bigFloats = false,
-        bool warn = true}) async {
+      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
     final String content = await http.read(url);
     return fromAvdString(content,
-        compact: compact,
-        bigFloats: bigFloats,
-        warn: warn);
+        compact: compact, bigFloats: bigFloats, warn: warn);
   }
-
 
   ///
   /// Read a stream containing an Android Vector Drawable in XML format

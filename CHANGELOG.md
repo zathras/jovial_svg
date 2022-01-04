@@ -43,6 +43,6 @@ believed to be representative.
 
 ## [1.0.8] - January 2022
 
-- Ignore width and height attribute in AVD file.
-  See Issue 14.
+- Make AVD parsing more forgiving (Issue 13)
+- Ignore width and height attribute in AVD file (Issue 14)
 - Add ScalableImage.fromAvdHttpUrl to API for completeness

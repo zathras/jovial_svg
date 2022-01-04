@@ -298,9 +298,11 @@ class _DemoScreenState extends State<DemoScreen> {
                       ])),
                   const SizedBox(width: 10),
                   ElevatedButton(
-                    onPressed: assets[assetIndex].svg == null ? null : () {
-                      _launch(assets[assetIndex].svg!);
-                    },
+                    onPressed: assets[assetIndex].svg == null
+                        ? null
+                        : () {
+                            _launch(assets[assetIndex].svg!);
+                          },
                     child: const Text('Browser'),
                   ),
                   const SizedBox(width: 10),
@@ -452,13 +454,13 @@ class Asset {
   }
 
   AssetType get defaultType {
-      if (si != null) {
-        return AssetType.si;
-      } else if (svg != null) {
-        return AssetType.svg;
-      } else {
-        assert(avd != null);
-        return AssetType.avd;
-      }
+    if (si != null) {
+      return AssetType.si;
+    } else if (svg != null) {
+      return AssetType.svg;
+    } else {
+      assert(avd != null);
+      return AssetType.avd;
+    }
   }
 }
