@@ -40,3 +40,9 @@ believed to be representative.
 - Address issue 7 (relatively harmless race condition).
 - Enable persistent cache by exposing write method for compact images
 - Add demo of persistent cache in `demo_hive`
+
+## [1.0.8] - January 2022
+
+- Ignore width and height attribute in AVD file.
+  See Issue 14.
+- Add ScalableImage.fromAvdHttpUrl to API for completeness

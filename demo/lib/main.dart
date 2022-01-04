@@ -42,10 +42,14 @@ const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
+  const test = true;
   WidgetsFlutterBinding.ensureInitialized();
   final json = await rootBundle.loadString('assets/manifest.json');
   final typeUnsafe = jsonDecode(json) as List<dynamic>;
   final assets = List<Asset>.empty(growable: true);
+  if (test) {
+    assets.add(Asset(avd: 'assets/test/issue_14_size_avd.xml'));
+  }
   for (int i = 0; i < typeUnsafe.length; i++) {
     final name = typeUnsafe[i] as String;
     final svg = 'assets/svg/$name.svg';
@@ -61,7 +65,7 @@ Future<void> main() async {
     // SVG is required to always be there.
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
-  final firstSI = await assets[0].forType(AssetType.si, rootBundle);
+  final firstSI = await assets[0].forType(assets[0].defaultType, rootBundle);
   await (firstSI.prepareImages());
   runApp(Demo(assets, firstSI));
 }
@@ -129,11 +133,11 @@ class _DemoScreenState extends State<DemoScreen> {
   void initState() {
     super.initState();
     si = widget.firstSI;
+    assetType = assets[assetIndex].defaultType;
     assetName = assets[assetIndex].fileName(assetType)?.substring(7);
   }
 
-  void _launch() {
-    final String name = assets[assetIndex].svg;
+  void _launch(String name) {
     launch('$_imageBaseURL/$name', forceWebView: true);
   }
 
@@ -194,7 +198,7 @@ class _DemoScreenState extends State<DemoScreen> {
                           onPressed: (assetIndex > 0)
                               ? () {
                                   assetIndex--;
-                                  _setType(AssetType.si);
+                                  _setType(assets[assetIndex].defaultType);
                                 }
                               : null,
                           child: const Icon(Icons.arrow_left),
@@ -204,7 +208,7 @@ class _DemoScreenState extends State<DemoScreen> {
                           onPressed: (assetIndex + 1 < assets.length)
                               ? () {
                                   assetIndex++;
-                                  _setType(AssetType.si);
+                                  _setType(assets[assetIndex].defaultType);
                                 }
                               : null,
                           child: const Icon(Icons.arrow_right),
@@ -214,23 +218,32 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 260,
                       child: Row(children: [
-                        const Text('SI', style: TextStyle()),
+                        Text('SI',
+                            style: (asset.si == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
                         Radio(
                             value: AssetType.si,
                             groupValue: assetType,
-                            onChanged: _setType),
+                            onChanged: asset.si == null ? null : _setType),
                         const Spacer(),
-                        const Text('Compact'),
+                        Text('Compact',
+                            style: (asset.si == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
                         Radio(
                             value: AssetType.compact,
                             groupValue: assetType,
-                            onChanged: _setType),
+                            onChanged: asset.si == null ? null : _setType),
                         const Spacer(),
-                        const Text('SVG'),
+                        Text('SVG',
+                            style: (asset.si == null)
+                                ? const TextStyle(color: Colors.grey)
+                                : const TextStyle()),
                         Radio(
                             value: AssetType.svg,
                             groupValue: assetType,
-                            onChanged: _setType),
+                            onChanged: asset.svg == null ? null : _setType),
                         const Spacer(),
                         Text('AVD',
                             style: (asset.avd == null)
@@ -283,8 +296,8 @@ class _DemoScreenState extends State<DemoScreen> {
                       ])),
                   const SizedBox(width: 10),
                   ElevatedButton(
-                    onPressed: () {
-                      _launch();
+                    onPressed: assets[assetIndex].svg == null ? null : () {
+                      _launch(assets[assetIndex].svg!);
                     },
                     child: const Text('Browser'),
                   ),
@@ -405,22 +418,22 @@ class _DemoScreenState extends State<DemoScreen> {
 enum AssetType { si, compact, svg, avd }
 
 class Asset {
-  final String svg;
+  final String? svg;
   final String? avd;
-  final String si;
+  final String? si;
 
-  Asset({required this.svg, required this.avd, required this.si});
+  Asset({this.svg, this.avd, this.si});
 
   Future<ScalableImage> forType(AssetType t, AssetBundle b) {
     switch (t) {
       case AssetType.svg:
-        return ScalableImage.fromSvgAsset(b, svg);
+        return ScalableImage.fromSvgAsset(b, svg!);
       case AssetType.compact:
-        return ScalableImage.fromSIAsset(b, si, compact: true);
+        return ScalableImage.fromSIAsset(b, si!, compact: true);
       case AssetType.avd:
         return ScalableImage.fromAvdAsset(b, avd!);
       case AssetType.si:
-        return ScalableImage.fromSIAsset(b, si);
+        return ScalableImage.fromSIAsset(b, si!);
     }
   }
 
@@ -434,5 +447,16 @@ class Asset {
       case AssetType.si:
         return si;
     }
+  }
+
+  AssetType get defaultType {
+      if (si != null) {
+        return AssetType.si;
+      } else if (svg != null) {
+        return AssetType.svg;
+      } else {
+        assert(avd != null);
+        return AssetType.avd;
+      }
   }
 }

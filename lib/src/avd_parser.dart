@@ -196,9 +196,10 @@ abstract class AvdParser extends GenericParser {
       } else if (a.name == 'android:width' || a.name == 'android:height') {
         // cf. https://github.com/zathras/jovial_svg/issues/14
         // And AVD's width and height parameters control the size at which it
-        // is rendered in Android, which is irrelevant to us.
+        // is rendered in Android, which is irrelevant to us.  It can also be
+        // used to change the aspect ratio; this edge case isn't supported.
         if (warn) {
-          print('   (ignoring ${a.name} ${a.value}.)');
+          print('   (ignoring ${a.name} ${a.value} - see README, issue 14.)');
         }
       } else if (a.name == 'android:viewportWidth') {
         width = getFloat(a.value);

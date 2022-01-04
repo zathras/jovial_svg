@@ -77,8 +77,6 @@ it.
 
 ## Supported SVG Profile
 
-SVG profile notes:
-
   *  SVG paths and transforms are of course supported.
   *  The `use` element is supported (including forward references).
   *  Stroke modifiers like `stroke-linecap`, `stroke-linejoin` and
@@ -116,6 +114,12 @@ SVG profile notes:
       * `rotate` is not supported (but normal transformations, including 
          rotation, apply to text elements).
       * Bi-directional text is not supported
+
+## Supported AVD Profile
+
+  *  Scaling an AVD with the `android:height` and `android:width`
+     parameters of the `vector` tag is not supported -- see
+     <a href="https://github.com/zathras/jovial_svg/issues/14">Issue 14</a>.
 
 ## Goals and Package Evolution
 
