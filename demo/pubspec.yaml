@@ -97,4 +97,6 @@ flutter:
     - assets/si/tiny_stroke_dasharray_2.si
     - assets/si/tiny_stroke_dasharray_3.si
     - assets/si/SVG_Logo.si
+    - assets/test/issue_13_forgiving_1_avd.xml
+    - assets/test/issue_13_forgiving_2_avd.xml
     - assets/test/issue_14_size_avd.xml

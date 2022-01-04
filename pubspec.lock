@@ -108,7 +108,7 @@ packages:
       name: jovial_misc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.1"
+    version: "0.8.3"
   js:
     dependency: transitive
     description:
@@ -157,7 +157,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.3.4"
+    version: "3.5.0"
   quiver:
     dependency: "direct main"
     description:

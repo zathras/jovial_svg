@@ -142,7 +142,10 @@ abstract class AvdParser extends GenericParser {
         _tagStack.add('item');
       }
     } else {
-      throw ParseError('Unexpected tag inside vector:  $evt');
+      _tagStack.add(evt.name);
+      if (warn) {
+        print('Unexpected tag inside vector:  $evt');
+      }
     }
   }
 
@@ -250,8 +253,8 @@ abstract class AvdParser extends GenericParser {
         translateX = getFloat(a.value);
       } else if (a.name == 'android:translateY') {
         translateY = getFloat(a.value);
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Ignoring unexpected attribute ${a.name}');
       }
     }
     final transform = MutableAffine.identity();
@@ -309,7 +312,13 @@ abstract class AvdParser extends GenericParser {
       } else if (a.name == 'android:strokeMiterLimit') {
         path.strokeMiterLimit = getFloat(a.value);
       } else if (a.name == 'android:fillType') {
-        path.fillType = getFillType(a.value);
+        try {
+          path.fillType = getFillType(a.value);
+        } catch (err) {
+          if (warn) {
+            print('    Ignoring invalid fillType ${a.value}');
+          }
+        }
       } else if (a.name == 'android:trimPathStart' ||
           a.name == 'android:trimPathEnd' ||
           a.name == 'android:trimPathOffset') {
@@ -331,8 +340,8 @@ abstract class AvdParser extends GenericParser {
           // the time is to include the whole path anyway.  It's certainly
           // a reasonable thing to do.
         }
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Ignoring unexpected attribute ${a.name}');
       }
     }
     return path;
@@ -372,8 +381,8 @@ abstract class AvdParser extends GenericParser {
         // don't care
       } else if (a.name == 'android:pathData') {
         pathData = a.value;
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Ignoring unexpected attribute ${a.name}');
       }
     }
     if (pathData == null) {
@@ -411,11 +420,11 @@ abstract class AvdParser extends GenericParser {
           _inFillColor = true;
         } else if (a.value == 'android:strokeColor') {
           _inFillColor = false;
-        } else {
-          throw ParseError('Unexpected android:name ${a.value}');
+        } else if (warn) {
+          print('    Ignoring unexpected android:name ${a.value}');
         }
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Ignoring unexpected attribute ${a.name}');
       }
     }
   }
@@ -474,8 +483,8 @@ abstract class AvdParser extends GenericParser {
           }
           spreadMethod = SIGradientSpreadMethod.pad;
         }
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Unrecognized gradient attribute  ${a.name}');
       }
     }
     final stops =
@@ -535,8 +544,8 @@ abstract class AvdParser extends GenericParser {
         color = getColor(a.value);
       } else if (a.name == 'android:offset') {
         offset = getFloat(a.value);
-      } else {
-        throw ParseError('Unexpected attribute ${a.name}');
+      } else if (warn) {
+        print('    Ignoring unexpected attribute ${a.name}');
       }
     }
     if (color == null) {
