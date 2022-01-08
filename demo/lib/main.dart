@@ -42,7 +42,7 @@ const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
-  const test = true; // @@ TODO:  set false
+  const test = false;
   WidgetsFlutterBinding.ensureInitialized();
   final json = await rootBundle.loadString('assets/manifest.json');
   final typeUnsafe = jsonDecode(json) as List<dynamic>;
