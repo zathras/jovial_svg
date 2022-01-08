@@ -125,12 +125,12 @@ enum ImageDisposeBugWorkaround {
 abstract class ScalableImage {
   /// Width of the image, in pixels, if it was specified.  This corresponds
   /// to the SVG tag's "width" attribute, and the AVD vector element's
-  /// "android:viewportWidth" attribute.
+  /// "android:width", if specified, or by "android:viewportWidth" if not.
   final double? width;
 
   /// Height of the image, in pixels, if it was specified.  This corresponds
   /// to the SVG tag's "height" attribute, and the AVD vector element's
-  /// "android:viewportHeight" attribute.
+  /// "android"height", if specified, or "android:viewportHeight" if not.
   final double? height;
 
   /// [BlendMode] for applying the [tintColor].

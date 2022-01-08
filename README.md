@@ -117,10 +117,11 @@ it.
 
 ## Supported AVD Profile
 
-  *  Scaling an AVD with the `android:height` and `android:width`
-     parameters of the `vector` tag is not supported -- see
-     <a href="https://github.com/zathras/jovial_svg/issues/14">Issue 14</a>.
-
+  *  Scaling with `android:width`/`android:height` requires specification 
+     of `android:viewportWidth`/`android:viewportHeight`.
+  *  `android:autoMirrored` is not supported.
+  *  `android:alpha` on a `vector` tag is not supported.
+ 
 ## Goals and Package Evolution
 
 This library was originally written because existing alternatives didn't

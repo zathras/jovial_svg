@@ -49,9 +49,9 @@ import 'svg_graph.dart';
 /// and https://developer.android.com/reference/android/graphics/drawable/VectorDrawable
 ///
 abstract class AvdParser extends GenericParser {
-  final SIBuilder builder;
+  final SIBuilder _builder;
 
-  AvdParser(this.builder);
+  AvdParser(this._builder);
 
   final _tagStack = List<String>.empty(growable: true);
   _AvdPath? _currPath;
@@ -60,9 +60,10 @@ abstract class AvdParser extends GenericParser {
   bool? _inFillColor; // else stroke
   bool _vectorStarted = false;
   bool _done = false;
+  void Function()? _onDone;
 
   @override
-  bool get warn => builder.warn;
+  bool get warn => _builder.warn;
 
   void _startTag(XmlStartElementEvent evt) {
     if (_done) {
@@ -77,7 +78,8 @@ abstract class AvdParser extends GenericParser {
       }
       _parseVector(evt.attributes);
       if (_done) {
-        builder.endVector();
+        _onDone?.call();
+        _builder.endVector();
       }
     } else if (!_vectorStarted) {
       throw ParseError('Expected <vector>, got $evt');
@@ -88,7 +90,7 @@ abstract class AvdParser extends GenericParser {
       }
       _parseGroup(evt.attributes);
       if (evt.isSelfClosing) {
-        builder.endGroup(null);
+        _builder.endGroup(null);
       } else {
         _tagStack.add('group');
       }
@@ -157,7 +159,8 @@ abstract class AvdParser extends GenericParser {
         throw ParseError('Expected </vector>, got </${evt.name}');
       }
       _done = true;
-      builder.endVector();
+      _onDone?.call();
+      _builder.endVector();
     } else if (_tagStack.isEmpty) {
       throw ParseError('Unexpected end tag $evt');
     } else if (_tagStack.last != evt.name) {
@@ -172,7 +175,7 @@ abstract class AvdParser extends GenericParser {
         _finishGradient(_currGradient!);
         _currGradient = null;
       } else if (evt.name == 'group') {
-        builder.endGroup(null);
+        _builder.endGroup(null);
       }
       _tagStack.removeLast();
     }
@@ -181,6 +184,8 @@ abstract class AvdParser extends GenericParser {
   void _parseVector(List<XmlEventAttribute> attrs) {
     double? width;
     double? height;
+    double? scaledWidth;
+    double? scaledHeight;
     int? tintColor;
     SITintMode? tintMode;
 
@@ -196,14 +201,10 @@ abstract class AvdParser extends GenericParser {
         // be used by the surrounding program.
       } else if (a.name == 'android:name') {
         // don't care
-      } else if (a.name == 'android:width' || a.name == 'android:height') {
-        // cf. https://github.com/zathras/jovial_svg/issues/14
-        // And AVD's width and height parameters control the size at which it
-        // is rendered in Android, which is irrelevant to us.  It can also be
-        // used to change the aspect ratio; this edge case isn't supported.
-        if (warn) {
-          print('   (ignoring ${a.name} ${a.value} - see README, issue 14.)');
-        }
+      } else if (a.name == 'android:width') {
+        scaledWidth = getFloat(a.value);
+      } else if (a.name == 'android:height') {
+        scaledHeight = getFloat(a.value);
       } else if (a.name == 'android:viewportWidth') {
         width = getFloat(a.value);
         // The width of the part of the AVD that contains drawing of interest.
@@ -219,9 +220,48 @@ abstract class AvdParser extends GenericParser {
         tintMode = _getTintMode(a.value);
       }
     }
-    builder.vector(
+    if (scaledWidth != null || scaledHeight != null) {
+      if (width == null || height == null) {
+        // If the viewportWidth and/or viewportHeight attribute aren't
+        // specified, we'd have to calculate the viewport to figure it out.
+        // That can't be done offline, since it requires calculating the
+        // bounding rectangle of the paths, which is of course a Flutter API.
+        //
+        // Maybe viewportWidth and viewportHeight are required?  They ought to
+        // be, but I don't know if this is specified.  In any case, emitting
+        // a warning that describes the reason for not scaling is a pretty
+        // reasonable behavior in this edge case of an edge case.
+        if (warn) {
+          print('    Unable to scale to width/height:  '
+              'Need viewportWidth/viewportHeight.');
+        }
+        // Fall through
+      } else {
+        scaledWidth ??= width;
+        scaledHeight ??= height;
+        if (scaledWidth == width && scaledHeight == height) {
+          // Do nothing:  Fall through to the normal, unscaled case
+        } else {
+          // We should scale.  See issue 14.
+          _builder.vector(
+              width: scaledWidth,
+              height: scaledHeight,
+              tintColor: tintColor,
+              tintMode: tintMode);
+          final scaler =
+              MutableAffine.scale(scaledWidth / width, scaledHeight / height);
+          _builder.init(null, const <SIImageData>[], const [], const []);
+          _builder.group(null, scaler, null);
+          _onDone = () {
+            _builder.endGroup(null);
+          };
+          return;
+        }
+      }
+    }
+    _builder.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
-    builder.init(null, const <SIImageData>[], const [], const []);
+    _builder.init(null, const <SIImageData>[], const [], const []);
   }
 
   void _parseGroup(List<XmlEventAttribute> attrs) {
@@ -282,7 +322,7 @@ abstract class AvdParser extends GenericParser {
     // not mean the viewport of the top-level tree, if we have a parent group
     // that did transformations on the way down.
 
-    builder.group(null, (transform.isIdentity()) ? null : transform, null);
+    _builder.group(null, (transform.isIdentity()) ? null : transform, null);
   }
 
   _AvdPath _parsePath(List<XmlEventAttribute> attrs) {
@@ -354,7 +394,7 @@ abstract class AvdParser extends GenericParser {
       }
     } else {
       if (path.fill != SvgColor.none || path.stroke != SvgColor.none) {
-        builder.path(
+        _builder.path(
             null,
             path.pathData,
             SIPaint(
@@ -390,7 +430,7 @@ abstract class AvdParser extends GenericParser {
         print('    clip path with no android:pathData - ignored');
       }
     } else {
-      builder.clipPath(null, pathData);
+      _builder.clipPath(null, pathData);
     }
   }
 
