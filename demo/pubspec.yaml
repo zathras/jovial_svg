@@ -45,6 +45,7 @@ flutter:
     - assets/svg/swiss-xvii.svg
     - assets/svg/svg11_gradient_1.svg
     - assets/svg/tango.svg
+    - assets/svg/tiger.svg
     - assets/svg/tiny_07_12.svg
     - assets/svg/tiny_07_12_bbox01.svg
     - assets/svg/tiny_08_03.svg
@@ -84,6 +85,7 @@ flutter:
     - assets/si/svg11_gradient_1.si
     - assets/si/swiss-xvii.si
     - assets/si/tango.si
+    - assets/si/tiger.si
     - assets/si/tiny_07_12.si
     - assets/si/tiny_07_12_bbox01.si
     - assets/si/tiny_08_03.si

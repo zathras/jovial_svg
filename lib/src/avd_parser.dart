@@ -224,13 +224,21 @@ abstract class AvdParser extends GenericParser {
       if (width == null || height == null) {
         // If the viewportWidth and/or viewportHeight attribute aren't
         // specified, we'd have to calculate the viewport to figure it out.
-        // That can't be done offline, since it requires calculating the
+        // That can't be done here, since it requires calculating the
         // bounding rectangle of the paths, which is of course a Flutter API.
+        // The parser has to work in the avd_to_si tool -- indeed, that's
+        // the preferred usage -- and Flutter isn't available in a command-line
+        // Dart tool.
         //
         // Maybe viewportWidth and viewportHeight are required?  They ought to
         // be, but I don't know if this is specified.  In any case, emitting
         // a warning that describes the reason for not scaling is a pretty
         // reasonable behavior in this edge case of an edge case.
+        //
+        // We *could* try calculating the bounding rectangle of all the points
+        // in the path, and add in 2x the line width, if there were ever a
+        // need to handle the (rare? illegal?) case where the viewportWidth
+        // and viewportHeight attributes aren't specified.
         if (warn) {
           print('    Unable to scale to width/height:  '
               'Need viewportWidth/viewportHeight.');
