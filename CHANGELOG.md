@@ -46,3 +46,4 @@ believed to be representative.
 - Make AVD parsing more forgiving (Issue 13)
 - Use width and height attribute in AVD file for scaling (Issue 14)
 - Add `ScalableImage.fromAvdHttpUrl` to API for completeness
+- Add tiger image to demo
