@@ -334,6 +334,10 @@ class ScalableImageCompact extends ScalableImageBase
     final os = DataOutputSink(sink, Endian.big);
     writeToFile(os);
     os.close();
+    sink.close();
+    // DataOutputSink closes sink(), but Google's analyzer misses that.
+    // Calling close multiple times like this is documented as being
+    // harmless.
     return sink.toList();
   }
 
