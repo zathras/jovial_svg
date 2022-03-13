@@ -123,12 +123,12 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
 
-  SvgNode resolveMask(Map<String, SvgNode> idLookup) {
+  SvgNode resolveMask(Map<String, SvgNode> idLookup, bool warn) {
     if (paint.mask != null) {
       SvgNode? n = idLookup[paint.mask];
       if (n is SvgMask) {
         return SvgMasked(this, n);
-      } else {
+      } else if (warn) {
         print('    $this references nonexistent mask ${paint.mask}');
       }
     }
@@ -264,7 +264,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
     } else if (transform?.determinant() == 0.0) {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 
@@ -369,7 +369,9 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     SvgNode? n = idLookup[childID];
     if (n == null) {
-      print('    <use> references nonexistent $childID');
+      if (warn) {
+        print('    <use> references nonexistent $childID');
+      }
       return null;
     }
     final cascaded = cascadePaint(ancestor, idLookup);
@@ -382,7 +384,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     g.paint = paint;
     g.transform = transform;
     g.children.add(n);
-    return g.resolveMask(idLookup);
+    return g.resolveMask(idLookup, warn);
   }
 
   @override
@@ -429,7 +431,7 @@ class SvgPath extends SvgPathMaker {
     if (pathData == '') {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 
@@ -457,7 +459,7 @@ class SvgRect extends SvgPathMaker {
     if (width <= 0 || height <= 0) {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 
@@ -532,7 +534,7 @@ class SvgEllipse extends SvgPathMaker {
     if (rx <= 0 || ry <= 0) {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 
@@ -580,7 +582,7 @@ class SvgPoly extends SvgPathMaker {
     if (points.length < 2) {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 
@@ -681,7 +683,7 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
     if (width <= 0 || height <= 0) {
       return null;
     }
-    return resolveMask(idLookup);
+    return resolveMask(idLookup, warn);
   }
 
   @override
@@ -714,7 +716,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     if (text == '') {
       return null;
     } else {
-      return resolveMask(idLookup);
+      return resolveMask(idLookup, warn);
     }
   }
 

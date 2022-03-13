@@ -244,7 +244,7 @@ abstract class SvgParser extends GenericParser {
     if (x != null && y != null && width != null && height != null) {
       if (userSpace) {
         mask.bufferBounds = Rectangle(x, y, width, height);
-      } else {
+      } else if (warn) {
         print('    objectBoundingBox maskUnits unsupported in $_currTag');
       }
     }
