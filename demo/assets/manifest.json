@@ -1,4 +1,5 @@
 [
+    "mask2",
     "tiger",
     "anglo",
     "anglo_bitmap",
@@ -13,6 +14,7 @@
     "paris",
     "swiss-xvii",
     "tango",
+    "mask1",
     "tiny_07_12",
     "tiny_07_12_bbox01",
     "tiny_08_03",

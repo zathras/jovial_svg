@@ -3,7 +3,7 @@
 /*
 MIT License
 
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ const _debugCompact = false;
 /// traversing the represented graph.
 ///
 class CompactTraverser<R, IM> {
+  final int fileVersion; // See [ScalableImageCompactGeneric.fileVersionNumber]
   final bool bigFloats;
   final SIVisitor<CompactChildData, IM, R> _visitor;
   final List<String> _strings;
@@ -69,7 +70,8 @@ class CompactTraverser<R, IM> {
   int _groupDepth = 0;
 
   CompactTraverser(
-      {required this.bigFloats,
+      {required this.fileVersion,
+      required this.bigFloats,
       required Uint8List visiteeChildren,
       required List<double> visiteeArgs,
       required List<double> visiteeTransforms,
@@ -141,6 +143,22 @@ class CompactTraverser<R, IM> {
           collector = _visitor.endGroup(collector);
           return collector;
         }
+      } else if (code < SIGenericCompactBuilder.MASKED_CHILD_CODE) {
+        assert(code & 0xfe == SIGenericCompactBuilder.MASKED_CODE);
+        assert(SIGenericCompactBuilder.MASKED_CODE & 0x1 == 0);
+        // it's MASKED_CODE
+        final RectT? maskBounds;
+        if (_flag(code, 0)) {
+          maskBounds =
+              RectT(_args.get(), _args.get(), _args.get(), _args.get());
+        } else {
+          maskBounds = null;
+        }
+        collector = masked(collector, maskBounds);
+      } else if (code == SIGenericCompactBuilder.MASKED_CHILD_CODE) {
+        collector = _visitor.maskedChild(collector);
+      } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
+        return _visitor.endMasked(collector);
       } else {
         throw ParseError('Bad code $code');
       }
@@ -163,6 +181,12 @@ class CompactTraverser<R, IM> {
     } else {
       return null;
     }
+  }
+
+  R masked(R collector, RectT? maskBounds) {
+    collector = _visitor.masked(collector, maskBounds);
+    collector = traverseGroup(collector);
+    return collector;
   }
 
   R group(R collector,
@@ -218,10 +242,14 @@ class CompactTraverser<R, IM> {
     final byte = _children.readUnsignedByte();
     final style = SIFontStyle.values[byte & 0x1];
     final weight = SIFontWeight.values[(byte >> 1) & 0xf];
+    final anchor = (fileVersion < 2)
+        ? SITextAnchor.start
+        : SITextAnchor.values[(byte >> 5) & 0x03];
     final fontSize = _args.get();
     final ta = SITextAttributes(
         fontFamily: (ffi == null) ? '' : _strings[ffi],
         fontStyle: style,
+        textAnchor: anchor,
         fontSize: fontSize,
         fontWeight: weight);
     return _visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
@@ -438,7 +466,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   /// File versions:
   ///    0 = not released
   ///    1 = jovial_svg version 1.0.0, June 2021
-  static const int fileVersionNumber = 1;
+  ///    2 = jovial_svg version 1.1.0, March 2022
+  static const int fileVersionNumber = 2;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
@@ -856,6 +885,9 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   static const CLIPPATH_CODE = 136; // 136, 137
   static const IMAGE_CODE = 138;
   static const END_GROUP_CODE = 139;
+  static const MASKED_CODE = 140;
+  static const MASKED_CHILD_CODE = 142;
+  static const END_MASKED_CODE = 143;
 
   bool get done => _done;
 
@@ -999,7 +1031,9 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     if (fontFamilyIndex != null) {
       _writeSmallishInt(children, fontFamilyIndex);
     }
-    children.writeByte(a.fontStyle.index | (a.fontWeight.index << 1));
+    children.writeByte(a.fontStyle.index |
+        (a.fontWeight.index << 1) |
+        (a.textAnchor.index << 5));
     _writeFloat(a.fontSize);
   }
 
@@ -1132,6 +1166,34 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
   PathDataT immutableKey(PathDataT pathData);
+
+  @override
+  void masked(void collector, RectT? maskBounds) {
+    children.writeByte(MASKED_CODE | _flag(maskBounds != null, 0));
+    if (maskBounds != null) {
+      _writeFloat(maskBounds.left);
+      _writeFloat(maskBounds.top);
+      _writeFloat(maskBounds.width);
+      _writeFloat(maskBounds.height);
+    }
+    if (_debugCompact) {
+      children.writeUnsignedInt(args.length + 100);
+      children.writeUnsignedShort(_debugGroupDepth++);
+    }
+  }
+
+  @override
+  void maskedChild(void collector) {
+    children.writeByte(MASKED_CHILD_CODE);
+  }
+
+  @override
+  void endMasked(void collector) {
+    children.writeByte(END_MASKED_CODE);
+    if (_debugCompact) {
+      _debugGroupDepth--;
+    }
+  }
 }
 
 class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>

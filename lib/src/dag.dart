@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -184,9 +184,7 @@ class ScalableImageDag extends ScalableImageBase
   void _addAll(List<SIRenderable> children, Set<SIRenderable> dagger) {
     for (final r in children) {
       dagger.add(r);
-      if (r is SIGroup) {
-        _addAll(r._renderables, dagger);
-      }
+      r.addChildren(dagger);
     }
   }
 
@@ -199,6 +197,16 @@ class ScalableImageDag extends ScalableImageBase
     // NOTE:  One reason why this is impossible is because Dart's `Path`
     // object is opaque; it does not let us inspect its contents, so a Dart
     // `Path` cannot be externalized.
+  }
+
+  @override
+  String debugSizeMessage() {
+    final Set<SIRenderable> nodes = <SIRenderable>{};
+    for (final r in _renderables) {
+      nodes.add(r);
+      r.addChildren(nodes);
+    }
+    return '${nodes.length + 1} nodes';
   }
 }
 
@@ -254,6 +262,117 @@ abstract class _SIParentNode {
   }
 }
 
+class SIMasked extends SIRenderable with SIMaskedHelper {
+  final SIRenderable mask;
+  final SIRenderable child;
+  final RenderContext context;
+  final Rect? maskBounds;
+  int? _hashCode;
+
+  SIMasked(List<SIRenderable> renderables, this.context, RectT? maskBounds)
+      : mask = renderables[0],
+        child = renderables[1],
+        maskBounds = convertRectTtoRect(maskBounds) {
+    assert(renderables.length == 2);
+  }
+
+  SIMasked._modified(this.mask, this.child, this.context, this.maskBounds);
+
+  @override
+  void paint(Canvas c, RenderContext context) {
+    final Rect? maskB;
+    final Rect? childB;
+    if (maskBounds != null) {
+      childB = child.getBoundary()?.getBounds();
+      if (childB == null) {
+        maskB = maskBounds;
+      } else {
+        maskB = maskBounds!.intersect(childB);
+      }
+    } else {
+      maskB = childB = getBoundary()?.getBounds();
+    }
+    startMask(c, maskB);
+    mask.paint(c, context);
+    startChild(c, childB);
+    child.paint(c, context);
+    finishMasked(c);
+  }
+
+  @override
+  PruningBoundary? getBoundary() {
+    final mb = mask.getBoundary();
+    final cb = child.getBoundary();
+    if (mb == null || cb == null) {
+      return null;
+    }
+    final mbb = mb.getBounds();
+    final cbb = cb.getBounds();
+    // Intersecting the two is hard, but conservatively returning
+    // the one with less area is a reasonable heuristic.
+    if (mbb.height * mbb.width > cbb.height * cbb.width) {
+      return cb;
+    } else {
+      return mb;
+    }
+  }
+
+  @override
+  SIRenderable? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    final mp = mask.prunedBy(dagger, imageSet, b);
+    if (mp == null) {
+      return null;
+    }
+    final cp = child.prunedBy(dagger, imageSet, b);
+    if (cp == null) {
+      return null;
+    }
+    final m = SIMasked._modified(mp, cp, context, maskBounds);
+    final mg = dagger.lookup(m);
+    if (mg != null) {
+      assert(mg is SIMasked);
+      return mg;
+    }
+    dagger.add(m);
+    return m;
+  }
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {
+    dagger.add(mask);
+    mask.addChildren(dagger);
+    dagger.add(child);
+    child.addChildren(dagger);
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SIMasked) {
+      return false;
+    } else {
+      return context == other.context &&
+          mask == other.mask &&
+          child == other.child;
+    }
+  }
+
+  bool _hashing = false;
+
+  @override
+  int get hashCode {
+    if (_hashCode == null) {
+      assert(!_hashing);
+      _hashing = true;
+      _hashCode = 0xac33fb5e ^ Object.hash(context, mask, child);
+      _hashing = false;
+    }
+    return _hashCode!;
+  }
+}
+
 class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   final List<SIRenderable> _renderables;
@@ -281,7 +400,6 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   void paint(Canvas c, RenderContext context) {
-    assert(context == this.context.parent);
     startPaintGroup(c, this.context.transform, groupAlpha);
     for (final r in _renderables) {
       r.paint(c, this.context);
@@ -306,6 +424,14 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     }
     dagger.add(g);
     return g;
+  }
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {
+    for (final r in _renderables) {
+      dagger.add(r);
+      r.addChildren(dagger);
+    }
   }
 
   @override
@@ -351,6 +477,19 @@ class _GroupBuilder implements _SIParentBuilder {
       : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIGroup get group => SIGroup(_renderables, groupAlpha, context);
+}
+
+class _MaskedBuilder implements _SIParentBuilder {
+  @override
+  final List<SIRenderable> _renderables;
+  @override
+  final RenderContext context;
+  final RectT? maskBounds;
+
+  _MaskedBuilder(this.context, this.maskBounds)
+      : _renderables = List<SIRenderable>.empty(growable: true);
+
+  SIRenderable get masked => SIMasked(_renderables, context, maskBounds);
 }
 
 ///
@@ -508,6 +647,25 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     final gb = _parentStack.last as _GroupBuilder;
     _parentStack.length = _parentStack.length - 1;
     addRenderable(_daggerize(gb.group));
+  }
+
+  @override
+  void masked(void collector, RectT? maskBounds) {
+    final mb =
+        _MaskedBuilder(RenderContext(_parentStack.last.context), maskBounds);
+    _parentStack.add(mb);
+  }
+
+  @override
+  void maskedChild(void collector) {
+    assert(_parentStack.last is _MaskedBuilder);
+  }
+
+  @override
+  void endMasked(void collector) {
+    final mb = _parentStack.last as _MaskedBuilder;
+    _parentStack.length = _parentStack.length - 1;
+    addRenderable(_daggerize(mb.masked));
   }
 }
 

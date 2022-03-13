@@ -7,19 +7,22 @@
       <x>340</x>
       <y>10</y>
       <w>300</w>
-      <h>180</h>
+      <h>210</h>
     </coordinates>
     <panel_attributes>/SIVisitor&lt;PathDataT, IM&gt;/
 --
 
 --
-init(images, strings, floatLists)
-path(pathData, paint)
-group(transform, alpha)
-endGroup()
-clipPath(path)
-image(imageIndex)
-text(xIndex, yIndex, textIndex, paint, ...)
+/init(images, strings, floatLists)/
+/path(pathData, paint)/
+/group(transform, alpha)/
+/endGroup()/
+/masked()/
+/maskedChild()/
+/endMasked()/
+/clipPath(path)/
+/image(imageIndex)/
+/text(xIndex, yIndex, textIndex, paint, ...)/
 </panel_attributes>
     <additional_attributes/>
   </element>
@@ -45,12 +48,12 @@ startPath(paint, key)
     <id>Relation</id>
     <coordinates>
       <x>240</x>
-      <y>180</y>
+      <y>210</y>
       <w>230</w>
-      <h>180</h>
+      <h>150</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>210.0;10.0;210.0;80.0;10.0;80.0;10.0;160.0</additional_attributes>
+    <additional_attributes>210.0;10.0;210.0;50.0;10.0;50.0;10.0;130.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -67,12 +70,12 @@ startPath(paint, key)
     <id>Relation</id>
     <coordinates>
       <x>440</x>
-      <y>180</y>
+      <y>210</y>
       <w>290</w>
-      <h>160</h>
+      <h>130</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;80.0;270.0;80.0;270.0;140.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0;270.0;50.0;270.0;110.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>

@@ -47,3 +47,9 @@ believed to be representative.
 - Use width and height attribute in AVD file for scaling (Issue 14)
 - Add `ScalableImage.fromAvdHttpUrl` to API for completeness
 - Add tiger image to demo
+
+## [1.1.0]
+
+- Implemented masks (SVG 1.1 mask element and mask attribute)
+- Implemented `text-anchor` attribute
+- Fixed text outline

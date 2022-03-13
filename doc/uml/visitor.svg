@@ -39,7 +39,7 @@
       ><path d="M0 0 L0 100 L310 100 L310 0 Z"
       /></clipPath
       ><clipPath clipPathUnits="userSpaceOnUse" id="clipPath12"
-      ><path d="M0 0 L0 180 L300 180 L300 0 Z"
+      ><path d="M0 0 L0 210 L300 210 L300 0 Z"
       /></clipPath
       ><clipPath clipPathUnits="userSpaceOnUse" id="clipPath13"
       ><path d="M0 0 L0 70 L90 70 L90 0 Z"
@@ -99,10 +99,10 @@
       ><path d="M0 0 L0 40 L120 40 L120 0 Z"
       /></clipPath
       ><clipPath clipPathUnits="userSpaceOnUse" id="clipPath32"
-      ><path d="M0 0 L0 160 L290 160 L290 0 Z"
+      ><path d="M0 0 L0 130 L290 130 L290 0 Z"
       /></clipPath
       ><clipPath clipPathUnits="userSpaceOnUse" id="clipPath33"
-      ><path d="M0 0 L0 180 L230 180 L230 0 Z"
+      ><path d="M0 0 L0 150 L230 150 L230 0 Z"
       /></clipPath
     ></defs
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(60,110)" stroke-opacity="0" stroke="rgb(255,255,255)"
@@ -274,27 +274,33 @@
       >startPath(paint, key)</text
     ></g
     ><g fill="rgb(255,255,255)" fill-opacity="0" transform="translate(340,10)" stroke-opacity="0" stroke="rgb(255,255,255)"
-    ><rect x="0.5" width="298.5" height="178.5" y="0.5" clip-path="url(#clipPath12)" stroke="none"
+    ><rect x="0.5" width="298.5" height="208.5" y="0.5" clip-path="url(#clipPath12)" stroke="none"
     /></g
     ><g transform="translate(340,10)"
-    ><rect fill="none" x="0.5" width="298.5" height="178.5" y="0.5" clip-path="url(#clipPath12)"
+    ><rect fill="none" x="0.5" width="298.5" height="208.5" y="0.5" clip-path="url(#clipPath12)"
       /><text x="62" font-size="14px" y="17.8174" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >SIVisitor&lt;PathDataT, IM&gt;</text
       ><path fill="none" d="M1 23.8174 L299 23.8174" clip-path="url(#clipPath12)"
       /><path fill="none" d="M1 44.6348 L299 44.6348" clip-path="url(#clipPath12)"
-      /><text x="5" font-size="14px" y="59.4521" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      /><text x="5" font-size="14px" y="59.4521" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >init(images, strings, floatLists)</text
-      ><text x="5" font-size="14px" y="75.2695" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="75.2695" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >path(pathData, paint)</text
-      ><text x="5" font-size="14px" y="91.0869" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="91.0869" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >group(transform, alpha)</text
-      ><text x="5" font-size="14px" y="106.9043" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="106.9043" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >endGroup()</text
-      ><text x="5" font-size="14px" y="122.7217" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="122.7217" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
+      >masked()</text
+      ><text x="5" font-size="14px" y="138.5391" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
+      >maskedChild()</text
+      ><text x="5" font-size="14px" y="154.3564" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
+      >endMasked()</text
+      ><text x="5" font-size="14px" y="170.1738" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >clipPath(path)</text
-      ><text x="5" font-size="14px" y="138.5391" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="185.9912" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >image(imageIndex)</text
-      ><text x="5" font-size="14px" y="154.3564" clip-path="url(#clipPath12)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      ><text x="5" font-size="14px" y="201.8086" clip-path="url(#clipPath12)" font-family="sans-serif" font-style="italic" stroke="none" xml:space="preserve"
       >text(xIndex, yIndex, textIndex, paint, ...)</text
     ></g
     ><g transform="translate(170,60)"
@@ -428,17 +434,17 @@
       /><text x="32.7285" font-size="14px" y="16" clip-path="url(#clipPath31)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >◄ calls</text
     ></g
-    ><g transform="translate(440,180)"
-    ><path fill="none" d="M10.5 11.5 L10.5 80.5" clip-path="url(#clipPath32)"
-      /><path fill="none" d="M10.5 80.5 L270.5 80.5" clip-path="url(#clipPath32)"
-      /><path fill="none" d="M270.5 80.5 L270.5 140.5" clip-path="url(#clipPath32)"
+    ><g transform="translate(440,210)"
+    ><path fill="none" d="M10.5 11.5 L10.5 50.5" clip-path="url(#clipPath32)"
+      /><path fill="none" d="M10.5 50.5 L270.5 50.5" clip-path="url(#clipPath32)"
+      /><path fill="none" d="M270.5 50.5 L270.5 110.5" clip-path="url(#clipPath32)"
       /><path fill="white" d="M4 22.2583 L10.5 11 L17 22.2583 Z" clip-path="url(#clipPath32)" stroke="none"
       /><path fill="none" d="M4 22.2583 L10.5 11 L17 22.2583 Z" clip-path="url(#clipPath32)"
     /></g
-    ><g transform="translate(240,180)"
-    ><path fill="none" d="M210.5 11.5 L210.5 80.5" clip-path="url(#clipPath33)"
-      /><path fill="none" d="M210.5 80.5 L10.5 80.5" clip-path="url(#clipPath33)"
-      /><path fill="none" d="M10.5 80.5 L10.5 160.5" clip-path="url(#clipPath33)"
+    ><g transform="translate(240,210)"
+    ><path fill="none" d="M210.5 11.5 L210.5 50.5" clip-path="url(#clipPath33)"
+      /><path fill="none" d="M210.5 50.5 L10.5 50.5" clip-path="url(#clipPath33)"
+      /><path fill="none" d="M10.5 50.5 L10.5 130.5" clip-path="url(#clipPath33)"
       /><path fill="white" d="M204 22.2583 L210.5 11 L217 22.2583 Z" clip-path="url(#clipPath33)" stroke="none"
       /><path fill="none" d="M204 22.2583 L210.5 11 L217 22.2583 Z" clip-path="url(#clipPath33)"
     /></g

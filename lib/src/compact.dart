@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -55,6 +55,7 @@ import 'path.dart';
 ///
 class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
+  final int fileVersion;
   @override
   final bool bigFloats;
   @override
@@ -73,7 +74,8 @@ class ScalableImageCompact extends ScalableImageBase
   final List<double> transforms; // Float32List or Float64List
 
   ScalableImageCompact._p(
-      {required this.bigFloats,
+      {required this.fileVersion,
+      required this.bigFloats,
       required double? width,
       required double? height,
       required Color? tintColor,
@@ -100,6 +102,7 @@ class ScalableImageCompact extends ScalableImageBase
       return v.si;
     } else {
       return ScalableImageCompact._p(
+          fileVersion: fileVersion,
           bigFloats: bigFloats,
           width: width,
           height: height,
@@ -121,6 +124,7 @@ class ScalableImageCompact extends ScalableImageBase
   @override
   ScalableImage modifyCurrentColor(Color newCurrentColor) {
     return ScalableImageCompact._p(
+        fileVersion: fileVersion,
         bigFloats: bigFloats,
         width: width,
         height: height,
@@ -142,6 +146,7 @@ class ScalableImageCompact extends ScalableImageBase
   ScalableImage modifyTint(
       {required BlendMode newTintMode, required Color? newTintColor}) {
     return ScalableImageCompact._p(
+        fileVersion: fileVersion,
         bigFloats: bigFloats,
         width: width,
         height: height,
@@ -168,6 +173,7 @@ class ScalableImageCompact extends ScalableImageBase
 
   R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) {
     final t = CompactTraverser<R, SIImage>(
+        fileVersion: fileVersion,
         bigFloats: bigFloats,
         strings: strings,
         floatLists: floatLists,
@@ -216,7 +222,8 @@ class ScalableImageCompact extends ScalableImageBase
     }
     dis.readByte();
     final version = dis.readUnsignedShort();
-    if (version != ScalableImageCompactGeneric.fileVersionNumber) {
+    if (version != 1 &&
+        version != ScalableImageCompactGeneric.fileVersionNumber) {
       throw ParseError('Unsupported version $version');
     }
     final int flags = dis.readUnsignedByte();
@@ -259,6 +266,7 @@ class ScalableImageCompact extends ScalableImageBase
     }, growable: false);
     final children = dis.remainingCopy();
     return ScalableImageCompact._p(
+        fileVersion: version,
         bigFloats: bigFloats,
         width: width,
         height: height,
@@ -328,6 +336,11 @@ class ScalableImageCompact extends ScalableImageBase
     os.close();
     return sink.toList();
   }
+
+  @override
+  String debugSizeMessage() {
+    return '${toSIBytes().length} bytes';
+  }
 }
 
 ///
@@ -335,7 +348,6 @@ class ScalableImageCompact extends ScalableImageBase
 /// the creation of renderable SI objects.
 ///
 abstract class _CompactVisitor<R>
-    with SIGroupHelper
     implements SIVisitor<CompactChildData, SIImage, R> {
   late final List<String> _strings;
   late final List<List<double>> _floatLists;
@@ -406,7 +418,8 @@ abstract class _CompactVisitor<R>
   }
 }
 
-class _PaintingVisitor extends _CompactVisitor<void> {
+class _PaintingVisitor extends _CompactVisitor<void>
+    with SIGroupHelper, SIMaskedHelper {
   final Canvas canvas;
 
   _PaintingVisitor(this.canvas, RenderContext context) : super(context);
@@ -440,11 +453,26 @@ class _PaintingVisitor extends _CompactVisitor<void> {
   @override
   void siText(void collector, SIText text, int xIndex, int yIndex) =>
       text.paint(canvas, context);
+
+  @override
+  void masked(void collector, RectT? maskBounds) =>
+      startMask(canvas, convertRectTtoRect(maskBounds));
+
+  @override
+  void maskedChild(void collector) => startChild(canvas, null);
+
+  @override
+  void endMasked(void collector) => finishMasked(canvas);
+
+  @override
+  PruningBoundary? getBoundary() => null;
+  // We don't know our boundary (unlike the DAG implementation), so we just
+  // we're a little less efficient.
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   final PruningBoundary _boundary;
-  final _groupStack = List<_PruningEntry>.empty(growable: true);
+  final _parentStack = List<_PruningEntry>.empty(growable: true);
   final _PruningBuilder builder;
   ScalableImageCompact? _si;
   CompactChildData? _lastPathData;
@@ -485,18 +513,47 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary group(
       PruningBoundary boundary, Affine? transform, int? groupAlpha) {
-    final parent = _groupStack.isEmpty ? null : _groupStack.last;
-    _groupStack
-        .add(_PruningEntry(boundary, parent, this, transform, groupAlpha));
+    final parent = _parentStack.isEmpty ? null : _parentStack.last;
+    _parentStack
+        .add(_GroupPruningEntry(boundary, parent, this, transform, groupAlpha));
     pushContext(RenderContext(context, transform: transform));
     return context.transformBoundaryFromParent(boundary);
   }
 
   @override
   PruningBoundary endGroup(PruningBoundary boundary) {
-    final us = _groupStack.last;
-    _groupStack.length = _groupStack.length - 1;
+    final us = _parentStack.last as _GroupPruningEntry;
+    _parentStack.length = _parentStack.length - 1;
     us.endGroupIfNeeded();
+    popContext();
+    return us.boundary;
+  }
+
+  @override
+  PruningBoundary masked(PruningBoundary boundary, RectT? maskBounds) {
+    final parent = _parentStack.isEmpty ? null : _parentStack.last;
+    _parentStack.add(_MaskedPruningEntry(boundary, parent, this, maskBounds));
+    pushContext(RenderContext(context));
+    return context.transformBoundaryFromParent(boundary);
+  }
+
+  @override
+  PruningBoundary maskedChild(PruningBoundary boundary) {
+    // We've traversed the mask, and now we're starting to traverse
+    // the child.
+    final us = _parentStack.last as _MaskedPruningEntry;
+    us.setMaskDone();
+
+    assert(boundary.getBounds() ==
+        context.transformBoundaryFromParent(us.boundary).getBounds());
+    return boundary;
+  }
+
+  @override
+  PruningBoundary endMasked(PruningBoundary collector) {
+    final us = _parentStack.last as _MaskedPruningEntry;
+    _parentStack.length = _parentStack.length - 1;
+    us.endMaskedIfNeeded();
     popContext();
     return us.boundary;
   }
@@ -513,8 +570,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   PruningBoundary siPath(PruningBoundary boundary, SIPath path) {
     assert(_lastPathData != null);
     if (path.prunedBy({}, {}, boundary) != null) {
-      if (_groupStack.isNotEmpty) {
-        _groupStack.last.generateGroupIfNeeded();
+      if (_parentStack.isNotEmpty) {
+        _parentStack.last.generateParentIfNeeded();
       }
       builder.path(null, _lastPathData!, path.siPaint);
     }
@@ -534,8 +591,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   PruningBoundary siClipPath(PruningBoundary boundary, SIClipPath cp) {
     assert(_lastPathData != null);
     if (cp.prunedBy({}, {}, boundary) != null) {
-      if (_groupStack.isNotEmpty) {
-        _groupStack.last.generateGroupIfNeeded();
+      if (_parentStack.isNotEmpty) {
+        _parentStack.last.generateParentIfNeeded();
       }
       builder.clipPath(null, _lastPathData!);
     }
@@ -547,8 +604,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   PruningBoundary image(PruningBoundary boundary, int imageIndex) {
     final SIImage image = _images[imageIndex];
     if (image.prunedBy({}, {}, boundary) != null) {
-      if (_groupStack.isNotEmpty) {
-        _groupStack.last.generateGroupIfNeeded();
+      if (_parentStack.isNotEmpty) {
+        _parentStack.last.generateParentIfNeeded();
       }
       int i = _theCanon.getIndex(_theCanon.images, image)!;
       builder.image(null, i);
@@ -560,8 +617,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   PruningBoundary siText(
       PruningBoundary boundary, SIText text, int xIndex, int yIndex) {
     if (text.prunedBy({}, {}, boundary) != null) {
-      if (_groupStack.isNotEmpty) {
-        _groupStack.last.generateGroupIfNeeded();
+      if (_parentStack.isNotEmpty) {
+        _parentStack.last.generateParentIfNeeded();
       }
       final c = _theCanon;
       xIndex = c.getIndex(c.floatLists, _floatLists[xIndex])!;
@@ -612,6 +669,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   ScalableImageCompact get si {
     assert(done);
     return ScalableImageCompact._p(
+        fileVersion: ScalableImageCompactGeneric.fileVersionNumber,
         bigFloats: bigFloats,
         width: width,
         height: height,
@@ -630,25 +688,38 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   }
 }
 
-class _PruningEntry {
-  final PruningBoundary boundary;
+abstract class _PruningEntry {
   final _PruningEntry? parent;
+  bool generated = false;
+
+  _PruningEntry(this.parent);
+
+  void generateParentIfNeeded() {
+    if (generated) {
+      return;
+    }
+    parent?.generateParentIfNeeded();
+    generateParent();
+    generated = true;
+  }
+
+  @protected
+  void generateParent();
+}
+
+class _GroupPruningEntry extends _PruningEntry {
+  final PruningBoundary boundary;
   final _PruningVisitor visitor;
   final Affine? transform;
   final int? groupAlpha;
 
-  bool generated = false;
+  _GroupPruningEntry(this.boundary, _PruningEntry? parent, this.visitor,
+      this.transform, this.groupAlpha)
+      : super(parent);
 
-  _PruningEntry(this.boundary, this.parent, this.visitor, this.transform,
-      this.groupAlpha);
-
-  void generateGroupIfNeeded() {
-    if (generated) {
-      return;
-    }
-    parent?.generateGroupIfNeeded();
+  @override
+  void generateParent() {
     visitor.builder.group(null, transform, groupAlpha);
-    generated = true;
   }
 
   void endGroupIfNeeded() {
@@ -658,10 +729,66 @@ class _PruningEntry {
   }
 }
 
+class _MaskedPruningEntry extends _PruningEntry {
+  final PruningBoundary boundary;
+  final _PruningVisitor visitor;
+  final RectT? maskBounds;
+
+  bool _maskDone = false;
+  bool childGenerated = false;
+
+  _MaskedPruningEntry(
+      this.boundary, _PruningEntry? parent, this.visitor, this.maskBounds)
+      : super(parent);
+
+  bool get maskDone => _maskDone;
+  void setMaskDone() {
+    if (!_maskDone) {
+      _maskDone = true;
+      if (generated) {
+        visitor.builder.maskedChild(null);
+      }
+    }
+  }
+
+  @override
+  void generateParentIfNeeded() {
+    if (maskDone) {
+      childGenerated = true;
+    }
+    super.generateParentIfNeeded();
+  }
+
+  @override
+  void generateParent() {
+    visitor.builder.masked(null, maskBounds);
+    if (maskDone) {
+      // Rare, but perhaps possible:  The mask got entirely pruned away, but the
+      // child didn't, so we make an empty group for the mask.
+      visitor.builder.group(null, null, null);
+      visitor.builder.endGroup(null);
+      visitor.builder.maskedChild(null);
+    }
+  }
+
+  void endMaskedIfNeeded() {
+    if (!generated) {
+      return;
+    }
+    if (!childGenerated) {
+      // Rare, but perhaps possible:  The child got entirely pruned away, but
+      // the mask didn't, so we make an empty group for the child.
+      visitor.builder.group(null, null, null);
+      visitor.builder.endGroup(null);
+    }
+    visitor.builder.endMasked(null);
+  }
+}
+
 class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? boundary;
 
-  final _groupStack = List<PruningBoundary?>.empty(growable: true);
+  final _boundaryStack = List<PruningBoundary?>.empty(growable: true);
 
   _BoundaryVisitor(ScalableImageCompact si)
       : super(RenderContext.root(si, Colors.black));
@@ -671,19 +798,62 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
 
   @override
   PruningBoundary? group(
-      PruningBoundary? initial, Affine? transform, int? groupAlpha) {
+      PruningBoundary? start, Affine? transform, int? groupAlpha) {
     pushContext(RenderContext(context, transform: transform));
-    _groupStack.add(initial);
+    _boundaryStack.add(start);
     return null;
   }
 
   @override
   PruningBoundary? endGroup(PruningBoundary? children) {
-    PruningBoundary? us = _groupStack.last;
-    _groupStack.length = _groupStack.length - 1;
+    PruningBoundary? us = _boundaryStack.last;
+    _boundaryStack.length = _boundaryStack.length - 1;
     RenderContext ctx = context;
     popContext();
     return combine(us, ctx.transformBoundaryFromChildren(children));
+  }
+
+  @override
+  PruningBoundary? masked(PruningBoundary? start, RectT? maskBoundary) {
+    pushContext(RenderContext(context));
+    _boundaryStack.add(start);
+    return null;
+  }
+
+  @override
+  PruningBoundary? maskedChild(PruningBoundary? mask) {
+    RenderContext ctx = context;
+    popContext();
+    _boundaryStack.add(ctx.transformBoundaryFromChildren(mask));
+    pushContext(RenderContext(context));
+    return null;
+  }
+
+  @override
+  PruningBoundary? endMasked(PruningBoundary? child) {
+    RenderContext ctx = context;
+    popContext();
+    child = ctx.transformBoundaryFromChildren(child);
+    PruningBoundary? mask = _boundaryStack.last;
+    _boundaryStack.length--;
+    PruningBoundary? us = _boundaryStack.last;
+    _boundaryStack.length = _boundaryStack.length - 1;
+
+    if (mask == null || child == null) {
+      return us;
+    }
+
+    final mbb = mask.getBounds();
+    final cbb = child.getBounds();
+    final PruningBoundary other;
+    // Intersecting the two is hard, but conservatively returning
+    // the one with less area is a reasonable heuristic.
+    if (mbb.height * mbb.width > cbb.height * cbb.width) {
+      other = child;
+    } else {
+      other = mask;
+    }
+    return combine(us, other);
   }
 
   @override
@@ -777,6 +947,7 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
   ScalableImageCompact get si {
     assert(done);
     return ScalableImageCompact._p(
+        fileVersion: ScalableImageCompactGeneric.fileVersionNumber,
         bigFloats: bigFloats,
         width: width,
         height: height,

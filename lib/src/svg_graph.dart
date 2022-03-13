@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@ class SvgParseGraph {
   void build(SIBuilder<String, SIImageData> builder) {
     final rootPaint = SvgPaint.initial();
     final rootTA = SvgTextAttributes.initial();
-    SvgGroup? newRoot = root.resolve(idLookup, rootPaint, builder.warn);
+    SvgNode? newRoot = root.resolve(idLookup, rootPaint, builder.warn);
     builder.vector(
         width: width, height: height, tintColor: null, tintMode: null);
     final theCanon = CanonicalizedData<SIImageData>();
@@ -110,15 +110,29 @@ abstract class SvgInheritableAttributes implements SvgNode {
         strokeCap: paint.strokeCap ?? ancestor.strokeCap,
         fillType: paint.fillType ?? ancestor.fillType,
         strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
-        strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset);
+        strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
+        mask: null); // Mask is not inherited
   }
 
   SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
     return SvgTextAttributes(
         fontSize: textAttributes.fontSize.orInherit(ancestor.fontSize),
         fontFamily: textAttributes.fontFamily ?? ancestor.fontFamily,
+        textAnchor: textAttributes.textAnchor ?? ancestor.textAnchor,
         fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
+  }
+
+  SvgNode resolveMask(Map<String, SvgNode> idLookup) {
+    if (paint.mask != null) {
+      SvgNode? n = idLookup[paint.mask];
+      if (n is SvgMask) {
+        return SvgMasked(this, n);
+      } else {
+        print('    $this references nonexistent mask ${paint.mask}');
+      }
+    }
+    return this;
   }
 }
 
@@ -135,6 +149,7 @@ class SvgPaint {
   SIFillType? fillType;
   List<double>? strokeDashArray; // [] for "none"
   double? strokeDashOffset;
+  String? mask;
 
   SvgPaint(
       {required this.currentColor,
@@ -148,7 +163,8 @@ class SvgPaint {
       required this.strokeCap,
       required this.fillType,
       required this.strokeDashArray,
-      required this.strokeDashOffset});
+      required this.strokeDashOffset,
+      required this.mask});
 
   SvgPaint.empty()
       : fillColor = SvgColor.inherit,
@@ -167,21 +183,26 @@ class SvgPaint {
       strokeCap: SIStrokeCap.butt,
       fillType: SIFillType.nonZero,
       strokeDashArray: null,
-      strokeDashOffset: null);
+      strokeDashOffset: null,
+      mask: null);
 
   @override
   int get hashCode =>
       0x5390dc64 ^
-      quiver.hash4(
+      Object.hash(
           fillColor,
           fillAlpha,
-          quiver.hash4(strokeColor, strokeAlpha, strokeWidth, strokeMiterLimit),
-          quiver.hash4(
-              currentColor,
-              strokeJoin,
-              strokeCap,
-              quiver.hash3(fillType, strokeDashOffset,
-                  quiver.hashObjects(strokeDashArray ?? <double>[]))));
+          strokeColor,
+          strokeAlpha,
+          strokeWidth,
+          strokeMiterLimit,
+          currentColor,
+          mask,
+          strokeJoin,
+          strokeCap,
+          fillType,
+          strokeDashOffset,
+          Object.hashAll(strokeDashArray ?? const []));
 
   @override
   bool operator ==(Object other) {
@@ -196,6 +217,7 @@ class SvgPaint {
           strokeWidth == other.strokeWidth &&
           strokeMiterLimit == other.strokeMiterLimit &&
           currentColor == other.currentColor &&
+          mask == other.mask &&
           strokeJoin == other.strokeJoin &&
           strokeCap == other.strokeCap &&
           fillType == other.fillType &&
@@ -226,7 +248,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   SvgGroup();
 
   @override
-  SvgGroup? resolve(
+  SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
     final newC = List<SvgNode>.empty(growable: true);
@@ -242,7 +264,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
     } else if (transform?.determinant() == 0.0) {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -288,6 +310,54 @@ class SvgDefs extends SvgGroup {
   }
 }
 
+///
+/// The mask itself, from a <mask> tag in the source file
+///
+class SvgMask extends SvgGroup {
+  Rectangle<double>? bufferBounds;
+
+  SvgMask() : super();
+
+  @override
+  SvgGroup? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+    super.resolve(idLookup, ancestor, warn);
+    return null;
+  }
+}
+
+///
+/// A parent node for a node with a mask attribute.
+///
+class SvgMasked extends SvgNode {
+  final SvgNode child;
+  SvgMask mask;
+
+  SvgMasked(this.child, this.mask);
+
+  @override
+  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+    builder.masked(null, mask.bufferBounds);
+    mask.build(builder, canon, idLookup, ancestor, ta);
+    builder.maskedChild(null);
+    child.build(builder, canon, idLookup, ancestor, ta);
+    builder.endMasked(null);
+  }
+
+  @override
+  void collectCanon(CanonicalizedData<SIImageData> canon) {
+    child.collectCanon;
+  }
+
+  @override
+  SvgNode? resolve(
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+    assert(false); // We're added during resolve
+    return null;
+  }
+}
+
 class SvgUse extends SvgInheritableAttributes implements SvgNode {
   String childID;
 
@@ -311,7 +381,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     g.paint = paint;
     g.transform = transform;
     g.children.add(n);
-    return g;
+    return g.resolveMask(idLookup);
   }
 
   @override
@@ -353,12 +423,12 @@ class SvgPath extends SvgPathMaker {
   SvgPath(this.pathData);
 
   @override
-  SvgPath? resolve(
+  SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     if (pathData == '') {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -381,12 +451,12 @@ class SvgRect extends SvgPathMaker {
   SvgRect(this.x, this.y, this.width, this.height, this.rx, this.ry);
 
   @override
-  SvgRect? resolve(
+  SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     if (width <= 0 || height <= 0) {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -456,12 +526,12 @@ class SvgEllipse extends SvgPathMaker {
   SvgEllipse(this.cx, this.cy, this.rx, this.ry);
 
   @override
-  SvgEllipse? resolve(
+  SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     if (rx <= 0 || ry <= 0) {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -504,12 +574,12 @@ class SvgPoly extends SvgPathMaker {
   SvgPoly(this.close, this.points);
 
   @override
-  SvgPoly? resolve(
+  SvgNode? resolve(
       Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
     if (points.length < 2) {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -610,7 +680,7 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
     if (width <= 0 || height <= 0) {
       return null;
     }
-    return this;
+    return resolveMask(idLookup);
   }
 
   @override
@@ -643,7 +713,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     if (text == '') {
       return null;
     } else {
-      return this;
+      return resolveMask(idLookup);
     }
   }
 
@@ -652,7 +722,11 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final cascaded = cascadePaint(ancestor, idLookup);
     if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
-      return;
+      if (cascaded.strokeAlpha == 0 ||
+          cascaded.strokeColor == SvgColor.none ||
+          cascaded.strokeWidth == 0) {
+        return;
+      }
     }
     final currPaint = cascaded.toSIPaint().forText();
     final currTA = cascadeText(ta).toSITextAttributes();
@@ -686,6 +760,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
 class SvgTextAttributes {
   String? fontFamily;
   SIFontStyle? fontStyle;
+  SITextAnchor? textAnchor;
   SvgFontWeight fontWeight = SvgFontWeight.inherit;
   SvgFontSize fontSize = SvgFontSize.inherit;
 
@@ -693,17 +768,20 @@ class SvgTextAttributes {
   SvgTextAttributes(
       {required this.fontFamily,
       required this.fontStyle,
+      required this.textAnchor,
       required this.fontWeight,
       required this.fontSize});
 
   SvgTextAttributes.initial()
       : fontFamily = '',
+        textAnchor = SITextAnchor.start,
         fontStyle = SIFontStyle.normal,
         fontWeight = SvgFontWeight.w400,
         fontSize = SvgFontSize.medium;
 
   SITextAttributes toSITextAttributes() => SITextAttributes(
       fontFamily: fontFamily!,
+      textAnchor: textAnchor!,
       fontStyle: fontStyle!,
       fontWeight: fontWeight.toSI(),
       fontSize: fontSize.toSI());

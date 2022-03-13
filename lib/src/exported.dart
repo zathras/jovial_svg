@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -224,6 +224,13 @@ abstract class ScalableImage {
   /// by passing a `compact` flag when the image is created.
   ///
   Uint8List toSIBytes();
+
+  ///
+  /// Give a string that describes the size of this ScalableImage, for
+  /// debugging.  For a compact image, this gives a size in bytes, and for
+  /// the DAG representation, gives a node count.
+  ///
+  String debugSizeMessage();
 
   ///
   /// Create an image from a `.si` file in an asset bundle.

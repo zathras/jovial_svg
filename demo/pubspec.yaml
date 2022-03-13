@@ -59,6 +59,8 @@ flutter:
     - assets/svg/tiny_stroke_dasharray_2.svg
     - assets/svg/tiny_stroke_dasharray_3.svg
     - assets/svg/SVG_Logo.svg
+    - assets/svg/mask1.svg
+    - assets/svg/mask2.svg
     - assets/avd/anglo.xml
     - assets/avd/bellot.xml
     - assets/avd/bonded.xml
@@ -99,6 +101,8 @@ flutter:
     - assets/si/tiny_stroke_dasharray_2.si
     - assets/si/tiny_stroke_dasharray_3.si
     - assets/si/SVG_Logo.si
+    - assets/si/mask1.si
+    - assets/si/mask2.si
     - assets/test/issue_13_forgiving_1_avd.xml
     - assets/test/issue_13_forgiving_1_avd.si
     - assets/test/issue_13_forgiving_2_avd.xml

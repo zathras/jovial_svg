@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -109,6 +109,11 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
+      } else if (evt.name == 'mask') {
+        _processMask(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _parentStack.length = _parentStack.length - 1;
+        }
       } else if (evt.name == 'path') {
         _processPath(_toMap(evt.attributes));
       } else if (evt.name == 'rect') {
@@ -165,7 +170,10 @@ abstract class SvgParser extends GenericParser {
 
   void _endTag(XmlEndElementEvent evt) {
     if (_parentStack.isNotEmpty &&
-        (evt.name == 'svg' || evt.name == 'g' || evt.name == 'defs')) {
+        (evt.name == 'svg' ||
+            evt.name == 'g' ||
+            evt.name == 'defs' ||
+            evt.name == 'mask')) {
       _parentStack.length = _parentStack.length - 1;
     } else if (evt.name == 'text') {
       _currentText = null;
@@ -221,6 +229,28 @@ abstract class SvgParser extends GenericParser {
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(group);
     _parentStack.add(group);
+  }
+
+  void _processMask(Map<String, String> attrs) {
+    final mask = SvgMask();
+    _processId(mask, attrs);
+    _processInheritable(mask, attrs);
+    final x = getFloat(attrs.remove('x'));
+    final y = getFloat(attrs.remove('y'));
+    final width = getFloat(attrs.remove('width'));
+    final height = getFloat(attrs.remove('height'));
+    final bool userSpace = attrs.remove('maskunits') == 'userSpaceOnUse';
+    // This defaults to 'objectBoundingBox'
+    if (x != null && y != null && width != null && height != null) {
+      if (userSpace) {
+        mask.bufferBounds = Rectangle(x, y, width, height);
+      } else {
+        print('    objectBoundingBox maskUnits unsupported in $_currTag');
+      }
+    }
+    _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(mask);
+    _parentStack.add(mask);
   }
 
   void _processPath(Map<String, String> attrs) {
@@ -490,6 +520,16 @@ abstract class SvgParser extends GenericParser {
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
     p.fillAlpha = getAlpha(attrs.remove('fill-opacity'));
     p.fillType = getFillType(attrs.remove('fill-rule'));
+    String? mask = attrs.remove('mask');
+    if (mask != null) {
+      if (mask.startsWith('url(') && mask.endsWith(')')) {
+        mask = mask.substring(4, mask.length - 1).trim();
+        if (mask.startsWith('#')) {
+          mask = mask.substring(1).trim();
+        }
+      }
+    }
+    p.mask = mask;
     p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim());
     p.strokeAlpha = getAlpha(attrs.remove('stroke-opacity'));
     p.strokeWidth = getFloat(attrs.remove('stroke-width'));
@@ -579,6 +619,19 @@ abstract class SvgParser extends GenericParser {
       } else if (warn) {
         print('    Ignoring invalid fontStyle "$attr"');
       }
+    }
+
+    attr = attrs.remove('text-anchor')?.toLowerCase();
+    if (attr == null || attr == 'inherit') {
+      // Let it stay at null
+    } else if (attr == 'start') {
+      t.textAnchor = SITextAnchor.start;
+    } else if (attr == 'middle') {
+      t.textAnchor = SITextAnchor.middle;
+    } else if (attr == 'end') {
+      t.textAnchor = SITextAnchor.end;
+    } else if (warn) {
+      print('    Ignoring invalid fontStyle "$attr"');
     }
 
     node.transform = getTransform(node.transform, attrs.remove('transform'));

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -71,6 +71,12 @@ abstract class SIVisitor<PathDataT, IM, R> {
   R endGroup(R collector);
 
   R clipPath(R collector, PathDataT pathData);
+
+  R masked(R collector, RectT? maskBounds);
+
+  R maskedChild(R collector);
+
+  R endMasked(R collector);
 
   R image(R collector, int imageIndex);
 
@@ -179,8 +185,8 @@ class SIPaint {
 
   SIPaint forText() => SIPaint(
       fillColor: fillColor,
-      strokeColor: SIColor.none,
-      strokeWidth: null,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth,
       strokeMiterLimit: null,
       strokeJoin: null,
       strokeCap: null,
@@ -899,14 +905,18 @@ enum SIFontStyle { normal, italic }
 
 enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
 
+enum SITextAnchor { start, middle, end }
+
 class SITextAttributes {
   final String fontFamily;
+  final SITextAnchor textAnchor;
   final SIFontStyle fontStyle;
   final SIFontWeight fontWeight;
   final double fontSize;
 
   SITextAttributes(
       {required this.fontFamily,
+      required this.textAnchor,
       required this.fontStyle,
       required this.fontWeight,
       required this.fontSize});
@@ -917,6 +927,7 @@ class SITextAttributes {
       return true;
     } else if (other is SITextAttributes) {
       return fontFamily == other.fontFamily &&
+          textAnchor == other.textAnchor &&
           fontStyle == other.fontStyle &&
           fontWeight == other.fontWeight &&
           fontSize == other.fontSize;
@@ -927,7 +938,8 @@ class SITextAttributes {
 
   @override
   int get hashCode =>
-      0xa7cb9e84 ^ quiver.hash4(fontFamily, fontStyle, fontWeight, fontSize);
+      0xa7cb9e84 ^
+      Object.hash(fontFamily, fontStyle, fontWeight, fontSize, textAnchor);
 }
 
 ///

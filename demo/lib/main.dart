@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -398,13 +398,14 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 
   void _changeZoomPrune() => unawaited(() async {
-        final oldSI = si;
+        final ScalableImage? oldSI = si;
         Rect? vp = _originalViewport;
         if (oldSI == null) {
           return;
         }
         final ScalableImage newSI;
         final Rect? nextOriginalViewport;
+        print('    Original size:  ${oldSI.debugSizeMessage()}');
         if (vp != null) {
           newSI = oldSI.withNewViewport(vp); // Restore original viewport
           nextOriginalViewport = null;
@@ -417,6 +418,7 @@ class _DemoScreenState extends State<DemoScreen> {
               Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
               prune: true);
         }
+        print('         New size:  ${newSI.debugSizeMessage()}');
         await newSI.prepareImages();
         oldSI.unprepareImages();
         setState(() {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 William Foote
+Copyright (c) 2021-2022, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -45,6 +45,14 @@ import 'package:quiver/collection.dart' as quiver;
 import '../jovial_svg.dart';
 import 'affine.dart';
 import 'common_noui.dart';
+
+Rect? convertRectTtoRect(RectT? r) {
+  if (r == null) {
+    return null;
+  } else {
+    return Rect.fromLTWH(r.left, r.top, r.width, r.height);
+  }
+}
 
 abstract class SIRenderable {
   void paint(Canvas c, RenderContext context);
@@ -142,6 +150,8 @@ abstract class SIRenderable {
       return null;
     }
   }
+
+  void addChildren(Set<SIRenderable> dagger);
 }
 
 abstract class _HasBounds {
@@ -314,8 +324,9 @@ mixin SIGroupHelper {
     if (groupAlpha == null || groupAlpha == 0xff) {
       c.save();
     } else {
+      final Rect? bounds = getBoundary()?.getBounds();
       c.saveLayer(
-          null,
+          bounds,
           Paint()
             ..blendMode = BlendMode.multiply
             ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff));
@@ -326,6 +337,30 @@ mixin SIGroupHelper {
   }
 
   void endPaintGroup(Canvas c) {
+    c.restore();
+  }
+
+  /// Implemented in the DAG subtype, this optimizes painting when alpha
+  /// blending is done.
+  PruningBoundary? getBoundary();
+}
+
+///
+/// A Mixin for the Mask operations
+///
+mixin SIMaskedHelper {
+  void startMask(Canvas c, Rect? bounds) {
+    c.saveLayer(bounds, Paint());
+    c.save();
+  }
+
+  void startChild(Canvas c, Rect? bounds) {
+    c.restore();
+    c.saveLayer(bounds, Paint()..blendMode = BlendMode.srcIn);
+  }
+
+  void finishMasked(Canvas c) {
+    c.restore();
     c.restore();
   }
 }
@@ -354,6 +389,9 @@ class SIClipPath extends SIRenderable {
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(path.getBounds());
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {}
 
   @override
   bool operator ==(final Object other) {
@@ -480,6 +518,9 @@ class SIPath extends SIRenderable implements _HasBounds {
   }
 
   @override
+  void addChildren(Set<SIRenderable> dagger) {}
+
+  @override
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
@@ -604,6 +645,9 @@ class SIImage extends SIRenderable {
   }
 
   @override
+  void addChildren(Set<SIRenderable> dagger) {}
+
+  @override
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
@@ -707,14 +751,25 @@ class SIText extends SIRenderable implements _HasBounds {
 
   @override
   void paint(ui.Canvas c, RenderContext context) {
-    final Paint? foreground = _getPaint(siPaint.fillColor, context);
-    if (foreground == null) {
+    Paint? foreground = _getPaint(siPaint.fillColor, context);
+    if (foreground != null) {
+      _forEachPainter(context.currentColor, foreground,
+          (double left, double top, TextPainter tp) {
+        tp.paint(c, Offset(left, top));
+      });
+    }
+    if (siPaint.strokeWidth == 0) {
       return;
     }
-    _forEachPainter(context.currentColor, foreground,
-        (double left, double top, TextPainter tp) {
-      tp.paint(c, Offset(left, top));
-    });
+    Paint? strokeP = _getPaint(siPaint.strokeColor, context);
+    if (strokeP != null) {
+      strokeP.strokeWidth = siPaint.strokeWidth;
+      strokeP.style = PaintingStyle.stroke;
+      _forEachPainter(context.currentColor, strokeP,
+          (double left, double top, TextPainter tp) {
+        tp.paint(c, Offset(left, top));
+      });
+    }
   }
 
   void _forEachPainter(ui.Color currentColor, ui.Paint foreground,
@@ -746,9 +801,24 @@ class SIText extends SIRenderable implements _HasBounds {
       final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
       tp.layout();
       final dy = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      thingToDo(_x[i], _y[i] - dy, tp);
+      final double dx;
+      switch (attributes.textAnchor) {
+        case SITextAnchor.start:
+          dx = 0;
+          break;
+        case SITextAnchor.middle:
+          dx = -tp.width / 2;
+          break;
+        case SITextAnchor.end:
+          dx = -tp.width;
+          break;
+      }
+      thingToDo(_x[i] + dx, _y[i] - dy, tp);
     }
   }
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {}
 }
 
 ///
