@@ -355,7 +355,8 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     } else {
       return context == other.context &&
           mask == other.mask &&
-          child == other.child;
+          child == other.child &&
+          maskBounds == other.maskBounds;
     }
   }
 
@@ -366,7 +367,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     if (_hashCode == null) {
       assert(!_hashing);
       _hashing = true;
-      _hashCode = 0xac33fb5e ^ Object.hash(context, mask, child);
+      _hashCode = 0xac33fb5e ^ Object.hash(context, mask, child, maskBounds);
       _hashing = false;
     }
     return _hashCode!;

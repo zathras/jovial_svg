@@ -154,11 +154,21 @@ class CompactTraverser<R, IM> {
         } else {
           maskBounds = null;
         }
+        if (_debugCompact) {
+          int currArgSeek = _children.readUnsignedInt() - 100;
+          assert(currArgSeek == _args.seek);
+          int d = _children.readUnsignedShort();
+          assert(d == _groupDepth, '$d == $_groupDepth at ${_children.seek}');
+        }
         collector = masked(collector, maskBounds);
       } else if (code == SIGenericCompactBuilder.MASKED_CHILD_CODE) {
         collector = _visitor.maskedChild(collector);
       } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
-        return _visitor.endMasked(collector);
+        if (_groupDepth <= 0) {
+          throw ParseError('Unexpected END_GROUP_CODE');
+        } else {
+          return _visitor.endMasked(collector);
+        }
       } else {
         throw ParseError('Bad code $code');
       }
@@ -185,7 +195,9 @@ class CompactTraverser<R, IM> {
 
   R masked(R collector, RectT? maskBounds) {
     collector = _visitor.masked(collector, maskBounds);
+    _groupDepth++;
     collector = traverseGroup(collector);
+    _groupDepth--;
     return collector;
   }
 

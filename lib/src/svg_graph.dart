@@ -347,6 +347,7 @@ class SvgMasked extends SvgNode {
 
   @override
   void collectCanon(CanonicalizedData<SIImageData> canon) {
+    mask.collectCanon(canon);
     child.collectCanon;
   }
 

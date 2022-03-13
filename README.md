@@ -75,7 +75,7 @@ images, including several taken from an open-source card game
 you paste the URL to an SVG asset into the program; it then loads and renders
 it.
 
-<img width="50%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">
+<img width="75%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">
 
 ## Supported SVG Profile
 

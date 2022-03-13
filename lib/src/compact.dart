@@ -466,7 +466,7 @@ class _PaintingVisitor extends _CompactVisitor<void>
 
   @override
   PruningBoundary? getBoundary() => null;
-  // We don't know our boundary (unlike the DAG implementation), so we just
+  // We don't know our boundary (unlike the DAG implementation), so
   // we're a little less efficient.
 }
 
@@ -775,6 +775,7 @@ class _MaskedPruningEntry extends _PruningEntry {
     if (!generated) {
       return;
     }
+    assert(maskDone);
     if (!childGenerated) {
       // Rare, but perhaps possible:  The child got entirely pruned away, but
       // the mask didn't, so we make an empty group for the child.
@@ -822,10 +823,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
 
   @override
   PruningBoundary? maskedChild(PruningBoundary? mask) {
-    RenderContext ctx = context;
-    popContext();
-    _boundaryStack.add(ctx.transformBoundaryFromChildren(mask));
-    pushContext(RenderContext(context));
+    _boundaryStack.add(context.transformBoundaryFromChildren(mask));
     return null;
   }
 

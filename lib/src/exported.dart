@@ -226,7 +226,7 @@ abstract class ScalableImage {
   Uint8List toSIBytes();
 
   ///
-  /// Give a string that describes the size of this ScalableImage, for
+  /// Give a String that describes the size of this ScalableImage, for
   /// debugging.  For a compact image, this gives a size in bytes, and for
   /// the DAG representation, gives a node count.
   ///
