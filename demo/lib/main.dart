@@ -71,7 +71,7 @@ Future<void> main() async {
       avd = null;
     }
     await rootBundle.load(si);
-    // SVG is required to always be there.
+    // SI is required to always be there.
     assets.add(Asset(svg: svg, avd: avd, si: si));
   }
   final firstSI = await assets[0].forType(assets[0].defaultType, rootBundle);

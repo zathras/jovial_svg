@@ -267,16 +267,19 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   final SIRenderable child;
   final RenderContext context;
   final Rect? maskBounds;
+  final bool usesLuma;
   int? _hashCode;
 
-  SIMasked(List<SIRenderable> renderables, this.context, RectT? maskBounds)
+  SIMasked(List<SIRenderable> renderables, this.context, RectT? maskBounds,
+      this.usesLuma)
       : mask = renderables[0],
         child = renderables[1],
         maskBounds = convertRectTtoRect(maskBounds) {
     assert(renderables.length == 2);
   }
 
-  SIMasked._modified(this.mask, this.child, this.context, this.maskBounds);
+  SIMasked._modified(
+      this.mask, this.child, this.context, this.maskBounds, this.usesLuma);
 
   @override
   void paint(Canvas c, RenderContext context) {
@@ -297,6 +300,11 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     }
     startMask(c, bounds);
     mask.paint(c, context);
+    if (usesLuma) {
+      startLumaMask(c, bounds);
+      mask.paint(c, context);
+      finishLumaMask(c);
+    }
     startChild(c, bounds);
     child.paint(c, context);
     finishMasked(c);
@@ -331,7 +339,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     if (cp == null) {
       return null;
     }
-    final m = SIMasked._modified(mp, cp, context, maskBounds);
+    final m = SIMasked._modified(mp, cp, context, maskBounds, usesLuma);
     final mg = dagger.lookup(m);
     if (mg != null) {
       assert(mg is SIMasked);
@@ -489,11 +497,13 @@ class _MaskedBuilder implements _SIParentBuilder {
   @override
   final RenderContext context;
   final RectT? maskBounds;
+  final bool usesLuma;
 
-  _MaskedBuilder(this.context, this.maskBounds)
+  _MaskedBuilder(this.context, this.maskBounds, this.usesLuma)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
-  SIRenderable get masked => SIMasked(_renderables, context, maskBounds);
+  SIRenderable get masked =>
+      SIMasked(_renderables, context, maskBounds, usesLuma);
 }
 
 ///
@@ -654,9 +664,9 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  void masked(void collector, RectT? maskBounds) {
-    final mb =
-        _MaskedBuilder(RenderContext(_parentStack.last.context), maskBounds);
+  void masked(void collector, RectT? maskBounds, bool usesLuma) {
+    final mb = _MaskedBuilder(
+        RenderContext(_parentStack.last.context), maskBounds, usesLuma);
     _parentStack.add(mb);
   }
 

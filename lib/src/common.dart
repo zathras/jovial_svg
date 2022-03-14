@@ -349,16 +349,64 @@ mixin SIGroupHelper {
 /// A Mixin for the Mask operations
 ///
 mixin SIMaskedHelper {
+  ///
+  /// Start the (alpha) mask, which is painted first
+  ///
   void startMask(Canvas c, Rect? bounds) {
     c.saveLayer(bounds, Paint());
     c.save();
   }
 
+  ///
+  /// Start the luma mask, which is optionally painted after the alpha
+  /// mask.
+  ///
+  /// This is a frustrating part of SVG.  Masks in SVG 1.1 mask by the
+  /// alpha channel, MULTIPLIED BY the luminance.  I know of no way I (at
+  /// least in Flutter) to tell if the mask layer uses alpha, luma, or
+  /// both, so we're forced to render the mask twice and composite them.
+  ///
+  /// As an optimization, we can detect Mask graphs that can't possibly
+  /// use luma, and avoid the second mask rendering in that case.  See
+  /// SvgNode.canUseLuma().
+  ///
+  void startLumaMask(Canvas c, Rect? bounds) {
+    c.restore();
+    c.save();
+    // A color filter to set the luma component to ffffff, and the
+    // alpha value to the pixel's old luma value.
+    const f = ColorFilter.matrix([
+      ...[0, 0, 0, 0, 1],
+      ...[0, 0, 0, 0, 1],
+      ...[0, 0, 0, 0, 1],
+      ...[1 / 3, 1 / 3, 1 / 3, 0, 0]
+    ]);
+    c.saveLayer(
+        bounds,
+        Paint()
+          ..colorFilter = f
+          ..blendMode = BlendMode.srcIn);
+  }
+
+  ///
+  /// Start the luma mask, which is optionally painted after the alpha
+  /// mask.
+  ///
+  void finishLumaMask(Canvas c) {
+    c.restore();
+  }
+
+  ///
+  /// Start the child, which is painted after the mask
+  ///
   void startChild(Canvas c, Rect? bounds) {
     c.restore();
     c.saveLayer(bounds, Paint()..blendMode = BlendMode.srcIn);
   }
 
+  ///
+  /// Finish painting the Masked element
+  ///
   void finishMasked(Canvas c) {
     c.restore();
     c.restore();

@@ -72,7 +72,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R clipPath(R collector, PathDataT pathData);
 
-  R masked(R collector, RectT? maskBounds);
+  R masked(R collector, RectT? maskBounds, bool usesLuma);
 
   R maskedChild(R collector);
 
@@ -221,6 +221,12 @@ class SIPaint {
       return false;
     }
   }
+
+  // Can painting with this paint result in a luma value other than
+  // pure white?  This is ultimately used for masks -- see
+  // SIMaskedHelper.startLumaMask
+  bool get canUseLuma =>
+      (strokeWidth > 0 && strokeColor.canUseLuma) || fillColor.canUseLuma;
 }
 
 abstract class SIColor {
@@ -230,6 +236,8 @@ abstract class SIColor {
   static const currentColor = SICurrentColor._p();
 
   void accept(SIColorVisitor v);
+
+  bool get canUseLuma;
 }
 
 class SINoneColor extends SIColor {
@@ -237,6 +245,9 @@ class SINoneColor extends SIColor {
 
   @override
   void accept(SIColorVisitor v) => v.none();
+
+  @override
+  bool get canUseLuma => false;
 }
 
 class SICurrentColor extends SIColor {
@@ -244,6 +255,9 @@ class SICurrentColor extends SIColor {
 
   @override
   void accept(SIColorVisitor v) => v.current();
+
+  @override
+  bool get canUseLuma => true;
 }
 
 class SIValueColor extends SIColor {
@@ -253,6 +267,9 @@ class SIValueColor extends SIColor {
 
   @override
   void accept(SIColorVisitor v) => v.value(this);
+
+  @override
+  bool get canUseLuma => argb & 0xffffff != 0xffffff;
 
   @override
   bool operator ==(Object other) {
@@ -285,6 +302,16 @@ abstract class SIGradientColor extends SIColor {
   SIGradientColor(this.colors, this.stops, this.objectBoundingBox,
       this.spreadMethod, this.transform) {
     assert(colors.length == stops.length);
+  }
+
+  @override
+  bool get canUseLuma {
+    for (final c in colors) {
+      if (c.canUseLuma) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

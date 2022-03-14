@@ -87,16 +87,7 @@ it.
      supported (cf. Tiny s. 11.4).
   *  Gradients are supported, and additionally support `xlink:href` attributes 
      to other gradients, and `gradientTransform` attributes from SVG 1.1.
-  *  Masks are supported with some restrictions (not in Tiny; see SVG 1.1 
-     s. 14.4).
-     *  Only the alpha value of the mask is used, and not the product
-        of the alpha and the luminance, as is the case in full SVG 1.1
-        (but not in SVG 1.0).
-     *  Only `userSpaceOnUse` corrdinates are supported for the mask
-        content and the mask buffer size.  Note, however, that specifying 
-        the mask buffer size is an optional optimization, and if 
-        `objectBoundingBox` coordinates are specified for the mask 
-        size, the size will be discarded.
+  *  Masks are supported (not in Tiny; see SVG 1.1 s. 14.4).
   *  Text elements are supported.
   *  Embedded images are supported.
   *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was

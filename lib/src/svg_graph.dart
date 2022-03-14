@@ -85,6 +85,12 @@ abstract class SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta);
 
   void collectCanon(CanonicalizedData<SIImageData> canon);
+
+  ///
+  /// If this node is in a mask, is it possible it might use the luma
+  /// channel?  cf. SIMaskHelper.startLumaMask().
+  ///
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor);
 }
 
 abstract class SvgInheritableAttributes implements SvgNode {
@@ -291,6 +297,17 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
       ch.collectCanon(canon);
     }
   }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    final cascaded = cascadePaint(ancestor, idLookup);
+    for (final ch in children) {
+      if (ch.canUseLuma(idLookup, cascaded)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class SvgDefs extends SvgGroup {
@@ -338,7 +355,8 @@ class SvgMasked extends SvgNode {
   @override
   void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
-    builder.masked(null, mask.bufferBounds);
+    bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
+    builder.masked(null, mask.bufferBounds, canUseLuma);
     mask.build(builder, canon, idLookup, ancestor, ta);
     builder.maskedChild(null);
     child.build(builder, canon, idLookup, ancestor, ta);
@@ -357,6 +375,11 @@ class SvgMasked extends SvgNode {
     assert(false); // We're added during resolve
     return null;
   }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
+      child.canUseLuma(idLookup, ancestor);
+  // The mask can only change the alpha channel.
 }
 
 class SvgUse extends SvgInheritableAttributes implements SvgNode {
@@ -397,6 +420,12 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(false);
   }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    assert(false); // Should be called after resolve
+    return true;
+  }
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributes
@@ -418,6 +447,13 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   }
 
   void makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded);
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    final cascaded = cascadePaint(ancestor, idLookup);
+    final p = cascaded.toSIPaint();
+    return p.canUseLuma;
+  }
 }
 
 class SvgPath extends SvgPathMaker {
@@ -654,6 +690,11 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    return false; // Because this node doesn't directly do any rendering
+  }
+
+  @override
   void collectCanon(CanonicalizedData<SIImageData> canon) {}
 }
 
@@ -697,6 +738,11 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
     } else {
       builder.image(null, _imageNumber);
     }
+  }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    return true;
   }
 }
 
@@ -757,6 +803,13 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     yIndex = canon.getIndex(canon.floatLists, y)!;
     textIndex = canon.getIndex(canon.strings, text)!;
     canon.getIndex(canon.strings, textAttributes.fontFamily);
+  }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    final cascaded = cascadePaint(ancestor, idLookup);
+    final p = cascaded.toSIPaint().forText();
+    return p.canUseLuma;
   }
 }
 

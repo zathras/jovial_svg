@@ -47,10 +47,12 @@ const _debugCompact = false;
 /// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
 /// traversing the represented graph.
 ///
-class CompactTraverser<R, IM> {
+abstract class CompactTraverserBase<R, IM,
+    VT extends SIVisitor<CompactChildData, IM, R>> {
   final int fileVersion; // See [ScalableImageCompactGeneric.fileVersionNumber]
   final bool bigFloats;
-  final SIVisitor<CompactChildData, IM, R> _visitor;
+  @protected
+  final VT visitor;
   final List<String> _strings;
   final List<List<double>> _floatLists;
   final List<IM> _images;
@@ -62,14 +64,38 @@ class CompactTraverser<R, IM> {
   // Position by path ID
   final Uint32List _pathChildrenSeek;
   final Uint32List _pathArgsSeek;
-  int _currPathID = 0;
+  int _currPathID;
   final Uint32List _paintChildrenSeek;
   final Uint32List _paintArgsSeek;
   final Uint32List _paintTransformsSeek;
-  int _currPaintID = 0;
-  int _groupDepth = 0;
+  int _currPaintID;
+  @protected
+  int groupDepth;
 
-  CompactTraverser(
+  @protected
+  CompactTraverserBase.clone(
+      CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> other,
+      this.visitor)
+      : fileVersion = other.fileVersion,
+        bigFloats = other.bigFloats,
+        _strings = other._strings,
+        _floatLists = other._floatLists,
+        _images = other._images,
+        _children = ByteBufferDataInputStream.copy(other._children),
+        _args = FloatBufferInputStream.copy(other._args),
+        _transforms = FloatBufferInputStream.copy(other._transforms),
+        _rewindChildren = ByteBufferDataInputStream.copy(other._rewindChildren),
+        _rewindArgs = FloatBufferInputStream.copy(other._rewindArgs),
+        _pathChildrenSeek = Uint32List.fromList(other._pathChildrenSeek),
+        _pathArgsSeek = Uint32List.fromList(other._pathArgsSeek),
+        _currPathID = other._currPathID,
+        _paintChildrenSeek = Uint32List.fromList(other._paintChildrenSeek),
+        _paintArgsSeek = Uint32List.fromList(other._paintArgsSeek),
+        _paintTransformsSeek = Uint32List.fromList(other._paintTransformsSeek),
+        _currPaintID = other._currPaintID,
+        groupDepth = other.groupDepth;
+
+  CompactTraverserBase(
       {required this.fileVersion,
       required this.bigFloats,
       required Uint8List visiteeChildren,
@@ -77,12 +103,11 @@ class CompactTraverser<R, IM> {
       required List<double> visiteeTransforms,
       required int visiteeNumPaths,
       required int visiteeNumPaints,
-      required SIVisitor<CompactChildData, IM, R> visitor,
+      required this.visitor,
       required List<String> strings,
       required List<List<double>> floatLists,
       required List<IM> images})
-      : _visitor = visitor,
-        _strings = strings,
+      : _strings = strings,
         _floatLists = floatLists,
         _images = images,
         _children = ByteBufferDataInputStream(visiteeChildren, Endian.little),
@@ -95,13 +120,28 @@ class CompactTraverser<R, IM> {
         _pathArgsSeek = Uint32List(visiteeNumPaths),
         _paintChildrenSeek = Uint32List(visiteeNumPaints),
         _paintArgsSeek = Uint32List(visiteeNumPaints),
-        _paintTransformsSeek = Uint32List(visiteeNumPaints);
+        _paintTransformsSeek = Uint32List(visiteeNumPaints),
+        _currPathID = 0,
+        _currPaintID = 0,
+        groupDepth = 0;
 
   R traverse(R collector) {
-    collector = _visitor.init(collector, _images, _strings, _floatLists);
+    collector = visitor.init(collector, _images, _strings, _floatLists);
     final r = traverseGroup(collector);
-    _visitor.assertDone();
+    visitor.assertDone();
+    closeStreams();
     return r;
+  }
+
+  @protected
+  void closeStreams() {
+    _children.close();
+    _args.close();
+    _transforms.close();
+    _rewindChildren.close();
+    _rewindArgs.close();
+    _currPathID = _pathChildrenSeek.length;
+    _currPaintID = _paintChildrenSeek.length;
   }
 
   R traverseGroup(R collector) {
@@ -137,16 +177,28 @@ class CompactTraverser<R, IM> {
         // it's IMAGE_CODE
         collector = image(collector);
       } else if (code == SIGenericCompactBuilder.END_GROUP_CODE) {
-        if (_groupDepth <= 0) {
+        if (groupDepth <= 0) {
           throw ParseError('Unexpected END_GROUP_CODE');
         } else {
-          collector = _visitor.endGroup(collector);
+          collector = visitor.endGroup(collector);
           return collector;
         }
-      } else if (code < SIGenericCompactBuilder.MASKED_CHILD_CODE) {
-        assert(code & 0xfe == SIGenericCompactBuilder.MASKED_CODE);
+      } else if (code == SIGenericCompactBuilder.MASKED_CHILD_CODE) {
+        collector = maskedChild(collector);
+      } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
+        if (groupDepth <= 0) {
+          throw ParseError('Unexpected END_GROUP_CODE');
+        } else {
+          return visitor.endMasked(collector);
+        }
+      } else if (code < SIGenericCompactBuilder.MASKED_CODE_NO_LUMA + 2) {
+        assert(code & 0xfe == SIGenericCompactBuilder.MASKED_CODE ||
+            code & 0xfe == SIGenericCompactBuilder.MASKED_CODE_NO_LUMA);
+        // MASKED_CODE is split in two for backwards compatibility with
+        // jovial_svg 1.1.0-rc1 through 3
         assert(SIGenericCompactBuilder.MASKED_CODE & 0x1 == 0);
-        // it's MASKED_CODE
+        assert(SIGenericCompactBuilder.MASKED_CODE_NO_LUMA & 0x1 == 0);
+
         final RectT? maskBounds;
         if (_flag(code, 0)) {
           maskBounds =
@@ -154,26 +206,20 @@ class CompactTraverser<R, IM> {
         } else {
           maskBounds = null;
         }
+        final bool usesLuma =
+            code & 0xfe == SIGenericCompactBuilder.MASKED_CODE;
         if (_debugCompact) {
           int currArgSeek = _children.readUnsignedInt() - 100;
           assert(currArgSeek == _args.seek);
           int d = _children.readUnsignedShort();
-          assert(d == _groupDepth, '$d == $_groupDepth at ${_children.seek}');
+          assert(d == groupDepth, '$d == $groupDepth at ${_children.seek}');
         }
-        collector = masked(collector, maskBounds);
-      } else if (code == SIGenericCompactBuilder.MASKED_CHILD_CODE) {
-        collector = _visitor.maskedChild(collector);
-      } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
-        if (_groupDepth <= 0) {
-          throw ParseError('Unexpected END_GROUP_CODE');
-        } else {
-          return _visitor.endMasked(collector);
-        }
+        collector = masked(collector, maskBounds, usesLuma);
       } else {
         throw ParseError('Bad code $code');
       }
     }
-    assert(_groupDepth == 0, '$_groupDepth');
+    assert(groupDepth == 0, '$groupDepth');
     assert(_children.isEOF());
     assert(_args.isEOF, '$_args');
     assert(_currPathID == _pathChildrenSeek.length);
@@ -193,13 +239,15 @@ class CompactTraverser<R, IM> {
     }
   }
 
-  R masked(R collector, RectT? maskBounds) {
-    collector = _visitor.masked(collector, maskBounds);
-    _groupDepth++;
+  R masked(R collector, RectT? maskBounds, bool usesLuma) {
+    collector = visitor.masked(collector, maskBounds, usesLuma);
+    groupDepth++;
     collector = traverseGroup(collector);
-    _groupDepth--;
+    groupDepth--;
     return collector;
   }
+
+  R maskedChild(R collector) => visitor.maskedChild(collector);
 
   R group(R collector,
       {required bool hasTransform,
@@ -208,16 +256,16 @@ class CompactTraverser<R, IM> {
     final Affine? transform =
         _getTransform(hasTransform, hasTransformNumber, _children);
     final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
-    collector = _visitor.group(collector, transform, groupAlpha);
+    collector = visitor.group(collector, transform, groupAlpha);
     if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
       int d = _children.readUnsignedShort();
-      assert(d == _groupDepth, '$d == $_groupDepth at ${_children.seek}');
+      assert(d == groupDepth, '$d == $groupDepth at ${_children.seek}');
     }
-    _groupDepth++;
+    groupDepth++;
     collector = traverseGroup(collector); // Traverse our children
-    _groupDepth--;
+    groupDepth--;
     return collector;
   }
 
@@ -235,7 +283,7 @@ class CompactTraverser<R, IM> {
       assert(currArgSeek == _args.seek, '$currArgSeek, $_args');
     }
     final CompactChildData pathData = _getPathData(hasPathNumber);
-    return _visitor.path(collector, pathData, siPaint);
+    return visitor.path(collector, pathData, siPaint);
   }
 
   R text(R collector,
@@ -264,16 +312,16 @@ class CompactTraverser<R, IM> {
         textAnchor: anchor,
         fontSize: fontSize,
         fontWeight: weight);
-    return _visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
+    return visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
   }
 
   R image(R collector) {
-    return _visitor.image(collector, _readSmallishInt(_children));
+    return visitor.image(collector, _readSmallishInt(_children));
   }
 
   R clipPath(R collector, {required bool hasPathNumber}) {
     final CompactChildData pathData = _getPathData(hasPathNumber);
-    collector = _visitor.clipPath(collector, pathData);
+    collector = visitor.clipPath(collector, pathData);
     if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
@@ -436,7 +484,38 @@ class CompactTraverser<R, IM> {
     }
   }
 
+  @protected
+  void endTraversalEarly() => closeStreams();
+
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
+}
+
+class CompactTraverser<R, IM>
+    extends CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> {
+  CompactTraverser(
+      {required int fileVersion,
+      required bool bigFloats,
+      required Uint8List visiteeChildren,
+      required List<double> visiteeArgs,
+      required List<double> visiteeTransforms,
+      required int visiteeNumPaths,
+      required int visiteeNumPaints,
+      required SIVisitor<CompactChildData, IM, R> visitor,
+      required List<String> strings,
+      required List<List<double>> floatLists,
+      required List<IM> images})
+      : super(
+            fileVersion: fileVersion,
+            bigFloats: bigFloats,
+            visiteeChildren: visiteeChildren,
+            visiteeArgs: visiteeArgs,
+            visiteeTransforms: visiteeTransforms,
+            visiteeNumPaths: visiteeNumPaths,
+            visiteeNumPaints: visiteeNumPaints,
+            visitor: visitor,
+            strings: strings,
+            floatLists: floatLists,
+            images: images);
 }
 
 ///
@@ -479,7 +558,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    0 = not released
   ///    1 = jovial_svg version 1.0.0, June 2021
   ///    2 = jovial_svg version 1.1.0, March 2022
-  static const int fileVersionNumber = 2;
+  ///    3 = jovial_svg version 1.1.0 (later release candidate), March 2022
+  static const int fileVersionNumber = 3;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
@@ -900,6 +980,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   static const MASKED_CODE = 140;
   static const MASKED_CHILD_CODE = 142;
   static const END_MASKED_CODE = 143;
+  static const MASKED_CODE_NO_LUMA = 144;
 
   bool get done => _done;
 
@@ -1180,8 +1261,12 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   PathDataT immutableKey(PathDataT pathData);
 
   @override
-  void masked(void collector, RectT? maskBounds) {
-    children.writeByte(MASKED_CODE | _flag(maskBounds != null, 0));
+  void masked(void collector, RectT? maskBounds, bool usesLuma) {
+    if (usesLuma) {
+      children.writeByte(MASKED_CODE | _flag(maskBounds != null, 0));
+    } else {
+      children.writeByte(MASKED_CODE_NO_LUMA | _flag(maskBounds != null, 0));
+    }
     if (maskBounds != null) {
       _writeFloat(maskBounds.left);
       _writeFloat(maskBounds.top);
@@ -1486,10 +1571,10 @@ class Float64Sink extends FloatSink {
 
 class FloatBufferInputStream {
   /// The position within the buffer
-  int seek = 0;
+  int seek;
   final List<double> _buf;
 
-  FloatBufferInputStream(this._buf);
+  FloatBufferInputStream(this._buf) : seek = 0;
 
   FloatBufferInputStream.copy(FloatBufferInputStream other)
       : seek = other.seek,
@@ -1510,6 +1595,8 @@ class FloatBufferInputStream {
   @override
   String toString() =>
       'FloatBufferInputStream(seek: $seek, length: ${_buf.length})';
+
+  void close() => seek = _buf.length;
 }
 
 int _readSmallishInt(ByteBufferDataInputStream str) {

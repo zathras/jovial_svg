@@ -165,28 +165,33 @@ class ScalableImageCompact extends ScalableImageBase
   }
 
   @override
-  void paintChildren(Canvas c, Color currentColor) =>
-      accept(_PaintingVisitor(c, RenderContext.root(this, currentColor)));
+  void paintChildren(Canvas c, Color currentColor) {
+    final v = _PaintingVisitor(c, RenderContext.root(this, currentColor));
+    final CompactTraverser<void, SIImage> t = makeTraverser<void>(v);
+    v.traverser = t;
+    t.traverse(v.initial);
+  }
 
   @override
   PruningBoundary? getBoundary() => accept(_BoundaryVisitor(this));
 
-  R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) {
-    final t = CompactTraverser<R, SIImage>(
-        fileVersion: fileVersion,
-        bigFloats: bigFloats,
-        strings: strings,
-        floatLists: floatLists,
-        images: images,
-        visiteeChildren: children,
-        visiteeArgs: args,
-        visiteeTransforms: transforms,
-        visiteeNumPaths: numPaths,
-        visiteeNumPaints: numPaints,
-        visitor: visitor);
-    R r = t.traverse(visitor.initial);
-    return r;
-  }
+  R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) =>
+      makeTraverser(visitor).traverse(visitor.initial);
+
+  CompactTraverser<R, SIImage> makeTraverser<R>(
+          SIVisitor<CompactChildData, SIImage, R> visitor) =>
+      CompactTraverser<R, SIImage>(
+          fileVersion: fileVersion,
+          bigFloats: bigFloats,
+          strings: strings,
+          floatLists: floatLists,
+          images: images,
+          visiteeChildren: children,
+          visiteeArgs: args,
+          visiteeTransforms: transforms,
+          visiteeNumPaths: numPaths,
+          visiteeNumPaints: numPaints,
+          visitor: visitor);
 
   @override
   ScalableImageDag toDag() {
@@ -222,8 +227,8 @@ class ScalableImageCompact extends ScalableImageBase
     }
     dis.readByte();
     final version = dis.readUnsignedShort();
-    if (version != 1 &&
-        version != ScalableImageCompactGeneric.fileVersionNumber) {
+    if (version < 1 ||
+        version > ScalableImageCompactGeneric.fileVersionNumber) {
       throw ParseError('Unsupported version $version');
     }
     final int flags = dis.readUnsignedByte();
@@ -425,7 +430,9 @@ abstract class _CompactVisitor<R>
 class _PaintingVisitor extends _CompactVisitor<void>
     with SIGroupHelper, SIMaskedHelper {
   final Canvas canvas;
-  List<Rect?>? _maskBoundsStack;
+  List<_MaskStackEntry>? _maskStack;
+  late final CompactTraverserBase<void, SIImage,
+      SIVisitor<CompactChildData, SIImage, void>> traverser;
 
   _PaintingVisitor(this.canvas, RenderContext context) : super(context);
 
@@ -460,27 +467,79 @@ class _PaintingVisitor extends _CompactVisitor<void>
       text.paint(canvas, context);
 
   @override
-  void masked(void collector, RectT? maskBounds) {
+  void masked(void collector, RectT? maskBounds, bool usesLuma) {
     Rect? r = convertRectTtoRect(maskBounds);
-    final s = (_maskBoundsStack ??= List.empty(growable: true));
-    s.add(r);
+    final s = (_maskStack ??= List.empty(growable: true));
+    final LumaTraverser? lumaTraverser;
+    if (usesLuma) {
+      final parentT = s.isEmpty ? traverser : s.last.lumaTraverser!;
+      lumaTraverser = LumaTraverser(parentT, this);
+    } else {
+      lumaTraverser = null;
+    }
+    s.add(_MaskStackEntry(r, lumaTraverser));
     startMask(canvas, r);
   }
 
   @override
-  void maskedChild(void collector) =>
-      startChild(canvas, _maskBoundsStack!.last);
+  void maskedChild(void collector) {
+    final mse = _maskStack!.last;
+    final lt = mse.lumaTraverser;
+    if (lt != null) {
+      startLumaMask(canvas, mse.bounds);
+      lt.traverseLuma();
+      finishLumaMask(canvas);
+    }
+    startChild(canvas, mse.bounds);
+  }
 
   @override
   void endMasked(void collector) {
     finishMasked(canvas);
-    _maskBoundsStack!.length--;
+    _maskStack!.length--;
   }
 
   @override
   PruningBoundary? getBoundary() => null;
   // We don't know our boundary (unlike the DAG implementation), so
   // we're a little less efficient.
+}
+
+class _MaskStackEntry {
+  final Rect? bounds;
+  final LumaTraverser? lumaTraverser;
+
+  _MaskStackEntry(this.bounds, this.lumaTraverser);
+}
+
+///
+/// For masked, we sometimes need to traverse the mask twice, once for
+/// alpha and once for luma.  This clone traverser lets us do that.
+///
+class LumaTraverser
+    extends CompactTraverserBase<void, SIImage, _PaintingVisitor> {
+  LumaTraverser(
+      CompactTraverserBase<void, SIImage,
+              SIVisitor<CompactChildData, SIImage, void>>
+          parent,
+      _PaintingVisitor visitor)
+      : super.clone(parent, visitor) {
+    groupDepth = 0;
+  }
+
+  void traverseLuma() {
+    traverseGroup(null);
+  }
+
+  @override
+  void maskedChild(void collector) {
+    if (groupDepth == 0) {
+      endTraversalEarly();
+      return collector;
+    } else {
+      return super.maskedChild(collector);
+    }
+  }
 }
 
 class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
@@ -543,9 +602,11 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary masked(PruningBoundary boundary, RectT? maskBounds) {
+  PruningBoundary masked(
+      PruningBoundary boundary, RectT? maskBounds, bool usesLuma) {
     final parent = _parentStack.isEmpty ? null : _parentStack.last;
-    _parentStack.add(_MaskedPruningEntry(boundary, parent, this, maskBounds));
+    _parentStack
+        .add(_MaskedPruningEntry(boundary, parent, this, maskBounds, usesLuma));
     pushContext(RenderContext(context));
     return context.transformBoundaryFromParent(boundary);
   }
@@ -746,12 +807,13 @@ class _MaskedPruningEntry extends _PruningEntry {
   final PruningBoundary boundary;
   final _PruningVisitor visitor;
   final RectT? maskBounds;
+  final bool usesLuma;
 
   bool _maskDone = false;
   bool childGenerated = false;
 
-  _MaskedPruningEntry(
-      this.boundary, _PruningEntry? parent, this.visitor, this.maskBounds)
+  _MaskedPruningEntry(this.boundary, _PruningEntry? parent, this.visitor,
+      this.maskBounds, this.usesLuma)
       : super(parent);
 
   bool get maskDone => _maskDone;
@@ -774,7 +836,7 @@ class _MaskedPruningEntry extends _PruningEntry {
 
   @override
   void generateParent() {
-    visitor.builder.masked(null, maskBounds);
+    visitor.builder.masked(null, maskBounds, usesLuma);
     if (maskDone) {
       // Rare, but perhaps possible:  The mask got entirely pruned away, but the
       // child didn't, so we make an empty group for the mask.
@@ -828,7 +890,8 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   }
 
   @override
-  PruningBoundary? masked(PruningBoundary? start, RectT? maskBoundary) {
+  PruningBoundary? masked(
+      PruningBoundary? start, RectT? maskBoundary, bool usesLuma) {
     pushContext(RenderContext(context));
     _boundaryStack.add(start);
     return null;
@@ -909,7 +972,7 @@ mixin _SICompactPathBuilder {
         print(e);
         // As per the SVG spec, paths shall be parsed up to the first error,
         // and it is recommended that errors be reported to the user if
-        // posible.
+        // possible.
       }
     }
   }
