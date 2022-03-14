@@ -87,9 +87,16 @@ it.
      supported (cf. Tiny s. 11.4).
   *  Gradients are supported, and additionally support `xlink:href` attributes 
      to other gradients, and `gradientTransform` attributes from SVG 1.1.
-  *  Masks are supported with restrictions (not in Tiny; see SVG 1.1 s. 14.4).
-     Only the alpha value of the mask is used, and not the product
-     of the alpha and the luminance.
+  *  Masks are supported with some restrictions (not in Tiny; see SVG 1.1 
+     s. 14.4).
+     *  Only the alpha value of the mask is used, and not the product
+        of the alpha and the luminance, as is the case in full SVG 1.1
+        (but not in SVG 1.0).
+     *  Only `userSpaceOnUse` corrdinates are supported for the mask
+        content and the mask buffer size.  Note, however, that specifying 
+        the mask buffer size is an optional optimization, and if 
+        `objectBoundingBox` coordinates are specified for the mask 
+        size, the size will be discarded.
   *  Text elements are supported.
   *  Embedded images are supported.
   *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
@@ -112,8 +119,8 @@ it.
         is used when selecting a font, and fonts can be included in an 
         application that uses this library.  For example, the demo program
         includes the 
-        <a href="https://www.dafont.com/rollerball-1975.font">ROLLERBALL 1975</a> 
-        font.
+        <a href="https://www.dafont.com/rollerball-1975.font">ROLLERBALL
+        1975</a> font.
       * `textArea` is not supported (not in SVG 1.1).
       * `font-variant` (`small-caps`) is not supported.
       * `rotate` is not supported (but normal transformations, including 
@@ -162,7 +169,7 @@ has plenty of room for extensibility.
 For the binary format, it is a goal to ensure that new versions of the
 library continue to read old files.  Old versions of the library do not need
 to read new `.si` files, however - the library can simply fail when 
-it detects a newer version number.  `.si` files are intended to be bundled 
+it detects a newer file version number.  `.si` files are intended to be bundled 
 as application resources alongside the library, and not used as a 
 publication format.
 

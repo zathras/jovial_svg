@@ -280,21 +280,24 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
 
   @override
   void paint(Canvas c, RenderContext context) {
-    final Rect? maskB;
-    final Rect? childB;
-    if (maskBounds != null) {
-      childB = child.getBoundary()?.getBounds();
-      if (childB == null) {
-        maskB = maskBounds;
-      } else {
-        maskB = maskBounds!.intersect(childB);
+    Rect? bounds = maskBounds;
+    // If they specify a bounds, trust them that it's not too big.  If
+    // they didn't...
+    if (bounds == null) {
+      // Graphics memory is a scarce resource enough resource that it's
+      // probably worth the time to calculate the intersection of our
+      // childrens' bounds.
+      bounds = mask.getBoundary()?.getBounds();
+      final childB = child.getBoundary()?.getBounds();
+      if (bounds == null) {
+        bounds = childB;
+      } else if (childB != null) {
+        bounds = bounds.intersect(childB);
       }
-    } else {
-      maskB = childB = getBoundary()?.getBounds();
     }
-    startMask(c, maskB);
+    startMask(c, bounds);
     mask.paint(c, context);
-    startChild(c, childB);
+    startChild(c, bounds);
     child.paint(c, context);
     finishMasked(c);
   }

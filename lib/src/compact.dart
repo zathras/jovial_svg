@@ -425,6 +425,7 @@ abstract class _CompactVisitor<R>
 class _PaintingVisitor extends _CompactVisitor<void>
     with SIGroupHelper, SIMaskedHelper {
   final Canvas canvas;
+  List<Rect?>? _maskBoundsStack;
 
   _PaintingVisitor(this.canvas, RenderContext context) : super(context);
 
@@ -459,14 +460,22 @@ class _PaintingVisitor extends _CompactVisitor<void>
       text.paint(canvas, context);
 
   @override
-  void masked(void collector, RectT? maskBounds) =>
-      startMask(canvas, convertRectTtoRect(maskBounds));
+  void masked(void collector, RectT? maskBounds) {
+    Rect? r = convertRectTtoRect(maskBounds);
+    final s = (_maskBoundsStack ??= List.empty(growable: true));
+    s.add(r);
+    startMask(canvas, r);
+  }
 
   @override
-  void maskedChild(void collector) => startChild(canvas, null);
+  void maskedChild(void collector) =>
+      startChild(canvas, _maskBoundsStack!.last);
 
   @override
-  void endMasked(void collector) => finishMasked(canvas);
+  void endMasked(void collector) {
+    finishMasked(canvas);
+    _maskBoundsStack!.length--;
+  }
 
   @override
   PruningBoundary? getBoundary() => null;
