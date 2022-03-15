@@ -473,8 +473,10 @@ class _PaintingVisitor extends _CompactVisitor<void>
     final LumaTraverser? lumaTraverser;
     if (usesLuma) {
       LumaTraverser? parentT;
-      for (int i = s.length - 1; parentT == null && i > 0; i--) {
-        parentT = s[i].lumaTraverser;
+      for (int i = s.length - 1; parentT == null && i >= 0; i--) {
+        if (s[i].lumaTraverser?.active == true) {
+          parentT = s[i].lumaTraverser;
+        }
       }
       lumaTraverser = LumaTraverser(parentT ?? traverser, this);
     } else {
@@ -490,6 +492,17 @@ class _PaintingVisitor extends _CompactVisitor<void>
     final lt = mse.lumaTraverser;
     if (lt != null) {
       startLumaMask(canvas, mse.bounds);
+      assert(() {
+        LumaTraverser? parentT;
+        final s = _maskStack!;
+        for (int i = s.length - 1; parentT == null && i >= 0; i--) {
+          if (s[i].lumaTraverser?.active == true) {
+            parentT = s[i].lumaTraverser;
+          }
+        }
+        lt.assertEndPosition = (parentT ?? traverser).currentPosition;
+        return true;
+      }());
       lt.traverseLuma();
       finishLumaMask(canvas);
     }
@@ -522,6 +535,8 @@ class _MaskStackEntry {
 class LumaTraverser
     extends CompactTraverserBase<void, SIImage, _PaintingVisitor> {
   final int _startGroupDepth;
+  bool active = false;
+  int assertEndPosition = -1;
 
   LumaTraverser(
       CompactTraverserBase<void, SIImage,
@@ -532,12 +547,16 @@ class LumaTraverser
         super.clone(parent, visitor);
 
   void traverseLuma() {
+    active = true;
     traverseGroup(null);
+    active = false;
   }
 
   @override
   void maskedChild(void collector) {
     if (groupDepth == _startGroupDepth) {
+      assert(assertEndPosition == currentPosition,
+          '$assertEndPosition != $currentPosition');
       endTraversalEarly();
       return collector;
     } else {

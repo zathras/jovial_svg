@@ -490,6 +490,8 @@ abstract class CompactTraverserBase<R, IM,
     groupDepth = 0;
   }
 
+  int get currentPosition => _children.seek;
+
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
 }
 

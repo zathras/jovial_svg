@@ -838,7 +838,6 @@ class SIText extends SIRenderable implements _HasBounds {
       } else {
         s = text.substring(i, i + 1);
       }
-      print("@@ Painting text $s");
       final span = TextSpan(
           style: TextStyle(
               foreground: foreground,

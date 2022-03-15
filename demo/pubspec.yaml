@@ -63,6 +63,7 @@ flutter:
     - assets/svg/mask1luma.svg
     - assets/svg/mask2.svg
     - assets/svg/mask3.svg
+    - assets/svg/mask4.svg
     - assets/avd/anglo.xml
     - assets/avd/bellot.xml
     - assets/avd/bonded.xml
@@ -107,6 +108,7 @@ flutter:
     - assets/si/mask1luma.si
     - assets/si/mask2.si
     - assets/si/mask3.si
+    - assets/si/mask4.si
     - assets/test/issue_13_forgiving_1_avd.xml
     - assets/test/issue_13_forgiving_1_avd.si
     - assets/test/issue_13_forgiving_2_avd.xml

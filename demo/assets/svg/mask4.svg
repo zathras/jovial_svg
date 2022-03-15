@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg viewBox="0 0 800 500" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <desc>Example mask3 - multiple masks
+  <desc>Example mask4 - masked inside a mask
   </desc>
   <defs>
     <radialGradient id="Gradient" gradientUnits="userSpaceOnUse" cx="400" cy="250" r="150"
@@ -17,9 +17,8 @@
     </text>
   </defs>
 
-  <!-- Draw a pale blue rectangle in the background -->
-  <rect x="0" y="0" width="800" height="500" fill="#F7F7FF"/>
-
+  <!-- Draw a pale yellow rectangle in the background -->
+  <rect x="0" y="0" width="800" height="500" fill="#FFFFE0"/>
   <!-- Put a mask over something that's masked -->
   <g mask="url(#Mask2)">
     <!-- Draw a pale red rectangle in the background -->
@@ -32,7 +31,7 @@
   </g>
   <mask id="Mask2">
     <circle r="250" cx="300" cy="250" fill="#ffffff" opacity="0.5"/>
-    <g opacity="0.9">
+    <g opacity="0.9" mask="url(#Mask)">
         <circle r="250" cx="250" cy="150" fill="#ff00ff"/>
         <circle r="250" cx="600" cy="250" fill="#ffff50"/>
     </g>
