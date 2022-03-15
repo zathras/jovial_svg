@@ -129,7 +129,7 @@ class _DemoScreenState extends State<DemoScreen> {
   int assetIndex = 0;
   var assetType = AssetType.si;
   double _scale = 0;
-  bool _fitToScreen = false;
+  bool _fitToScreen = true;
   Rect? _originalViewport;
   double get _multiplier => pow(2.0, _scale).toDouble();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();

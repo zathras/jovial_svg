@@ -472,8 +472,11 @@ class _PaintingVisitor extends _CompactVisitor<void>
     final s = (_maskStack ??= List.empty(growable: true));
     final LumaTraverser? lumaTraverser;
     if (usesLuma) {
-      final parentT = s.isEmpty ? traverser : s.last.lumaTraverser!;
-      lumaTraverser = LumaTraverser(parentT, this);
+      LumaTraverser? parentT;
+      for (int i = s.length - 1; parentT == null && i > 0; i--) {
+        parentT = s[i].lumaTraverser;
+      }
+      lumaTraverser = LumaTraverser(parentT ?? traverser, this);
     } else {
       lumaTraverser = null;
     }
@@ -490,13 +493,13 @@ class _PaintingVisitor extends _CompactVisitor<void>
       lt.traverseLuma();
       finishLumaMask(canvas);
     }
+    _maskStack!.length--;
     startChild(canvas, mse.bounds);
   }
 
   @override
   void endMasked(void collector) {
     finishMasked(canvas);
-    _maskStack!.length--;
   }
 
   @override
