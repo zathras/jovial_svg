@@ -518,14 +518,15 @@ class _MaskStackEntry {
 ///
 class LumaTraverser
     extends CompactTraverserBase<void, SIImage, _PaintingVisitor> {
+  final int _startGroupDepth;
+
   LumaTraverser(
       CompactTraverserBase<void, SIImage,
               SIVisitor<CompactChildData, SIImage, void>>
           parent,
       _PaintingVisitor visitor)
-      : super.clone(parent, visitor) {
-    groupDepth = 0;
-  }
+      : _startGroupDepth = parent.groupDepth,
+        super.clone(parent, visitor);
 
   void traverseLuma() {
     traverseGroup(null);
@@ -533,7 +534,7 @@ class LumaTraverser
 
   @override
   void maskedChild(void collector) {
-    if (groupDepth == 0) {
+    if (groupDepth == _startGroupDepth) {
       endTraversalEarly();
       return collector;
     } else {

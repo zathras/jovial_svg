@@ -485,7 +485,10 @@ abstract class CompactTraverserBase<R, IM,
   }
 
   @protected
-  void endTraversalEarly() => closeStreams();
+  void endTraversalEarly() {
+    closeStreams();
+    groupDepth = 0;
+  }
 
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
 }
