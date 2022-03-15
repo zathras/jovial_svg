@@ -48,8 +48,8 @@ believed to be representative.
 - Add `ScalableImage.fromAvdHttpUrl` to API for completeness
 - Add tiger image to demo
 
-## [1.1.0]
+## [1.1.0] - March 2022
 
-- Implemented masks (SVG 1.1 mask element and mask attribute)
+- Implemented masks (SVG 1.1 `mask` element and `mask` attribute)
 - Implemented `text-anchor` attribute
 - Fixed text outline

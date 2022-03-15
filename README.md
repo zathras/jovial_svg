@@ -21,7 +21,7 @@ It's used for the jupiter icon in
 [JRPN](https://jrpn.jovial.com), and for the cards in
 [Jovial Aisleriot](https://aisleriot.jovial.com/).
 
-<img width="100%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
+<img width="100%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">
 
 ## Getting Started
 
@@ -75,7 +75,7 @@ images, including several taken from an open-source card game
 you paste the URL to an SVG asset into the program; it then loads and renders
 it.
 
-<img width="75%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">
+<img width="80%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
 
 ## Supported SVG Profile
 
@@ -87,7 +87,7 @@ it.
      supported (cf. Tiny s. 11.4).
   *  Gradients are supported, and additionally support `xlink:href` attributes 
      to other gradients, and `gradientTransform` attributes from SVG 1.1.
-  *  Masks are supported (not in Tiny; see SVG 1.1 s. 14.4).
+  *  The `mask` element is supported (not in Tiny; see SVG 1.1 s. 14.4).
   *  Text elements are supported.
   *  Embedded images are supported.
   *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
