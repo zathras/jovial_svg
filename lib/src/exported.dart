@@ -122,6 +122,7 @@ enum ImageDisposeBugWorkaround {
 /// `Picture.toImage` and the notes about `RepaintBoundary` in
 /// `ScalableImageWidget`.
 ///
+@immutable
 abstract class ScalableImage {
   /// Width of the image, in pixels, if it was specified.  This corresponds
   /// to the SVG tag's "width" attribute, and the AVD vector element's
@@ -154,7 +155,7 @@ abstract class ScalableImage {
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
-  ScalableImage._p(this.width, this.height, this.tintColor, this.tintMode,
+  const ScalableImage._p(this.width, this.height, this.tintColor, this.tintMode,
       Color? currentColor)
       : currentColor = currentColor ?? Colors.black;
 
@@ -577,14 +578,14 @@ abstract class ScalableImageBase extends ScalableImage {
   @protected
   final List<SIImage> images;
 
-  Rect? _viewport;
+  final Rect? _givenViewport;
 
   ///
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
   ScalableImageBase(double? width, double? height, Color? tintColor,
-      BlendMode tintMode, this._viewport, this.images, Color? currentColor)
+      BlendMode tintMode, this._givenViewport, this.images, Color? currentColor)
       : super._p(width, height, tintColor, tintMode, currentColor);
 
   ///
@@ -598,7 +599,7 @@ abstract class ScalableImageBase extends ScalableImage {
       required BlendMode tintMode,
       List<SIImage>? images})
       : images = images ?? other.images,
-        _viewport = _newViewport(viewport, other._viewport),
+        _givenViewport = _newViewport(viewport, other._givenViewport),
         super._p(
           viewport?.width ?? other.width,
           viewport?.height ?? other.height,
@@ -616,16 +617,18 @@ abstract class ScalableImageBase extends ScalableImage {
   }
 
   @override
-  Rect get viewport {
-    if (_viewport != null) {
-      return _viewport!;
+  late final Rect viewport = _initViewport();
+
+  Rect _initViewport() {
+    if (_givenViewport != null) {
+      return _givenViewport!;
     }
     double? w = width;
     double? h = height;
     if (w != null && h != null) {
-      return _viewport = Rect.fromLTWH(0, 0, w, h);
+      return Rect.fromLTWH(0, 0, w, h);
     }
-    return _viewport = (getBoundary()?.getBounds() ?? Rect.zero);
+    return (getBoundary()?.getBounds() ?? Rect.zero);
   }
 
   ///

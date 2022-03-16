@@ -67,7 +67,7 @@ class TestSource extends ScalableImageSource {
   final _si = Future.value(ScalableImageDag(
       width: 1,
       height: 1,
-      images: [],
+      images: const [],
       tintMode: BlendMode.src,
       viewport: Rect.zero,
       tintColor: const Color(0x00000000)));

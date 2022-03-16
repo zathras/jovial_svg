@@ -53,6 +53,7 @@ import 'path.dart';
 /// A Scalable Image that's represented by a compact packed binary format
 /// that is interpreted when rendering.
 ///
+@immutable
 class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
   final int fileVersion;

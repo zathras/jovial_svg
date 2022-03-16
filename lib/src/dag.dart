@@ -53,13 +53,12 @@ import 'path_noui.dart';
 /// acyclic graph.  This is the fastest to render, at the price
 /// of memory usage
 ///
+@immutable
 class ScalableImageDag extends ScalableImageBase
     with _SIParentNode
     implements _SIParentBuilder {
   @override
   final List<SIRenderable> _renderables;
-
-  RenderContext? _context;
 
   ScalableImageDag(
       {required double? width,
@@ -127,8 +126,7 @@ class ScalableImageDag extends ScalableImageBase
   }
 
   @override
-  RenderContext get context =>
-      _context ??= RenderContext.root(this, currentColor);
+  late final RenderContext context = RenderContext.root(this, currentColor);
 
   @override
   ScalableImage withNewViewport(Rect viewport,
