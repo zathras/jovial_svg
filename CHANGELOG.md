@@ -57,3 +57,4 @@ believed to be representative.
 ## [1.1.1] - Upcoming
 
 - Fail more gracefully when `use` and `mask` elements have circular references
+- Minor cleanup:  Declare ScalableImage as @immutable
