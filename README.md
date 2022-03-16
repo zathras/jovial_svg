@@ -151,7 +151,7 @@ library, informed guesses were necessary at some points; SVG Tiny provided
 a solid starting point that a group of experts put considerable thought behind.
 
 If you come across an SVG
-asset that falls within the scope of this library, but which doesn't render,
+asset that falls within the scope of this library, but that doesn't render,
 please try to narrow down what support would be needed in the library, and 
 submit an image that correctly uses that feature in any bug 
 report.  Contributions can be considered too -- and the binary format 
