@@ -54,6 +54,7 @@ Rect? convertRectTtoRect(RectT? r) {
   }
 }
 
+@immutable
 abstract class SIRenderable {
   void paint(Canvas c, RenderContext context);
 
@@ -584,26 +585,10 @@ class SIPath extends SIRenderable implements _HasBounds {
 }
 
 class SIImage extends SIRenderable {
-  int _timesPrepared = 0;
+  late final loader = _ImageLoader(this);
   final SIImageData _data;
-  ui.Image? _decoded;
-  ui.Codec? _codec;
-  ui.ImmutableBuffer? _buf;
-  ui.ImageDescriptor? _descriptor;
 
   SIImage(this._data);
-
-  bool get _disposeBuf =>
-      ScalableImage.imageDisposeBugWorkaround ==
-          ImageDisposeBugWorkaround.disposeBoth ||
-      ScalableImage.imageDisposeBugWorkaround ==
-          ImageDisposeBugWorkaround.disposeImmutableBuffer;
-
-  bool get _disposeDescriptor =>
-      ScalableImage.imageDisposeBugWorkaround ==
-          ImageDisposeBugWorkaround.disposeBoth ||
-      ScalableImage.imageDisposeBugWorkaround ==
-          ImageDisposeBugWorkaround.disposeImageDescriptor;
 
   double get x => _data.x;
   double get y => _data.y;
@@ -630,13 +615,67 @@ class SIImage extends SIRenderable {
     }
   }
 
+  Future<void> prepare() => loader.prepare();
+
+  void unprepare() => loader.unprepare();
+
+  @override
+  void paint(Canvas c, RenderContext context) => loader.paint(c, context);
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {}
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SIImage) {
+      return false;
+    } else {
+      return x == other.x &&
+          y == other.y &&
+          width == other.width &&
+          height == other.height &&
+          quiver.listsEqual(encoded, other.encoded);
+    }
+  }
+
+  @override
+  int get hashCode =>
+      0xc36c5d4e ^
+      quiver.hash2(
+          quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
+}
+
+class _ImageLoader {
+  final SIImage source;
+  int _timesPrepared = 0;
+  ui.Image? _decoded;
+  ui.Codec? _codec;
+  ui.ImmutableBuffer? _buf;
+  ui.ImageDescriptor? _descriptor;
+
+  _ImageLoader(this.source);
+
+  bool get _disposeBuf =>
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeBoth ||
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeImmutableBuffer;
+
+  bool get _disposeDescriptor =>
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeBoth ||
+      ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.disposeImageDescriptor;
+
   Future<void> prepare() async {
     _timesPrepared++;
     if (_timesPrepared > 1) {
       return;
     }
     assert(_decoded == null);
-    final buf = await ui.ImmutableBuffer.fromUint8List(encoded);
+    final buf = await ui.ImmutableBuffer.fromUint8List(source.encoded);
     final des = await ui.ImageDescriptor.encoded(buf);
     final codec = _codec = await des.instantiateCodec();
     final decoded = (await codec.getNextFrame()).image;
@@ -666,7 +705,7 @@ class SIImage extends SIRenderable {
   void unprepare() {
     if (_timesPrepared <= 0) {
       throw StateError(
-          'Attempt to unprepare() and image that was not prepare()d');
+          'Attempt to unprepare() an image that was not prepare()d');
     }
     _timesPrepared--;
     if (_timesPrepared == 0) {
@@ -681,40 +720,16 @@ class SIImage extends SIRenderable {
     }
   }
 
-  @override
   void paint(Canvas c, RenderContext context) {
     final im = _decoded;
     if (im != null) {
       final src =
           Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
-      final dest = Rect.fromLTWH(x, y, width, height);
+      final dest =
+          Rect.fromLTWH(source.x, source.y, source.width, source.height);
       c.drawImageRect(im, src, dest, Paint());
     }
   }
-
-  @override
-  void addChildren(Set<SIRenderable> dagger) {}
-
-  @override
-  bool operator ==(final Object other) {
-    if (identical(this, other)) {
-      return true;
-    } else if (other is! SIImage) {
-      return false;
-    } else {
-      return x == other.x &&
-          y == other.y &&
-          width == other.width &&
-          height == other.height &&
-          quiver.listsEqual(encoded, other.encoded);
-    }
-  }
-
-  @override
-  int get hashCode =>
-      0xc36c5d4e ^
-      quiver.hash2(
-          quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
 }
 
 class SIText extends SIRenderable implements _HasBounds {

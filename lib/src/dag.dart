@@ -266,7 +266,6 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   final RenderContext context;
   final Rect? maskBounds;
   final bool usesLuma;
-  int? _hashCode;
 
   SIMasked(List<SIRenderable> renderables, this.context, RectT? maskBounds,
       this.usesLuma)
@@ -369,25 +368,15 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     }
   }
 
-  bool _hashing = false;
-
   @override
-  int get hashCode {
-    if (_hashCode == null) {
-      assert(!_hashing);
-      _hashing = true;
-      _hashCode = 0xac33fb5e ^ Object.hash(context, mask, child, maskBounds);
-      _hashing = false;
-    }
-    return _hashCode!;
-  }
+  late final int hashCode =
+      0xac33fb5e ^ Object.hash(context, mask, child, maskBounds);
 }
 
 class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   final List<SIRenderable> _renderables;
   final int? groupAlpha;
-  int? _hashCode;
   final RenderContext context;
 
   SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.context)
@@ -457,23 +446,13 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     }
   }
 
-  bool _hashing = false;
-
   @override
-  int get hashCode {
-    if (_hashCode == null) {
-      assert(!_hashing);
-      _hashing = true;
-      _hashCode = 0xfddf5e28 ^
-          quiver.hash3(
-            quiver.hashObjects(_renderables),
-            groupAlpha,
-            context,
-          );
-      _hashing = false;
-    }
-    return _hashCode!;
-  }
+  late final int hashCode = 0xfddf5e28 ^
+      quiver.hash3(
+        quiver.hashObjects(_renderables),
+        groupAlpha,
+        context,
+      );
 }
 
 class _GroupBuilder implements _SIParentBuilder {
