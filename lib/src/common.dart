@@ -54,6 +54,12 @@ Rect? convertRectTtoRect(RectT? r) {
   }
 }
 
+///
+/// Base class for a renderable node.  Note that, though it is
+/// `@immutable`, an image node isn't immutable, due to the need to
+/// load images asynchronously.  Dart's `@immutable` is, uh, partial, 
+/// but there is some value to the declaration.
+///
 @immutable
 abstract class SIRenderable {
   void paint(Canvas c, RenderContext context);
