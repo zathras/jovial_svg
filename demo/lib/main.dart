@@ -169,8 +169,9 @@ class _DemoScreenState extends State<DemoScreen> {
             _originalViewport = null;
           });
         }
-      } catch (e) {
+      } catch (e, st) {
         error = 'Error accessing clipboard:  $e';
+        print(st);
       }
       if (error != null) {
         ScaffoldMessenger.of(context)

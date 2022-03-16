@@ -53,3 +53,7 @@ believed to be representative.
 - Implemented masks (SVG 1.1 `mask` element and `mask` attribute)
 - Implemented `text-anchor` attribute
 - Fixed text outline
+
+## [1.1.1] - Upcoming
+
+- Fail more gracefully when `use` and `mask` elements have circular references

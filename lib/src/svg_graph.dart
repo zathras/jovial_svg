@@ -63,7 +63,8 @@ class SvgParseGraph {
   void build(SIBuilder<String, SIImageData> builder) {
     final rootPaint = SvgPaint.initial();
     final rootTA = SvgTextAttributes.initial();
-    SvgNode? newRoot = root.resolve(idLookup, rootPaint, builder.warn);
+    SvgNode? newRoot =
+        root.resolve(idLookup, rootPaint, builder.warn, _Referrers(null));
     builder.vector(
         width: width, height: height, tintColor: null, tintMode: null);
     final theCanon = CanonicalizedData<SIImageData>();
@@ -79,7 +80,8 @@ class SvgParseGraph {
 }
 
 abstract class SvgNode {
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn);
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers);
 
   void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta);
@@ -91,6 +93,28 @@ abstract class SvgNode {
   /// channel?  cf. SIMaskHelper.startLumaMask().
   ///
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor);
+}
+
+///
+/// Things that refer to a node, like a group.
+/// This is used to catch reference loops.
+///
+class _Referrers {
+  final SvgNode? referrer;
+  final _Referrers? parent;
+
+  _Referrers(this.referrer, [this.parent]);
+
+  bool contains(SvgNode n) {
+    _Referrers? s = this;
+    while (s != null) {
+      if (identical(s.referrer, n)) {
+        return true;
+      }
+      s = s.parent;
+    }
+    return false;
+  }
 }
 
 abstract class SvgInheritableAttributes implements SvgNode {
@@ -129,11 +153,18 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
 
-  SvgNode resolveMask(Map<String, SvgNode> idLookup, bool warn) {
+  SvgNode resolveMask(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      bool warn, _Referrers referrers) {
     if (paint.mask != null) {
       SvgNode? n = idLookup[paint.mask];
       if (n is SvgMask) {
-        return SvgMasked(this, n);
+        if (referrers.contains(n)) {
+          if (warn) {
+            print('    Ignoring mask that refers to itself.');
+          }
+        } else {
+          return SvgMasked(this, n);
+        }
       } else if (warn) {
         print('    $this references nonexistent mask ${paint.mask}');
       }
@@ -254,12 +285,13 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   SvgGroup();
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     final cascaded = cascadePaint(ancestor, idLookup);
     final newC = List<SvgNode>.empty(growable: true);
+    referrers = _Referrers(this, referrers);
     for (SvgNode n in children) {
-      final nn = n.resolve(idLookup, cascaded, warn);
+      final nn = n.resolve(idLookup, cascaded, warn, referrers);
       if (nn != null) {
         newC.add(nn);
       }
@@ -270,7 +302,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
     } else if (transform?.determinant() == 0.0) {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
@@ -314,9 +346,9 @@ class SvgDefs extends SvgGroup {
   SvgDefs() : super();
 
   @override
-  SvgGroup? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    super.resolve(idLookup, ancestor, warn);
+  SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
+    super.resolve(idLookup, ancestor, warn, referrers);
     return null;
   }
 
@@ -336,10 +368,17 @@ class SvgMask extends SvgGroup {
   SvgMask() : super();
 
   @override
-  SvgGroup? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
-    super.resolve(idLookup, ancestor, warn);
-    return null;
+  SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
+    if (referrers.contains(this)) {
+      if (warn) {
+        print('    Ignoring mask contained by itself.');
+      }
+      return null;
+    } else {
+      super.resolve(idLookup, ancestor, warn, _Referrers(this, referrers));
+      return null;
+    }
   }
 }
 
@@ -370,8 +409,8 @@ class SvgMasked extends SvgNode {
   }
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     assert(false); // We're added during resolve
     return null;
   }
@@ -388,17 +427,22 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   SvgUse(this.childID);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     SvgNode? n = idLookup[childID];
     if (n == null) {
       if (warn) {
         print('    <use> references nonexistent $childID');
       }
       return null;
+    } else if (referrers.contains(n)) {
+      if (warn) {
+        print('    Ignoring <use> that refers to itself.');
+      }
+      return null;
     }
     final cascaded = cascadePaint(ancestor, idLookup);
-    n = n.resolve(idLookup, cascaded, warn);
+    n = n.resolve(idLookup, cascaded, warn, referrers);
     if (n == null || transform?.determinant() == 0.0) {
       return null;
     }
@@ -407,7 +451,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     g.paint = paint;
     g.transform = transform;
     g.children.add(n);
-    return g.resolveMask(idLookup, warn);
+    return g.resolveMask(idLookup, ancestor, warn, referrers);
   }
 
   @override
@@ -462,12 +506,12 @@ class SvgPath extends SvgPathMaker {
   SvgPath(this.pathData);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (pathData == '') {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
@@ -490,12 +534,12 @@ class SvgRect extends SvgPathMaker {
   SvgRect(this.x, this.y, this.width, this.height, this.rx, this.ry);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (width <= 0 || height <= 0) {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
@@ -565,12 +609,12 @@ class SvgEllipse extends SvgPathMaker {
   SvgEllipse(this.cx, this.cy, this.rx, this.ry);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (rx <= 0 || ry <= 0) {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
@@ -613,12 +657,12 @@ class SvgPoly extends SvgPathMaker {
   SvgPoly(this.close, this.points);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (points.length < 2) {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
@@ -665,11 +709,28 @@ class SvgGradientNode implements SvgNode {
   SvgGradientNode(this.parentID, this.gradient);
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     final pid = parentID;
     if (pid != null) {
-      final parent = idLookup[pid];
+      var parent = idLookup[pid];
+      var pLoop = parent;
+      while (pLoop is SvgGradientNode) {
+        if (identical(pLoop, this)) {
+          if (warn) {
+            print('    Gradient references itself:  $pid');
+          }
+          pLoop = null;
+          parent = null;
+        } else {
+          final ppid = pLoop.parentID;
+          if (ppid == null) {
+            pLoop = null;
+          } else {
+            pLoop = idLookup[ppid];
+          }
+        }
+      }
       if (parent is SvgGradientNode) {
         gradient.parent = parent.gradient;
       } else {
@@ -719,12 +780,12 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (width <= 0 || height <= 0) {
       return null;
     }
-    return resolveMask(idLookup, warn);
+    return resolveMask(idLookup, ancestor, warn, referrers);
   }
 
   @override
@@ -757,12 +818,12 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   SvgText();
 
   @override
-  SvgNode? resolve(
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
     if (text == '') {
       return null;
     } else {
-      return resolveMask(idLookup, warn);
+      return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
 
