@@ -64,7 +64,7 @@ void main() {
 
 class TestSource extends ScalableImageSource {
   static final _rand = Random(42);
-  final _si = Future.value(ScalableImageDag(
+  final _si = Future.value(ScalableImageDag.forTesting(
       width: 1,
       height: 1,
       images: const [],

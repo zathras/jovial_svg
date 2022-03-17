@@ -54,13 +54,15 @@ import 'path_noui.dart';
 /// of memory usage
 ///
 @immutable
-class ScalableImageDag extends ScalableImageBase
-    with _SIParentNode
-    implements _SIParentBuilder {
+class ScalableImageDag extends ScalableImageBase with _SIParentNode {
   @override
-  final List<SIRenderable> _renderables;
+  late final List<SIRenderable> _renderables;
 
-  ScalableImageDag(
+  ///
+  /// Create an instance with no children, for testing.  This is a private
+  /// API:  ScalableImageDag is not an exported type.
+  ///
+  ScalableImageDag.forTesting(
       {required double? width,
       required double? height,
       required Color? tintColor,
@@ -68,8 +70,19 @@ class ScalableImageDag extends ScalableImageBase
       required Rect? viewport,
       Color? currentColor,
       required List<SIImage> images})
-      : _renderables = List<SIRenderable>.empty(growable: true),
+      : _renderables = const [],
         super(
+            width, height, tintColor, tintMode, viewport, images, currentColor);
+
+  ScalableImageDag._withoutRenderables(
+      {required double? width,
+      required double? height,
+      required Color? tintColor,
+      required BlendMode tintMode,
+      required Rect? viewport,
+      Color? currentColor,
+      required List<SIImage> images})
+      : super(
             width, height, tintColor, tintMode, viewport, images, currentColor);
 
   ///
@@ -124,9 +137,6 @@ class ScalableImageDag extends ScalableImageBase
         tintColor: tintColor,
         tintMode: tintMode);
   }
-
-  @override
-  late final RenderContext context = RenderContext.root(this, currentColor);
 
   @override
   ScalableImage withNewViewport(Rect viewport,
@@ -487,7 +497,9 @@ class _MaskedBuilder implements _SIParentBuilder {
 /// See [PathBuilder] for usage.
 ///
 abstract class SIGenericDagBuilder<PathDataT, IM>
-    extends SIBuilder<PathDataT, IM> {
+    extends SIBuilder<PathDataT, IM> implements _SIParentBuilder {
+  @override
+  final _renderables = List<SIRenderable>.empty(growable: true);
   double? _width;
   double? _height;
   int? _tintColor;
@@ -503,6 +515,8 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   final _paths = <Object?, Path>{};
   final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
+  @override
+  late final RenderContext context;
 
   SIGenericDagBuilder(this._viewport, this.warn, this.currentColor);
 
@@ -565,7 +579,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     _strings = strings;
     _floatLists = floatLists;
     assert(_si == null);
-    final a = _si = ScalableImageDag(
+    final a = _si = ScalableImageDag._withoutRenderables(
         width: _width,
         height: _height,
         viewport: _viewport,
@@ -573,7 +587,8 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
         tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
         currentColor: currentColor,
         images: _images);
-    _parentStack.add(a);
+    context = RenderContext.root(a, a.currentColor);
+    _parentStack.add(this);
   }
 
   List<SIImage> convertImages(List<IM> images);
@@ -595,6 +610,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     if (r == null) {
       throw ParseError('No vector element');
     } else {
+      r._renderables = List.unmodifiable(_renderables);
       return r;
     }
   }
