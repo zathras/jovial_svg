@@ -63,7 +63,7 @@ or you can run them from your project directory like this:
 dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg -out output/dir
 ```
 
-### Pre-loading ScalableImages
+### Pre-loading Scalable Images
 
 For optimal performance, you can pre-load a `ScalableImage` using various 
 static methods defined on the class.  You can also proactively load
@@ -75,7 +75,10 @@ Avoiding reloading is, of course, especially important if a
 `ScalableImage` is displayed as part of an animation, or if it is loaded
 over the network.  `ScalableImageWidget` does, however, have an option for 
 the widget to handle loading and the the asynchronous operations, for 
-convenience and/or quick prototyping.
+convenience and/or quick prototyping.  Using a `ScalableImageCache` with
+`ScalableImageWidget` can be a good way to avoid reloading, without the need
+to directly manage `ScalableImage` instances as part of your application's
+state.
 
 ## Demo Program
 
