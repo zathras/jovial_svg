@@ -122,6 +122,18 @@ enum ImageDisposeBugWorkaround {
 /// `Picture.toImage` and the notes about `RepaintBoundary` in
 /// `ScalableImageWidget`.
 ///
+/// Note that, while `ScalableImage` is declared as `@immutable`, and obeys
+/// the `@immutable` contract, instances
+/// can contain images which can be loaded and unloaded (see
+/// [prepareImages] and [unprepareImages]).  Used correctly, `ScalableImage`
+/// instances are what you might call semantically immutable.  Indeed, aside
+/// from loading and unloading embedded assets, their internal state is
+/// read-only.  However, they are not strictly immutable in
+/// the traditional computer science sense of the word, which requires all
+/// reachable objects being unmodifiable.  A buggy application could
+/// corrupt the internal state by calling [unprepareImages] excessively, for
+/// example, which could cause embedded images to not render.
+///
 @immutable
 abstract class ScalableImage {
   /// Width of the image, in pixels, if it was specified.  This corresponds
