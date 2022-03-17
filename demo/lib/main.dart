@@ -171,6 +171,7 @@ class _DemoScreenState extends State<DemoScreen> {
         }
       } catch (e, st) {
         error = 'Error accessing clipboard:  $e';
+        print(e);
         print(st);
       }
       if (error != null) {
