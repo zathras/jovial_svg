@@ -54,7 +54,7 @@ believed to be representative.
 - Implemented `text-anchor` attribute
 - Fixed text outline
 
-## [1.1.1] - Upcoming
+## [1.1.1] - March 2022
 
 - Fail more gracefully when `use` and `mask` elements have circular references
-- Minor cleanup:  Declare ScalableImage as @immutable
+- Minor cleanup:  Declare ScalableImage as `@immutable`
