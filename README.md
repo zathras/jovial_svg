@@ -34,16 +34,23 @@ MaterialApp(
       si: ScalableImageSource.fromSvgHttpUrl(
           Uri.parse('https://jovial.com/images/jupiter.svg'))));
 ```
+It's generally preferable to pre-load an instance of `ScalableImage`, as
+discussed below.
+
 [Sample applicatons](https://github.com/zathras/jovial_svg/tree/main/example) 
 are available.  The 
 [cache sample](https://github.com/zathras/jovial_svg/blob/main/example/lib/cache.dart) 
-might be of interest if SVGs are to be loaded over the network.  There's 
+might be of interest if `ScalableImageWidget` is used in a widget that is
+frequently rebuilt (e.g. because it's used in an animation), or if SVGs 
+are to be loaded over the network.  There's 
 also an example of extending `jovial_svg` with a 
 [persistent cache](https://github.com/zathras/jovial_svg/tree/main/demo_hive).
 
 Parsing an XML file isn't terribly efficient, and it's generally better to
-do any asynchronous loading before building a widget tree.  This package 
+do any loading before building a widget tree.  This package 
 includes tools to make its use more efficient in both of these aspects.  
+
+### Quick Loading Binary Format
 
 The `svg_to_si` program compiles an SVG file into a much more efficient 
 binary representation, suitable for inclusion in an asset bundle.  The
@@ -56,13 +63,19 @@ or you can run them from your project directory like this:
 dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg -out output/dir
 ```
 
-In order to avoid a visual flash while assets are asynchronously loaded,
-you can pre-load a `ScalableImage` using various static methods defined 
-on the class.  You can also proactively cause any embedded images to be
-decoded before first display.  Once ready, your `ScalableImage` can be used
-synchronously with `ScalableImageWidget`, or directly with a Flutter
-`CustomPaint`.  `ScalableImageWidget` also has an option for the widget
-to handle the asynchronous operations, for convenience and/or quick prototyping.
+### Pre-loading ScalableImages
+
+For optimal performance, you can pre-load a `ScalableImage` using various 
+static methods defined on the class.  You can also proactively load
+and decode any image assets contained within the `ScalableImage`.  Once
+ready, your `ScalableImage` can be used synchronously with 
+`ScalableImageWidget`, or directly with a Flutter `CustomPaint`.
+
+Avoiding reloading is, of course, especially important if a
+`ScalableImage` is displayed as part of an animation, or if it is loaded
+over the network.  `ScalableImageWidget` does, however, have an option for 
+the widget to handle loading and the the asynchronous operations, for 
+convenience and/or quick prototyping.
 
 ## Demo Program
 
