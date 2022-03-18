@@ -66,6 +66,7 @@ flutter:
     - assets/svg/mask2.svg
     - assets/svg/mask3.svg
     - assets/svg/mask4.svg
+    - assets/svg/rainbow.svg
     - assets/avd/anglo.xml
     - assets/avd/bellot.xml
     - assets/avd/bonded.xml
@@ -75,6 +76,7 @@ flutter:
     - assets/avd/ornamental.xml
     - assets/avd/paris.xml
     - assets/avd/paris_text.xml
+    - assets/avd/rainbow.xml
     - assets/avd/svg11_gradient_1.xml
     - assets/avd/tango.xml
     - assets/si/anglo.si
@@ -113,6 +115,7 @@ flutter:
     - assets/si/mask2.si
     - assets/si/mask3.si
     - assets/si/mask4.si
+    - assets/si/rainbow.si
     - assets/test/issue_13_forgiving_1_avd.xml
     - assets/test/issue_13_forgiving_1_avd.si
     - assets/test/issue_13_forgiving_2_avd.xml

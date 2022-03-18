@@ -56,5 +56,6 @@ believed to be representative.
 
 ## [1.1.1] - March 2022
 
+- Added full set of CSS named colors
 - Fail more gracefully when `use` and `mask` elements have circular references
 - Minor cleanup:  Declare ScalableImage as `@immutable`
