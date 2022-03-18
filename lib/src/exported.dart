@@ -318,11 +318,11 @@ abstract class ScalableImage {
     if (compact) {
       final b = SICompactBuilder(
           warn: warn, currentColor: currentColor, bigFloats: bigFloats);
-      StringSvgParser(src, b).parse();
+      StringSvgParser(src, b, warn: warn).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warn, currentColor: currentColor);
-      StringSvgParser(src, b).parse();
+      StringSvgParser(src, b, warn: warn).parse();
       return b.si;
     }
   }
@@ -411,11 +411,11 @@ abstract class ScalableImage {
       {bool compact = false, bool bigFloats = false, bool warn = true}) async {
     if (compact) {
       final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
-      await StreamSvgParser(stream, b).parse();
+      await StreamSvgParser(stream, b, warn: warn).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warn);
-      await StreamSvgParser(stream, b).parse();
+      await StreamSvgParser(stream, b, warn: warn).parse();
       return b.si;
     }
   }
