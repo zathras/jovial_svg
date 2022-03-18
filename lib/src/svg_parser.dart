@@ -472,9 +472,6 @@ abstract class SvgParser extends GenericParser {
 
   void _processUse(Map<String, String> attrs) {
     final href = _getHref(attrs);
-    if (href == null) {
-      throw ParseError('<use> with no xlink:href');
-    }
     final use = SvgUse(href);
     _processId(use, attrs);
     _processInheritable(use, attrs);
@@ -496,7 +493,8 @@ abstract class SvgParser extends GenericParser {
   }
 
   String? _getHref(Map<String, String> attrs) {
-    final href = attrs.remove('xlink:href');
+    final href = attrs.remove('xlink:href') ?? attrs.remove('href');
+    // Just 'href' is wrong, but browsers seem to buy it
     if (href == null) {
       return href;
     }

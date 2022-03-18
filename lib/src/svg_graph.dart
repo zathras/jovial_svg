@@ -422,13 +422,19 @@ class SvgMasked extends SvgNode {
 }
 
 class SvgUse extends SvgInheritableAttributes implements SvgNode {
-  String childID;
+  String? childID;
 
   SvgUse(this.childID);
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
       _Referrers referrers) {
+    if (childID == null) {
+      if (warn) {
+        print('    <use> has no xlink:href');
+      }
+      return null;
+    }
     SvgNode? n = idLookup[childID];
     if (n == null) {
       if (warn) {
@@ -564,16 +570,16 @@ class SvgRect extends SvgPathMaker {
       pb.moveTo(PointT(x + rx, y));
       pb.lineTo(PointT(x + width - rx, y));
       pb.arcToPoint(PointT(x + width, y + ry),
-          radius: r, rotation: 90, largeArc: false, clockwise: true);
+          radius: r, rotation: 0, largeArc: false, clockwise: true);
       pb.lineTo(PointT(x + width, y + height - ry));
       pb.arcToPoint(PointT(x + width - rx, y + height),
-          radius: r, rotation: 90, largeArc: false, clockwise: true);
+          radius: r, rotation: 0, largeArc: false, clockwise: true);
       pb.lineTo(PointT(x + rx, y + height));
       pb.arcToPoint(PointT(x, y + height - ry),
-          radius: r, rotation: 90, largeArc: false, clockwise: true);
+          radius: r, rotation: 0, largeArc: false, clockwise: true);
       pb.lineTo(PointT(x, y + ry));
       pb.arcToPoint(PointT(x + rx, y),
-          radius: r, rotation: 90, largeArc: false, clockwise: true);
+          radius: r, rotation: 0, largeArc: false, clockwise: true);
       pb.close();
     }
     pb.end();

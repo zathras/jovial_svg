@@ -45,17 +45,30 @@ Future<void> _testReference(
     Directory referenceDir,
     Directory? outputDir,
     Future<ScalableImage> Function(File f) producer,
-    {Directory? overrideReferenceDir}) async {
+    {Directory? overrideReferenceDir,
+    final Size? scaleTo}) async {
   for (FileSystemEntity ent in inputDir.listSync()) {
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README') {
-      final ScalableImage si = await producer(ent);
+      print(ent);
+      final ScalableImage si;
+      try {
+        si = await producer(ent);
+      } catch (failed) {
+        print('Failed parsing $ent');
+        rethrow;
+      }
       await si.prepareImages();
-      final size = si.viewport;
+      final vpSize = si.viewport;
       final recorder = PictureRecorder();
-      si.paint(Canvas(recorder));
+      final Canvas c = Canvas(recorder);
+      if (scaleTo != null) {
+        c.scale(scaleTo.width / vpSize.width, scaleTo.height / vpSize.height);
+      }
+      si.paint(c);
       si.unprepareImages();
+      final size = scaleTo ?? Size(vpSize.width, vpSize.height);
       final Image rendered = await recorder
           .endRecording()
           .toImage(size.width.round(), size.height.round());
@@ -338,6 +351,7 @@ void main() {
         (File f) async =>
             ScalableImage.fromAvdString(await f.readAsString(), warn: false));
   });
+
   test('Affine sanity check', () {
     final rand = Random();
     for (int i = 0; i < 1000; i++) {
