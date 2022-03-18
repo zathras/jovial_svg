@@ -400,7 +400,7 @@ void _cacheTest() {
     referenced.add(s);
     cache.addReference(s);
   }
-  for (int i = 0; i < 100000; i++) {
+  for (int i = 0; i < 1000000; i++) {
     final v = referenced[i % referenced.length];
     cache.removeReference(v);
     final s = TestSource();
