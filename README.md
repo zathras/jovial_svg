@@ -109,6 +109,7 @@ it.
   *  Inheritable properties are supported.
   *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
      eliminated from SVG Tiny 1.2.
+  *  The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
   *  As per the Tiny spec s. 6.2, full CSS is not supported.  However, the
      `style=` attribute is supported as a way of specifying presentation
      attributes.

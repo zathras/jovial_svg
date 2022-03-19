@@ -517,7 +517,7 @@ class SIPath extends SIRenderable implements _HasBounds {
         double start = 0.0;
         for (;;) {
           final thisDash = sda[sdaI] - offset;
-          if (thisDash <= 0.0) {
+          if (thisDash < 0.0) {
             offset -= sda[sdaI++];
             sdaI %= sda.length;
             penDown = !penDown;

@@ -100,7 +100,7 @@ Future<void> _testReference(
                   .buffer
                   .asUint8List());
         }
-        // rethrow;
+        rethrow;
       }
     }
   }

@@ -504,7 +504,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   double? _height;
   int? _tintColor;
   SITintMode? _tintMode;
-  final Rect? _viewport;
+  Rect? _viewport;
   @override
   final bool warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);

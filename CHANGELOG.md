@@ -60,4 +60,6 @@ believed to be representative.
 - Fail more gracefully when `use` and `mask` elements have circular references
 - Minor cleanup:  Declare ScalableImage as `@immutable`
 - More forgiving use tag:  allow "href" instead of "xlink:href"
-- Fix bug with rrect when rx != ry
+- Fix rrect arcs when rx != ry
+- Fix SVG viewbox when width/height not set
+- Add `symbol` tag

@@ -109,6 +109,11 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
+      } else if (evt.name == 'symbol') {
+        _processSymbol(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _parentStack.length -= 2;
+        }
       } else if (evt.name == 'mask') {
         _processMask(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
@@ -175,6 +180,8 @@ abstract class SvgParser extends GenericParser {
             evt.name == 'defs' ||
             evt.name == 'mask')) {
       _parentStack.length = _parentStack.length - 1;
+    } else if (evt.name == 'symbol') {
+      _parentStack.length -= 2;
     } else if (evt.name == 'text') {
       _currentText = null;
     } else if (evt.name == 'linearGradient' || evt.name == 'radialGradient') {
@@ -198,6 +205,9 @@ abstract class SvgParser extends GenericParser {
       if (width != null && height != null) {
         transform.multiplyBy(MutableAffine.scale(
             width / viewbox.width, height / viewbox.height));
+      } else {
+        width ??= viewbox.width;
+        height ??= viewbox.height;
       }
       transform
           .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
@@ -229,6 +239,30 @@ abstract class SvgParser extends GenericParser {
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(group);
     _parentStack.add(group);
+  }
+
+  void _processSymbol(Map<String, String> attrs) {
+    double? width = getFloat(attrs.remove('width'));
+    double? height = getFloat(attrs.remove('height'));
+    final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
+    _processDefs({});
+    _processGroup(attrs);
+    SvgGroup us = _parentStack.last;
+    if (viewbox == null) {
+      return;
+    }
+    final transform = us.transform ?? MutableAffine.identity();
+    if (width != null && height != null) {
+      transform.multiplyBy(MutableAffine.scale(
+          width / viewbox.width, height / viewbox.height));
+    }
+    transform
+        .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
+    if (transform.isIdentity()) {
+      us.transform = null;
+    } else {
+      us.transform = transform;
+    }
   }
 
   void _processMask(Map<String, String> attrs) {
