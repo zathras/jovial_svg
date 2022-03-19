@@ -253,8 +253,8 @@ abstract class SvgParser extends GenericParser {
     }
     final transform = us.transform ?? MutableAffine.identity();
     if (width != null && height != null) {
-      transform.multiplyBy(MutableAffine.scale(
-          width / viewbox.width, height / viewbox.height));
+      transform.multiplyBy(
+          MutableAffine.scale(width / viewbox.width, height / viewbox.height));
     }
     transform
         .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
