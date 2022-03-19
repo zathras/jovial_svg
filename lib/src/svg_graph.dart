@@ -1253,8 +1253,8 @@ class SvgRadialGradientColor extends SvgGradientColor {
   SvgRadialGradientColor(
       {required this.cx,
       required this.cy,
-        required this.fx,
-        required this.fy,
+      required this.fx,
+      required this.fy,
       required this.r,
       required bool? objectBoundingBox,
       required Affine? transform,

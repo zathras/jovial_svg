@@ -375,8 +375,8 @@ class SIRadialGradientColor extends SIGradientColor {
   SIRadialGradientColor(
       {required this.cx,
       required this.cy,
-        required this.fx,
-        required this.fy,
+      required this.fx,
+      required this.fy,
       required this.r,
       required List<SIColor> colors,
       required List<double> stops,

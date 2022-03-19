@@ -515,7 +515,8 @@ abstract class SvgParser extends GenericParser {
       throw ParseError('Illegal color value for gradient stop:  $color');
     }
     int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;
-    double offset = (getFloat(attrs.remove('offset'), percentOK: true) ?? 0.0).clamp(0.0, 1.0);
+    double offset = (getFloat(attrs.remove('offset'), percentOK: true) ?? 0.0)
+        .clamp(0.0, 1.0);
     if (g.gradient.stops?.isNotEmpty == true) {
       final minOffset = g.gradient.stops!.last.offset;
       offset = max(offset, minOffset);

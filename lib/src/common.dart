@@ -101,7 +101,7 @@ abstract class SIRenderable {
         g.stops,
         g.spreadMethod.toTileMode,
         xform,
-    Offset(g.fx, g.fy));
+        Offset(g.fx, g.fy));
   }
 
   void _setSweepGradient(Paint p, SISweepGradientColor g, Float64List? xform,
