@@ -118,9 +118,7 @@ it.
      cf. Tiny 7.7)
   *  A DOM and other features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
-  *  The `clipPath` SVG element is not supported (cf. SVG 1.1 14.3.5).  It 
-     is not defined for SVG Tiny 1.2.  The more restricted Android Vector
-     Drawable `clipPath` is supported for AVD files, however.
+  *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
   *  Filter effects (SVG s. 15) are not supported.  They are not a part
      of SVG Tiny 1.2.
   *  Text restrictions:

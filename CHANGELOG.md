@@ -63,3 +63,4 @@ believed to be representative.
 - Fix rrect arcs when rx != ry
 - Fix SVG viewbox when width/height not set
 - Add `symbol` tag
+- Implement `clipPath`

@@ -119,6 +119,11 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
+      } else if (evt.name == 'clipPath') {
+        _processClipPath(_toMap(evt.attributes));
+        if (evt.isSelfClosing) {
+          _parentStack.length = _parentStack.length - 1;
+        }
       } else if (evt.name == 'path') {
         _processPath(_toMap(evt.attributes));
       } else if (evt.name == 'rect') {
@@ -178,7 +183,8 @@ abstract class SvgParser extends GenericParser {
         (evt.name == 'svg' ||
             evt.name == 'g' ||
             evt.name == 'defs' ||
-            evt.name == 'mask')) {
+            evt.name == 'mask' ||
+            evt.name == 'clipPath')) {
       _parentStack.length = _parentStack.length - 1;
     } else if (evt.name == 'symbol') {
       _parentStack.length -= 2;
@@ -282,6 +288,15 @@ abstract class SvgParser extends GenericParser {
         print('    objectBoundingBox maskUnits unsupported in $_currTag');
       }
     }
+    _warnUnusedAttributes(attrs);
+    _parentStack.last.children.add(mask);
+    _parentStack.add(mask);
+  }
+
+  void _processClipPath(Map<String, String> attrs) {
+    final mask = SvgClipPath();
+    _processId(mask, attrs);
+    _processInheritable(mask, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(mask);
     _parentStack.add(mask);
@@ -552,7 +567,7 @@ abstract class SvgParser extends GenericParser {
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
     p.fillAlpha = getAlpha(attrs.remove('fill-opacity'));
     p.fillType = getFillType(attrs.remove('fill-rule'));
-    String? mask = attrs.remove('mask');
+    String? mask = attrs.remove('mask') ?? attrs.remove('clip-path');
     if (mask != null) {
       if (mask.startsWith('url(') && mask.endsWith(')')) {
         mask = mask.substring(4, mask.length - 1).trim();
