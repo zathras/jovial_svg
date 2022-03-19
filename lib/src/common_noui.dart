@@ -368,11 +368,15 @@ class SILinearGradientColor extends SIGradientColor {
 class SIRadialGradientColor extends SIGradientColor {
   final double cx;
   final double cy;
+  final double fx;
+  final double fy;
   final double r;
 
   SIRadialGradientColor(
       {required this.cx,
       required this.cy,
+        required this.fx,
+        required this.fy,
       required this.r,
       required List<SIColor> colors,
       required List<double> stops,
@@ -721,7 +725,7 @@ abstract class GenericParser {
 
   final warnedAbout = {'px', ''};
 
-  double? getFloat(String? s) {
+  double? getFloat(String? s, {bool percentOK = false}) {
     if (s == null || s == 'inherit') {
       return null;
     }
@@ -741,6 +745,8 @@ abstract class GenericParser {
         multiplier = 96.0 / 25.4;
       } else if (postfix == 'in') {
         multiplier = 96.0;
+      } else if (percentOK && postfix == '%') {
+        multiplier = 0.01;
       } else {
         multiplier = 1.0;
         if (warn && !warnedAbout.contains(postfix)) {

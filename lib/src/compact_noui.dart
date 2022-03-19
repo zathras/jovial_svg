@@ -440,10 +440,21 @@ abstract class CompactTraverserBase<R, IM,
       } else if (gType == 1) {
         final cx = args.get();
         final cy = args.get();
+        final double fx;
+        final double fy;
+        if (fileVersion <= 3) {
+          fx = cx;
+          fy = cy;
+        } else {
+          fx = args.get();
+          fy = args.get();
+        }
         final r = args.get();
         return SIRadialGradientColor(
             cx: cx,
             cy: cy,
+            fx: fx,
+            fy: fy,
             r: r,
             objectBoundingBox: objectBoundingBox,
             spreadMethod: sm,
@@ -564,7 +575,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    1 = jovial_svg version 1.0.0, June 2021
   ///    2 = jovial_svg version 1.1.0, March 2022
   ///    3 = jovial_svg version 1.1.0 (later release candidate), March 2022
-  static const int fileVersionNumber = 3;
+  ///    4 - jovial_svg version 1.1.1.rc-3, March 2022
+  static const int fileVersionNumber = 4;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
@@ -1188,6 +1200,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
           writeGradientStart(1, c);
           _writeFloat(c.cx);
           _writeFloat(c.cy);
+          _writeFloat(c.fx);
+          _writeFloat(c.fy);
           _writeFloat(c.r);
         },
         sweepGradient: (SISweepGradientColor c) {

@@ -564,6 +564,8 @@ abstract class AvdParser extends GenericParser {
         return SvgRadialGradientColor(
             cx: centerX,
             cy: centerY,
+            fx: centerX,
+            fy: centerY,
             r: radius,
             objectBoundingBox: false,
             transform: null,

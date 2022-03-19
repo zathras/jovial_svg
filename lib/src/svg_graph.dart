@@ -601,7 +601,7 @@ class SvgRect extends SvgPathMaker {
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
-      return false;
+      return true;
     }
     if (rx <= 0 || ry <= 0) {
       pb.moveTo(PointT(x, y));
@@ -677,7 +677,7 @@ class SvgEllipse extends SvgPathMaker {
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
-      return false;
+      return true;
     }
     pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
     pb.end();
@@ -726,7 +726,7 @@ class SvgPoly extends SvgPathMaker {
     SIPaint curr = cascaded.toSIPaint();
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
-      return false;
+      return true;
     }
     pb.moveTo(points[0]);
     for (int i = 1; i < points.length; i++) {
@@ -1237,6 +1237,8 @@ class SvgLinearGradientColor extends SvgGradientColor {
 class SvgRadialGradientColor extends SvgGradientColor {
   final double? cx; // default 0.5
   final double? cy; // default 0.5
+  final double? fx;
+  final double? fy;
   final double? r; // default 0.5
 
   SvgRadialGradientColor? get radialParent {
@@ -1251,6 +1253,8 @@ class SvgRadialGradientColor extends SvgGradientColor {
   SvgRadialGradientColor(
       {required this.cx,
       required this.cy,
+        required this.fx,
+        required this.fy,
       required this.r,
       required bool? objectBoundingBox,
       required Affine? transform,
@@ -1261,6 +1265,8 @@ class SvgRadialGradientColor extends SvgGradientColor {
 
   double get cxR => cx ?? radialParent?.cxR ?? 0.5;
   double get cyR => cy ?? radialParent?.cyR ?? 0.5;
+  double? get fxR => fx ?? radialParent?.fxR;
+  double? get fyR => fy ?? radialParent?.fyR;
   double get rR => r ?? radialParent?.rR ?? 0.5;
 
   @override
@@ -1274,6 +1280,8 @@ class SvgRadialGradientColor extends SvgGradientColor {
     return SIRadialGradientColor(
         cx: cxR,
         cy: cyR,
+        fx: fxR ?? cxR,
+        fy: fyR ?? cyR,
         r: rR,
         colors: colors,
         stops: offsets,
