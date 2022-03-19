@@ -59,7 +59,7 @@ believed to be representative.
 - Added full set of CSS named colors
 - Fail more gracefully when `use` and `mask` elements have circular references
 - Minor cleanup:  Declare ScalableImage as `@immutable`
-- More forgiving use tag:  allow "href" instead of "xlink:href"
+- More forgiving `use` tag:  allow "`href`" instead of "`xlink:href`"
 - Fix `rrect` arcs when `rx != ry`
 - Fix SVG `viewbox` when width/height not set
 - Add `symbol` tag
