@@ -315,41 +315,46 @@ void main() {
     final outputDir = (dirName == '') ? null : Directory(dirName);
     Directory? getDir(Directory? d, String name) =>
         d == null ? null : Directory('${d.path}/$name');
-    final inputDir = Directory('demo/assets');
     final referenceDir = Directory('test/reference_images');
-    await _testReference(
-        'SVG source',
-        getDir(inputDir, 'svg')!,
-        getDir(referenceDir, 'svg')!,
-        getDir(outputDir, 'svg'),
-        (File f) async =>
-            ScalableImage.fromSvgString(await f.readAsString(), warn: false));
-    await _testReference(
-        'SI source',
-        getDir(inputDir, 'si')!,
-        getDir(referenceDir, 'si')!,
-        getDir(outputDir, 'si'),
-        (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()));
-    await _testReference(
-        'SI source, compact',
-        getDir(inputDir, 'si')!,
-        getDir(referenceDir, 'si')!,
-        getDir(outputDir, 'si_compact'),
-        (File f) async =>
-            ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true),
-        overrideReferenceDir: getDir(referenceDir, 'si_compact')!);
-    // The compact renderer doesn't set a bounds for saveLayer() calls when
-    // calculating the boundary is required, because doing so is expensive
-    // (and a bit complicated :-) ).  This causes rendering to be slightly
-    // different, but not perceptibly so, and not in a way that's incorrect.
 
-    await _testReference(
-        'AVD source',
-        getDir(inputDir, 'avd')!,
-        getDir(referenceDir, 'avd')!,
-        getDir(outputDir, 'avd'),
-        (File f) async =>
-            ScalableImage.fromAvdString(await f.readAsString(), warn: false));
+    for (final inputDir in [
+      Directory('test/more_test_images'),
+      Directory('demo/assets')
+    ]) {
+      await _testReference(
+          'SVG source',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'),
+          (File f) async =>
+              ScalableImage.fromSvgString(await f.readAsString(), warn: false));
+      await _testReference(
+          'SI source',
+          getDir(inputDir, 'si')!,
+          getDir(referenceDir, 'si')!,
+          getDir(outputDir, 'si'),
+          (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()));
+      await _testReference(
+          'SI source, compact',
+          getDir(inputDir, 'si')!,
+          getDir(referenceDir, 'si')!,
+          getDir(outputDir, 'si_compact'),
+          (File f) async =>
+              ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true),
+          overrideReferenceDir: getDir(referenceDir, 'si_compact')!);
+      // The compact renderer doesn't set a bounds for saveLayer() calls when
+      // calculating the boundary is required, because doing so is expensive
+      // (and a bit complicated :-) ).  This causes rendering to be slightly
+      // different, but not perceptibly so, and not in a way that's incorrect.
+
+      await _testReference(
+          'AVD source',
+          getDir(inputDir, 'avd')!,
+          getDir(referenceDir, 'avd')!,
+          getDir(outputDir, 'avd'),
+          (File f) async =>
+              ScalableImage.fromAvdString(await f.readAsString(), warn: false));
+    }
   });
 
   test('Affine sanity check', () {
