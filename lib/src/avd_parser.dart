@@ -259,7 +259,7 @@ abstract class AvdParser extends GenericParser {
           final scaler =
               MutableAffine.scale(scaledWidth / width, scaledHeight / height);
           _builder.init(null, const <SIImageData>[], const [], const []);
-          _builder.group(null, scaler, null);
+          _builder.group(null, scaler, null, SIBlendMode.normal);
           _onDone = () {
             _builder.endGroup(null);
           };
@@ -330,7 +330,8 @@ abstract class AvdParser extends GenericParser {
     // not mean the viewport of the top-level tree, if we have a parent group
     // that did transformations on the way down.
 
-    _builder.group(null, (transform.isIdentity()) ? null : transform, null);
+    _builder.group(null, (transform.isIdentity()) ? null : transform, null,
+        SIBlendMode.normal);
   }
 
   _AvdPath _parsePath(List<XmlEventAttribute> attrs) {

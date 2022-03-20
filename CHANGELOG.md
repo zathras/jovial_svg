@@ -65,3 +65,8 @@ believed to be representative.
 - Add `symbol` tag
 - Implement `clipPath`
 - Accept % for gradient stops, and `fx`/`fy` for radial gradients
+
+## [1.1.2] - April 2022
+
+- Fixed `opacity` attribute handling (use `srcOver`)
+- Support `mix-blend-mode` attribute

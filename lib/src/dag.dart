@@ -387,14 +387,18 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   final List<SIRenderable> _renderables;
   final int? groupAlpha;
+  final BlendMode? blendMode;
   final RenderContext context;
 
-  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.context)
-      : _renderables = List.unmodifiable(renderables);
+  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.context,
+      SIBlendMode blendMode)
+      : _renderables = List.unmodifiable(renderables),
+        blendMode = blendMode.asBlendMode;
 
   SIGroup._modified(SIGroup other, this._renderables)
       : context = other.context,
-        groupAlpha = other.groupAlpha;
+        groupAlpha = other.groupAlpha,
+        blendMode = other.blendMode;
 
   @override
   List<SIRenderable> _childrenPrunedBy(
@@ -409,7 +413,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   void paint(Canvas c, RenderContext context) {
-    startPaintGroup(c, this.context.transform, groupAlpha);
+    startPaintGroup(c, this.context.transform, groupAlpha, blendMode);
     for (final r in _renderables) {
       r.paint(c, this.context);
     }
@@ -469,13 +473,14 @@ class _GroupBuilder implements _SIParentBuilder {
   @override
   final List<SIRenderable> _renderables;
   final int? groupAlpha;
+  final SIBlendMode blendMode;
   @override
   final RenderContext context;
 
-  _GroupBuilder(this.context, this.groupAlpha)
+  _GroupBuilder(this.context, this.groupAlpha, this.blendMode)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
-  SIGroup get group => SIGroup(_renderables, groupAlpha, context);
+  SIGroup get group => SIGroup(_renderables, groupAlpha, context, blendMode);
 }
 
 class _MaskedBuilder implements _SIParentBuilder {
@@ -639,13 +644,15 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  void group(void collector, Affine? transform, int? groupAlpha) {
+  void group(
+      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {
     if (transform != null) {
       transform = _daggerize(transform);
     }
     final g = _GroupBuilder(
         RenderContext(_parentStack.last.context, transform: transform),
-        groupAlpha);
+        groupAlpha,
+        blend);
     _parentStack.add(g);
   }
 

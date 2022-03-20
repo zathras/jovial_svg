@@ -441,8 +441,9 @@ class _PaintingVisitor extends _CompactVisitor<void>
   void get initial {}
 
   @override
-  void group(void collector, Affine? transform, int? groupAlpha) {
-    startPaintGroup(canvas, transform, groupAlpha);
+  void group(
+      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {
+    startPaintGroup(canvas, transform, groupAlpha, blend.asBlendMode);
     pushContext(RenderContext(context, transform: transform));
   }
 
@@ -607,11 +608,11 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   }
 
   @override
-  PruningBoundary group(
-      PruningBoundary boundary, Affine? transform, int? groupAlpha) {
+  PruningBoundary group(PruningBoundary boundary, Affine? transform,
+      int? groupAlpha, SIBlendMode blend) {
     final parent = _parentStack.isEmpty ? null : _parentStack.last;
-    _parentStack
-        .add(_GroupPruningEntry(boundary, parent, this, transform, groupAlpha));
+    _parentStack.add(_GroupPruningEntry(
+        boundary, parent, this, transform, groupAlpha, blend));
     pushContext(RenderContext(context, transform: transform));
     return context.transformBoundaryFromParent(boundary);
   }
@@ -810,14 +811,15 @@ class _GroupPruningEntry extends _PruningEntry {
   final _PruningVisitor visitor;
   final Affine? transform;
   final int? groupAlpha;
+  final SIBlendMode blendMode;
 
   _GroupPruningEntry(this.boundary, _PruningEntry? parent, this.visitor,
-      this.transform, this.groupAlpha)
+      this.transform, this.groupAlpha, this.blendMode)
       : super(parent);
 
   @override
   void generateParent() {
-    visitor.builder.group(null, transform, groupAlpha);
+    visitor.builder.group(null, transform, groupAlpha, blendMode);
   }
 
   void endGroupIfNeeded() {
@@ -864,7 +866,7 @@ class _MaskedPruningEntry extends _PruningEntry {
     if (maskDone) {
       // Rare, but perhaps possible:  The mask got entirely pruned away, but the
       // child didn't, so we make an empty group for the mask.
-      visitor.builder.group(null, null, null);
+      visitor.builder.group(null, null, null, SIBlendMode.normal);
       visitor.builder.endGroup(null);
       visitor.builder.maskedChild(null);
     }
@@ -878,7 +880,7 @@ class _MaskedPruningEntry extends _PruningEntry {
     if (!childGenerated) {
       // Rare, but perhaps possible:  The child got entirely pruned away, but
       // the mask didn't, so we make an empty group for the child.
-      visitor.builder.group(null, null, null);
+      visitor.builder.group(null, null, null, SIBlendMode.normal);
       visitor.builder.endGroup(null);
     }
     visitor.builder.endMasked(null);
@@ -897,8 +899,8 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
   PruningBoundary? get initial => null;
 
   @override
-  PruningBoundary? group(
-      PruningBoundary? start, Affine? transform, int? groupAlpha) {
+  PruningBoundary? group(PruningBoundary? start, Affine? transform,
+      int? groupAlpha, SIBlendMode blend) {
     pushContext(RenderContext(context, transform: transform));
     _boundaryStack.add(start);
     return null;

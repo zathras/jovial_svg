@@ -600,93 +600,123 @@ abstract class SvgParser extends GenericParser {
     String? attr = attrs.remove('font-style')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at null
-    } else if (attr == 'normal') {
-      t.fontStyle = SIFontStyle.normal;
-    } else if (attr == 'italic') {
-      t.fontStyle = SIFontStyle.italic;
-    } else if (attr == 'oblique') {
-      t.fontStyle = SIFontStyle.italic;
-    } else if (warn) {
-      print('    Ignoring invalid fontStyle "$attr"');
+    } else {
+      const vals = {
+        'normal': SIFontStyle.normal,
+        'italic': SIFontStyle.italic,
+        'oblique': SIFontStyle.italic,
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.fontStyle = v;
+      } else if (warn) {
+        print('    Ignoring invalid fontStyle "$attr"');
+      }
     }
 
     attr = attrs.remove('font-weight')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at inherit
-    } else if (attr == 'normal') {
-      t.fontWeight = SvgFontWeight.w400;
-    } else if (attr == 'bold') {
-      t.fontWeight = SvgFontWeight.w700;
-    } else if (attr == '100') {
-      t.fontWeight = SvgFontWeight.w100;
-    } else if (attr == '200') {
-      t.fontWeight = SvgFontWeight.w200;
-    } else if (attr == '300') {
-      t.fontWeight = SvgFontWeight.w300;
-    } else if (attr == '400') {
-      t.fontWeight = SvgFontWeight.w400;
-    } else if (attr == '500') {
-      t.fontWeight = SvgFontWeight.w500;
-    } else if (attr == '600') {
-      t.fontWeight = SvgFontWeight.w600;
-    } else if (attr == '700') {
-      t.fontWeight = SvgFontWeight.w700;
-    } else if (attr == '800') {
-      t.fontWeight = SvgFontWeight.w800;
-    } else if (attr == '900') {
-      t.fontWeight = SvgFontWeight.w900;
-    } else if (attr == 'bolder') {
-      t.fontWeight = SvgFontWeight.bolder;
-    } else if (attr == 'lighter') {
-      t.fontWeight = SvgFontWeight.lighter;
-    } else if (warn) {
-      print('    Ignoring invalid fontStyle "$attr"');
+    } else {
+      const vals = {
+        'normal': SvgFontWeight.w400,
+        'bold': SvgFontWeight.w700,
+        '100': SvgFontWeight.w100,
+        '200': SvgFontWeight.w200,
+        '300': SvgFontWeight.w300,
+        '400': SvgFontWeight.w400,
+        '500': SvgFontWeight.w500,
+        '600': SvgFontWeight.w600,
+        '700': SvgFontWeight.w700,
+        '800': SvgFontWeight.w800,
+        '900': SvgFontWeight.w900,
+        'bolder': SvgFontWeight.bolder,
+        'lighter': SvgFontWeight.lighter,
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.fontWeight = v;
+      } else if (warn) {
+        print('    Ignoring invalid fontStyle "$attr"');
+      }
     }
 
     attr = attrs.remove('font-size')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at inherit
-    } else if (attr == 'xx-small') {
-      t.fontSize = SvgFontSize.xx_small;
-    } else if (attr == 'x-small') {
-      t.fontSize = SvgFontSize.x_small;
-    } else if (attr == 'small') {
-      t.fontSize = SvgFontSize.small;
-    } else if (attr == 'medium') {
-      t.fontSize = SvgFontSize.medium;
-    } else if (attr == 'large') {
-      t.fontSize = SvgFontSize.large;
-    } else if (attr == 'x-large') {
-      t.fontSize = SvgFontSize.x_large;
-    } else if (attr == 'xx-large') {
-      t.fontSize = SvgFontSize.xx_large;
-    } else if (attr == 'larger') {
-      t.fontSize = SvgFontSize.larger;
-    } else if (attr == 'smaller') {
-      t.fontSize = SvgFontSize.smaller;
     } else {
-      double? d = getFloat(attr);
-      if (d != null) {
-        t.fontSize = SvgFontSize.absolute(d);
-      } else if (warn) {
-        print('    Ignoring invalid fontStyle "$attr"');
+      const vals = {
+        'xx-small': SvgFontSize.xx_small,
+        'x-small': SvgFontSize.x_small,
+        'small': SvgFontSize.small,
+        'medium': SvgFontSize.medium,
+        'large': SvgFontSize.large,
+        'x-large': SvgFontSize.x_large,
+        'xx-large': SvgFontSize.xx_large,
+        'larger': SvgFontSize.larger,
+        'smaller': SvgFontSize.smaller,
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.fontSize = v;
+      } else {
+        double? d = getFloat(attr);
+        if (d != null) {
+          t.fontSize = SvgFontSize.absolute(d);
+        } else if (warn) {
+          print('    Ignoring invalid fontStyle "$attr"');
+        }
       }
     }
 
     attr = attrs.remove('text-anchor')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
       // Let it stay at null
-    } else if (attr == 'start') {
-      t.textAnchor = SITextAnchor.start;
-    } else if (attr == 'middle') {
-      t.textAnchor = SITextAnchor.middle;
-    } else if (attr == 'end') {
-      t.textAnchor = SITextAnchor.end;
-    } else if (warn) {
-      print('    Ignoring invalid fontStyle "$attr"');
+    } else {
+      const vals = {
+        'start': SITextAnchor.start,
+        'middle': SITextAnchor.middle,
+        'end': SITextAnchor.end
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.textAnchor = v;
+      } else if (warn) {
+        print('    Ignoring invalid fontStyle "$attr"');
+      }
     }
 
     node.transform = getTransform(node.transform, attrs.remove('transform'));
+
+    attr = attrs.remove('mix-blend-mode');
+    {
+      const vals = {
+        null: SIBlendMode.normal,
+        'inherit': SIBlendMode.normal,
+        'normal': SIBlendMode.normal,
+        'multiply': SIBlendMode.multiply,
+        'screen': SIBlendMode.screen,
+        'overlay': SIBlendMode.overlay,
+        'darken': SIBlendMode.darken,
+        'lighten': SIBlendMode.lighten,
+        'color-dodge': SIBlendMode.colorDodge,
+        'color-burn': SIBlendMode.colorBurn,
+        'hard-light': SIBlendMode.hardLight,
+        'soft-light': SIBlendMode.softLight,
+        'difference': SIBlendMode.difference,
+        'exclusion': SIBlendMode.exclusion,
+        'hue': SIBlendMode.hue,
+        'saturation': SIBlendMode.saturation,
+        'color': SIBlendMode.color,
+        'luminosity': SIBlendMode.luminosity
+      };
+      final v = vals[attr];
+      if (v != null) {
+        node.blendMode = v;
+      } else if (warn) {
+        print('    Ignoring invalid mix-blend-mode "$attr"');
+      }
+    }
   }
 
   MutableAffine? getTransform(MutableAffine? initial, String? s) {

@@ -331,7 +331,8 @@ class _DemoScreenState extends State<DemoScreen> {
                       si: si!,
                       key: _siWidgetKey,
                       alignment: Alignment.center,
-                      scale: _fitToScreen ? double.infinity : _multiplier)))
+                      scale: _fitToScreen ? double.infinity : _multiplier,
+                      background: Colors.white)))
         ]));
   }
 

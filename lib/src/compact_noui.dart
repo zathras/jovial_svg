@@ -166,6 +166,7 @@ abstract class CompactTraverserBase<R, IM,
         // it's GROUP_CODE
         assert(SIGenericCompactBuilder.GROUP_CODE & 0x7 == 0);
         collector = group(collector,
+            blendMode: SIBlendMode.normal,
             hasTransform: _flag(code, 0),
             hasTransformNumber: _flag(code, 1),
             hasGroupAlpha: _flag(code, 2));
@@ -187,7 +188,7 @@ abstract class CompactTraverserBase<R, IM,
         collector = maskedChild(collector);
       } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
         if (groupDepth <= 0) {
-          throw ParseError('Unexpected END_GROUP_CODE');
+          throw ParseError('Unexpected END_MASKED_CODE');
         } else {
           return visitor.endMasked(collector);
         }
@@ -215,6 +216,14 @@ abstract class CompactTraverserBase<R, IM,
           assert(d == groupDepth, '$d == $groupDepth at ${_children.seek}');
         }
         collector = masked(collector, maskBounds, usesLuma);
+      } else if (code == SIGenericCompactBuilder.EXTENDED_GROUP_CODE) {
+        int stuff = _children.readByte();
+        final blendMode = SIBlendMode.values[stuff & 0xf];
+        collector = group(collector,
+            blendMode: blendMode,
+            hasTransform: _flag(stuff, 4),
+            hasTransformNumber: _flag(stuff, 5),
+            hasGroupAlpha: _flag(stuff, 6));
       } else {
         throw ParseError('Bad code $code');
       }
@@ -250,13 +259,14 @@ abstract class CompactTraverserBase<R, IM,
   R maskedChild(R collector) => visitor.maskedChild(collector);
 
   R group(R collector,
-      {required bool hasTransform,
+      {required SIBlendMode blendMode,
+      required bool hasTransform,
       required bool hasTransformNumber,
       required bool hasGroupAlpha}) {
     final Affine? transform =
         _getTransform(hasTransform, hasTransformNumber, _children);
     final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
-    collector = visitor.group(collector, transform, groupAlpha);
+    collector = visitor.group(collector, transform, groupAlpha, blendMode);
     if (_debugCompact) {
       int currArgSeek = _children.readUnsignedInt() - 100;
       assert(currArgSeek == _args.seek);
@@ -576,7 +586,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    2 = jovial_svg version 1.1.0, March 2022
   ///    3 = jovial_svg version 1.1.0 (later release candidate), March 2022
   ///    4 - jovial_svg version 1.1.1.rc-3, March 2022
-  static const int fileVersionNumber = 4;
+  ///    5 - jovial_svg version 1.1.2, April 2022
+  static const int fileVersionNumber = 5;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
@@ -997,7 +1008,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   static const MASKED_CODE = 140;
   static const MASKED_CHILD_CODE = 142;
   static const END_MASKED_CODE = 143;
-  static const MASKED_CODE_NO_LUMA = 144;
+  static const MASKED_CODE_NO_LUMA = 144; // 144, 145
+  static const EXTENDED_GROUP_CODE = 146; // Like GROUP but with a blend mode
 
   bool get done => _done;
 
@@ -1077,15 +1089,24 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void group(void collector, Affine? transform, int? groupAlpha) {
+  void group(
+      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {
     int? transformNumber;
     if (transform != null) {
       transformNumber = _writeTransform(transform);
     }
-    children.writeByte(GROUP_CODE |
-        _flag(transform != null, 0) |
-        _flag(transformNumber != null, 1) |
-        _flag(groupAlpha != null, 2));
+    if (blend == SIBlendMode.normal) {
+      children.writeByte(GROUP_CODE |
+          _flag(transform != null, 0) |
+          _flag(transformNumber != null, 1) |
+          _flag(groupAlpha != null, 2));
+    } else {
+      children.writeByte(EXTENDED_GROUP_CODE);
+      children.writeByte(blend.index |
+          _flag(transform != null, 4) |
+          _flag(transformNumber != null, 5) |
+          _flag(groupAlpha != null, 6));
+    }
     if (transformNumber != null) {
       _writeSmallishInt(children, transformNumber);
     }

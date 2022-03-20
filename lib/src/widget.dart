@@ -71,14 +71,21 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [clip], if true, will cause the widget to enforce the boundaries of
   /// the scalable image.
   ///
+  /// [background], if provided, will be the background color for a layer under
+  /// the SVG asset.  In relatively rare circumstances, this can be needed.
+  /// For example, browsers generally render an SVG over a white background,
+  /// which affects advanced use of the `mix-blend-mode` attribute applied over
+  /// areas without other drawing.
+  ///
   factory ScalableImageWidget(
           {Key? key,
           required ScalableImage si,
           BoxFit fit = BoxFit.contain,
           Alignment alignment = Alignment.center,
           bool clip = true,
-          double scale = 1}) =>
-      _SyncSIWidget(key, si, fit, alignment, clip, scale);
+          double scale = 1,
+          Color? background}) =>
+      _SyncSIWidget(key, si, fit, alignment, clip, scale, background);
 
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
@@ -113,6 +120,12 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [onError] is called to give a widget to show if the asset has failed
   /// loading.  It defaults to onLoading.
   ///
+  /// [background], if provided, will be the background color for a layer under
+  /// the SVG asset.  In relatively rare circumstances, this can be needed.
+  /// For example, browsers generally render an SVG over a white background,
+  /// which affects advanced use of the `mix-blend-mode` attribute applied over
+  /// areas without other drawing.
+  ///
   /// NOTE:  If no cache is provided, a default of size zero is used.
   /// There is no provision for client code to change the size of this default
   /// cache; this is intentional.  Having a system-wide cache would invite
@@ -130,6 +143,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       Alignment alignment = Alignment.center,
       bool clip = true,
       double scale = 1,
+      Color? background,
       bool reload = false,
       ScalableImageCache? cache,
       Widget Function(BuildContext)? onLoading,
@@ -140,8 +154,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
     if (reload) {
       cache.forceReload(si);
     }
-    return _AsyncSIWidget(
-        key, si, fit, alignment, clip, scale, cache, onLoading, onError);
+    return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache,
+        onLoading, onError, background);
   }
 }
 
@@ -151,9 +165,10 @@ class _SyncSIWidget extends ScalableImageWidget {
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
+  final Color? _background;
 
-  const _SyncSIWidget(
-      Key? key, this._si, this._fit, this._alignment, this._clip, this._scale)
+  const _SyncSIWidget(Key? key, this._si, this._fit, this._alignment,
+      this._clip, this._scale, this._background)
       : super._p(key);
 
   @override
@@ -164,8 +179,8 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   late _SIPainter _painter;
   late Size _size;
 
-  static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) =>
-      _SIPainter(w._si, w._fit, w._alignment, w._clip, preparing);
+  static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) => _SIPainter(
+      w._si, w._fit, w._alignment, w._clip, preparing, w._background);
 
   static Size _newSize(_SyncSIWidget w) =>
       Size(w._si.viewport.width * w._scale, w._si.viewport.height * w._scale);
@@ -214,55 +229,70 @@ class _SIPainter extends CustomPainter {
   final Alignment _alignment;
   final bool _clip;
   final bool _preparing;
+  final Color? _background;
 
-  _SIPainter(this._si, this._fit, this._alignment, this._clip, this._preparing);
+  _SIPainter(this._si, this._fit, this._alignment, this._clip, this._preparing,
+      this._background);
 
   @override
   void paint(Canvas canvas, Size size) {
+    final bounds = Rect.fromLTWH(0, 0, size.width, size.height);
     if (_clip) {
-      canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
+      canvas.clipRect(bounds);
     }
-    if (_fit == BoxFit.none && _alignment == Alignment.topLeft) {
+    final background = _background;
+    if (background != null) {
+      canvas.drawColor(background, BlendMode.src);
+      canvas.saveLayer(bounds, Paint());
+      canvas.drawColor(const Color(0x00ffffff), BlendMode.src);
+    }
+    try {
+      if (_fit == BoxFit.none && _alignment == Alignment.topLeft) {
+        _si.paint(canvas);
+        return;
+      }
+      final vp = _si.viewport;
+      if (vp.width <= 0 || vp.height <= 0) {
+        return;
+      }
+      final double sx;
+      final double sy;
+      switch (_fit) {
+        case BoxFit.fill:
+          sx = size.width / vp.width;
+          sy = size.height / vp.height;
+          break;
+        case BoxFit.contain:
+          sx = sy = min(size.width / vp.width, size.height / vp.height);
+          break;
+        case BoxFit.cover:
+          sx = sy = max(size.width / vp.width, size.height / vp.height);
+          break;
+        case BoxFit.fitWidth:
+          sx = sy = size.width / vp.width;
+          break;
+        case BoxFit.fitHeight:
+          sx = sy = size.height / vp.height;
+          break;
+        case BoxFit.none:
+          sx = sy = 1;
+          break;
+        case BoxFit.scaleDown:
+          sx = sy = min(1, min(size.width / vp.width, size.height / vp.height));
+          break;
+      }
+      final extraX = size.width - vp.width * sx;
+      final extraY = size.height - vp.height * sy;
+      final tx = (1 + _alignment.x) * extraX / 2;
+      final ty = (1 + _alignment.y) * extraY / 2;
+      canvas.translate(tx, ty);
+      canvas.scale(sx, sy);
       _si.paint(canvas);
-      return;
+    } finally {
+      if (background != null) {
+        canvas.restore();
+      }
     }
-    final vp = _si.viewport;
-    if (vp.width <= 0 || vp.height <= 0) {
-      return;
-    }
-    final double sx;
-    final double sy;
-    switch (_fit) {
-      case BoxFit.fill:
-        sx = size.width / vp.width;
-        sy = size.height / vp.height;
-        break;
-      case BoxFit.contain:
-        sx = sy = min(size.width / vp.width, size.height / vp.height);
-        break;
-      case BoxFit.cover:
-        sx = sy = max(size.width / vp.width, size.height / vp.height);
-        break;
-      case BoxFit.fitWidth:
-        sx = sy = size.width / vp.width;
-        break;
-      case BoxFit.fitHeight:
-        sx = sy = size.height / vp.height;
-        break;
-      case BoxFit.none:
-        sx = sy = 1;
-        break;
-      case BoxFit.scaleDown:
-        sx = sy = min(1, min(size.width / vp.width, size.height / vp.height));
-        break;
-    }
-    final extraX = size.width - vp.width * sx;
-    final extraY = size.height - vp.height * sy;
-    final tx = (1 + _alignment.x) * extraX / 2;
-    final ty = (1 + _alignment.y) * extraY / 2;
-    canvas.translate(tx, ty);
-    canvas.scale(sx, sy);
-    _si.paint(canvas);
   }
 
   @override
@@ -281,11 +311,21 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
+  final Color? _background;
   final Widget Function(BuildContext) _onLoading;
   final Widget Function(BuildContext) _onError;
 
-  const _AsyncSIWidget(Key? key, this._siSource, this._fit, this._alignment,
-      this._clip, this._scale, this._cache, this._onLoading, this._onError)
+  const _AsyncSIWidget(
+      Key? key,
+      this._siSource,
+      this._fit,
+      this._alignment,
+      this._clip,
+      this._scale,
+      this._cache,
+      this._onLoading,
+      this._onError,
+      this._background)
       : super._p(key);
 
   @override
@@ -348,7 +388,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
       return widget._onError(context);
     } else {
       return _SyncSIWidget(null, si, widget._fit, widget._alignment,
-          widget._clip, widget._scale);
+          widget._clip, widget._scale, widget._background);
     }
   }
 }

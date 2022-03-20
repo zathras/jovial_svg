@@ -122,6 +122,8 @@ abstract class SvgInheritableAttributes implements SvgNode {
   SvgPaint paint = SvgPaint.empty();
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
   int? groupAlpha; // Doesn't inherit; instead, a group is created
+  SIBlendMode blendMode = SIBlendMode.normal;
+  // Doesn't inherit; instead, a group is created
 
   bool _isInvisible(SvgPaint paint) =>
       (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
@@ -311,10 +313,13 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final currTA = cascadeText(ta);
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (transform == null && groupAlpha == null && children.length == 1) {
+    if (transform == null &&
+        groupAlpha == null &&
+        blendMode == SIBlendMode.normal &&
+        children.length == 1) {
       return children[0].build(builder, canon, idLookup, cascaded, currTA);
     } else {
-      builder.group(null, transform, groupAlpha);
+      builder.group(null, transform, groupAlpha, blendMode);
       for (final c in children) {
         c.build(builder, canon, idLookup, cascaded, currTA);
       }
@@ -427,13 +432,13 @@ class SvgMasked extends SvgNode {
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
     if (!built) {
-      builder.group(null, null, null);
+      builder.group(null, null, null, SIBlendMode.normal);
       builder.endGroup(null);
     }
     builder.maskedChild(null);
     built = child.build(builder, canon, idLookup, ancestor, ta);
     if (!built) {
-      builder.group(null, null, null);
+      builder.group(null, null, null, SIBlendMode.normal);
       builder.endGroup(null);
     }
     builder.endMasked(null);
@@ -526,8 +531,10 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (transform != null || groupAlpha != null) {
-      builder.group(null, transform, groupAlpha);
+    if (transform != null ||
+        groupAlpha != null ||
+        blendMode != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blendMode);
       makePath(builder, cascaded);
       builder.endGroup(null);
       return true;
@@ -846,8 +853,10 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
     assert(_imageNumber > -1);
-    if (transform != null || groupAlpha != null) {
-      builder.group(null, transform, groupAlpha);
+    if (transform != null ||
+        groupAlpha != null ||
+        blendMode != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blendMode);
       builder.image(null, _imageNumber);
       builder.endGroup(null);
     } else {
@@ -902,8 +911,10 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
       fontFamilyIndex = canon.strings[currTA.fontFamily];
       assert(fontFamilyIndex != null);
     }
-    if (transform != null || groupAlpha != null) {
-      builder.group(null, transform, groupAlpha);
+    if (transform != null ||
+        groupAlpha != null ||
+        blendMode != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blendMode);
       builder.text(
           null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
       builder.endGroup(null);

@@ -66,7 +66,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R path(R collector, PathDataT pathData, SIPaint paint);
 
-  R group(R collector, Affine? transform, int? groupAlpha);
+  R group(R collector, Affine? transform, int? groupAlpha, SIBlendMode blend);
 
   R endGroup(R collector);
 
@@ -1060,6 +1060,25 @@ enum SIFillType { evenOdd, nonZero }
 // NOTE:  The numerical values of this enum are externalized.
 //        The default tint mode is srcIn.
 enum SITintMode { srcOver, srcIn, srcATop, multiply, screen, add }
+
+enum SIBlendMode {
+  normal,
+  multiply,
+  screen,
+  overlay,
+  darken,
+  lighten,
+  colorDodge,
+  colorBurn,
+  hardLight,
+  softLight,
+  difference,
+  exclusion,
+  hue,
+  saturation,
+  color,
+  luminosity
+}
 
 enum SIFontStyle { normal, italic }
 

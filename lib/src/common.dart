@@ -288,6 +288,45 @@ extension SITintModeMapping on SITintMode {
   }
 }
 
+extension SIBlendModeMapping on SIBlendMode {
+  BlendMode? get asBlendMode {
+    switch (this) {
+      case SIBlendMode.normal:
+        return null;
+      case SIBlendMode.multiply:
+        return BlendMode.multiply;
+      case SIBlendMode.screen:
+        return BlendMode.screen;
+      case SIBlendMode.overlay:
+        return BlendMode.overlay;
+      case SIBlendMode.darken:
+        return BlendMode.darken;
+      case SIBlendMode.lighten:
+        return BlendMode.lighten;
+      case SIBlendMode.colorDodge:
+        return BlendMode.colorDodge;
+      case SIBlendMode.colorBurn:
+        return BlendMode.colorBurn;
+      case SIBlendMode.hardLight:
+        return BlendMode.hardLight;
+      case SIBlendMode.softLight:
+        return BlendMode.softLight;
+      case SIBlendMode.difference:
+        return BlendMode.difference;
+      case SIBlendMode.exclusion:
+        return BlendMode.exclusion;
+      case SIBlendMode.hue:
+        return BlendMode.hue;
+      case SIBlendMode.saturation:
+        return BlendMode.saturation;
+      case SIBlendMode.color:
+        return BlendMode.color;
+      case SIBlendMode.luminosity:
+        return BlendMode.luminosity;
+    }
+  }
+}
+
 extension SIFontWeightMapping on SIFontWeight {
   FontWeight get asFontWeight {
     switch (this) {
@@ -328,15 +367,25 @@ extension SIFontStyleMapping on SIFontStyle {
 /// A Mixin for operations on a Group
 ///
 mixin SIGroupHelper {
-  void startPaintGroup(Canvas c, Affine? transform, int? groupAlpha) {
+  final List<bool> _blendModeStack = [];
+
+  void startPaintGroup(
+      Canvas c, Affine? transform, int? groupAlpha, BlendMode? blendMode) {
+    late final bounds = getBoundary()?.getBounds();
+    if (blendMode != null) {
+      _blendModeStack.add(true);
+      c.saveLayer(bounds,
+          Paint()..blendMode = blendMode); // , Paint()..blendMode = blendMode);
+    } else {
+      _blendModeStack.add(false);
+    }
     if (groupAlpha == null || groupAlpha == 0xff) {
       c.save();
     } else {
-      final Rect? bounds = getBoundary()?.getBounds();
       c.saveLayer(
           bounds,
           Paint()
-            ..blendMode = BlendMode.multiply
+            ..blendMode = BlendMode.srcOver
             ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff));
     }
     if (transform != null) {
@@ -345,6 +394,10 @@ mixin SIGroupHelper {
   }
 
   void endPaintGroup(Canvas c) {
+    if (_blendModeStack.last) {
+      c.restore();
+    }
+    _blendModeStack.length--;
     c.restore();
   }
 
