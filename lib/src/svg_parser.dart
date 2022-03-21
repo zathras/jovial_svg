@@ -432,10 +432,10 @@ abstract class SvgParser extends GenericParser {
 
   SvgGradientNode _processLinearGradient(Map<String, String> attrs) {
     final String? parentID = _getHref(attrs);
-    final x1 = getFloat(attrs.remove('x1'));
-    final y1 = getFloat(attrs.remove('y1'));
-    final x2 = getFloat(attrs.remove('x2'));
-    final y2 = getFloat(attrs.remove('y2'));
+    final x1 = getFloat(attrs.remove('x1'), percent: _percentOK);
+    final x2 = getFloat(attrs.remove('x2'), percent: _percentOK);
+    final y1 = getFloat(attrs.remove('y1'), percent: _percentOK);
+    final y2 = getFloat(attrs.remove('y2'), percent: _percentOK);
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
@@ -458,13 +458,15 @@ abstract class SvgParser extends GenericParser {
     return n;
   }
 
+  static double _percentOK(double val) => val / 100;
+
   SvgGradientNode _processRadialGradient(Map<String, String> attrs) {
     final String? parentID = _getHref(attrs);
-    final cx = getFloat(attrs.remove('cx'), percentOK: true);
-    final cy = getFloat(attrs.remove('cy'), percentOK: true);
-    final fx = getFloat(attrs.remove('fx'), percentOK: true);
-    final fy = getFloat(attrs.remove('fy'), percentOK: true);
-    final r = getFloat(attrs.remove('r'));
+    final cx = getFloat(attrs.remove('cx'), percent: _percentOK);
+    final cy = getFloat(attrs.remove('cy'), percent: _percentOK);
+    final fx = getFloat(attrs.remove('fx'), percent: _percentOK);
+    final fy = getFloat(attrs.remove('fy'), percent: _percentOK);
+    final r = getFloat(attrs.remove('r'), percent: _percentOK);
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
@@ -515,8 +517,9 @@ abstract class SvgParser extends GenericParser {
       throw ParseError('Illegal color value for gradient stop:  $color');
     }
     int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;
-    double offset = (getFloat(attrs.remove('offset'), percentOK: true) ?? 0.0)
-        .clamp(0.0, 1.0);
+    double offset =
+        (getFloat(attrs.remove('offset'), percent: _percentOK) ?? 0.0)
+            .clamp(0.0, 1.0);
     if (g.gradient.stops?.isNotEmpty == true) {
       final minOffset = g.gradient.stops!.last.offset;
       offset = max(offset, minOffset);

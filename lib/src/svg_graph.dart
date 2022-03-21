@@ -84,7 +84,8 @@ abstract class SvgNode {
       _Referrers referrers);
 
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta);
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false});
 
   void collectCanon(CanonicalizedData<SIImageData> canon);
 
@@ -93,6 +94,8 @@ abstract class SvgNode {
   /// channel?  cf. SIMaskHelper.startLumaMask().
   ///
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor);
+
+  SIBlendMode get blendMode;
 }
 
 ///
@@ -122,6 +125,7 @@ abstract class SvgInheritableAttributes implements SvgNode {
   SvgPaint paint = SvgPaint.empty();
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
   int? groupAlpha; // Doesn't inherit; instead, a group is created
+  @override
   SIBlendMode blendMode = SIBlendMode.normal;
   // Doesn't inherit; instead, a group is created
 
@@ -310,16 +314,18 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final currTA = cascadeText(ta);
     final cascaded = cascadePaint(ancestor, idLookup);
     if (transform == null &&
         groupAlpha == null &&
-        blendMode == SIBlendMode.normal &&
+        blend == SIBlendMode.normal &&
         children.length == 1) {
       return children[0].build(builder, canon, idLookup, cascaded, currTA);
     } else {
-      builder.group(null, transform, groupAlpha, blendMode);
+      builder.group(null, transform, groupAlpha, blend);
       for (final c in children) {
         c.build(builder, canon, idLookup, cascaded, currTA);
       }
@@ -360,7 +366,8 @@ class SvgDefs extends SvgGroup {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
     assert(false);
     return false;
   }
@@ -427,7 +434,13 @@ class SvgMasked extends SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
+    if (blend != SIBlendMode.normal) {
+      builder.group(null, null, null, blend);
+    }
+
     bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
@@ -436,12 +449,16 @@ class SvgMasked extends SvgNode {
       builder.endGroup(null);
     }
     builder.maskedChild(null);
-    built = child.build(builder, canon, idLookup, ancestor, ta);
+    built = child.build(builder, canon, idLookup, ancestor, ta,
+        blendHandledByParent: true);
     if (!built) {
       builder.group(null, null, null, SIBlendMode.normal);
       builder.endGroup(null);
     }
     builder.endMasked(null);
+    if (blend != SIBlendMode.normal) {
+      builder.endGroup(null);
+    }
     return true;
   }
 
@@ -462,6 +479,9 @@ class SvgMasked extends SvgNode {
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
       child.canUseLuma(idLookup, ancestor);
   // The mask can only change the alpha channel.
+
+  @override
+  SIBlendMode get blendMode => child.blendMode;
 }
 
 class SvgUse extends SvgInheritableAttributes implements SvgNode {
@@ -510,7 +530,8 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
     assert(false);
     return false;
   }
@@ -529,12 +550,14 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final cascaded = cascadePaint(ancestor, idLookup);
     if (transform != null ||
         groupAlpha != null ||
-        blendMode != SIBlendMode.normal) {
-      builder.group(null, transform, groupAlpha, blendMode);
+        blend != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blend);
       makePath(builder, cascaded);
       builder.endGroup(null);
       return true;
@@ -806,7 +829,8 @@ class SvgGradientNode implements SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
     // Do nothing - gradients are included in SIPaint
     return false;
   }
@@ -815,6 +839,10 @@ class SvgGradientNode implements SvgNode {
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
     return false; // Because this node doesn't directly do any rendering
   }
+
+  /// Meaningless for us
+  @override
+  SIBlendMode get blendMode => SIBlendMode.normal;
 
   @override
   void collectCanon(CanonicalizedData<SIImageData> canon) {}
@@ -851,12 +879,14 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     assert(_imageNumber > -1);
     if (transform != null ||
         groupAlpha != null ||
-        blendMode != SIBlendMode.normal) {
-      builder.group(null, transform, groupAlpha, blendMode);
+        blend != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blend);
       builder.image(null, _imageNumber);
       builder.endGroup(null);
     } else {
@@ -893,7 +923,9 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta) {
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final cascaded = cascadePaint(ancestor, idLookup);
     if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
       if (cascaded.strokeAlpha == 0 ||
@@ -913,8 +945,8 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     }
     if (transform != null ||
         groupAlpha != null ||
-        blendMode != SIBlendMode.normal) {
-      builder.group(null, transform, groupAlpha, blendMode);
+        blend != SIBlendMode.normal) {
+      builder.group(null, transform, groupAlpha, blend);
       builder.text(
           null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
       builder.endGroup(null);

@@ -142,10 +142,10 @@ abstract class SIRenderable {
   }
 
   Float64List? _gradientXform(
-      SIGradientColor c, _HasBounds boundsNode, RenderContext context) {
+      SIGradientColor c, Rect Function() boundsF, RenderContext context) {
     final transform = c.transform;
     if (c.objectBoundingBox) {
-      final bounds = boundsNode.getBounds();
+      final bounds = boundsF();
       final a = MutableAffine.translation(bounds.left, bounds.top);
       a.multiplyBy(MutableAffine.scale(bounds.width, bounds.height));
       if (transform != null) {
@@ -528,16 +528,18 @@ class SIPath extends SIRenderable implements _HasBounds {
   bool _setPaint(SIColor si, RenderContext context) {
     bool hasWork = true;
     _paint.shader = null;
+    late final bounds = getBounds();
+    Rect boundsF() => bounds;
     si.accept(SIColorVisitor(
         value: (SIValueColor c) => _paint.color = Color(c.argb),
         current: () => _paint.color = context.currentColor,
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) => _setLinearGradient(
-            _paint, c, _gradientXform(c, this, context), context),
+            _paint, c, _gradientXform(c, boundsF, context), context),
         radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
-            _paint, c, _gradientXform(c, this, context), context),
+            _paint, c, _gradientXform(c, boundsF, context), context),
         sweepGradient: (SISweepGradientColor c) => _setSweepGradient(
-            _paint, c, _gradientXform(c, this, context), context)));
+            _paint, c, _gradientXform(c, boundsF, context), context)));
     return hasWork;
   }
 
@@ -849,6 +851,8 @@ class SIText extends SIRenderable implements _HasBounds {
   }
 
   Paint? _getPaint(SIColor c, RenderContext context) {
+    late final bounds = getBounds();
+    Rect boundsF() => bounds;
     Paint? r;
     c.accept(SIColorVisitor(
         value: (SIValueColor c) {
@@ -859,15 +863,17 @@ class SIText extends SIRenderable implements _HasBounds {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          _setLinearGradient(p, c, _gradientXform(c, this, context), context);
+          _setLinearGradient(
+              p, c, _gradientXform(c, boundsF, context), context);
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          _setRadialGradient(p, c, _gradientXform(c, this, context), context);
+          _setRadialGradient(
+              p, c, _gradientXform(c, boundsF, context), context);
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
-          _setSweepGradient(p, c, _gradientXform(c, this, context), context);
+          _setSweepGradient(p, c, _gradientXform(c, boundsF, context), context);
         }));
     return r;
   }

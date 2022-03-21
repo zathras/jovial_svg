@@ -28,9 +28,12 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jovial_misc/io_utils.dart';
 import 'package:jovial_svg/src/affine.dart';
+import 'package:jovial_svg/src/compact_noui.dart';
 import 'package:jovial_svg/src/dag.dart';
 import 'package:jovial_svg/src/exported.dart';
+import 'package:jovial_svg/src/svg_parser.dart';
 import 'package:jovial_svg/src/widget.dart';
 
 ///
@@ -47,16 +50,17 @@ Future<void> _testReference(
     Future<ScalableImage> Function(File f) producer,
     {Directory? overrideReferenceDir,
     final Size? scaleTo}) async {
+  print('Running test:  $description');
   for (FileSystemEntity ent in inputDir.listSync()) {
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README') {
-      print(ent);
+      print('  $ent');
       final ScalableImage si;
       try {
         si = await producer(ent);
       } catch (failed) {
-        print('Failed parsing $ent');
+        print('=>  Failed parsing $ent');
         rethrow;
       }
       await si.prepareImages();
@@ -328,6 +332,22 @@ void main() {
           getDir(outputDir, 'svg'),
           (File f) async =>
               ScalableImage.fromSvgString(await f.readAsString(), warn: false));
+
+      // Make sure the latest .si format produces identical results
+      await _testReference(
+          'SVG => .si',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'), (File f) async {
+        final b = SICompactBuilderNoUI(bigFloats: true, warn: false);
+        StringSvgParser(await f.readAsString(), b, warn: false).parse();
+        final cs = ByteSink();
+        final dos = DataOutputSink(cs);
+        b.si.writeToFile(dos);
+        dos.close();
+        return ScalableImage.fromSIBytes(cs.toList(), compact: false);
+      });
+
       await _testReference(
           'SI source',
           getDir(inputDir, 'si')!,

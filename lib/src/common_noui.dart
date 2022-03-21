@@ -725,7 +725,7 @@ abstract class GenericParser {
 
   final warnedAbout = {'px', ''};
 
-  double? getFloat(String? s, {bool percentOK = false}) {
+  double? getFloat(String? s, {double Function(double)? percent}) {
     if (s == null || s == 'inherit') {
       return null;
     }
@@ -734,6 +734,7 @@ abstract class GenericParser {
       throw ParseError('Expected float value, saw "$s".');
     } else {
       String postfix = s.substring(m.end).trim();
+      double val = double.parse(s.substring(m.start, m.end));
       final double multiplier;
       if (postfix == '') {
         multiplier = 1.0;
@@ -745,16 +746,17 @@ abstract class GenericParser {
         multiplier = 96.0 / 25.4;
       } else if (postfix == 'in') {
         multiplier = 96.0;
-      } else if (percentOK && postfix == '%') {
-        multiplier = 0.01;
+      } else if (postfix == '%' && percent != null) {
+        val = percent(val);
+        multiplier = 1;
       } else {
-        multiplier = 1.0;
+        multiplier = 1;
         if (warn && !warnedAbout.contains(postfix)) {
           warnedAbout.add(postfix);
           print('    (ignoring units "$postfix")');
         }
       }
-      return multiplier * double.parse(s.substring(m.start, m.end));
+      return multiplier * val;
     }
   }
 
