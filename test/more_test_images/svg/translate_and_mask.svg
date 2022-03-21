@@ -1,0 +1,11 @@
+<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" >
+    <mask id="m" maskUnits="userSpaceOnUse">
+        <circle fill="white" cx="15" cy="11" r="6" />
+    </mask>
+    <g transform="matrix(1 0 0 1 -5 -1)">
+        <circle fill="blue" cx="15" cy="11" r="8"/>
+    </g>
+    <g mask="url(#m)" transform="matrix(1 0 0 1 -5 -1)">
+        <circle fill="yellow" cx="15" cy="11" r="8"/>
+    </g>
+</svg>

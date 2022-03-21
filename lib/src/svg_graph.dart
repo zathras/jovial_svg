@@ -129,6 +129,13 @@ abstract class SvgInheritableAttributes implements SvgNode {
   SIBlendMode blendMode = SIBlendMode.normal;
   // Doesn't inherit; instead, a group is created
 
+  bool _hasNonMaskAttributes() =>
+      transform != null ||
+      paint != SvgPaint.empty() ||
+      textAttributes != SvgTextAttributes.empty() ||
+      groupAlpha != null ||
+      blendMode != SIBlendMode.normal;
+
   bool _isInvisible(SvgPaint paint) =>
       (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
       (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none);
@@ -169,7 +176,22 @@ abstract class SvgInheritableAttributes implements SvgNode {
             print('    Ignoring mask that refers to itself.');
           }
         } else {
-          return SvgMasked(this, n);
+          final masked = SvgMasked(this, n);
+          if (_hasNonMaskAttributes()) {
+            final g = SvgGroup();
+            g.transform = transform;
+            transform = null;
+            g.textAttributes = textAttributes;
+            textAttributes = SvgTextAttributes.empty();
+            g.groupAlpha = groupAlpha;
+            groupAlpha = null;
+            g.blendMode = blendMode;
+            blendMode = SIBlendMode.normal;
+            g.children.add(masked);
+            return g;
+          } else {
+            return masked;
+          }
         }
       } else if (warn) {
         print('    $this references nonexistent mask ${paint.mask}');
