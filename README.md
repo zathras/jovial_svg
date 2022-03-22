@@ -63,6 +63,14 @@ or you can run them from your project directory like this:
 dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg -out output/dir
 ```
 
+### Rendering Performance
+
+Rendering a complex asset can be a time-consuming operation,
+particularly in terms of GPU load.  Flutter's
+[`RepaintBoundary`](https://api.flutter.dev/flutter/widgets/RepaintBoundary-class.html)
+can work well to avoid re-rendering a complex `ScalableImage` asset.  This
+is discussed in the `ScalableImageWidget` documentation.
+
 ### Pre-loading Scalable Images
 
 For optimal performance, you can pre-load a `ScalableImage` using various 

@@ -90,6 +90,15 @@ abstract class SIVisitor<PathDataT, IM, R> {
 abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   bool get warn;
 
+  final Set<String> _warned = {};
+
+  void printWarning(String warning) {
+    if (warn && !_warned.contains(warning)) {
+      print(warning);
+      _warned.add(warning);
+    }
+  }
+
   ///
   /// Called once, at the beginning of reading a file.
   ///

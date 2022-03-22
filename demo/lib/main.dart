@@ -187,12 +187,12 @@ class _DemoScreenState extends State<DemoScreen> {
     final asset = assets[assetIndex];
     return Scaffold(
         appBar: AppBar(
-            leading: ScalableImageWidget.fromSISource(
+            leading: RepaintBoundary(child: ScalableImageWidget.fromSISource(
                 si: ScalableImageSource.fromSI(
               DefaultAssetBundle.of(context),
               'assets/other/jupiter.si',
               currentColor: Colors.yellow.shade300,
-            )),
+            ))),
             title: Text('${widget.title} - $assetName')),
         body: Column(children: [
           const SizedBox(height: 5),
@@ -327,12 +327,12 @@ class _DemoScreenState extends State<DemoScreen> {
           Expanded(
               child: _maybeScrolling(si == null
                   ? Text(errorMessage ?? '???')
-                  : ScalableImageWidget(
+                  : RepaintBoundary(child: ScalableImageWidget(
                       si: si!,
                       key: _siWidgetKey,
                       alignment: Alignment.center,
                       scale: _fitToScreen ? double.infinity : _multiplier,
-                      background: Colors.white)))
+                      background: Colors.white))))
         ]));
   }
 

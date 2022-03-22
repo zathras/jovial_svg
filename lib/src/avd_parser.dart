@@ -407,9 +407,10 @@ abstract class AvdParser extends GenericParser {
             null,
             path.pathData,
             SIPaint(
-                fillColor: path.fill.toSIColor(path.fillAlpha, SvgColor.none),
-                strokeColor:
-                    path.stroke.toSIColor(path.strokeAlpha, SvgColor.none),
+                fillColor:
+                    path.fill.toSIColor(path.fillAlpha, SvgColor.none, (_) {}),
+                strokeColor: path.stroke
+                    .toSIColor(path.strokeAlpha, SvgColor.none, (_) {}),
                 strokeWidth: path.strokeWidth,
                 strokeMiterLimit: path.strokeMiterLimit,
                 strokeJoin: path.strokeJoin,
@@ -553,21 +554,21 @@ abstract class AvdParser extends GenericParser {
         endX != null &&
         endY != null) {
       return SvgLinearGradientColor(
-          x1: startX,
-          y1: startY,
-          x2: endX,
-          y2: endY,
+          x1: SvgCoordinate.value(startX),
+          y1: SvgCoordinate.value(startY),
+          x2: SvgCoordinate.value(endX),
+          y2: SvgCoordinate.value(endY),
           objectBoundingBox: false,
           transform: null,
           spreadMethod: spreadMethod);
     } else if (centerX != null && centerY != null) {
       if (type == 'radial' && radius != null) {
         return SvgRadialGradientColor(
-            cx: centerX,
-            cy: centerY,
-            fx: centerX,
-            fy: centerY,
-            r: radius,
+            cx: SvgCoordinate.value(centerX),
+            cy: SvgCoordinate.value(centerY),
+            fx: SvgCoordinate.value(centerX),
+            fy: SvgCoordinate.value(centerY),
+            r: SvgCoordinate.value(radius),
             objectBoundingBox: false,
             transform: null,
             spreadMethod: spreadMethod);

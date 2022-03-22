@@ -93,7 +93,8 @@ abstract class SvgNode {
   /// If this node is in a mask, is it possible it might use the luma
   /// channel?  cf. SIMaskHelper.startLumaMask().
   ///
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor);
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn);
 
   SIBlendMode get blendMode;
 }
@@ -293,10 +294,10 @@ class SvgPaint {
     }
   }
 
-  SIPaint toSIPaint() {
+  SIPaint toSIPaint(void Function(String) warn) {
     return SIPaint(
-        fillColor: fillColor.toSIColor(fillAlpha, currentColor),
-        strokeColor: strokeColor.toSIColor(strokeAlpha, currentColor),
+        fillColor: fillColor.toSIColor(fillAlpha, currentColor, warn),
+        strokeColor: strokeColor.toSIColor(strokeAlpha, currentColor, warn),
         strokeWidth: strokeWidth,
         strokeMiterLimit: strokeMiterLimit,
         strokeJoin: strokeJoin,
@@ -365,10 +366,11 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
     for (final ch in children) {
-      if (ch.canUseLuma(idLookup, cascaded)) {
+      if (ch.canUseLuma(idLookup, cascaded, warn)) {
         return true;
       }
     }
@@ -463,7 +465,7 @@ class SvgMasked extends SvgNode {
       builder.group(null, null, null, blend);
     }
 
-    bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
+    bool canUseLuma = mask.canUseLuma(idLookup, ancestor, builder.printWarning);
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
     if (!built) {
@@ -498,8 +500,9 @@ class SvgMasked extends SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
-      child.canUseLuma(idLookup, ancestor);
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+          void Function(String) warn) =>
+      child.canUseLuma(idLookup, ancestor, warn);
   // The mask can only change the alpha channel.
 
   @override
@@ -559,7 +562,8 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     assert(false); // Should be called after resolve
     return true;
   }
@@ -592,9 +596,10 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded);
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    final p = cascaded.toSIPaint();
+    final p = cascaded.toSIPaint(warn);
     return p.canUseLuma;
   }
 }
@@ -619,7 +624,7 @@ class SvgPath extends SvgPathMaker {
     if (_isInvisible(cascaded)) {
       return false;
     } else {
-      builder.path(null, pathData, cascaded.toSIPaint());
+      builder.path(null, pathData, cascaded.toSIPaint(builder.printWarning));
       return true;
     }
   }
@@ -650,7 +655,7 @@ class SvgRect extends SvgPathMaker {
     if (_isInvisible(cascaded)) {
       return false;
     }
-    SIPaint curr = cascaded.toSIPaint();
+    SIPaint curr = cascaded.toSIPaint(builder.printWarning);
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
       return true;
@@ -726,7 +731,7 @@ class SvgEllipse extends SvgPathMaker {
     if (_isInvisible(cascaded)) {
       return false;
     }
-    SIPaint curr = cascaded.toSIPaint();
+    SIPaint curr = cascaded.toSIPaint(builder.printWarning);
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
       return true;
@@ -775,7 +780,7 @@ class SvgPoly extends SvgPathMaker {
     if (_isInvisible(cascaded)) {
       return false;
     }
-    SIPaint curr = cascaded.toSIPaint();
+    SIPaint curr = cascaded.toSIPaint(builder.printWarning);
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb == null) {
       return true;
@@ -858,7 +863,8 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     return false; // Because this node doesn't directly do any rendering
   }
 
@@ -918,7 +924,8 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     return true;
   }
 }
@@ -956,7 +963,7 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
         return false;
       }
     }
-    final currPaint = cascaded.toSIPaint().forText();
+    final currPaint = cascaded.toSIPaint(builder.printWarning).forText();
     final currTA = cascadeText(ta).toSITextAttributes();
     final int? fontFamilyIndex;
     if (currTA.fontFamily == '') {
@@ -988,9 +995,10 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
     final cascaded = cascadePaint(ancestor, idLookup);
-    final p = cascaded.toSIPaint().forText();
+    final p = cascaded.toSIPaint(warn).forText();
     return p.canUseLuma;
   }
 }
@@ -1134,7 +1142,8 @@ abstract class SvgColor {
 
   SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) => this;
 
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor);
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn);
 
   static SvgColor reference(String id) => _SvgColorReference(id);
 }
@@ -1144,7 +1153,8 @@ class SvgValueColor extends SvgColor {
   const SvgValueColor(this._value);
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
     if (alpha == null) {
       return SIValueColor(_value);
     } else {
@@ -1164,7 +1174,8 @@ class _SvgInheritColor extends SvgColor {
   SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) => ancestor;
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) =>
+  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
+          void Function(String) warn) =>
       throw StateError('Internal error: color inheritance');
 }
 
@@ -1172,18 +1183,22 @@ class _SvgNoneColor extends SvgColor {
   const _SvgNoneColor._p();
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) => SIColor.none;
+  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
+          void Function(String) warn) =>
+      SIColor.none;
 }
 
 class _SvgCurrentColor extends SvgColor {
   const _SvgCurrentColor._p();
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
     if (cascadedCurrentColor is _SvgCurrentColor) {
       return SIColor.currentColor;
     } else {
-      return cascadedCurrentColor.toSIColor(alpha, const SvgValueColor(0));
+      return cascadedCurrentColor.toSIColor(
+          alpha, const SvgValueColor(0), warn);
     }
   }
 }
@@ -1203,7 +1218,8 @@ class _SvgColorReference extends SvgColor {
   }
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) =>
+  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
+          void Function(String) warn) =>
       throw StateError('Internal error: color inheritance');
 }
 
@@ -1246,11 +1262,28 @@ abstract class SvgGradientColor extends SvgColor {
   }
 }
 
+class SvgCoordinate {
+  final double _value;
+  final bool isPercent;
+
+  SvgCoordinate.value(this._value) : isPercent = false;
+  SvgCoordinate.percent(this._value) : isPercent = true;
+
+  double get value => isPercent ? (_value / 100) : _value;
+
+  double percentNotSupported(String message, void Function(String) warn) {
+    if (isPercent) {
+      warn('% coordinate not supported in $message');
+    }
+    return _value;
+  }
+}
+
 class SvgLinearGradientColor extends SvgGradientColor {
-  final double? x1;
-  final double? y1;
-  final double? x2;
-  final double? y2;
+  final SvgCoordinate? x1;
+  final SvgCoordinate? y1;
+  final SvgCoordinate? x2;
+  final SvgCoordinate? y2;
 
   SvgLinearGradientColor? get linearParent {
     final p = parent;
@@ -1273,38 +1306,50 @@ class SvgLinearGradientColor extends SvgGradientColor {
 
   // Resolving getters:
 
-  double get x1R => x1 ?? linearParent?.x1R ?? 0.0;
-  double get y1R => y1 ?? linearParent?.y1R ?? 0.0;
-  double get x2R => x2 ?? linearParent?.x2R ?? 1.0;
-  double get y2R => y2 ?? linearParent?.y2R ?? 0.0;
+  SvgCoordinate get x1R => x1 ?? linearParent?.x1R ?? SvgCoordinate.value(0.0);
+  SvgCoordinate get y1R => y1 ?? linearParent?.y1R ?? SvgCoordinate.value(0.0);
+  SvgCoordinate get x2R => x2 ?? linearParent?.x2R ?? SvgCoordinate.value(1.0);
+  SvgCoordinate get y2R => y2 ?? linearParent?.y2R ?? SvgCoordinate.value(0.0);
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
-    final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+    final colors = List<SIColor>.generate(
+        stops.length,
+        (i) => stops[i]
+            .color
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
         growable: false);
+    final obb = objectBoundingBoxR;
+    double toDouble(SvgCoordinate c) {
+      if (obb) {
+        return c.value;
+      } else {
+        return c.percentNotSupported('userSpaceOnUse linear gradient', warn);
+      }
+    }
     return SILinearGradientColor(
-        x1: x1R,
-        y1: y1R,
-        x2: x2R,
-        y2: y2R,
+        x1: toDouble(x1R),
+        y1: toDouble(y1R),
+        x2: toDouble(x2R),
+        y2: toDouble(y2R),
         colors: colors,
         stops: offsets,
-        objectBoundingBox: objectBoundingBoxR,
+        objectBoundingBox: obb,
         spreadMethod: spreadMethodR,
         transform: transformR);
   }
 }
 
 class SvgRadialGradientColor extends SvgGradientColor {
-  final double? cx; // default 0.5
-  final double? cy; // default 0.5
-  final double? fx;
-  final double? fy;
-  final double? r; // default 0.5
+  final SvgCoordinate? cx; // default 0.5
+  final SvgCoordinate? cy; // default 0.5
+  final SvgCoordinate? fx;
+  final SvgCoordinate? fy;
+  final SvgCoordinate? r; // default 0.5
 
   SvgRadialGradientColor? get radialParent {
     final p = parent;
@@ -1328,29 +1373,41 @@ class SvgRadialGradientColor extends SvgGradientColor {
 
   // Resolving getters:
 
-  double get cxR => cx ?? radialParent?.cxR ?? 0.5;
-  double get cyR => cy ?? radialParent?.cyR ?? 0.5;
-  double? get fxR => fx ?? radialParent?.fxR;
-  double? get fyR => fy ?? radialParent?.fyR;
-  double get rR => r ?? radialParent?.rR ?? 0.5;
+  SvgCoordinate get cxR => cx ?? radialParent?.cxR ?? SvgCoordinate.value(0.5);
+  SvgCoordinate get cyR => cy ?? radialParent?.cyR ?? SvgCoordinate.value(0.5);
+  SvgCoordinate? get fxR => fx ?? radialParent?.fxR;
+  SvgCoordinate? get fyR => fy ?? radialParent?.fyR;
+  SvgCoordinate get rR => r ?? radialParent?.rR ?? SvgCoordinate.value(0.5);
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
-    final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+    final colors = List<SIColor>.generate(
+        stops.length,
+        (i) => stops[i]
+            .color
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
         growable: false);
+    final obb = objectBoundingBoxR;
+    double toDouble(SvgCoordinate c) {
+      if (obb) {
+        return c.value;
+      } else {
+        return c.percentNotSupported('userSpaceOnUse radial gradient', warn);
+      }
+    }
     return SIRadialGradientColor(
-        cx: cxR,
-        cy: cyR,
-        fx: fxR ?? cxR,
-        fy: fyR ?? cyR,
-        r: rR,
+        cx: toDouble(cxR),
+        cy: toDouble(cyR),
+        fx: toDouble(fxR ?? cxR),
+        fy: toDouble(fyR ?? cyR),
+        r: toDouble(rR),
         colors: colors,
         stops: offsets,
-        objectBoundingBox: objectBoundingBoxR,
+        objectBoundingBox: obb,
         spreadMethod: spreadMethodR,
         transform: transformR);
   }
@@ -1389,12 +1446,16 @@ class SvgSweepGradientColor extends SvgGradientColor {
   double get endAngleR => endAngle ?? sweepParent?.endAngleR ?? 2 * pi;
 
   @override
-  SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor) {
+  SIColor toSIColor(
+      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
-    final colors = List<SIColor>.generate(stops.length,
-        (i) => stops[i].color.toSIColor(stops[i].alpha, cascadedCurrentColor),
+    final colors = List<SIColor>.generate(
+        stops.length,
+        (i) => stops[i]
+            .color
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
         growable: false);
     return SISweepGradientColor(
         cx: cxR,

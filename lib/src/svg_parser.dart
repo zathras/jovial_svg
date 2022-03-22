@@ -430,12 +430,27 @@ abstract class SvgParser extends GenericParser {
     return n;
   }
 
+  SvgCoordinate? _getCoordinate(String? attr) {
+    bool isPercent = false;
+    double? val = getFloat(attr, percent: (v) {
+      isPercent = true;
+      return v;
+    });
+    if (val == null) {
+      return null;
+    } else if (isPercent) {
+      return SvgCoordinate.percent(val);
+    } else {
+      return SvgCoordinate.value(val);
+    }
+  }
+
   SvgGradientNode _processLinearGradient(Map<String, String> attrs) {
     final String? parentID = _getHref(attrs);
-    final x1 = getFloat(attrs.remove('x1'), percent: _percentOK);
-    final x2 = getFloat(attrs.remove('x2'), percent: _percentOK);
-    final y1 = getFloat(attrs.remove('y1'), percent: _percentOK);
-    final y2 = getFloat(attrs.remove('y2'), percent: _percentOK);
+    final x1 = _getCoordinate(attrs.remove('x1'));
+    final x2 = _getCoordinate(attrs.remove('x2'));
+    final y1 = _getCoordinate(attrs.remove('y1'));
+    final y2 = _getCoordinate(attrs.remove('y2'));
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
@@ -462,11 +477,11 @@ abstract class SvgParser extends GenericParser {
 
   SvgGradientNode _processRadialGradient(Map<String, String> attrs) {
     final String? parentID = _getHref(attrs);
-    final cx = getFloat(attrs.remove('cx'), percent: _percentOK);
-    final cy = getFloat(attrs.remove('cy'), percent: _percentOK);
-    final fx = getFloat(attrs.remove('fx'), percent: _percentOK);
-    final fy = getFloat(attrs.remove('fy'), percent: _percentOK);
-    final r = getFloat(attrs.remove('r'), percent: _percentOK);
+    final cx = _getCoordinate(attrs.remove('cx'));
+    final cy = _getCoordinate(attrs.remove('cy'));
+    final fx = _getCoordinate(attrs.remove('fx'));
+    final fy = _getCoordinate(attrs.remove('fy'));
+    final r = _getCoordinate(attrs.remove('r'));
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
