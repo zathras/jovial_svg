@@ -1331,6 +1331,7 @@ class SvgLinearGradientColor extends SvgGradientColor {
         return c.percentNotSupported('userSpaceOnUse linear gradient', warn);
       }
     }
+
     return SILinearGradientColor(
         x1: toDouble(x1R),
         y1: toDouble(y1R),
@@ -1399,6 +1400,7 @@ class SvgRadialGradientColor extends SvgGradientColor {
         return c.percentNotSupported('userSpaceOnUse radial gradient', warn);
       }
     }
+
     return SIRadialGradientColor(
         cx: toDouble(cxR),
         cy: toDouble(cyR),

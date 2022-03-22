@@ -187,8 +187,9 @@ class _DemoScreenState extends State<DemoScreen> {
     final asset = assets[assetIndex];
     return Scaffold(
         appBar: AppBar(
-            leading: RepaintBoundary(child: ScalableImageWidget.fromSISource(
-                si: ScalableImageSource.fromSI(
+            leading: RepaintBoundary(
+                child: ScalableImageWidget.fromSISource(
+                    si: ScalableImageSource.fromSI(
               DefaultAssetBundle.of(context),
               'assets/other/jupiter.si',
               currentColor: Colors.yellow.shade300,
@@ -327,12 +328,13 @@ class _DemoScreenState extends State<DemoScreen> {
           Expanded(
               child: _maybeScrolling(si == null
                   ? Text(errorMessage ?? '???')
-                  : RepaintBoundary(child: ScalableImageWidget(
-                      si: si!,
-                      key: _siWidgetKey,
-                      alignment: Alignment.center,
-                      scale: _fitToScreen ? double.infinity : _multiplier,
-                      background: Colors.white))))
+                  : RepaintBoundary(
+                      child: ScalableImageWidget(
+                          si: si!,
+                          key: _siWidgetKey,
+                          alignment: Alignment.center,
+                          scale: _fitToScreen ? double.infinity : _multiplier,
+                          background: Colors.white))))
         ]));
   }
 
