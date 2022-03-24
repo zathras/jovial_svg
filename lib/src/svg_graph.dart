@@ -203,7 +203,7 @@ abstract class SvgInheritableAttributes implements SvgNode {
         strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
         strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
         mask: null, // Mask is not inherited
-        userSpace: ancestor.userSpace);   // userSpace is inherited from root
+        userSpace: ancestor.userSpace); // userSpace is inherited from root
   }
 
   SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
