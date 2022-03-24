@@ -402,15 +402,16 @@ abstract class AvdParser extends GenericParser {
         print('    Path with no android:pathData - ignored');
       }
     } else {
+      userSpace() => throw UnsupportedError("Internal error - userSpace");
       if (path.fill != SvgColor.none || path.stroke != SvgColor.none) {
         _builder.path(
             null,
             path.pathData,
             SIPaint(
-                fillColor:
-                    path.fill.toSIColor(path.fillAlpha, SvgColor.none, (_) {}),
+                fillColor: path.fill
+                    .toSIColor(path.fillAlpha, SvgColor.none, userSpace),
                 strokeColor: path.stroke
-                    .toSIColor(path.strokeAlpha, SvgColor.none, (_) {}),
+                    .toSIColor(path.strokeAlpha, SvgColor.none, userSpace),
                 strokeWidth: path.strokeWidth,
                 strokeMiterLimit: path.strokeMiterLimit,
                 strokeJoin: path.strokeJoin,

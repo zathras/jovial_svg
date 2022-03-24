@@ -1,0 +1,11 @@
+<svg width="58" height="47" viewBox="10 10 590 480" xmlns="http://www.w3.org/2000/svg">
+
+<radialGradient id="grad" cx="50%" cy="30%" r="45%"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="red"/>
+    <stop offset="0.5" stop-color="green"/>
+    <stop offset="1" stop-color="blue"/>
+</radialGradient>
+
+    <rect x="70" y="25" width="500" height="400" fill="url(#grad)"/>
+</svg>

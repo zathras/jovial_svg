@@ -120,7 +120,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.1-rc.1"
+    version: "1.1.2-rc.1"
   js:
     dependency: transitive
     description:

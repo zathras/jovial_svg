@@ -37,6 +37,73 @@ import 'package:jovial_svg/src/svg_parser.dart';
 import 'package:jovial_svg/src/widget.dart';
 
 ///
+/// Test that reading the SVG and the SI results in the same root group,
+/// and that they render the same.
+///
+Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
+  for (FileSystemEntity ent in svgDir.listSync()
+    ..sort((a, b) => a.path.compareTo(b.path))) {
+    final name = ent.uri.pathSegments.last;
+    final noExt = name.substring(0, name.lastIndexOf('.'));
+    if (ent is File && noExt != 'README' && !name.endsWith('.swp')) {
+      final fromSvg =
+          ScalableImage.fromSvgString(await ent.readAsString(), warn: false);
+      final b = SICompactBuilderNoUI(bigFloats: true, warn: false);
+      StringSvgParser(await ent.readAsString(), b, warn: false).parse();
+      final cs = ByteSink();
+      final dos = DataOutputSink(cs);
+      b.si.writeToFile(dos);
+      dos.close();
+      final fromSi = ScalableImage.fromSIBytes(cs.toList(), compact: false);
+      final siB = await renderToBytes(fromSvg, format: ImageByteFormat.png);
+      final svgB = await renderToBytes(fromSi, format: ImageByteFormat.png);
+      try {
+        (fromSvg as ScalableImageDag)
+            .privateAssertIsEquivalent(fromSi as ScalableImageDag);
+        expect(siB, svgB);
+      } catch (failure) {
+        if (outputDir != null) {
+          final svgOut = File('${outputDir.path}/svg.png');
+          final siOut = File('${outputDir.path}/si.png');
+          print('Writing debug images for $ent:');
+          print('    $svgOut');
+          print('    $siOut');
+          outputDir.createSync(recursive: true);
+          svgOut.writeAsBytesSync(svgB);
+          // await renderToBytes(fromSvg, format: ImageByteFormat.png));
+          siOut.writeAsBytesSync(siB);
+          // await renderToBytes(fromSi, format: ImageByteFormat.png));
+        }
+        rethrow;
+      }
+    }
+  }
+}
+
+Future<Uint8List> renderToBytes(ScalableImage si,
+    {required ImageByteFormat format, Size? scaleTo}) async {
+  await si.prepareImages();
+  final vpSize = si.viewport;
+  final recorder = PictureRecorder();
+  final Canvas c = Canvas(recorder);
+  if (scaleTo != null) {
+    c.scale(scaleTo.width / vpSize.width, scaleTo.height / vpSize.height);
+  }
+  si.paint(c);
+  expect(1, c.getSaveCount());
+  si.unprepareImages();
+  final size = scaleTo ?? Size(vpSize.width, vpSize.height);
+  final Picture pict = recorder.endRecording();
+  final Image rendered =
+      await pict.toImage(size.width.round(), size.height.round());
+  final ByteData? bd = await rendered.toByteData(format: format);
+  final r = Uint8List.fromList(bd!.buffer.asUint8List());
+  pict.dispose();
+  rendered.dispose();
+  return r;
+}
+
+///
 /// Test against reference images.
 /// Note that the Flutter test framework uses the "Ahem" font, which renders
 /// everything as a box.  Cf.
@@ -55,7 +122,6 @@ Future<void> _testReference(
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README') {
-      print('  $ent');
       final ScalableImage si;
       try {
         si = await producer(ent);
@@ -63,22 +129,9 @@ Future<void> _testReference(
         print('=>  Failed parsing $ent');
         rethrow;
       }
-      await si.prepareImages();
-      final vpSize = si.viewport;
-      final recorder = PictureRecorder();
-      final Canvas c = Canvas(recorder);
-      if (scaleTo != null) {
-        c.scale(scaleTo.width / vpSize.width, scaleTo.height / vpSize.height);
-      }
-      si.paint(c);
-      si.unprepareImages();
-      final size = scaleTo ?? Size(vpSize.width, vpSize.height);
-      final Image rendered = await recorder
-          .endRecording()
-          .toImage(size.width.round(), size.height.round());
-      final renderedBytes =
-          await rendered.toByteData(format: ImageByteFormat.rawRgba);
 
+      final Uint8List renderedBytes = await renderToBytes(si,
+          scaleTo: scaleTo, format: ImageByteFormat.rawRgba);
       try {
         File refName = File('${referenceDir.path}/$noExt.png');
         if (overrideReferenceDir != null) {
@@ -88,21 +141,19 @@ Future<void> _testReference(
           }
         }
         final codec = await instantiateImageCodec(refName.readAsBytesSync());
-        final reference = await (await codec.getNextFrame())
-            .image
-            .toByteData(format: ImageByteFormat.rawRgba);
-        expect(renderedBytes!.buffer.asUint8List(),
-            reference!.buffer.asUint8List(),
+        final Image im = (await codec.getNextFrame()).image;
+        final reference = await im.toByteData(format: ImageByteFormat.rawRgba);
+        expect(renderedBytes, reference!.buffer.asUint8List(),
             reason: '$description:  $ent and $refName differ');
+        codec.dispose();
+        im.dispose();
       } catch (failed) {
         if (outputDir != null) {
           final outName = File('${outputDir.path}/$noExt.png');
           print('Writing rendered result to $outName');
           outputDir.createSync(recursive: true);
-          outName.writeAsBytesSync(
-              (await rendered.toByteData(format: ImageByteFormat.png))!
-                  .buffer
-                  .asUint8List());
+          outName.writeAsBytesSync(await renderToBytes(si,
+              scaleTo: scaleTo, format: ImageByteFormat.png));
         }
         rethrow;
       }
@@ -325,6 +376,9 @@ void main() {
       Directory('test/more_test_images'),
       Directory('demo/assets')
     ]) {
+      print('Running test:  SVG and SI are same');
+      await _testSvgSiSame(
+          getDir(inputDir, 'svg')!, getDir(outputDir, 'svg_si_same'));
       await _testReference(
           'SVG source',
           getDir(inputDir, 'svg')!,
@@ -349,11 +403,12 @@ void main() {
       });
 
       await _testReference(
-          'SI source',
-          getDir(inputDir, 'si')!,
-          getDir(referenceDir, 'si')!,
-          getDir(outputDir, 'si'),
-          (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()));
+        'SI source',
+        getDir(inputDir, 'si')!,
+        getDir(referenceDir, 'si')!,
+        getDir(outputDir, 'si'),
+        (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()),
+      );
       await _testReference(
           'SI source, compact',
           getDir(inputDir, 'si')!,

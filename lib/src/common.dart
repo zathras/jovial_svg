@@ -160,6 +160,12 @@ abstract class SIRenderable {
   }
 
   void addChildren(Set<SIRenderable> dagger);
+
+  void privateAssertIsEquivalent(SIRenderable other) {
+    if (this != other) {
+      throw StateError('$this  $other');
+    }
+  }
 }
 
 abstract class _HasBounds {
@@ -374,8 +380,7 @@ mixin SIGroupHelper {
     late final bounds = getBoundary()?.getBounds();
     if (blendMode != null) {
       _blendModeStack.add(true);
-      c.saveLayer(bounds,
-          Paint()..blendMode = blendMode); // , Paint()..blendMode = blendMode);
+      c.saveLayer(bounds, Paint()..blendMode = blendMode);
     } else {
       _blendModeStack.add(false);
     }
@@ -521,49 +526,48 @@ class SIPath extends SIRenderable implements _HasBounds {
   final Path path;
   final SIPaint siPaint;
 
-  static final Paint _paint = Paint();
-
   SIPath(this.path, this.siPaint);
 
-  bool _setPaint(SIColor si, RenderContext context) {
+  bool _setPaint(Paint paint, SIColor si, RenderContext context) {
     bool hasWork = true;
-    _paint.shader = null;
+    paint.shader = null;
     late final bounds = getBounds();
     Rect boundsF() => bounds;
     si.accept(SIColorVisitor(
-        value: (SIValueColor c) => _paint.color = Color(c.argb),
-        current: () => _paint.color = context.currentColor,
+        value: (SIValueColor c) => paint.color = Color(c.argb),
+        current: () => paint.color = context.currentColor,
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) => _setLinearGradient(
-            _paint, c, _gradientXform(c, boundsF, context), context),
+            paint, c, _gradientXform(c, boundsF, context), context),
         radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
-            _paint, c, _gradientXform(c, boundsF, context), context),
+            paint, c, _gradientXform(c, boundsF, context), context),
         sweepGradient: (SISweepGradientColor c) => _setSweepGradient(
-            _paint, c, _gradientXform(c, boundsF, context), context)));
+            paint, c, _gradientXform(c, boundsF, context), context)));
     return hasWork;
   }
 
   @override
   void paint(Canvas c, RenderContext context) {
-    if (_setPaint(siPaint.fillColor, context)) {
-      _paint.style = PaintingStyle.fill;
+    final paint = Paint();
+    if (_setPaint(paint, siPaint.fillColor, context)) {
+      paint.style = PaintingStyle.fill;
       path.fillType = siPaint.fillType.asPathFillType;
-      c.drawPath(path, _paint);
+      c.drawPath(path, paint);
     }
-    if (_setPaint(siPaint.strokeColor, context)) {
-      _paint.style = PaintingStyle.stroke;
-      _paint.strokeWidth = siPaint.strokeWidth;
-      _paint.strokeCap = siPaint.strokeCap.asStrokeCap;
-      _paint.strokeJoin = siPaint.strokeJoin.asStrokeJoin;
-      _paint.strokeMiterLimit = siPaint.strokeMiterLimit;
+    if (_setPaint(paint, siPaint.strokeColor, context)) {
+      paint.style = PaintingStyle.stroke;
+      paint.strokeWidth = siPaint.strokeWidth;
+      paint.strokeCap = siPaint.strokeCap.asStrokeCap;
+      paint.strokeJoin = siPaint.strokeJoin.asStrokeJoin;
+      paint.strokeMiterLimit = siPaint.strokeMiterLimit;
       final List<double>? sda = siPaint.strokeDashArray;
       if (sda == null || sda.isEmpty) {
-        c.drawPath(path, _paint);
+        c.drawPath(path, paint);
         return;
       }
       final len = sda.reduce((a, b) => a + b);
       if (len <= 0.0) {
-        c.drawPath(path, _paint);
+        c.drawPath(path, paint);
         return;
       }
       for (final contour in path.computeMetrics()) {
@@ -581,14 +585,14 @@ class SIPath extends SIRenderable implements _HasBounds {
             // done w/ contour
             final p = contour.extractPath(start, contour.length);
             if (penDown) {
-              c.drawPath(p, _paint);
+              c.drawPath(p, paint);
             }
             break; // out of for(;;) loop
           } else {
             final end = start + thisDash;
             final p = contour.extractPath(start, end);
             if (penDown) {
-              c.drawPath(p, _paint);
+              c.drawPath(p, paint);
             }
             start = end;
             sdaI++;
@@ -630,6 +634,21 @@ class SIPath extends SIRenderable implements _HasBounds {
 
   @override
   void addChildren(Set<SIRenderable> dagger) {}
+
+  @override
+  void privateAssertIsEquivalent(SIRenderable other) {
+    if (identical(this, other)) {
+      return;
+    } else if (other is! SIPath) {
+      throw StateError('$this $other');
+    } else if (siPaint == other.siPaint) {
+      return;
+    } else {
+      print(siPaint == other.siPaint);
+      // Path is basically opaque; no good way to check it.
+      throw StateError('$this $other');
+    }
+  }
 
   @override
   bool operator ==(final Object other) {
@@ -975,7 +994,7 @@ class PruningBoundary {
       max(max(a.y, b.y), max(c.y, d.y)));
 
   @override
-  String toString() => '_Boundary($a $b $c $d)';
+  String toString() => 'PruningBoundary($a $b $c $d)';
 
   static Point<double> _tp(Point<double> p, Affine x) => x.transformed(p);
 

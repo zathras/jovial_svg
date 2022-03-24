@@ -35,6 +35,7 @@ library jovial_svg.svg_graph;
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:quiver/core.dart' as quiver;
 import 'package:quiver/collection.dart' as quiver;
 
@@ -58,13 +59,57 @@ class SvgParseGraph {
   final double? width;
   final double? height;
 
+  bool _resolved = false;
+
   SvgParseGraph(this.root, this.width, this.height);
 
+  ///
+  /// Determine the bounds, for use in user space calculations (e.g.
+  /// potentially for gradiants).  This must not be accessed before
+  /// `build`, but it may be called during the build process.
+  ///
+  /// If a viewbox or a width/height are
+  /// given in the asset, this is well-defined.  If not, we use a
+  /// reasonably accurate estimate of a bounding rectangle.  The SVG spec
+  /// speaks of this bounding rectangle not taking into account stroke widths,
+  /// so we don't, but our estimate of font metrics is (ahem) approximate.
+  /// Most SVG assets should at least provide a width/height; for those that
+  /// don't, our bounding box gives a reasonable estimate.
+  ///
+  late final RectT userSpaceBounds = _calculateBounds();
+
+  RectT _calculateBounds() {
+    assert(_resolved);
+    final w = width;
+    final h = height;
+    if (w != null && h != null) {
+      // w and h come from width/height on the SVG asset, or, if not given,
+      // from the viewBox attribute's width/height.
+      final t = root.transform;
+      if (t != null) {
+        final b =
+            _SvgBoundary(const RectT(0, 0, 1, 1)).transformed(t).getBounds();
+        return RectT(0, 0, w / b.width, h / b.height);
+      } else {
+        return RectT(0, 0, w, h);
+      }
+    }
+    final b = root._getUserSpaceBoundary(SvgTextAttributes.initial());
+    if (b == null) {
+      // e.g. because this SVG is just an empty group
+      return const Rectangle(0.0, 0.0, 100.0, 100.0);
+    } else {
+      return b.getBounds();
+    }
+  }
+
   void build(SIBuilder<String, SIImageData> builder) {
-    final rootPaint = SvgPaint.initial();
+    RectT userSpace() => userSpaceBounds;
+    final rootPaint = SvgPaint.initial(userSpace);
     final rootTA = SvgTextAttributes.initial();
     SvgNode? newRoot =
-        root.resolve(idLookup, rootPaint, builder.warn, _Referrers(null));
+        root.resolve(idLookup, rootPaint, builder.warn, _Referrers(this));
+    _resolved = true;
     builder.vector(
         width: width, height: height, tintColor: null, tintMode: null);
     final theCanon = CanonicalizedData<SIImageData>();
@@ -97,6 +142,8 @@ abstract class SvgNode {
       void Function(String) warn);
 
   SIBlendMode get blendMode;
+
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta);
 }
 
 ///
@@ -104,7 +151,7 @@ abstract class SvgNode {
 /// This is used to catch reference loops.
 ///
 class _Referrers {
-  final SvgNode? referrer;
+  final Object? referrer;
   final _Referrers? parent;
 
   _Referrers(this.referrer, [this.parent]);
@@ -155,7 +202,8 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fillType: paint.fillType ?? ancestor.fillType,
         strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
         strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
-        mask: null); // Mask is not inherited
+        mask: null, // Mask is not inherited
+        userSpace: ancestor.userSpace);   // userSpace is inherited from root
   }
 
   SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
@@ -166,6 +214,25 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
+
+  @override
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
+    RectT? bounds = _getUntransformedBounds(ta);
+    if (bounds == null) {
+      return null;
+    } else {
+      final b = _SvgBoundary(bounds);
+      final t = transform;
+      if (t == null) {
+        return b;
+      } else {
+        return b.transformed(t);
+      }
+    }
+  }
+
+  @protected
+  RectT? _getUntransformedBounds(SvgTextAttributes ta);
 
   SvgNode resolveMask(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       bool warn, _Referrers referrers) {
@@ -215,7 +282,8 @@ class SvgPaint {
   SIFillType? fillType;
   List<double>? strokeDashArray; // [] for "none"
   double? strokeDashOffset;
-  String? mask;
+  String? mask; // Not inherited
+  final RectT Function() userSpace; // only inherited (from root)
 
   SvgPaint(
       {required this.currentColor,
@@ -230,27 +298,35 @@ class SvgPaint {
       required this.fillType,
       required this.strokeDashArray,
       required this.strokeDashOffset,
-      required this.mask});
+      required this.mask,
+      required this.userSpace});
 
   SvgPaint.empty()
       : fillColor = SvgColor.inherit,
         strokeColor = SvgColor.inherit,
-        currentColor = SvgColor.inherit;
+        currentColor = SvgColor.inherit,
+        userSpace = _dummy;
 
-  factory SvgPaint.initial() => SvgPaint(
-      currentColor: SvgColor.currentColor, // Inherit from SVG container
-      fillColor: const SvgValueColor(0xff000000),
-      fillAlpha: 0xff,
-      strokeColor: SvgColor.none,
-      strokeAlpha: 0xff,
-      strokeWidth: 1,
-      strokeMiterLimit: 4,
-      strokeJoin: SIStrokeJoin.miter,
-      strokeCap: SIStrokeCap.butt,
-      fillType: SIFillType.nonZero,
-      strokeDashArray: null,
-      strokeDashOffset: null,
-      mask: null);
+  static RectT _dummy() => const RectT(0, 0, 0, 0);
+
+  factory SvgPaint.initial(
+    RectT Function() userSpace,
+  ) =>
+      SvgPaint(
+          currentColor: SvgColor.currentColor, // Inherit from SVG container
+          fillColor: const SvgValueColor(0xff000000),
+          fillAlpha: 0xff,
+          strokeColor: SvgColor.none,
+          strokeAlpha: 0xff,
+          strokeWidth: 1,
+          strokeMiterLimit: 4,
+          strokeJoin: SIStrokeJoin.miter,
+          strokeCap: SIStrokeCap.butt,
+          fillType: SIFillType.nonZero,
+          strokeDashArray: null,
+          strokeDashOffset: null,
+          mask: null,
+          userSpace: userSpace);
 
   @override
   int get hashCode =>
@@ -296,15 +372,16 @@ class SvgPaint {
 
   SIPaint toSIPaint(void Function(String) warn) {
     return SIPaint(
-        fillColor: fillColor.toSIColor(fillAlpha, currentColor, warn),
-        strokeColor: strokeColor.toSIColor(strokeAlpha, currentColor, warn),
+        fillColor: fillColor.toSIColor(fillAlpha, currentColor, userSpace),
+        strokeColor:
+            strokeColor.toSIColor(strokeAlpha, currentColor, userSpace),
         strokeWidth: strokeWidth,
         strokeMiterLimit: strokeMiterLimit,
         strokeJoin: strokeJoin,
         strokeCap: strokeCap,
         fillType: fillType,
         strokeDashArray: strokeDashArray,
-        strokeDashOffset: strokeDashOffset);
+        strokeDashOffset: strokeDashArray == null ? null : strokeDashOffset);
   }
 }
 
@@ -333,6 +410,24 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
     } else {
       return resolveMask(idLookup, ancestor, warn, referrers);
     }
+  }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    final currTA = cascadeText(ta);
+    RectT? curr;
+    for (final ch in children) {
+      final boundary = ch._getUserSpaceBoundary(currTA);
+      if (boundary != null) {
+        final b = boundary.getBounds();
+        if (curr == null) {
+          curr = b;
+        } else {
+          curr = curr.boundingBox(b);
+        }
+      }
+    }
+    return curr;
   }
 
   @override
@@ -395,13 +490,16 @@ class SvgDefs extends SvgGroup {
     assert(false);
     return false;
   }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) => null;
 }
 
 ///
 /// The mask itself, from a <mask> tag in the source file
 ///
 class SvgMask extends SvgGroup {
-  Rectangle<double>? bufferBounds;
+  RectT? bufferBounds;
 
   @override
   SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
@@ -440,7 +538,8 @@ class SvgClipPath extends SvgMask {
             fillType: SIFillType.nonZero,
             strokeDashArray: null,
             strokeDashOffset: null,
-            mask: null);
+            mask: null,
+            userSpace: c.paint.userSpace);
       }
     }
     return result;
@@ -455,6 +554,24 @@ class SvgMasked extends SvgNode {
   SvgMask mask;
 
   SvgMasked(this.child, this.mask);
+
+  @override
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
+    final m = mask._getUserSpaceBoundary(ta);
+    if (m == null) {
+      return m;
+    }
+    final c = child._getUserSpaceBoundary(ta);
+    if (c == null) {
+      return c;
+    }
+    final i = c.getBounds().intersection(m.getBounds());
+    if (i == null) {
+      return null;
+    } else {
+      return _SvgBoundary(i);
+    }
+  }
 
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
@@ -554,6 +671,12 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    assert(false);
+    return null;
+  }
+
+  @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
@@ -620,12 +743,101 @@ class SvgPath extends SvgPathMaker {
   }
 
   @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    if (pathData == '') {
+      return null;
+    }
+    final builder = _SvgPathBoundsBuilder();
+    PathParser(builder, pathData).parse();
+    return builder.bounds;
+  }
+
+  @override
   bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
     } else {
       builder.path(null, pathData, cascaded.toSIPaint(builder.printWarning));
       return true;
+    }
+  }
+}
+
+class _SvgPathBoundsBuilder implements PathBuilder {
+  RectT? bounds;
+
+  @override
+  void addOval(RectT rect) {
+    final b = bounds;
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
+    }
+  }
+
+  @override
+  void arcToPoint(PointT arcEnd,
+      {required RadiusT radius,
+      required double rotation,
+      required bool largeArc,
+      required bool clockwise}) {
+    final b = bounds;
+    final rect = RectT.fromPoints(arcEnd, arcEnd);
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
+    }
+  }
+
+  @override
+  void close() {}
+
+  @override
+  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {
+    final b = bounds;
+    final rect = RectT.fromPoints(c1, c2).boundingBox(RectT.fromPoints(p, p));
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
+    }
+  }
+
+  @override
+  void end() {}
+
+  @override
+  void lineTo(PointT p) {
+    final b = bounds;
+    final rect = RectT.fromPoints(p, p);
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
+    }
+  }
+
+  @override
+  void moveTo(PointT p) {
+    final b = bounds;
+    final rect = RectT.fromPoints(p, p);
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
+    }
+  }
+
+  @override
+  void quadraticBezierTo(PointT control, PointT p, bool shorthand) {
+    final b = bounds;
+    final rect = RectT.fromPoints(control, p);
+    if (b == null) {
+      bounds = rect;
+    } else {
+      bounds = b.boundingBox(rect);
     }
   }
 }
@@ -649,6 +861,10 @@ class SvgRect extends SvgPathMaker {
       return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+      Rectangle(x, y, width, height);
 
   @override
   bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
@@ -727,6 +943,10 @@ class SvgEllipse extends SvgPathMaker {
   }
 
   @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+      Rectangle(cx - rx, cy - ry, 2 * rx, 2 * ry);
+
+  @override
   bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
@@ -773,6 +993,19 @@ class SvgPoly extends SvgPathMaker {
     } else {
       return resolveMask(idLookup, ancestor, warn, referrers);
     }
+  }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    RectT? curr;
+    for (final p in points) {
+      if (curr == null) {
+        curr = Rectangle.fromPoints(p, p);
+      } else if (!curr.containsPoint(p)) {
+        curr = curr.boundingBox(Rectangle.fromPoints(p, p));
+      }
+    }
+    return curr;
   }
 
   @override
@@ -855,6 +1088,9 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) => null;
+
+  @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
@@ -906,6 +1142,10 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+      Rectangle(x, y, width, height);
+
+  @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
@@ -948,6 +1188,48 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     } else {
       return resolveMask(idLookup, ancestor, warn, referrers);
     }
+  }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    const heightScale = 1.2;
+    const widthScale = 0.6;
+    // We make a rough approximation, since font metrics aren't available
+    // to us here.  This is good enough in the rare case of user space
+    // gradients withing an SVG asset with unspecified width/height
+    // and renderBox.
+    final cascaded = cascadeText(ta);
+    final size = cascaded.fontSize.toSI();
+    final height = size * heightScale;
+    int len = min(x.length, y.length);
+    RectT? curr;
+    final double dx;
+    switch (cascaded.textAnchor!) {
+      case SITextAnchor.start:
+        dx = 0;
+        break;
+      case SITextAnchor.middle:
+        dx = -(size * widthScale * text.length) / 2;
+        break;
+      case SITextAnchor.end:
+        dx = -size * widthScale * text.length;
+        break;
+    }
+    for (int i = 0; i < len; i++) {
+      final double width;
+      if (i == len - 1) {
+        width = size * widthScale * (text.length - i);
+      } else {
+        width = size * widthScale;
+      }
+      final r = Rectangle(dx + x[i], y[i], width, height);
+      if (curr == null) {
+        curr = r;
+      } else {
+        curr = curr.boundingBox(r);
+      }
+    }
+    return curr;
   }
 
   @override
@@ -1143,7 +1425,7 @@ abstract class SvgColor {
   SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) => this;
 
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn);
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace);
 
   static SvgColor reference(String id) => _SvgColorReference(id);
 }
@@ -1154,7 +1436,7 @@ class SvgValueColor extends SvgColor {
 
   @override
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     if (alpha == null) {
       return SIValueColor(_value);
     } else {
@@ -1175,7 +1457,7 @@ class _SvgInheritColor extends SvgColor {
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
-          void Function(String) warn) =>
+          RectT Function() userSpace) =>
       throw StateError('Internal error: color inheritance');
 }
 
@@ -1184,7 +1466,7 @@ class _SvgNoneColor extends SvgColor {
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
-          void Function(String) warn) =>
+          RectT Function() userSpace) =>
       SIColor.none;
 }
 
@@ -1193,12 +1475,12 @@ class _SvgCurrentColor extends SvgColor {
 
   @override
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     if (cascadedCurrentColor is _SvgCurrentColor) {
       return SIColor.currentColor;
     } else {
       return cascadedCurrentColor.toSIColor(
-          alpha, const SvgValueColor(0), warn);
+          alpha, const SvgValueColor(0), userSpace);
     }
   }
 }
@@ -1219,7 +1501,7 @@ class _SvgColorReference extends SvgColor {
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
-          void Function(String) warn) =>
+          RectT Function() userSpace) =>
       throw StateError('Internal error: color inheritance');
 }
 
@@ -1270,13 +1552,6 @@ class SvgCoordinate {
   SvgCoordinate.percent(this._value) : isPercent = true;
 
   double get value => isPercent ? (_value / 100) : _value;
-
-  double percentNotSupported(String message, void Function(String) warn) {
-    if (isPercent) {
-      warn('% coordinate not supported in $message');
-    }
-    return _value;
-  }
 }
 
 class SvgLinearGradientColor extends SvgGradientColor {
@@ -1313,7 +1588,7 @@ class SvgLinearGradientColor extends SvgGradientColor {
 
   @override
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
@@ -1321,22 +1596,31 @@ class SvgLinearGradientColor extends SvgGradientColor {
         stops.length,
         (i) => stops[i]
             .color
-            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, userSpace),
         growable: false);
     final obb = objectBoundingBoxR;
-    double toDouble(SvgCoordinate c) {
-      if (obb) {
+    late final RectT us = userSpace();
+    double toDoubleX(SvgCoordinate c) {
+      if (obb || !c.isPercent) {
         return c.value;
       } else {
-        return c.percentNotSupported('userSpaceOnUse linear gradient', warn);
+        return us.left + us.width * c.value;
+      }
+    }
+
+    double toDoubleY(SvgCoordinate c) {
+      if (obb || !c.isPercent) {
+        return c.value;
+      } else {
+        return us.top + us.height * c.value;
       }
     }
 
     return SILinearGradientColor(
-        x1: toDouble(x1R),
-        y1: toDouble(y1R),
-        x2: toDouble(x2R),
-        y2: toDouble(y2R),
+        x1: toDoubleX(x1R),
+        y1: toDoubleY(y1R),
+        x2: toDoubleX(x2R),
+        y2: toDoubleY(y2R),
         colors: colors,
         stops: offsets,
         objectBoundingBox: obb,
@@ -1382,7 +1666,7 @@ class SvgRadialGradientColor extends SvgGradientColor {
 
   @override
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
@@ -1390,23 +1674,41 @@ class SvgRadialGradientColor extends SvgGradientColor {
         stops.length,
         (i) => stops[i]
             .color
-            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, userSpace),
         growable: false);
     final obb = objectBoundingBoxR;
-    double toDouble(SvgCoordinate c) {
-      if (obb) {
+    late final RectT us = userSpace();
+    double toDoubleX(SvgCoordinate c) {
+      if (obb || !c.isPercent) {
         return c.value;
       } else {
-        return c.percentNotSupported('userSpaceOnUse radial gradient', warn);
+        return us.left + us.width * c.value;
       }
     }
 
+    double toDoubleY(SvgCoordinate c) {
+      if (obb || !c.isPercent) {
+        return c.value;
+      } else {
+        return us.top + us.height * c.value;
+      }
+    }
+
+    final rr = rR;
+    final double r;
+    if (!obb && rr.isPercent) {
+      final uw = us.width;
+      final uh = us.height;
+      r = rr.value * sqrt(uw * uw + uh + uh);
+    } else {
+      r = rr.value;
+    }
     return SIRadialGradientColor(
-        cx: toDouble(cxR),
-        cy: toDouble(cyR),
-        fx: toDouble(fxR ?? cxR),
-        fy: toDouble(fyR ?? cyR),
-        r: toDouble(rR),
+        cx: toDoubleX(cxR),
+        cy: toDoubleY(cyR),
+        fx: toDoubleX(fxR ?? cxR),
+        fy: toDoubleY(fyR ?? cyR),
+        r: r,
         colors: colors,
         stops: offsets,
         objectBoundingBox: obb,
@@ -1449,7 +1751,7 @@ class SvgSweepGradientColor extends SvgGradientColor {
 
   @override
   SIColor toSIColor(
-      int? alpha, SvgColor cascadedCurrentColor, void Function(String) warn) {
+      int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = stopsR;
     final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
         growable: false);
@@ -1457,7 +1759,7 @@ class SvgSweepGradientColor extends SvgGradientColor {
         stops.length,
         (i) => stops[i]
             .color
-            .toSIColor(stops[i].alpha, cascadedCurrentColor, warn),
+            .toSIColor(stops[i].alpha, cascadedCurrentColor, userSpace),
         growable: false);
     return SISweepGradientColor(
         cx: cxR,
@@ -1547,4 +1849,40 @@ class _SvgFontWeightInherit extends SvgFontWeight {
     assert(false);
     return SIFontWeight.w400;
   }
+}
+
+///
+/// A boundary for calculating the user space.  A bit like PruningBounds, but
+/// not using dependent on Flutter.
+///
+@immutable
+class _SvgBoundary {
+  final Point<double> a;
+  final Point<double> b;
+  final Point<double> c;
+  final Point<double> d;
+
+  _SvgBoundary(RectT rect)
+      : a = Point(rect.left, rect.top),
+        b = Point(rect.left + rect.width, rect.top),
+        c = Point(rect.left + rect.width, rect.top + rect.height),
+        d = Point(rect.left, rect.top + rect.height);
+
+  const _SvgBoundary._p(this.a, this.b, this.c, this.d);
+
+  RectT getBounds() {
+    double left = min(min(a.x, b.x), min(c.x, d.x));
+    double top = min(min(a.y, b.y), min(c.y, d.y));
+    double right = max(max(a.x, b.x), max(c.x, d.x));
+    double bottom = max(max(a.y, b.y), max(c.y, d.y));
+    return Rectangle(left, top, right - left, bottom - top);
+  }
+
+  @override
+  String toString() => '_SvgBoundary($a $b $c $d)';
+
+  static Point<double> _tp(Point<double> p, Affine x) => x.transformed(p);
+
+  _SvgBoundary transformed(Affine x) =>
+      _SvgBoundary._p(_tp(a, x), _tp(b, x), _tp(c, x), _tp(d, x));
 }

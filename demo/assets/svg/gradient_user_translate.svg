@@ -1,0 +1,26 @@
+<svg width="125" height="125" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
+
+<radialGradient id="grad" cx="650%" cy="650%" r="300%"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="red"/>
+    <stop offset="0.5" stop-color="green"/>
+    <stop offset="1" stop-color="blue"/>
+</radialGradient>
+<linearGradient id="grad2" x1="350%" y1="0" x2="950%" y2="0"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="red"/>
+    <stop offset="0.5" stop-color="yellow"/>
+    <stop offset="1" stop-color="blue"/>
+</linearGradient>
+
+<g transform="scale(.1)">
+<rect x="100" y="100" width="100" height="100" fill="url(#grad)"
+    transform="rotate(180, 100, 100)"/>
+<rect x="100" y="100" width="100" height="100" fill="url(#grad)"/>
+
+<rect x="110" y="110" width="80" height="80" fill="url(#grad2)"
+    transform="rotate(90, 100, 100)"/>
+<rect x="110" y="110" width="80" height="80" fill="url(#grad2)"
+    transform="rotate(270, 100, 100)"/>
+</g>
+</svg>

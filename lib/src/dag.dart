@@ -216,6 +216,23 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
     }
     return '${nodes.length + 1} nodes';
   }
+
+  void privateAssertIsEquivalent(ScalableImageDag other) {
+    if (_renderables.length != other._renderables.length) {
+      throw StateError('');
+    }
+    for (int i = 0; i < _renderables.length; i++) {
+      _renderables[i].privateAssertIsEquivalent(other._renderables[i]);
+    }
+    if (width != other.width ||
+        height != other.height ||
+        tintMode != other.tintMode ||
+        tintColor != other.tintColor ||
+        currentColor != other.currentColor ||
+        viewport != other.viewport) {
+      throw StateError('');
+    }
+  }
 }
 
 abstract class _SIParentBuilder {
@@ -365,6 +382,20 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   }
 
   @override
+  void privateAssertIsEquivalent(final SIRenderable other) {
+    if (identical(this, other)) {
+      return;
+    } else if (other is! SIMasked) {
+      throw StateError('$this  $other');
+    } else if (context != other.context || maskBounds != other.maskBounds) {
+      throw StateError('$this  $other');
+    } else {
+      mask.privateAssertIsEquivalent(other.mask);
+      child.privateAssertIsEquivalent(other.child);
+    }
+  }
+
+  @override
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
@@ -444,6 +475,23 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     for (final r in _renderables) {
       dagger.add(r);
       r.addChildren(dagger);
+    }
+  }
+
+  @override
+  void privateAssertIsEquivalent(SIRenderable other) {
+    if (identical(this, other)) {
+      return;
+    } else if (other is! SIGroup) {
+      throw StateError('$this $other');
+    } else if (context != other.context || groupAlpha != other.groupAlpha) {
+      throw StateError('$this $other');
+    } else if (_renderables.length != other._renderables.length) {
+      throw StateError('$this $other');
+    } else {
+      for (int i = 0; i < _renderables.length; i++) {
+        _renderables[i].privateAssertIsEquivalent(other._renderables[i]);
+      }
     }
   }
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+    <linearGradient id="grad" x1="1" y1="1" x2="48" y2="1" 
+            gradientTransform="rotate(-10)" 
+            gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="red"/>
+        <stop offset="0.5" stop-color="green"/>
+        <stop offset="1" stop-color="blue"/>
+    </linearGradient>
+
+<g transform="translate(15 1)">
+  <g transform="rotate(30)">
+    <rect x="7" y="2.5" width="50" height="40" fill="url(#grad)"/>
+  </g>
+</g>
+<path transform="translate(7.5, 0)" fill="url(#grad)" 
+    stroke="aqua" stroke-width="0.7" 
+    d="M0,70 C57.5,80 80,70 47.5,90 Z" />
+</svg>
