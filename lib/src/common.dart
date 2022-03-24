@@ -874,15 +874,17 @@ class SIText extends SIRenderable implements _HasBounds {
   }
 
   @override
-  Rect getBounds() {
+  Rect getBounds() => _bounds;
+
+  late final Rect _bounds = () {
     Rect result = Rect.fromLTRB(_x[0], _y[0], 1, 1);
-    _forEachPainter(Colors.black, Paint(),
+    _forEachPainter(Colors.black, Paint(), TextDecoration.none,
         (double left, double top, TextPainter tp) {
       result =
           result.expandToInclude(Rect.fromLTWH(left, top, tp.width, tp.height));
     });
     return result;
-  }
+  }();
 
   Paint? _getPaint(SIColor c, RenderContext context) {
     late final bounds = getBounds();
@@ -914,28 +916,64 @@ class SIText extends SIRenderable implements _HasBounds {
 
   @override
   void paint(ui.Canvas c, RenderContext context) {
+    final TextDecoration decoration =
+        attributes.textDecoration.asTextDecoration;
+    final decorated = decoration != TextDecoration.none;
     Paint? foreground = _getPaint(siPaint.fillColor, context);
     if (foreground != null) {
-      _forEachPainter(context.currentColor, foreground,
-          (double left, double top, TextPainter tp) {
-        tp.paint(c, Offset(left, top));
-      });
-    }
-    if (siPaint.strokeWidth == 0) {
-      return;
+      if (decorated && siPaint.fillColor is! SIValueColor) {
+        c.saveLayer(_bounds, Paint());
+        final white = Paint()..color = Colors.white;
+        _forEachPainter(context.currentColor, white, decoration,
+            (double left, double top, TextPainter tp) {
+          tp.paint(c, Offset(left, top));
+        });
+        c.saveLayer(_bounds, Paint()..blendMode = BlendMode.srcIn);
+        c.drawRect(_bounds, foreground);
+        c.restore();
+        c.restore();
+      } else {
+        _forEachPainter(context.currentColor, foreground, decoration,
+            (double left, double top, TextPainter tp) {
+          tp.paint(c, Offset(left, top));
+        });
+      }
     }
     Paint? strokeP = _getPaint(siPaint.strokeColor, context);
     if (strokeP != null) {
-      strokeP.strokeWidth = siPaint.strokeWidth;
-      strokeP.style = PaintingStyle.stroke;
-      _forEachPainter(context.currentColor, strokeP,
-          (double left, double top, TextPainter tp) {
-        tp.paint(c, Offset(left, top));
-      });
+      if (decorated &&
+          foreground == null &&
+          siPaint.strokeColor is! SIValueColor) {
+        c.saveLayer(_bounds, Paint());
+        final white = Paint()
+          ..color = Colors.white
+          ..strokeWidth = siPaint.strokeWidth
+          ..style = PaintingStyle.stroke;
+        _forEachPainter(context.currentColor, white, decoration,
+            (double left, double top, TextPainter tp) {
+          tp.paint(c, Offset(left, top));
+        });
+        c.saveLayer(_bounds, Paint()..blendMode = BlendMode.srcIn);
+        c.drawRect(_bounds, strokeP);
+        c.restore();
+        c.restore();
+      } else {
+        strokeP.strokeWidth = siPaint.strokeWidth;
+        strokeP.style = PaintingStyle.stroke;
+        final decoration2 =
+            foreground == null ? decoration : TextDecoration.none;
+        _forEachPainter(context.currentColor, strokeP, decoration2,
+            (double left, double top, TextPainter tp) {
+          tp.paint(c, Offset(left, top));
+        });
+      }
     }
   }
 
-  void _forEachPainter(ui.Color currentColor, ui.Paint foreground,
+  void _forEachPainter(
+      ui.Color currentColor,
+      ui.Paint foreground,
+      TextDecoration decoration,
       void Function(double left, double top, TextPainter p) thingToDo) {
     // It's tempting to try to do all this work once, in the constructor,
     // but we need currColor for the text style.  This node can be reused,
@@ -946,8 +984,6 @@ class SIText extends SIRenderable implements _HasBounds {
     final sz = attributes.fontSize;
     final FontStyle style = attributes.fontStyle.asFontStyle;
     final FontWeight weight = attributes.fontWeight.asFontWeight;
-    final TextDecoration decoration =
-        attributes.textDecoration.asTextDecoration;
     for (int i = 0; i < len; i++) {
       final String s;
       if (i == len - 1) {

@@ -15,14 +15,14 @@
 </radialGradient>
 
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
-      x="60" y="40">No decoration</text>
+      x="60" y="50">No decoration</text>
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
       text-decoration="underline"
-      x="60" y="100">Underline</text>
+      x="60" y="110">Underline</text>
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
       text-decoration="line-through"
-      x="60" y="180">Strikethrough</text>
+      x="60" y="190">Strikethrough</text>
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
       text-decoration="overline"
-      x="60" y="260">Overline</text>
+      x="60" y="270">Overline</text>
 </svg>

@@ -68,7 +68,7 @@ believed to be representative.
 
 ## [1.1.2] - April 2022
 
-- Fixed `opacity` attribute handling (use `srcOver`)
+- Fix `opacity` attribute handling (use `srcOver`)
 - Support `mix-blend-mode` attribute
-- Implement clip-rule attribute
-- Implement text-decoration attribute
+- Implement `clip-rule` attribute
+- Implement `text-decoration` attribute
