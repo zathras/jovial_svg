@@ -170,12 +170,15 @@ class _Referrers {
 
 abstract class SvgInheritableAttributes implements SvgNode {
   MutableAffine? transform;
-  SvgPaint paint = SvgPaint.empty();
+  final SvgPaint paint;
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
   int? groupAlpha; // Doesn't inherit; instead, a group is created
   @override
   SIBlendMode blendMode = SIBlendMode.normal;
   // Doesn't inherit; instead, a group is created
+
+  SvgInheritableAttributes({SvgPaint? paint})
+      : paint = paint ?? SvgPaint.empty();
 
   bool _hasNonMaskAttributes() =>
       transform != null ||
@@ -200,6 +203,8 @@ abstract class SvgInheritableAttributes implements SvgNode {
         strokeJoin: paint.strokeJoin ?? ancestor.strokeJoin,
         strokeCap: paint.strokeCap ?? ancestor.strokeCap,
         fillType: paint.fillType ?? ancestor.fillType,
+        clipFillType: paint.clipFillType ?? ancestor.clipFillType,
+        inClipPath: paint.inClipPath || ancestor.inClipPath,
         strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
         strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
         mask: null, // Mask is not inherited
@@ -280,6 +285,8 @@ class SvgPaint {
   SIStrokeJoin? strokeJoin;
   SIStrokeCap? strokeCap;
   SIFillType? fillType;
+  SIFillType? clipFillType;
+  bool inClipPath;
   List<double>? strokeDashArray; // [] for "none"
   double? strokeDashOffset;
   String? mask; // Not inherited
@@ -296,6 +303,8 @@ class SvgPaint {
       required this.strokeJoin,
       required this.strokeCap,
       required this.fillType,
+      required this.clipFillType,
+      required this.inClipPath,
       required this.strokeDashArray,
       required this.strokeDashOffset,
       required this.mask,
@@ -305,6 +314,7 @@ class SvgPaint {
       : fillColor = SvgColor.inherit,
         strokeColor = SvgColor.inherit,
         currentColor = SvgColor.inherit,
+        inClipPath = false,
         userSpace = _dummy;
 
   static RectT _dummy() => const RectT(0, 0, 0, 0);
@@ -323,6 +333,8 @@ class SvgPaint {
           strokeJoin: SIStrokeJoin.miter,
           strokeCap: SIStrokeCap.butt,
           fillType: SIFillType.nonZero,
+          clipFillType: SIFillType.nonZero,
+          inClipPath: false,
           strokeDashArray: null,
           strokeDashOffset: null,
           mask: null,
@@ -343,6 +355,8 @@ class SvgPaint {
           strokeJoin,
           strokeCap,
           fillType,
+          clipFillType,
+          inClipPath,
           strokeDashOffset,
           Object.hashAll(strokeDashArray ?? const []));
 
@@ -363,6 +377,8 @@ class SvgPaint {
           strokeJoin == other.strokeJoin &&
           strokeCap == other.strokeCap &&
           fillType == other.fillType &&
+          clipFillType == other.clipFillType &&
+          inClipPath == other.inClipPath &&
           quiver.listsEqual(strokeDashArray, other.strokeDashArray) &&
           strokeDashOffset == other.strokeDashOffset;
     } else {
@@ -371,24 +387,38 @@ class SvgPaint {
   }
 
   SIPaint toSIPaint(void Function(String) warn) {
-    return SIPaint(
-        fillColor: fillColor.toSIColor(fillAlpha, currentColor, userSpace),
-        strokeColor:
-            strokeColor.toSIColor(strokeAlpha, currentColor, userSpace),
-        strokeWidth: strokeWidth,
-        strokeMiterLimit: strokeMiterLimit,
-        strokeJoin: strokeJoin,
-        strokeCap: strokeCap,
-        fillType: fillType,
-        strokeDashArray: strokeDashArray,
-        strokeDashOffset: strokeDashArray == null ? null : strokeDashOffset);
+    if (inClipPath) {
+      // See SVG 1.1, s. 14.3.5
+      return SIPaint(
+          fillColor: SIColor.white,
+          strokeColor: SIColor.none,
+          strokeWidth: 0,
+          strokeMiterLimit: 4,
+          strokeJoin: SIStrokeJoin.miter,
+          strokeCap: SIStrokeCap.butt,
+          fillType: clipFillType,
+          strokeDashArray: null,
+          strokeDashOffset: null);
+    } else {
+      return SIPaint(
+          fillColor: fillColor.toSIColor(fillAlpha, currentColor, userSpace),
+          strokeColor:
+          strokeColor.toSIColor(strokeAlpha, currentColor, userSpace),
+          strokeWidth: strokeWidth,
+          strokeMiterLimit: strokeMiterLimit,
+          strokeJoin: strokeJoin,
+          strokeCap: strokeCap,
+          fillType: fillType,
+          strokeDashArray: strokeDashArray,
+          strokeDashOffset: strokeDashArray == null ? null : strokeDashOffset);
+    }
   }
 }
 
 class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   var children = List<SvgNode>.empty(growable: true);
 
-  SvgGroup();
+  SvgGroup({SvgPaint? paint}) : super(paint: paint);
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
@@ -516,36 +546,6 @@ class SvgMask extends SvgGroup {
   }
 }
 
-class SvgClipPath extends SvgMask {
-  @override
-  SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
-      _Referrers referrers) {
-    final result = super.resolve(idLookup, ancestor, warn, referrers);
-    for (final c in children) {
-      if (c is SvgInheritableAttributes) {
-        // A bit of a hack:  We stomp on the paint attributes.  See
-        // SVG 1.1, s. 14.3.5
-        c.paint = SvgPaint(
-            currentColor: SvgColor.currentColor, // Inherit from SVG container
-            fillColor: SvgColor.white,
-            fillAlpha: 255,
-            strokeColor: SvgColor.none,
-            strokeAlpha: 255,
-            strokeWidth: 0,
-            strokeMiterLimit: 4,
-            strokeJoin: SIStrokeJoin.miter,
-            strokeCap: SIStrokeCap.butt,
-            fillType: SIFillType.nonZero,
-            strokeDashArray: null,
-            strokeDashOffset: null,
-            mask: null,
-            userSpace: c.paint.userSpace);
-      }
-    }
-    return result;
-  }
-}
-
 ///
 /// A parent node for a node with a mask attribute.
 ///
@@ -657,9 +657,8 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     if (n == null || transform?.determinant() == 0.0) {
       return null;
     }
-    final g = SvgGroup();
+    final g = SvgGroup(paint: paint);
     g.groupAlpha = groupAlpha;
-    g.paint = paint;
     g.transform = transform;
     g.children.add(n);
     return g.resolveMask(idLookup, ancestor, warn, referrers);

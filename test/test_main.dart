@@ -430,7 +430,7 @@ void main() {
           (File f) async =>
               ScalableImage.fromAvdString(await f.readAsString(), warn: false));
     }
-  }, timeout: Timeout(Duration(seconds: 120)));
+  }, timeout: const Timeout(Duration(seconds: 120)));
 
   test('Affine sanity check', () {
     final rand = Random();

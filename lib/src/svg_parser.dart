@@ -294,10 +294,11 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processClipPath(Map<String, String> attrs) {
-    final mask = SvgClipPath();
+    final mask = SvgMask();
     _processId(mask, attrs);
     _processInheritable(mask, attrs);
     _warnUnusedAttributes(attrs);
+    mask.paint.inClipPath = true;
     _parentStack.last.children.add(mask);
     _parentStack.add(mask);
   }
@@ -590,6 +591,7 @@ abstract class SvgParser extends GenericParser {
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
     p.fillAlpha = getAlpha(attrs.remove('fill-opacity'));
     p.fillType = getFillType(attrs.remove('fill-rule'));
+    p.clipFillType = getFillType(attrs.remove('clip-rule'));
     String? mask = attrs.remove('mask') ?? attrs.remove('clip-path');
     if (mask != null) {
       if (mask.startsWith('url(') && mask.endsWith(')')) {

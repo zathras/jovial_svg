@@ -38,6 +38,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
 import 'package:quiver/core.dart' as quiver;
 import 'package:quiver/collection.dart' as quiver;
 
@@ -238,11 +239,13 @@ class SIPaint {
       (strokeWidth > 0 && strokeColor.canUseLuma) || fillColor.canUseLuma;
 }
 
+@immutable
 abstract class SIColor {
   const SIColor();
 
   static const none = SINoneColor._p();
   static const currentColor = SICurrentColor._p();
+  static const white = SIValueColor(0xffffffff);
 
   void accept(SIColorVisitor v);
 
@@ -272,7 +275,7 @@ class SICurrentColor extends SIColor {
 class SIValueColor extends SIColor {
   final int argb;
 
-  SIValueColor(this.argb);
+  const SIValueColor(this.argb);
 
   @override
   void accept(SIColorVisitor v) => v.value(this);
