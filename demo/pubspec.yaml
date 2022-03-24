@@ -32,8 +32,6 @@ flutter:
     - assets/manifest.json
     - assets/svg/anglo.svg
     - assets/svg/anglo_bitmap.svg
-    - assets/svg/broken1.svg
-    - assets/svg/broken2.svg
     - assets/svg/bellot.svg
     - assets/svg/bonded.svg
     - assets/svg/dondorf.svg
@@ -82,8 +80,6 @@ flutter:
     - assets/avd/tango.xml
     - assets/si/anglo.si
     - assets/si/anglo_bitmap.si
-    - assets/si/broken1.si
-    - assets/si/broken2.si
     - assets/si/bellot.si
     - assets/si/bonded.si
     - assets/si/dondorf.si
