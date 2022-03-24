@@ -70,3 +70,4 @@ believed to be representative.
 
 - Fixed `opacity` attribute handling (use `srcOver`)
 - Support `mix-blend-mode` attribute
+- Implement clip-rule attribute

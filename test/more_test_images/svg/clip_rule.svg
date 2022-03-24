@@ -1,0 +1,14 @@
+<svg viewBox="0 0 200 100" 
+   xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink='http://www.w3.org/1999/xlink'>
+<clipPath id="clip">
+  <use xlink:href="#star" transform="translate(60, 0)"/>
+  <use xlink:href="#star" transform="translate(110, 0)"
+      clip-rule="evenodd"/>
+</clipPath>
+<path fill="aqua" id="star" d="M 50,5 L65,60 26,32 74,32 35,60 z" />
+
+
+<rect x="80" y="0" width="110" height="90" fill="darkgreen" 
+    clip-path="url(#clip)" />
+</svg>
