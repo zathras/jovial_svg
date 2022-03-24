@@ -369,6 +369,21 @@ extension SIFontStyleMapping on SIFontStyle {
   }
 }
 
+extension SITextDecorationMapping on SITextDecoration {
+  TextDecoration get asTextDecoration {
+    switch (this) {
+      case SITextDecoration.none:
+        return TextDecoration.none;
+      case SITextDecoration.lineThrough:
+        return TextDecoration.lineThrough;
+      case SITextDecoration.overline:
+        return TextDecoration.overline;
+      case SITextDecoration.underline:
+        return TextDecoration.underline;
+    }
+  }
+}
+
 ///
 /// A Mixin for operations on a Group
 ///
@@ -931,6 +946,8 @@ class SIText extends SIRenderable implements _HasBounds {
     final sz = attributes.fontSize;
     final FontStyle style = attributes.fontStyle.asFontStyle;
     final FontWeight weight = attributes.fontWeight.asFontWeight;
+    final TextDecoration decoration =
+        attributes.textDecoration.asTextDecoration;
     for (int i = 0; i < len; i++) {
       final String s;
       if (i == len - 1) {
@@ -944,8 +961,13 @@ class SIText extends SIRenderable implements _HasBounds {
               fontFamily: fam,
               fontSize: sz,
               fontStyle: style,
-              fontWeight: weight),
+              fontWeight: weight,
+              decoration: decoration,
+              decorationColor: foreground.color),
           text: s);
+      // We could support the decoration-color attribute, but neither Firefox
+      // nor Chrome do (in March 2022), so I'd consider that extreme
+      // gold-plating.
       final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
       tp.layout();
       final dy = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);

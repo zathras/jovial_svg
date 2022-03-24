@@ -711,6 +711,24 @@ abstract class SvgParser extends GenericParser {
       }
     }
 
+    attr = attrs.remove('text-decoration');
+    if (attr == null || attr == 'inherit') {
+      // Let it stay at null
+    } else {
+      const vals = {
+        'none': SITextDecoration.none,
+        'underline': SITextDecoration.underline,
+        'overline': SITextDecoration.overline,
+        'line-through': SITextDecoration.lineThrough,
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.textDecoration = v;
+      } else if (warn) {
+        print('    Ignoring invalid textDecoration "$attr"');
+      }
+    }
+
     node.transform = getTransform(node.transform, attrs.remove('transform'));
 
     attr = attrs.remove('mix-blend-mode');

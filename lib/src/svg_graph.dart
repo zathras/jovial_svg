@@ -36,7 +36,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
-import 'package:quiver/core.dart' as quiver;
 import 'package:quiver/collection.dart' as quiver;
 
 import 'affine.dart';
@@ -222,6 +221,8 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fontSize: textAttributes.fontSize.orInherit(ancestor.fontSize),
         fontFamily: textAttributes.fontFamily ?? ancestor.fontFamily,
         textAnchor: textAttributes.textAnchor ?? ancestor.textAnchor,
+        textDecoration:
+            textAttributes.textDecoration ?? ancestor.textDecoration,
         fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
@@ -1333,6 +1334,7 @@ class SvgTextAttributes {
   String? fontFamily;
   SIFontStyle? fontStyle;
   SITextAnchor? textAnchor;
+  SITextDecoration? textDecoration;
   SvgFontWeight fontWeight = SvgFontWeight.inherit;
   SvgFontSize fontSize = SvgFontSize.inherit;
 
@@ -1342,18 +1344,21 @@ class SvgTextAttributes {
       required this.fontStyle,
       required this.textAnchor,
       required this.fontWeight,
-      required this.fontSize});
+      required this.fontSize,
+      required this.textDecoration});
 
   SvgTextAttributes.initial()
       : fontFamily = '',
         textAnchor = SITextAnchor.start,
         fontStyle = SIFontStyle.normal,
         fontWeight = SvgFontWeight.w400,
-        fontSize = SvgFontSize.medium;
+        fontSize = SvgFontSize.medium,
+        textDecoration = SITextDecoration.none;
 
   SITextAttributes toSITextAttributes() => SITextAttributes(
       fontFamily: fontFamily!,
       textAnchor: textAnchor!,
+      textDecoration: textDecoration!,
       fontStyle: fontStyle!,
       fontWeight: fontWeight.toSI(),
       fontSize: fontSize.toSI());

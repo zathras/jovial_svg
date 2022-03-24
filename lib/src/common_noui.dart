@@ -1100,19 +1100,23 @@ enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
 
 enum SITextAnchor { start, middle, end }
 
+enum SITextDecoration { none, lineThrough, overline, underline }
+
 class SITextAttributes {
   final String fontFamily;
   final SITextAnchor textAnchor;
   final SIFontStyle fontStyle;
   final SIFontWeight fontWeight;
   final double fontSize;
+  final SITextDecoration textDecoration;
 
   SITextAttributes(
       {required this.fontFamily,
       required this.textAnchor,
       required this.fontStyle,
       required this.fontWeight,
-      required this.fontSize});
+      required this.fontSize,
+      required this.textDecoration});
 
   @override
   bool operator ==(final Object other) {
@@ -1123,7 +1127,8 @@ class SITextAttributes {
           textAnchor == other.textAnchor &&
           fontStyle == other.fontStyle &&
           fontWeight == other.fontWeight &&
-          fontSize == other.fontSize;
+          fontSize == other.fontSize &&
+          textDecoration == other.textDecoration;
     } else {
       return false;
     }
@@ -1132,7 +1137,8 @@ class SITextAttributes {
   @override
   int get hashCode =>
       0xa7cb9e84 ^
-      Object.hash(fontFamily, fontStyle, fontWeight, fontSize, textAnchor);
+      Object.hash(fontFamily, fontStyle, fontWeight, fontSize, textAnchor,
+          textDecoration);
 }
 
 ///

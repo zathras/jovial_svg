@@ -315,13 +315,22 @@ abstract class CompactTraverserBase<R, IM,
     final anchor = (fileVersion < 2)
         ? SITextAnchor.start
         : SITextAnchor.values[(byte >> 5) & 0x03];
+    final SITextDecoration decoration;
+    if (fileVersion < 6) {
+      decoration = SITextDecoration.none;
+    } else {
+      final byte = _children.readUnsignedByte();
+      decoration = SITextDecoration.values[byte & 0x03];
+    }
+
     final fontSize = _args.get();
     final ta = SITextAttributes(
         fontFamily: (ffi == null) ? '' : _strings[ffi],
         fontStyle: style,
         textAnchor: anchor,
         fontSize: fontSize,
-        fontWeight: weight);
+        fontWeight: weight,
+        textDecoration: decoration);
     return visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
   }
 
@@ -587,7 +596,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    3 = jovial_svg version 1.1.0 (later release candidate), March 2022
   ///    4 - jovial_svg version 1.1.1.rc-3, March 2022
   ///    5 - jovial_svg version 1.1.2, April 2022
-  static const int fileVersionNumber = 5;
+  ///    6 - jovial_svg version 1.1.2, April 2022 (text decoration)
+  static const int fileVersionNumber = 6;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
@@ -1165,6 +1175,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     children.writeByte(a.fontStyle.index |
         (a.fontWeight.index << 1) |
         (a.textAnchor.index << 5));
+    children.writeByte(a.textDecoration.index);
     _writeFloat(a.fontSize);
   }
 
