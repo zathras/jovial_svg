@@ -171,6 +171,7 @@ class _Referrers {
 abstract class SvgInheritableAttributes implements SvgNode {
   MutableAffine? transform;
   final SvgPaint paint;
+  bool display = true;
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
   int? groupAlpha; // Doesn't inherit; instead, a group is created
   @override
@@ -187,9 +188,13 @@ abstract class SvgInheritableAttributes implements SvgNode {
       groupAlpha != null ||
       blendMode != SIBlendMode.normal;
 
-  bool _isInvisible(SvgPaint paint) =>
-      (paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
-      (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none);
+  bool _isInvisible(SvgPaint paint) {
+    return !display ||
+        paint.hidden == true ||
+        ((paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
+            (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none) &&
+            !paint.inClipPath);
+  }
 
   SvgPaint cascadePaint(SvgPaint ancestor, Map<String, SvgNode> ids) {
     return SvgPaint(
@@ -208,6 +213,7 @@ abstract class SvgInheritableAttributes implements SvgNode {
         strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
         strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
         mask: null, // Mask is not inherited
+        hidden: paint.hidden ?? ancestor.hidden,
         userSpace: ancestor.userSpace); // userSpace is inherited from root
   }
 
@@ -289,6 +295,7 @@ class SvgPaint {
   bool inClipPath;
   List<double>? strokeDashArray; // [] for "none"
   double? strokeDashOffset;
+  bool? hidden;
   String? mask; // Not inherited
   final RectT Function() userSpace; // only inherited (from root)
 
@@ -307,6 +314,7 @@ class SvgPaint {
       required this.inClipPath,
       required this.strokeDashArray,
       required this.strokeDashOffset,
+      required this.hidden,
       required this.mask,
       required this.userSpace});
 
@@ -337,6 +345,7 @@ class SvgPaint {
           inClipPath: false,
           strokeDashArray: null,
           strokeDashOffset: null,
+          hidden: false,
           mask: null,
           userSpace: userSpace);
 
@@ -351,6 +360,7 @@ class SvgPaint {
           strokeWidth,
           strokeMiterLimit,
           currentColor,
+          hidden,
           mask,
           strokeJoin,
           strokeCap,
@@ -374,6 +384,7 @@ class SvgPaint {
           strokeMiterLimit == other.strokeMiterLimit &&
           currentColor == other.currentColor &&
           mask == other.mask &&
+          hidden == other.hidden &&
           strokeJoin == other.strokeJoin &&
           strokeCap == other.strokeCap &&
           fillType == other.fillType &&
@@ -387,7 +398,20 @@ class SvgPaint {
   }
 
   SIPaint toSIPaint(void Function(String) warn) {
-    if (inClipPath) {
+    if (hidden == true) {
+      // Hidden nodes should be optimized away
+      assert(hidden != true);
+      return SIPaint(
+          fillColor: SIColor.none,
+          strokeColor: SIColor.none,
+          strokeWidth: 0,
+          strokeMiterLimit: 4,
+          strokeJoin: SIStrokeJoin.miter,
+          strokeCap: SIStrokeCap.butt,
+          fillType: clipFillType,
+          strokeDashArray: null,
+          strokeDashOffset: null);
+    } else if (inClipPath) {
       // See SVG 1.1, s. 14.3.5
       return SIPaint(
           fillColor: SIColor.white,
@@ -403,7 +427,7 @@ class SvgPaint {
       return SIPaint(
           fillColor: fillColor.toSIColor(fillAlpha, currentColor, userSpace),
           strokeColor:
-          strokeColor.toSIColor(strokeAlpha, currentColor, userSpace),
+              strokeColor.toSIColor(strokeAlpha, currentColor, userSpace),
           strokeWidth: strokeWidth,
           strokeMiterLimit: strokeMiterLimit,
           strokeJoin: strokeJoin,
@@ -464,6 +488,9 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
+    if (!display) {
+      return false;
+    }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final currTA = cascadeText(ta);
     final cascaded = cascadePaint(ancestor, idLookup);
@@ -700,9 +727,14 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
+    if (!display) {
+      return false;
+    }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final cascaded = cascadePaint(ancestor, idLookup);
-    if (transform != null ||
+    if (cascaded.hidden == true) {
+      return false;
+    } else if (transform != null ||
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
@@ -912,7 +944,8 @@ class SvgRect extends SvgPathMaker {
           width == other.width &&
           height == other.height &&
           rx == other.rx &&
-          ry == other.ry;
+          ry == other.ry &&
+          display == other.display;
     } else {
       return false;
     }
@@ -920,7 +953,7 @@ class SvgRect extends SvgPathMaker {
 
   @override
   int get hashCode =>
-      0x04acdf77 ^ quiver.hash3(quiver.hash4(x, y, width, height), rx, ry);
+      0x04acdf77 ^ Object.hash(x, y, width, height, rx, ry, display);
 }
 
 class SvgEllipse extends SvgPathMaker {
@@ -968,14 +1001,15 @@ class SvgEllipse extends SvgPathMaker {
       return cx == other.cx &&
           cy == other.cy &&
           rx == other.rx &&
-          ry == other.ry;
+          ry == other.ry &&
+          display == other.display;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => 0x795d8ece ^ quiver.hash4(cx, cy, rx, ry);
+  int get hashCode => 0x795d8ece ^ Object.hash(cx, cy, rx, ry, display);
 }
 
 class SvgPoly extends SvgPathMaker {
@@ -1033,7 +1067,9 @@ class SvgPoly extends SvgPathMaker {
     if (identical(this, other)) {
       return true;
     } else if (other is SvgPoly) {
-      return close == other.close && quiver.listsEqual(points, other.points);
+      return close == other.close &&
+          display == other.display &&
+          quiver.listsEqual(points, other.points);
     } else {
       return false;
     }
@@ -1041,7 +1077,7 @@ class SvgPoly extends SvgPathMaker {
 
   @override
   int get hashCode =>
-      0xf4e007c0 ^ quiver.hash2(close, quiver.hashObjects(points));
+      0xf4e007c0 ^ Object.hash(display, close, Object.hashAll(points));
 }
 
 class SvgGradientNode implements SvgNode {
@@ -1148,9 +1184,15 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
+    if (!display) {
+      return false;
+    }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     assert(_imageNumber > -1);
-    if (transform != null ||
+    final cascaded = cascadePaint(ancestor, idLookup);
+    if (cascaded.hidden == true) {
+      return false;
+    } else if (transform != null ||
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
@@ -1237,6 +1279,9 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
       {bool blendHandledByParent = false}) {
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     final cascaded = cascadePaint(ancestor, idLookup);
+    if (!display || cascaded.hidden == true) {
+      return false;
+    }
     if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
       if (cascaded.strokeAlpha == 0 ||
           cascaded.strokeColor == SvgColor.none ||

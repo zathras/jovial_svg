@@ -586,6 +586,7 @@ abstract class SvgParser extends GenericParser {
 
   void _processInheritable(
       SvgInheritableAttributes node, Map<String, String> attrs) {
+    node.display = attrs.remove('display') != 'none';
     final SvgPaint p = node.paint;
     p.currentColor = getSvgColor(attrs.remove('color')?.trim());
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
@@ -602,6 +603,10 @@ abstract class SvgParser extends GenericParser {
       }
     }
     p.mask = mask;
+    String? visibility = attrs.remove('visibility');
+    if (visibility != null) {
+      p.hidden = visibility == 'hidden' || visibility == 'collapse';
+    }
     p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim());
     p.strokeAlpha = getAlpha(attrs.remove('stroke-opacity'));
     p.strokeWidth = getFloat(attrs.remove('stroke-width'));
