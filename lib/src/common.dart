@@ -878,7 +878,8 @@ class SIText extends SIRenderable implements _HasBounds {
 
   late final Rect _bounds = () {
     Rect result = Rect.fromLTRB(_x[0], _y[0], 1, 1);
-    _forEachPainter(Colors.black, Paint(), TextDecoration.none,
+    _forEachPainter(
+        Colors.black, Paint(), attributes.textDecoration.asTextDecoration,
         (double left, double top, TextPainter tp) {
       result =
           result.expandToInclude(Rect.fromLTWH(left, top, tp.width, tp.height));
