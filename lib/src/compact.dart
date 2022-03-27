@@ -397,12 +397,12 @@ abstract class _CompactVisitor<R>
   R siClipPath(R collector, SIClipPath path);
 
   @override
-  R text(R collector, int xIndex, int yIndex, int textIndex,
+  R legacyText(R collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
     return siText(
         collector,
-        SIText(_strings[textIndex], _floatLists[xIndex], _floatLists[yIndex],
-            ta, p),
+        SIText.legacy(_strings[textIndex], _floatLists[xIndex],
+            _floatLists[yIndex], ta, p),
         xIndex,
         yIndex);
   }
@@ -715,6 +715,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
   @override
   PruningBoundary siText(
       PruningBoundary boundary, SIText text, int xIndex, int yIndex) {
+    throw "@@ TODO";
+    /*
     if (text.prunedBy({}, {}, boundary) != null) {
       if (_parentStack.isNotEmpty) {
         _parentStack.last.generateParentIfNeeded();
@@ -728,6 +730,8 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
       SIPaint p = text.siPaint;
       builder.text(null, xIndex, yIndex, textIndex, ta, fontFamilyIndex, p);
     }
+
+     */
     return boundary;
   }
 }

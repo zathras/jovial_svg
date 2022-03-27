@@ -168,10 +168,6 @@ abstract class SIRenderable {
   }
 }
 
-abstract class _HasBounds {
-  Rect getBounds();
-}
-
 extension SIGradientSpreadMethodMapping on SIGradientSpreadMethod {
   TileMode get toTileMode {
     switch (this) {
@@ -537,7 +533,7 @@ class SIClipPath extends SIRenderable {
   int get hashCode => path.hashCode ^ 0x1f9a3eed;
 }
 
-class SIPath extends SIRenderable implements _HasBounds {
+class SIPath extends SIRenderable {
   final Path path;
   final SIPaint siPaint;
 
@@ -631,7 +627,6 @@ class SIPath extends SIRenderable implements _HasBounds {
     }
   }
 
-  @override
   Rect getBounds() {
     Rect pathB = path.getBounds();
     if (_wouldPaint(siPaint.strokeColor)) {
@@ -828,43 +823,38 @@ class _ImageLoader {
   }
 }
 
-class SIText extends SIRenderable implements _HasBounds {
-  final String text;
-  final List<double> _x;
-  final List<double> _y;
-  final SITextAttributes attributes;
-  final SIPaint siPaint;
+class SIText extends SIRenderable {
+  final List<SITextChunk> chunks;
 
-  SIText(this.text, this._x, this._y, this.attributes, this.siPaint);
+  SIText(this.chunks);
 
-  @override
-  bool operator ==(final Object other) {
-    if (identical(this, other)) {
-      return true;
-    } else if (other is! SIText) {
-      return false;
-    } else {
-      return quiver.listsEqual(_x, other._x) &&
-          quiver.listsEqual(_y, other._y) &&
-          text == other.text &&
-          attributes == other.attributes &&
-          siPaint == other.siPaint;
+  factory SIText.legacy(String text, List<double> x, List<double> y,
+      SITextAttributes attributes, SIPaint siPaint) {
+    final chunks = <SITextChunk>[];
+    final len = min(min(x.length, y.length), text.length);
+    for (int i = 0; i < len; i++) {
+      final String s;
+      if (i == len - 1) {
+        s = text.substring(i, text.length);
+      } else {
+        s = text.substring(i, i + 1);
+      }
+      chunks.add(SITextSpan(s, x[i], y[i], attributes, siPaint));
     }
+    return SIText(List.unmodifiable(chunks));
   }
 
   @override
-  int get hashCode =>
-      0x238cbb88 ^
-      quiver.hash4(quiver.hashObjects(_x), quiver.hashObjects(_y), text,
-          quiver.hash2(attributes, siPaint));
-
-  @override
-  PruningBoundary? getBoundary() => PruningBoundary(getBounds());
+  PruningBoundary? getBoundary() =>
+      chunks.isEmpty ? null : PruningBoundary(_bounds);
 
   @override
   SIRenderable? prunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
-    Rect textB = getBounds();
+    if (chunks.isEmpty) {
+      return null;
+    }
+    Rect textB = _bounds;
     final bb = b.getBounds();
     if (textB.overlaps(bb)) {
       return this;
@@ -873,23 +863,71 @@ class SIText extends SIRenderable implements _HasBounds {
     }
   }
 
-  @override
-  Rect getBounds() => _bounds;
-
   late final Rect _bounds = () {
-    Rect result = Rect.fromLTRB(_x[0], _y[0], 1, 1);
-    _forEachPainter(
+    Rect result = chunks[0]._bounds;
+    for (int i = 0; i < chunks.length; i++) {
+      result = result.expandToInclude(chunks[i]._bounds);
+    }
+    return result;
+  }();
+
+  @override
+  void paint(ui.Canvas c, RenderContext context) {
+    for (final chunk in chunks) {
+      chunk.paint(this, c, context);
+    }
+  }
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {}
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SIText) {
+      return false;
+    } else {
+      return quiver.listsEqual(chunks, other.chunks);
+    }
+  }
+
+  @override
+  int get hashCode => 0x238cbb88 ^ Object.hashAll(chunks);
+}
+
+abstract class SITextChunk {
+  final double x;
+  final double y;
+
+  SITextChunk(this.x, this.y);
+
+  void paint(SIText parent, ui.Canvas c, RenderContext context);
+
+  Rect get _bounds;
+}
+
+class SITextSpan extends SITextChunk {
+  final String text;
+  final SITextAttributes attributes;
+  final SIPaint siPaint;
+
+  SITextSpan(this.text, double x, double y, this.attributes, this.siPaint)
+      : super(x, y);
+
+  @override
+  late final Rect _bounds = () {
+    late final Rect result;
+    _doWithPainter(
         Colors.black, Paint(), attributes.textDecoration.asTextDecoration,
         (double left, double top, TextPainter tp) {
-      result =
-          result.expandToInclude(Rect.fromLTWH(left, top, tp.width, tp.height));
+      result = Rect.fromLTWH(left, top, tp.width, tp.height);
     });
     return result;
   }();
 
-  Paint? _getPaint(SIColor c, RenderContext context) {
-    late final bounds = getBounds();
-    Rect boundsF() => bounds;
+  Paint? _getPaint(SIText parent, SIColor c, RenderContext context) {
+    Rect boundsF() => parent._bounds;
     Paint? r;
     c.accept(SIColorVisitor(
         value: (SIValueColor c) {
@@ -900,32 +938,33 @@ class SIText extends SIRenderable implements _HasBounds {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          _setLinearGradient(
-              p, c, _gradientXform(c, boundsF, context), context);
+          parent._setLinearGradient(
+              p, c, parent._gradientXform(c, boundsF, context), context);
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          _setRadialGradient(
-              p, c, _gradientXform(c, boundsF, context), context);
+          parent._setRadialGradient(
+              p, c, parent._gradientXform(c, boundsF, context), context);
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
-          _setSweepGradient(p, c, _gradientXform(c, boundsF, context), context);
+          parent._setSweepGradient(
+              p, c, parent._gradientXform(c, boundsF, context), context);
         }));
     return r;
   }
 
   @override
-  void paint(ui.Canvas c, RenderContext context) {
+  void paint(SIText parent, ui.Canvas c, RenderContext context) {
     final TextDecoration decoration =
         attributes.textDecoration.asTextDecoration;
     final decorated = decoration != TextDecoration.none;
-    Paint? foreground = _getPaint(siPaint.fillColor, context);
+    Paint? foreground = _getPaint(parent, siPaint.fillColor, context);
     if (foreground != null) {
       if (decorated && siPaint.fillColor is! SIValueColor) {
         c.saveLayer(_bounds, Paint());
         final white = Paint()..color = Colors.white;
-        _forEachPainter(context.currentColor, white, decoration,
+        _doWithPainter(context.currentColor, white, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -934,13 +973,13 @@ class SIText extends SIRenderable implements _HasBounds {
         c.restore();
         c.restore();
       } else {
-        _forEachPainter(context.currentColor, foreground, decoration,
+        _doWithPainter(context.currentColor, foreground, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
       }
     }
-    Paint? strokeP = _getPaint(siPaint.strokeColor, context);
+    Paint? strokeP = _getPaint(parent, siPaint.strokeColor, context);
     if (strokeP != null) {
       if (decorated &&
           foreground == null &&
@@ -950,7 +989,7 @@ class SIText extends SIRenderable implements _HasBounds {
           ..color = Colors.white
           ..strokeWidth = siPaint.strokeWidth
           ..style = PaintingStyle.stroke;
-        _forEachPainter(context.currentColor, white, decoration,
+        _doWithPainter(context.currentColor, white, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -963,7 +1002,7 @@ class SIText extends SIRenderable implements _HasBounds {
         strokeP.style = PaintingStyle.stroke;
         final decoration2 =
             foreground == null ? decoration : TextDecoration.none;
-        _forEachPainter(context.currentColor, strokeP, decoration2,
+        _doWithPainter(context.currentColor, strokeP, decoration2,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -971,7 +1010,7 @@ class SIText extends SIRenderable implements _HasBounds {
     }
   }
 
-  void _forEachPainter(
+  void _doWithPainter(
       ui.Color currentColor,
       ui.Paint foreground,
       TextDecoration decoration,
@@ -979,53 +1018,131 @@ class SIText extends SIRenderable implements _HasBounds {
     // It's tempting to try to do all this work once, in the constructor,
     // but we need currColor for the text style.  This node can be reused,
     // so we can't guarantee that's a constant.  Fortunately, text performance
-    // isn't a big part of SVG rendering performance most fo the time.
-    final len = min(min(_x.length, _y.length), text.length);
+    // isn't a big part of SVG rendering performance most of the time.
     final fam = (attributes.fontFamily == '') ? null : attributes.fontFamily;
     final sz = attributes.fontSize;
     final FontStyle style = attributes.fontStyle.asFontStyle;
     final FontWeight weight = attributes.fontWeight.asFontWeight;
-    for (int i = 0; i < len; i++) {
-      final String s;
-      if (i == len - 1) {
-        s = text.substring(i, text.length);
-      } else {
-        s = text.substring(i, i + 1);
-      }
-      final span = TextSpan(
-          style: TextStyle(
-              foreground: foreground,
-              fontFamily: fam,
-              fontSize: sz,
-              fontStyle: style,
-              fontWeight: weight,
-              decoration: decoration,
-              decorationColor: foreground.color),
-          text: s);
-      // We could support the decoration-color attribute, but neither Firefox
-      // nor Chrome do (in March 2022), so I'd consider that extreme
-      // gold-plating.
-      final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
-      tp.layout();
-      final dy = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      final double dx;
-      switch (attributes.textAnchor) {
-        case SITextAnchor.start:
-          dx = 0;
-          break;
-        case SITextAnchor.middle:
-          dx = -tp.width / 2;
-          break;
-        case SITextAnchor.end:
-          dx = -tp.width;
-          break;
-      }
-      thingToDo(_x[i] + dx, _y[i] - dy, tp);
+    final span = TextSpan(
+        style: TextStyle(
+            foreground: foreground,
+            fontFamily: fam,
+            fontSize: sz,
+            fontStyle: style,
+            fontWeight: weight,
+            decoration: decoration,
+            decorationColor: foreground.color),
+        text: text);
+    // We could support the decoration-color attribute, but neither Firefox
+    // nor Chrome do (in March 2022), so I'd consider that extreme
+    // gold-plating.
+    final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
+    tp.layout();
+    final dy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    final double dx;
+    switch (attributes.textAnchor) {
+      case SITextAnchor.start:
+        dx = 0;
+        break;
+      case SITextAnchor.middle:
+        dx = -tp.width / 2;
+        break;
+      case SITextAnchor.end:
+        dx = -tp.width;
+        break;
+    }
+    thingToDo(x + dx, y + dy, tp);
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SITextSpan) {
+      return false;
+    } else {
+      return x == other.x &&
+          y == other.y &&
+          text == other.text &&
+          attributes == other.attributes &&
+          siPaint == other.siPaint;
     }
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {}
+  int get hashCode => Object.hash(x, y, text, attributes, siPaint);
+}
+
+///
+/// A "text chunk," in SVG, is a set of text with an absolute position.
+/// The children of this node's x and y values are deltas from their
+/// "natural" postion, and the textAnchor of our children must be `start`.
+/// Instances of this class must have at least one child [SITextSpan].
+///
+class SIMultiSpanChunk extends SITextChunk {
+  final SITextAnchor textAnchor;
+  final List<SITextSpan> spans;
+
+  SIMultiSpanChunk(double x, double y, this.textAnchor, this.spans)
+      : super(x, y) {
+    assert(spans.isNotEmpty);
+    for (final s in spans) {
+      assert(s.attributes.textAnchor == SITextAnchor.start);
+    }
+  }
+
+  @override
+  ui.Rect get _bounds {
+    ui.Rect result = spans[0]._bounds;
+    double right = result.right;
+    for (int i = 0; i < spans.length; i++) {
+      ui.Rect b = spans[i]._bounds;
+      b = Rect.fromLTWH(b.left + right, b.top, b.width, b.height);
+      result = result.expandToInclude(b);
+      right = result.right;
+    }
+    switch (textAnchor) {
+      case SITextAnchor.start:
+        return ui.Rect.fromLTWH(
+            x + result.left, y + result.top, result.width, result.height);
+      case SITextAnchor.middle:
+        return ui.Rect.fromLTWH(x + result.left - right / 2, y + result.top,
+            result.width, result.height);
+      case SITextAnchor.end:
+        return ui.Rect.fromLTWH(x + result.left - right, y + result.top,
+            result.width, result.height);
+    }
+  }
+
+  double _getWidth() {
+    double w = 0;
+    for (final span in spans) {
+      final b = span._bounds;
+      w += b.width;
+    }
+    return w;
+  }
+
+  @override
+  void paint(SIText parent, ui.Canvas c, RenderContext context) {
+    c.save();
+    switch (textAnchor) {
+      case SITextAnchor.start:
+        c.translate(x, y);
+        break;
+      case SITextAnchor.middle:
+        c.translate(x - _getWidth() / 2, 0);
+        break;
+      case SITextAnchor.end:
+        c.translate(x - _getWidth(), 0);
+        break;
+    }
+    for (final span in spans) {
+      span.paint(parent, c, context);
+      c.translate(span._bounds.width, 0);
+    }
+    c.restore();
+  }
 }
 
 ///

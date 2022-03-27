@@ -16,20 +16,8 @@ linter:
         # to the developer, but of course we expect them to be turned off in production
         # code.
 
-# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
-# Uncomment to specify additional rules.
-# linter:
-#   rules:
-#     - camel_case_types
 
 analyzer:
   strong-mode:
     implicit-casts: false
     implicit-dynamic: false
-
-
-#  errors:
-#        prefer_single_quotes: ignore
-
-#   exclude:
-#     - path/to/excluded/files/**

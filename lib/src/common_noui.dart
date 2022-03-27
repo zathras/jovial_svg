@@ -81,8 +81,8 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R image(R collector, int imageIndex);
 
-  R text(R collector, int xIndex, int yIndex, int textIndex, SITextAttributes a,
-      int? fontFamilyIndex, SIPaint paint);
+  R legacyText(R collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes a, int? fontFamilyIndex, SIPaint paint);
 
   /// Check any invariants that should be true at the end of a traversal
   void assertDone() {}

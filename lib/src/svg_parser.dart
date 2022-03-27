@@ -168,14 +168,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _textEvent(XmlTextEvent e) {
-    final el = _currentText;
-    if (el != null) {
-      if (el.text == '') {
-        el.text = e.text.trim();
-      } else {
-        el.text = el.text + ' ' + e.text.trim();
-      }
-    }
+    _currentText?.appendText(e.text);
   }
 
   void _endTag(XmlEndElementEvent evt) {

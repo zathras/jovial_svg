@@ -42,12 +42,13 @@ const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
-  const test = false;
+  bool avdTests = false;
   WidgetsFlutterBinding.ensureInitialized();
   final json = await rootBundle.loadString('assets/manifest.json');
   final typeUnsafe = jsonDecode(json) as List<dynamic>;
   final assets = List<Asset>.empty(growable: true);
-  if (test) {
+  // ignore: dead_code
+  if (avdTests) {
     void addAvd(String name) {
       assets.add(Asset(avd: '$name.xml', si: '$name.si'));
     }

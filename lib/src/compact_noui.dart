@@ -331,7 +331,7 @@ abstract class CompactTraverserBase<R, IM,
         fontSize: fontSize,
         fontWeight: weight,
         textDecoration: decoration);
-    return visitor.text(collector, xi, yi, textIndex, ta, ffi, p);
+    return visitor.legacyText(collector, xi, yi, textIndex, ta, ffi, p);
   }
 
   R image(R collector) {
@@ -1153,7 +1153,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void text(void collector, int xIndex, int yIndex, int textIndex,
+  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
     final int? paintNumber = _paintShare[paint];
     children.writeByte(TEXT_CODE |

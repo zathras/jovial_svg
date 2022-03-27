@@ -167,32 +167,19 @@ class _Referrers {
   }
 }
 
-abstract class SvgInheritableAttributes implements SvgNode {
-  MutableAffine? transform;
+/// Just the inheritable attributes that are applicable to text
+abstract class SvgInheritableTextAttributes {
   final SvgPaint paint;
-  bool display = true;
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
-  int? groupAlpha; // Doesn't inherit; instead, a group is created
-  @override
-  SIBlendMode blendMode = SIBlendMode.normal;
-  // Doesn't inherit; instead, a group is created
 
-  SvgInheritableAttributes({SvgPaint? paint})
+  SvgInheritableTextAttributes({SvgPaint? paint})
       : paint = paint ?? SvgPaint.empty();
 
-  bool _hasNonMaskAttributes() =>
-      transform != null ||
-      paint != SvgPaint.empty() ||
-      textAttributes != SvgTextAttributes.empty() ||
-      groupAlpha != null ||
-      blendMode != SIBlendMode.normal;
-
-  bool _isInvisible(SvgPaint paint) {
-    return !display ||
-        paint.hidden == true ||
-        ((paint.strokeAlpha == 0 || paint.strokeColor == SvgColor.none) &&
-            (paint.fillAlpha == 0 || paint.fillColor == SvgColor.none) &&
-            !paint.inClipPath);
+  bool _isInvisible(SvgPaint cascaded) {
+    return cascaded.hidden == true ||
+        ((cascaded.strokeAlpha == 0 || cascaded.strokeColor == SvgColor.none) &&
+            (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) &&
+            !cascaded.inClipPath);
   }
 
   SvgPaint cascadePaint(SvgPaint ancestor, Map<String, SvgNode> ids) {
@@ -226,6 +213,29 @@ abstract class SvgInheritableAttributes implements SvgNode {
         fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
         fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
+}
+
+abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes
+    implements SvgNode {
+  MutableAffine? transform;
+  bool display = true;
+  int? groupAlpha; // Doesn't inherit; instead, a group is created
+  @override
+  SIBlendMode blendMode = SIBlendMode.normal;
+  // Doesn't inherit; instead, a group is created
+
+  SvgInheritableAttributes({SvgPaint? paint}) : super(paint: paint);
+
+  @override
+  bool _isInvisible(SvgPaint cascaded) =>
+      !display || super._isInvisible(cascaded);
+
+  bool _hasNonMaskAttributes() =>
+      transform != null ||
+      paint != SvgPaint.empty() ||
+      textAttributes != SvgTextAttributes.empty() ||
+      groupAlpha != null ||
+      blendMode != SIBlendMode.normal;
 
   @override
   _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
@@ -1212,22 +1222,52 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   }
 }
 
-class SvgText extends SvgInheritableAttributes implements SvgNode {
+abstract class SvgTextNodeAttributes extends SvgInheritableTextAttributes {
+  List<double>? get x;
+  List<double>? get y;
+  List<double>? dx;
+  List<double>? dy;
+}
+
+class SvgText extends SvgInheritableAttributes
+    implements SvgNode, SvgTextNodeAttributes {
   String text = '';
+  @override
   List<double> x = const [0.0];
+  @override
   List<double> y = const [0.0];
+  @override
+  List<double>? dx;
+  @override
+  List<double>? dy;
   int xIndex = -1;
   int yIndex = -1;
   int textIndex = -1;
 
   SvgText();
 
+  static final _whitespace = RegExp(r'\s+');
+
+  void appendText(String added) {
+    added = added.replaceAll(_whitespace, ' ');
+    if (text == '' || text.endsWith(' ')) {
+      added = added.trimLeft();
+    }
+    if (text == '') {
+      text = added;
+    } else {
+      text = text + added;
+    }
+  }
+
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
       _Referrers referrers) {
+    text = text.trimRight();
     if (text == '') {
       return null;
     } else {
+      print('@@ text "$text"');
       return resolveMask(idLookup, ancestor, warn, referrers);
     }
   }
@@ -1303,11 +1343,11 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
-      builder.text(
+      builder.legacyText(
           null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
       builder.endGroup(null);
     } else {
-      builder.text(
+      builder.legacyText(
           null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
     }
     return true;
@@ -1327,6 +1367,120 @@ class SvgText extends SvgInheritableAttributes implements SvgNode {
     final cascaded = cascadePaint(ancestor, idLookup);
     final p = cascaded.toSIPaint(warn).forText();
     return p.canUseLuma;
+  }
+}
+
+class SvgNewText extends SvgInheritableAttributes {
+  List<SvgTextSpan> stack = [SvgTextSpan()];
+  bool _trimLeft = true;
+
+  static final _whitespace = RegExp(r'\s+');
+
+  SvgNewText() {
+    final root = stack.first;
+    root.x = root.y = const [0.0];
+  }
+
+  @override
+  SvgPaint get paint => stack.first.paint;
+
+  @override
+  SvgTextAttributes get textAttributes => stack.first.textAttributes;
+
+  @override
+  set textAttributes(SvgTextAttributes v) => stack.first.textAttributes = v;
+
+  void appendText(String added) {
+    added = added.replaceAll(_whitespace, ' ');
+    if (_trimLeft) {
+      added = added.trimLeft();
+    }
+    _trimLeft = added.endsWith(' ');
+    if (added != '') {
+      stack.last.appendToPart(added);
+    }
+  }
+
+  SvgTextSpan startSpan() {
+    final s = SvgTextSpan();
+    stack.add(s);
+    return s;
+  }
+
+  void endSpan() {
+    stack.removeLast();
+  }
+
+  @override
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+      _Referrers referrers) {
+    return resolveMask(idLookup, ancestor, warn, referrers);
+  }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn) {
+    throw "@@";
+  }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+    throw "@@";
+  }
+
+  @override
+  void collectCanon(CanonicalizedData<SIImageData> canon) {
+    throw "@@";
+  }
+
+  @override
+  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
+      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    assert(stack.length == 1);
+    stack.first.trimRight();
+    throw "@@";
+  }
+}
+
+class SvgTextSpan extends SvgTextNodeAttributes
+    implements SvgTextSpanComponent {
+  @override
+  List<double>? x;
+  @override
+  List<double>? y;
+  List<SvgTextSpanComponent> parts = [];
+
+  void appendToPart(String added) {
+    parts.add(SvgTextSpanStringComponent(added));
+  }
+
+  @override
+  bool trimRight() {
+    for (int i = parts.length - 1; i >= 0; i--) {
+      if (parts[i].trimRight()) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+abstract class SvgTextSpanComponent {
+  bool trimRight();
+}
+
+class SvgTextSpanStringComponent extends SvgTextSpanComponent {
+  String text;
+
+  SvgTextSpanStringComponent(this.text) {
+    assert(text != '');
+  }
+
+  @override
+  bool trimRight() {
+    text = text.trimRight();
+    return true;
   }
 }
 

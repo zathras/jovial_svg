@@ -652,9 +652,9 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   @mustCallSuper
-  void text(void collector, int xIndex, int yIndex, int textIndex,
+  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
-    addRenderable(SIText(_strings[textIndex], _floatLists[xIndex],
+    addRenderable(SIText.legacy(_strings[textIndex], _floatLists[xIndex],
         _floatLists[yIndex], a, _daggerize(paint)));
   }
 
