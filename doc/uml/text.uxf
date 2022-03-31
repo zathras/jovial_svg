@@ -5,7 +5,7 @@
     <id>UMLClass</id>
     <coordinates>
       <x>80</x>
-      <y>80</y>
+      <y>60</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -17,7 +17,7 @@
     <id>UMLClass</id>
     <coordinates>
       <x>80</x>
-      <y>150</y>
+      <y>120</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -28,25 +28,25 @@
     <id>Relation</id>
     <coordinates>
       <x>120</x>
-      <y>100</y>
+      <y>80</y>
       <w>30</w>
-      <h>70</h>
+      <h>60</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>300</x>
-      <y>140</y>
+      <y>110</y>
       <w>100</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>/SITextChunk/
 --
-x
-y
+dx
+dy
 --</panel_attributes>
     <additional_attributes/>
   </element>
@@ -54,11 +54,11 @@ y
     <id>Relation</id>
     <coordinates>
       <x>170</x>
-      <y>160</y>
+      <y>130</y>
       <w>150</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;&lt;&lt;-&gt;
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m2=chunks</panel_attributes>
     <additional_attributes>10.0;10.0;130.0;10.0</additional_attributes>
   </element>
@@ -66,7 +66,7 @@ m2=chunks</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>370</x>
-      <y>320</y>
+      <y>250</y>
       <w>100</w>
       <h>100</h>
     </coordinates>
@@ -74,15 +74,15 @@ m2=chunks</panel_attributes>
 --
 text
 attributes
-siPaint
+paint
 --</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>80</x>
-      <y>330</y>
+      <x>110</x>
+      <y>260</y>
       <w>160</w>
       <h>60</h>
     </coordinates>
@@ -94,35 +94,304 @@ textAnchor</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>230</x>
-      <y>360</y>
-      <w>160</w>
+      <x>260</x>
+      <y>290</y>
+      <w>130</w>
       <h>40</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;&lt;&lt;-&gt;
-m2=spans</panel_attributes>
-    <additional_attributes>10.0;10.0;140.0;10.0</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>340</x>
-      <y>210</y>
+      <y>180</y>
       <w>100</w>
-      <h>130</h>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0;80.0;50.0;80.0;110.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;80.0;40.0;80.0;70.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>150</x>
-      <y>210</y>
-      <w>220</w>
-      <h>140</h>
+      <x>180</x>
+      <y>180</y>
+      <w>190</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>200.0;10.0;200.0;50.0;10.0;50.0;10.0;120.0</additional_attributes>
+    <additional_attributes>170.0;10.0;170.0;40.0;10.0;40.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>250</x>
+      <y>620</y>
+      <w>180</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>/SvgTextSpanComponent/</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>320</x>
+      <y>730</y>
+      <w>240</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>SvgTextSpanStringComponent
+--
+text
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>80</x>
+      <y>710</y>
+      <w>170</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>SvgTextSpan
+--
+x[]
+y[]
+dx[]
+dy[]
+paint
+textAttributes
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>110</x>
+      <y>630</y>
+      <w>160</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=parts</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>170</x>
+      <y>640</y>
+      <w>170</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>150.0;10.0;150.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>310</x>
+      <y>640</y>
+      <w>160</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;140.0;40.0;140.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>370</x>
+      <y>940</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SvgParser</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>130</x>
+      <y>930</y>
+      <w>260</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-
+&lt; creates</panel_attributes>
+    <additional_attributes>10.0;20.0;240.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>200</x>
+      <y>480</y>
+      <w>110</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>/SvgTextChunk/
+--
+x
+y
+anchor
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>40</x>
+      <y>420</y>
+      <w>150</w>
+      <h>530</h>
+    </coordinates>
+    <panel_attributes>lt=-
+flattens to &gt;</panel_attributes>
+    <additional_attributes>130.0;20.0;10.0;20.0;10.0;510.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>410</x>
+      <y>480</y>
+      <w>150</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>SvgFlatSpan
+--
+dx
+dy
+attributes
+paint
+text</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>410</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>Flattened
+List</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>170</x>
+      <y>440</y>
+      <w>50</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=n</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0;30.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>500</y>
+      <w>130</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>30</x>
+      <y>120</y>
+      <w>200</w>
+      <h>310</h>
+    </coordinates>
+    <panel_attributes>lt=-
+builds ^</panel_attributes>
+    <additional_attributes>50.0;10.0;10.0;10.0;10.0;230.0;180.0;230.0;180.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>930</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SvgText</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>110</x>
+      <y>850</y>
+      <w>80</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m2=stack[0]</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>520</x>
+      <y>50</y>
+      <w>180</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>A "chunk" is an area
+of text with a starting
+x coordinate.
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>390</x>
+      <y>70</y>
+      <w>150</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;70.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>530</x>
+      <y>220</y>
+      <w>180</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>attributes.textAnchor
+shall be "start"
+for spans within a
+chunk.
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>460</x>
+      <y>240</y>
+      <w>90</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;50.0;70.0;10.0</additional_attributes>
   </element>
 </diagram>

@@ -60,10 +60,16 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   ///
   /// Called first on a traversal, this establishes immutable values that
-  /// are canonicalized.
+  /// are canonicalized.  floatValueMap may be null, because it is sometimes
+  /// provided before init is called.
   ///
-  R init(R collector, List<IM> im, List<String> strings,
-      List<List<double>> floatLists);
+  R init(
+      R collector,
+      List<IM> im,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<double> floatValues,
+      CMap<double>? floatValueMap);
 
   R path(R collector, PathDataT pathData, SIPaint paint);
 
@@ -83,6 +89,23 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R legacyText(R collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes a, int? fontFamilyIndex, SIPaint paint);
+
+  R text(R collector);
+
+  R textSpan(
+      R collector,
+      int dxIndex,
+      int dyIndex,
+      int textIndex,
+      SITextAttributes attributes,
+      int? fontFamilyIndex,
+      int fontSizeIndex,
+      SIPaint paint);
+
+  R textMultiSpanChunk(
+      R collector, int dxIndex, int dyIndex, SITextAnchor anchor);
+
+  R textEnd(R collector);
 
   /// Check any invariants that should be true at the end of a traversal
   void assertDone() {}
@@ -1145,24 +1168,20 @@ class SITextAttributes {
 /// The data that is canonicalized when an SVG graph is built.
 ///
 class CanonicalizedData<IM> {
-  final Map<IM, int> images = {};
-  final Map<String, int> strings = {};
+  final images = CMap<IM>();
+  final strings = CMap<String>();
+
+  /// Float values, notably used in text nodes
+  final floatValues = CMap<double>();
 
   ///
-  /// The float lists that are (somewhat bizarrely) used as x and y
-  /// coordinates on text nodes
+  /// The float lists that are used as x and y
+  /// coordinates on text nodes, in the "legacy" SI format.  This bizarre
+  /// SVG feature really complicates text!
   ///
-  final Map<List<double>, int> floatLists = HashMap(
+  final CMap<List<double>> floatLists = CMap(HashMap(
       equals: (List<double> k1, List<double> k2) => quiver.listsEqual(k1, k2),
-      hashCode: (List<double> k) => quiver.hashObjects(k));
-
-  int? getIndex<T extends Object>(Map<T, int> map, T? value) {
-    if (value == null) {
-      return null;
-    }
-    final len = map.length;
-    return map.putIfAbsent(value, () => len);
-  }
+      hashCode: (List<double> k) => quiver.hashObjects(k)));
 
   List<T> toList<T>(Map<T, int> map) {
     if (map.isEmpty) {
@@ -1171,6 +1190,53 @@ class CanonicalizedData<IM> {
     T random = map.entries.first.key;
     final r = List<T>.filled(map.length, random);
     for (final MapEntry<T, int> e in map.entries) {
+      r[e.value] = e.key;
+    }
+    return r;
+  }
+}
+
+class CMap<K> {
+  final Map<K, int> _map;
+  bool _growing;
+
+  CMap([Map<K, int>? map])
+      : _map = map ?? {},
+        _growing = true;
+
+  CMap.fromList(List<K> list)
+      : _map = list.asMap().map((i, v) => MapEntry(v, i)),
+        _growing = false;
+
+  int operator [](K key) {
+    if (_growing) {
+      return _map.putIfAbsent(key, () => _map.length);
+    } else {
+      final v = _map[key];
+      if (v == null) {
+        throw StateError('internal error - not growing');
+      } else {
+        return v;
+      }
+    }
+  }
+
+  int? getIfNotNull(K? key) {
+    if (key == null) {
+      return null;
+    } else {
+      return this[key];
+    }
+  }
+
+  List<K> toList() {
+    _growing = false;
+    if (_map.isEmpty) {
+      return const [];
+    }
+    K random = _map.entries.first.key;
+    final r = List.filled(_map.length, random);
+    for (final MapEntry<K, int> e in _map.entries) {
       r[e.value] = e.key;
     }
     return r;

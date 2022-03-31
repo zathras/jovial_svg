@@ -1462,7 +1462,7 @@
              style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;opacity:1;fill:#292f30;fill-opacity:1;fill-rule:nonzero;stroke:#121515;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:3;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans Bold"><tspan
                x="167.10014"
                y="34.25494"
-               dx="0 -3.0445256"
+               dx="0" dy="-3.0445256"
                id="tspan15002">10</tspan></text>
           <path
              d="M 1320.1875,22.375 C 1319.345,22.457855 1318.3988,22.433989 1317.5938,22.5625 C 1317.1606,22.631636 1316.7952,22.789371 1316.375,22.875 L 1316.375,30.09375 C 1316.3678,30.608526 1315.9523,31.024099 1315.4375,31.03125 L 1311.0625,31.03125 L 1311.0625,33.3125 L 1325.5,33.3125 L 1325.5,31.03125 L 1321.125,31.03125 C 1320.6102,31.024099 1320.1947,30.608526 1320.1875,30.09375 L 1320.1875,22.375 z"
@@ -4389,7 +4389,7 @@
              style="font-size:32px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;opacity:1;fill:#cc0000;fill-opacity:1;fill-rule:nonzero;stroke:#780000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:3;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans Bold"><tspan
                x="167.10014"
                y="34.25494"
-               dx="0 -3.0445256"
+               dx="0" dy="-3.0445256"
                id="tspan12738">10</tspan></text>
           <path
              d="M 1320.1875,22.375 C 1319.345,22.457855 1318.3988,22.433989 1317.5938,22.5625 C 1317.1606,22.631636 1316.7952,22.789371 1316.375,22.875 L 1316.375,30.09375 C 1316.3678,30.608526 1315.9523,31.024099 1315.4375,31.03125 L 1311.0625,31.03125 L 1311.0625,33.3125 L 1325.5,33.3125 L 1325.5,31.03125 L 1321.125,31.03125 C 1320.6102,31.024099 1320.1947,30.608526 1320.1875,30.09375 L 1320.1875,22.375 z"

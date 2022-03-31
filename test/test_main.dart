@@ -121,7 +121,7 @@ Future<void> _testReference(
   for (FileSystemEntity ent in inputDir.listSync()) {
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
-    if (ent is File && noExt != 'README') {
+    if (ent is File && noExt != 'README' && !noExt.startsWith('.')) {
       final ScalableImage si;
       try {
         si = await producer(ent);

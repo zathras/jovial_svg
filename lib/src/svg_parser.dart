@@ -72,23 +72,23 @@ abstract class SvgParser extends GenericParser {
   /// The result of parsing.  For SVG files we need to generate an intermediate
   /// parse graph so that references can be resolved. See [SvgParseGraph.build].
   ///
-  SvgParseGraph? svg;
+  late final SvgParseGraph svg;
+  bool _svgTagSeen = false;
 
   SvgParser(this.warn, this._builder);
 
   void buildResult() {
-    final result = svg;
-    if (result == null) {
+    if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
-    result.build(_builder);
+    svg.build(_builder);
   }
 
   void _startTag(XmlStartElementEvent evt) {
     try {
       _currTag = evt.name;
       if (evt.name == 'svg') {
-        if (svg != null) {
+        if (_svgTagSeen) {
           throw ParseError('Second <svg> tag in file');
         }
         _processSvg(_toMap(evt.attributes));
@@ -102,12 +102,12 @@ abstract class SvgParser extends GenericParser {
       } else if (evt.name == 'g') {
         _processGroup(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
-          _parentStack.length = _parentStack.length - 1;
+          _parentStack.length--;
         }
       } else if (evt.name == 'defs') {
         _processDefs(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
-          _parentStack.length = _parentStack.length - 1;
+          _parentStack.length--;
         }
       } else if (evt.name == 'symbol') {
         _processSymbol(_toMap(evt.attributes));
@@ -144,6 +144,16 @@ abstract class SvgParser extends GenericParser {
         _currentText = _processText(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _currentText = null;
+        }
+      } else if (evt.name == 'tspan') {
+        final span = _currentText?.startSpan();
+        if (span != null) {
+          _processTextSpan(span, _toMap(evt.attributes));
+        } else if (warn) {
+          print('Ignoring stray tspan tag');
+        }
+        if (evt.isSelfClosing) {
+          _currentText?.endSpan();
         }
       } else if (evt.name == 'linearGradient') {
         _currentGradient = _processLinearGradient(_toMap(evt.attributes));
@@ -183,6 +193,8 @@ abstract class SvgParser extends GenericParser {
       _parentStack.length -= 2;
     } else if (evt.name == 'text') {
       _currentText = null;
+    } else if (evt.name == 'tspan') {
+      _currentText?.endSpan();
     } else if (evt.name == 'linearGradient' || evt.name == 'radialGradient') {
       _currentGradient = null;
     }
@@ -202,8 +214,19 @@ abstract class SvgParser extends GenericParser {
     } else {
       final transform = MutableAffine.identity();
       if (width != null && height != null) {
-        transform.multiplyBy(MutableAffine.scale(
-            width / viewbox.width, height / viewbox.height));
+        final sx = width / viewbox.width;
+        final sy = height / viewbox.height;
+        if (sx < sy) {
+          final dy = (height - height * sx / sy) / 2;
+          transform.multiplyBy(MutableAffine.translation(0, dy));
+          transform.multiplyBy(MutableAffine.scale(sx, sx));
+        } else if (sx > sy) {
+          final dx = (width - width * sy / sx) / 2;
+          transform.multiplyBy(MutableAffine.translation(dx, 0));
+          transform.multiplyBy(MutableAffine.scale(sy, sy));
+        } else {
+          transform.multiplyBy(MutableAffine.scale(sx, sy));
+        }
       } else {
         width ??= viewbox.width;
         height ??= viewbox.height;
@@ -218,7 +241,8 @@ abstract class SvgParser extends GenericParser {
     }
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
-    final r = svg = SvgParseGraph(root, width, height);
+    final r = svg = SvgParseGraph(root, width, height, null, null);
+    _svgTagSeen = true;
     _parentStack.add(r.root);
   }
 
@@ -424,6 +448,15 @@ abstract class SvgParser extends GenericParser {
     return n;
   }
 
+  void _processTextSpan(SvgTextSpan span, Map<String, String> attrs) {
+    span.dx = getFloatList(attrs.remove('dx'));
+    span.dy = getFloatList(attrs.remove('dy'));
+    span.x = getFloatList(attrs.remove('x'));
+    span.y = getFloatList(attrs.remove('y'));
+    _processInheritableText(span, attrs);
+    _warnUnusedAttributes(attrs);
+  }
+
   SvgCoordinate? _getCoordinate(String? attr) {
     bool isPercent = false;
     double? val = getFloat(attr, percent: (v) {
@@ -573,13 +606,12 @@ abstract class SvgParser extends GenericParser {
   void _processId(SvgNode n, Map<String, String> attrs) {
     final id = attrs.remove('id') ?? attrs.remove('xml:id');
     if (id != null) {
-      svg!.idLookup[id] = n;
+      svg.idLookup[id] = n;
     }
   }
 
-  void _processInheritable(
-      SvgInheritableAttributes node, Map<String, String> attrs) {
-    node.display = attrs.remove('display') != 'none';
+  void _processInheritableText(
+      SvgInheritableTextAttributes node, Map<String, String> attrs) {
     final SvgPaint p = node.paint;
     p.currentColor = getSvgColor(attrs.remove('color')?.trim());
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
@@ -608,10 +640,6 @@ abstract class SvgParser extends GenericParser {
     p.strokeMiterLimit = getFloat(attrs.remove('stroke-miterlimit'));
     p.strokeDashArray = getFloatList(attrs.remove('stroke-dasharray'));
     p.strokeDashOffset = getFloat(attrs.remove('stroke-dashoffset'));
-    node.groupAlpha = getAlpha(attrs.remove('opacity'));
-    if (node.groupAlpha == 0xff) {
-      node.groupAlpha = null;
-    }
     final SvgTextAttributes t = node.textAttributes;
     t.fontFamily = attrs.remove('font-family');
 
@@ -721,10 +749,19 @@ abstract class SvgParser extends GenericParser {
         print('    Ignoring invalid textDecoration "$attr"');
       }
     }
+  }
 
+  void _processInheritable(
+      SvgInheritableAttributes node, Map<String, String> attrs) {
+    _processInheritableText(node, attrs);
+    node.display = attrs.remove('display') != 'none';
+    node.groupAlpha = getAlpha(attrs.remove('opacity'));
+    if (node.groupAlpha == 0xff) {
+      node.groupAlpha = null;
+    }
     node.transform = getTransform(node.transform, attrs.remove('transform'));
 
-    attr = attrs.remove('mix-blend-mode');
+    String? attr = attrs.remove('mix-blend-mode');
     {
       const vals = {
         null: SIBlendMode.normal,

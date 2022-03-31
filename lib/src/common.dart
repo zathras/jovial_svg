@@ -490,6 +490,102 @@ mixin SIMaskedHelper {
   }
 }
 
+class SITextBuilder<R> {
+  final SITextBuilder<R>? parent;
+  final double _dx;
+  final double _dy;
+  final SITextAnchor _anchor;
+  final List<SITextSpan> _spans = [];
+  final List<SITextChunk> _chunks = [];
+
+  SITextBuilder(
+      [this.parent,
+      this._dx = 0,
+      this._dy = 0,
+      this._anchor = SITextAnchor.start]);
+
+  SITextBuilder<R>? multiSpanChunk(double dx, double dy, SITextAnchor anchor) {
+    return SITextBuilder(this, dx, dy, anchor);
+  }
+
+  SITextBuilder<R>? span(double dx, double dy, String text,
+      SITextAttributes attributes, SIPaint paint) {
+    final s = SITextSpan(text, dx, dy, attributes, paint);
+    if (parent == null) {
+      _chunks.add(s);
+    } else {
+      _spans.add(s);
+    }
+    return this;
+  }
+
+  R end(R collector, SITextHelper<R> customer) {
+    final p = parent;
+    if (p != null) {
+      assert(_chunks.isEmpty);
+      p._chunks.add(SIMultiSpanChunk(_dx, _dy, _anchor, _spans));
+      return collector;
+    } else {
+      assert(_spans.isEmpty);
+      return customer.acceptText(collector, SIText(List.unmodifiable(_chunks)));
+    }
+  }
+}
+
+///
+/// A mixin for customers of SITextBuilder
+///
+mixin SITextHelper<R> {
+  SITextBuilder<R>? _textBuilder;
+
+  List<double> get floatValues;
+  List<String> get strings;
+
+  R text(R collector) {
+    assert(_textBuilder == null);
+    _textBuilder = SITextBuilder();
+    return collector;
+  }
+
+  R textMultiSpanChunk(
+      R collector, int dxIndex, int dyIndex, SITextAnchor anchor) {
+    assert(_textBuilder != null);
+    _textBuilder = _textBuilder?.multiSpanChunk(
+        floatValues[dxIndex], floatValues[dyIndex], anchor);
+    return collector;
+  }
+
+  R textSpan(
+      R collector,
+      int dxIndex,
+      int dyIndex,
+      int textIndex,
+      SITextAttributes attributes,
+      int? fontFamilyIndex,
+      int fontSizeIndex,
+      SIPaint paint) {
+    assert(_textBuilder != null);
+    assert((fontFamilyIndex == null ? '' : strings[fontFamilyIndex]) ==
+        attributes.fontFamily);
+    assert(floatValues[fontSizeIndex] == attributes.fontSize);
+    _textBuilder = _textBuilder?.span(floatValues[dxIndex],
+        floatValues[dyIndex], strings[textIndex], attributes, paint);
+    return collector;
+  }
+
+  R textEnd(R collector) {
+    final tb = _textBuilder;
+    assert(tb != null);
+    if (tb == null) {
+      return collector;
+    }
+    _textBuilder = tb.parent;
+    return tb.end(collector, this);
+  }
+
+  R acceptText(R collector, SIText text);
+}
+
 class SIClipPath extends SIRenderable {
   final Path path;
 
@@ -897,14 +993,16 @@ class SIText extends SIRenderable {
 }
 
 abstract class SITextChunk {
-  final double x;
-  final double y;
+  final double dx;
+  final double dy;
 
-  SITextChunk(this.x, this.y);
+  SITextChunk(this.dx, this.dy);
 
   void paint(SIText parent, ui.Canvas c, RenderContext context);
 
   Rect get _bounds;
+
+  void build(CanonicalizedData<SIImage> canon, SIBuilder builder);
 }
 
 class SITextSpan extends SITextChunk {
@@ -912,8 +1010,8 @@ class SITextSpan extends SITextChunk {
   final SITextAttributes attributes;
   final SIPaint siPaint;
 
-  SITextSpan(this.text, double x, double y, this.attributes, this.siPaint)
-      : super(x, y);
+  SITextSpan(this.text, double dx, double dy, this.attributes, this.siPaint)
+      : super(dx, dy);
 
   @override
   late final Rect _bounds = () {
@@ -925,6 +1023,22 @@ class SITextSpan extends SITextChunk {
     });
     return result;
   }();
+
+  @override
+  void build(CanonicalizedData<SIImage> canon, SIBuilder builder) {
+    final int? fontFamilyIndex;
+    if (attributes.fontFamily == '') {
+      fontFamilyIndex = null;
+    } else {
+      fontFamilyIndex = canon.strings.getIfNotNull(attributes.fontFamily);
+    }
+    final textIndex = canon.strings[text];
+    final dxIndex = canon.floatValues[dx];
+    final dyIndex = canon.floatValues[dy];
+    final fontSizeIndex = canon.floatValues[attributes.fontSize];
+    builder.textSpan(null, dxIndex, dyIndex, textIndex, attributes,
+        fontFamilyIndex, fontSizeIndex, siPaint);
+  }
 
   Paint? _getPaint(SIText parent, SIColor c, RenderContext context) {
     Rect boundsF() => parent._bounds;
@@ -1038,20 +1152,20 @@ class SITextSpan extends SITextChunk {
     // gold-plating.
     final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
     tp.layout();
-    final dy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-    final double dx;
+    final baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    final double anchorDx;
     switch (attributes.textAnchor) {
       case SITextAnchor.start:
-        dx = 0;
+        anchorDx = 0;
         break;
       case SITextAnchor.middle:
-        dx = -tp.width / 2;
+        anchorDx = -tp.width / 2;
         break;
       case SITextAnchor.end:
-        dx = -tp.width;
+        anchorDx = -tp.width;
         break;
     }
-    thingToDo(x + dx, y + dy, tp);
+    thingToDo(dx + anchorDx, dy + baseDy, tp);
   }
 
   @override
@@ -1061,8 +1175,8 @@ class SITextSpan extends SITextChunk {
     } else if (other is! SITextSpan) {
       return false;
     } else {
-      return x == other.x &&
-          y == other.y &&
+      return dx == other.dx &&
+          dy == other.dy &&
           text == other.text &&
           attributes == other.attributes &&
           siPaint == other.siPaint;
@@ -1070,7 +1184,7 @@ class SITextSpan extends SITextChunk {
   }
 
   @override
-  int get hashCode => Object.hash(x, y, text, attributes, siPaint);
+  int get hashCode => Object.hash(dx, dy, text, attributes, siPaint);
 }
 
 ///
@@ -1083,8 +1197,8 @@ class SIMultiSpanChunk extends SITextChunk {
   final SITextAnchor textAnchor;
   final List<SITextSpan> spans;
 
-  SIMultiSpanChunk(double x, double y, this.textAnchor, this.spans)
-      : super(x, y) {
+  SIMultiSpanChunk(double dx, double dy, this.textAnchor, this.spans)
+      : super(dx, dy) {
     assert(spans.isNotEmpty);
     for (final s in spans) {
       assert(s.attributes.textAnchor == SITextAnchor.start);
@@ -1104,12 +1218,12 @@ class SIMultiSpanChunk extends SITextChunk {
     switch (textAnchor) {
       case SITextAnchor.start:
         return ui.Rect.fromLTWH(
-            x + result.left, y + result.top, result.width, result.height);
+            dx + result.left, dy + result.top, result.width, result.height);
       case SITextAnchor.middle:
-        return ui.Rect.fromLTWH(x + result.left - right / 2, y + result.top,
+        return ui.Rect.fromLTWH(dx + result.left - right / 2, dy + result.top,
             result.width, result.height);
       case SITextAnchor.end:
-        return ui.Rect.fromLTWH(x + result.left - right, y + result.top,
+        return ui.Rect.fromLTWH(dx + result.left - right, dy + result.top,
             result.width, result.height);
     }
   }
@@ -1124,17 +1238,29 @@ class SIMultiSpanChunk extends SITextChunk {
   }
 
   @override
+  void build(CanonicalizedData<SIImage> canon, SIBuilder builder) {
+    final xIndex = canon.floatValues[dx];
+    final yIndex = canon.floatValues[dy];
+    builder.textMultiSpanChunk(null, xIndex, yIndex, textAnchor);
+    for (final span in spans) {
+      assert(span.attributes.textAnchor == SITextAnchor.start);
+      span.build(canon, builder);
+    }
+    builder.textEnd(null);
+  }
+
+  @override
   void paint(SIText parent, ui.Canvas c, RenderContext context) {
     c.save();
     switch (textAnchor) {
       case SITextAnchor.start:
-        c.translate(x, y);
+        c.translate(dx, dy);
         break;
       case SITextAnchor.middle:
-        c.translate(x - _getWidth() / 2, 0);
+        c.translate(dx - _getWidth() / 2, 0);
         break;
       case SITextAnchor.end:
-        c.translate(x - _getWidth(), 0);
+        c.translate(dx - _getWidth(), 0);
         break;
     }
     for (final span in spans) {
@@ -1143,6 +1269,22 @@ class SIMultiSpanChunk extends SITextChunk {
     }
     c.restore();
   }
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SIMultiSpanChunk) {
+      return false;
+    } else {
+      return dx == other.dx &&
+          dy == other.dy &&
+          quiver.listsEqual(spans, other.spans);
+    }
+  }
+
+  @override
+  int get hashCode => Object.hash(dx, dy, Object.hashAll(spans));
 }
 
 ///

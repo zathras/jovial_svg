@@ -35,12 +35,16 @@ library jovial_svg.svg_graph;
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:jovial_misc/io_utils.dart';
 import 'package:meta/meta.dart';
 import 'package:quiver/collection.dart' as quiver;
 
 import 'affine.dart';
 import 'common_noui.dart';
+import 'compact_noui.dart';
 import 'path_noui.dart';
+
+part 'svg_graph_text.dart';
 
 ///
 /// The graph structure we get when parsing an SVG XML file.  This graph
@@ -57,10 +61,13 @@ class SvgParseGraph {
   final SvgGroup root;
   final double? width;
   final double? height;
+  final int? tintColor; // For AVD
+  final SITintMode? tintMode; // For AVD
 
   bool _resolved = false;
 
-  SvgParseGraph(this.root, this.width, this.height);
+  SvgParseGraph(
+      this.root, this.width, this.height, this.tintColor, this.tintMode);
 
   ///
   /// Determine the bounds, for use in user space calculations (e.g.
@@ -110,28 +117,148 @@ class SvgParseGraph {
         root.resolve(idLookup, rootPaint, builder.warn, _Referrers(this));
     _resolved = true;
     builder.vector(
-        width: width, height: height, tintColor: null, tintMode: null);
+        width: width, height: height, tintColor: tintColor, tintMode: tintMode);
+
+    // Collect canonicalized data by doing a build dry run.  We skip of the
+    // paths and other stuff that doesn't generate canonicalized data, so
+    // this is quite fast.
     final theCanon = CanonicalizedData<SIImageData>();
-    newRoot?.collectCanon(theCanon);
+    newRoot?.build(
+        _CollectCanonBuilder(theCanon), theCanon, idLookup, rootPaint, rootTA);
+
+    // Now we can do the real building run.
     builder.init(
         null,
-        theCanon.toList(theCanon.images),
-        theCanon.toList(theCanon.strings),
-        theCanon.toList(theCanon.floatLists));
+        theCanon.images.toList(),
+        theCanon.strings.toList(),
+        theCanon.floatLists.toList(),
+        theCanon.floatValues.toList(),
+        theCanon.floatValues);
     newRoot?.build(builder, theCanon, idLookup, rootPaint, rootTA);
     builder.endVector();
   }
+}
+
+class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
+  final CanonicalizedData canon;
+  late final colorWriter = ColorWriter(
+      DataOutputSink(_NullSink()), (_) => null, _collectSharedFloat);
+
+  _CollectCanonBuilder(this.canon);
+
+  void collectPaint(SIPaint paint) {
+    colorWriter.writeColor(paint.fillColor);
+    colorWriter.writeColor(paint.strokeColor);
+  }
+
+  void _collectSharedFloat(double value) => canon.floatValues[value];
+
+  @override
+  void init(
+      void collector,
+      List<SIImageData> im,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<double> floatValues,
+      CMap<double>? floatValueMap) {}
+
+  @override
+  void vector(
+      {required double? width,
+      required double? height,
+      required int? tintColor,
+      required SITintMode? tintMode}) {}
+
+  @override
+  void endVector() {}
+
+  @override
+  void group(
+      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {}
+
+  @override
+  void endGroup(void collector) {}
+
+  @override
+  void path(void collector, String pathData, SIPaint paint) =>
+      collectPaint(paint);
+
+  @override
+  PathBuilder? startPath(SIPaint paint, Object key) {
+    collectPaint(paint);
+    return null;
+  }
+
+  @override
+  void clipPath(void collector, String pathData) {}
+
+  @override
+  void masked(void collector, RectT? maskBounds, bool usesLuma) {}
+
+  @override
+  void maskedChild(void collector) {}
+
+  @override
+  void endMasked(void collector) {}
+
+  @override
+  void image(void collector, int imageIndex) {}
+
+  @override
+  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
+    // No collectAttributes() because the legacy format doesn't use
+    // canonicalized data for that.
+    collectPaint(paint);
+  }
+
+  @override
+  void text(void collector) {}
+
+  @override
+  void textMultiSpanChunk(
+      void collector, int dxIndex, int dyIndex, SITextAnchor anchor) {}
+
+  @override
+  void textSpan(
+      void collector,
+      int dxIndex,
+      int dyIndex,
+      int textIndex,
+      SITextAttributes attributes,
+      int? fontFamilyIndex,
+      int fontSizeIndex,
+      SIPaint paint) {
+    collectPaint(paint);
+  }
+
+  @override
+  void textEnd(void collector) {}
+
+  @override
+  void printWarning(String warning) {}
+
+  @override
+  void assertDone() {}
+
+  @override
+  void get initial {}
+
+  @override
+  bool get warn => false;
 }
 
 abstract class SvgNode {
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
       _Referrers referrers);
 
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false});
-
-  void collectCanon(CanonicalizedData<SIImageData> canon);
 
   ///
   /// If this node is in a mask, is it possible it might use the luma
@@ -143,6 +270,14 @@ abstract class SvgNode {
   SIBlendMode get blendMode;
 
   _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta);
+}
+
+class _NullSink<T> implements Sink<T> {
+  @override
+  void add(T data) {}
+
+  @override
+  void close() {}
 }
 
 ///
@@ -180,38 +315,6 @@ abstract class SvgInheritableTextAttributes {
         ((cascaded.strokeAlpha == 0 || cascaded.strokeColor == SvgColor.none) &&
             (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) &&
             !cascaded.inClipPath);
-  }
-
-  SvgPaint cascadePaint(SvgPaint ancestor, Map<String, SvgNode> ids) {
-    return SvgPaint(
-        currentColor: paint.currentColor.orInherit(ancestor.currentColor, ids),
-        fillColor: paint.fillColor.orInherit(ancestor.fillColor, ids),
-        fillAlpha: paint.fillAlpha ?? ancestor.fillAlpha,
-        strokeColor: paint.strokeColor.orInherit(ancestor.strokeColor, ids),
-        strokeAlpha: paint.strokeAlpha ?? ancestor.strokeAlpha,
-        strokeWidth: paint.strokeWidth ?? ancestor.strokeWidth,
-        strokeMiterLimit: paint.strokeMiterLimit ?? ancestor.strokeMiterLimit,
-        strokeJoin: paint.strokeJoin ?? ancestor.strokeJoin,
-        strokeCap: paint.strokeCap ?? ancestor.strokeCap,
-        fillType: paint.fillType ?? ancestor.fillType,
-        clipFillType: paint.clipFillType ?? ancestor.clipFillType,
-        inClipPath: paint.inClipPath || ancestor.inClipPath,
-        strokeDashArray: paint.strokeDashArray ?? ancestor.strokeDashArray,
-        strokeDashOffset: paint.strokeDashOffset ?? ancestor.strokeDashOffset,
-        mask: null, // Mask is not inherited
-        hidden: paint.hidden ?? ancestor.hidden,
-        userSpace: ancestor.userSpace); // userSpace is inherited from root
-  }
-
-  SvgTextAttributes cascadeText(SvgTextAttributes ancestor) {
-    return SvgTextAttributes(
-        fontSize: textAttributes.fontSize.orInherit(ancestor.fontSize),
-        fontFamily: textAttributes.fontFamily ?? ancestor.fontFamily,
-        textAnchor: textAttributes.textAnchor ?? ancestor.textAnchor,
-        textDecoration:
-            textAttributes.textDecoration ?? ancestor.textDecoration,
-        fontWeight: textAttributes.fontWeight.orInherit(ancestor.fontWeight),
-        fontStyle: textAttributes.fontStyle ?? ancestor.fontStyle);
   }
 }
 
@@ -360,6 +463,27 @@ class SvgPaint {
           mask: null,
           userSpace: userSpace);
 
+  SvgPaint cascade(SvgPaint ancestor, Map<String, SvgNode>? idLookup) {
+    return SvgPaint(
+        currentColor: currentColor.orInherit(ancestor.currentColor, idLookup),
+        fillColor: fillColor.orInherit(ancestor.fillColor, idLookup),
+        fillAlpha: fillAlpha ?? ancestor.fillAlpha,
+        strokeColor: strokeColor.orInherit(ancestor.strokeColor, idLookup),
+        strokeAlpha: strokeAlpha ?? ancestor.strokeAlpha,
+        strokeWidth: strokeWidth ?? ancestor.strokeWidth,
+        strokeMiterLimit: strokeMiterLimit ?? ancestor.strokeMiterLimit,
+        strokeJoin: strokeJoin ?? ancestor.strokeJoin,
+        strokeCap: strokeCap ?? ancestor.strokeCap,
+        fillType: fillType ?? ancestor.fillType,
+        clipFillType: clipFillType ?? ancestor.clipFillType,
+        inClipPath: inClipPath || ancestor.inClipPath,
+        strokeDashArray: strokeDashArray ?? ancestor.strokeDashArray,
+        strokeDashOffset: strokeDashOffset ?? ancestor.strokeDashOffset,
+        mask: null, // Mask is not inherited
+        hidden: hidden ?? ancestor.hidden,
+        userSpace: ancestor.userSpace); // userSpace is inherited from root
+  }
+
   @override
   int get hashCode =>
       0x5390dc64 ^
@@ -458,7 +582,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
       _Referrers referrers) {
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup);
     final newC = List<SvgNode>.empty(growable: true);
     referrers = _Referrers(this, referrers);
     for (SvgNode n in children) {
@@ -479,7 +603,7 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
 
   @override
   RectT? _getUntransformedBounds(SvgTextAttributes ta) {
-    final currTA = cascadeText(ta);
+    final currTA = textAttributes.cascade(ta);
     RectT? curr;
     for (final ch in children) {
       final boundary = ch._getUserSpaceBoundary(currTA);
@@ -496,15 +620,19 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
     }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
-    final currTA = cascadeText(ta);
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final currTA = textAttributes.cascade(ta);
+    final cascaded = paint.cascade(ancestor, idLookup);
     if (transform == null &&
         groupAlpha == null &&
         blend == SIBlendMode.normal &&
@@ -521,17 +649,9 @@ class SvgGroup extends SvgInheritableAttributes implements SvgNode {
   }
 
   @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {
-    canon.getIndex(canon.strings, textAttributes.fontFamily);
-    for (final ch in children) {
-      ch.collectCanon(canon);
-    }
-  }
-
-  @override
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup);
     for (final ch in children) {
       if (ch.canUseLuma(idLookup, cascaded, warn)) {
         return true;
@@ -612,8 +732,12 @@ class SvgMasked extends SvgNode {
   }
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
     if (blend != SIBlendMode.normal) {
@@ -639,12 +763,6 @@ class SvgMasked extends SvgNode {
       builder.endGroup(null);
     }
     return true;
-  }
-
-  @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {
-    mask.collectCanon(canon);
-    child.collectCanon(canon);
   }
 
   @override
@@ -690,7 +808,7 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
       }
       return null;
     }
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup);
     n = n.resolve(idLookup, cascaded, warn, referrers);
     if (n == null || transform?.determinant() == 0.0) {
       return null;
@@ -700,11 +818,6 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
     g.transform = transform;
     g.children.add(n);
     return g.resolveMask(idLookup, ancestor, warn, referrers);
-  }
-
-  @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {
-    assert(false);
   }
 
   @override
@@ -732,9 +845,6 @@ class SvgUse extends SvgInheritableAttributes implements SvgNode {
 abstract class SvgPathMaker extends SvgInheritableAttributes
     implements SvgNode {
   @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {}
-
-  @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
@@ -742,7 +852,7 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
       return false;
     }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup);
     if (cascaded.hidden == true) {
       return false;
     } else if (transform != null ||
@@ -763,7 +873,7 @@ abstract class SvgPathMaker extends SvgInheritableAttributes
   @override
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup);
     final p = cascaded.toSIPaint(warn);
     return p.canUseLuma;
   }
@@ -1153,9 +1263,6 @@ class SvgGradientNode implements SvgNode {
   /// Meaningless for us
   @override
   SIBlendMode get blendMode => SIBlendMode.normal;
-
-  @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {}
 }
 
 class SvgImage extends SvgInheritableAttributes implements SvgNode {
@@ -1165,18 +1272,10 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
   double y = 0;
   double width = 0;
   double height = 0;
-  int _imageNumber = -1;
 
   SvgImage();
 
   static final Uint8List _emptyData = Uint8List(0);
-
-  @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {
-    final sid = SIImageData(
-        x: x, y: y, width: width, height: height, encoded: imageData);
-    _imageNumber = canon.getIndex(canon.images, sid)!;
-  }
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
@@ -1192,25 +1291,31 @@ class SvgImage extends SvgInheritableAttributes implements SvgNode {
       Rectangle(x, y, width, height);
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
     }
     final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
-    assert(_imageNumber > -1);
-    final cascaded = cascadePaint(ancestor, idLookup);
+    final sid = SIImageData(
+        x: x, y: y, width: width, height: height, encoded: imageData);
+    int imageNumber = canon.images[sid];
+    final cascaded = paint.cascade(ancestor, idLookup);
     if (cascaded.hidden == true) {
       return false;
     } else if (transform != null ||
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
-      builder.image(null, _imageNumber);
+      builder.image(null, imageNumber);
       builder.endGroup(null);
     } else {
-      builder.image(null, _imageNumber);
+      builder.image(null, imageNumber);
     }
     return true;
   }
@@ -1227,261 +1332,6 @@ abstract class SvgTextNodeAttributes extends SvgInheritableTextAttributes {
   List<double>? get y;
   List<double>? dx;
   List<double>? dy;
-}
-
-class SvgText extends SvgInheritableAttributes
-    implements SvgNode, SvgTextNodeAttributes {
-  String text = '';
-  @override
-  List<double> x = const [0.0];
-  @override
-  List<double> y = const [0.0];
-  @override
-  List<double>? dx;
-  @override
-  List<double>? dy;
-  int xIndex = -1;
-  int yIndex = -1;
-  int textIndex = -1;
-
-  SvgText();
-
-  static final _whitespace = RegExp(r'\s+');
-
-  void appendText(String added) {
-    added = added.replaceAll(_whitespace, ' ');
-    if (text == '' || text.endsWith(' ')) {
-      added = added.trimLeft();
-    }
-    if (text == '') {
-      text = added;
-    } else {
-      text = text + added;
-    }
-  }
-
-  @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
-      _Referrers referrers) {
-    text = text.trimRight();
-    if (text == '') {
-      return null;
-    } else {
-      print('@@ text "$text"');
-      return resolveMask(idLookup, ancestor, warn, referrers);
-    }
-  }
-
-  @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
-    const heightScale = 1.2;
-    const widthScale = 0.6;
-    // We make a rough approximation, since font metrics aren't available
-    // to us here.  This is good enough in the rare case of user space
-    // gradients withing an SVG asset with unspecified width/height
-    // and renderBox.
-    final cascaded = cascadeText(ta);
-    final size = cascaded.fontSize.toSI();
-    final height = size * heightScale;
-    int len = min(x.length, y.length);
-    RectT? curr;
-    final double dx;
-    switch (cascaded.textAnchor!) {
-      case SITextAnchor.start:
-        dx = 0;
-        break;
-      case SITextAnchor.middle:
-        dx = -(size * widthScale * text.length) / 2;
-        break;
-      case SITextAnchor.end:
-        dx = -size * widthScale * text.length;
-        break;
-    }
-    for (int i = 0; i < len; i++) {
-      final double width;
-      if (i == len - 1) {
-        width = size * widthScale * (text.length - i);
-      } else {
-        width = size * widthScale;
-      }
-      final r = Rectangle(dx + x[i], y[i], width, height);
-      if (curr == null) {
-        curr = r;
-      } else {
-        curr = curr.boundingBox(r);
-      }
-    }
-    return curr;
-  }
-
-  @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
-      {bool blendHandledByParent = false}) {
-    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
-    final cascaded = cascadePaint(ancestor, idLookup);
-    if (!display || cascaded.hidden == true) {
-      return false;
-    }
-    if (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) {
-      if (cascaded.strokeAlpha == 0 ||
-          cascaded.strokeColor == SvgColor.none ||
-          cascaded.strokeWidth == 0) {
-        return false;
-      }
-    }
-    final currPaint = cascaded.toSIPaint(builder.printWarning).forText();
-    final currTA = cascadeText(ta).toSITextAttributes();
-    final int? fontFamilyIndex;
-    if (currTA.fontFamily == '') {
-      fontFamilyIndex = null;
-    } else {
-      fontFamilyIndex = canon.strings[currTA.fontFamily];
-      assert(fontFamilyIndex != null);
-    }
-    if (transform != null ||
-        groupAlpha != null ||
-        blend != SIBlendMode.normal) {
-      builder.group(null, transform, groupAlpha, blend);
-      builder.legacyText(
-          null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
-      builder.endGroup(null);
-    } else {
-      builder.legacyText(
-          null, xIndex, yIndex, textIndex, currTA, fontFamilyIndex, currPaint);
-    }
-    return true;
-  }
-
-  @override
-  void collectCanon(CanonicalizedData canon) {
-    xIndex = canon.getIndex(canon.floatLists, x)!;
-    yIndex = canon.getIndex(canon.floatLists, y)!;
-    textIndex = canon.getIndex(canon.strings, text)!;
-    canon.getIndex(canon.strings, textAttributes.fontFamily);
-  }
-
-  @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn) {
-    final cascaded = cascadePaint(ancestor, idLookup);
-    final p = cascaded.toSIPaint(warn).forText();
-    return p.canUseLuma;
-  }
-}
-
-class SvgNewText extends SvgInheritableAttributes {
-  List<SvgTextSpan> stack = [SvgTextSpan()];
-  bool _trimLeft = true;
-
-  static final _whitespace = RegExp(r'\s+');
-
-  SvgNewText() {
-    final root = stack.first;
-    root.x = root.y = const [0.0];
-  }
-
-  @override
-  SvgPaint get paint => stack.first.paint;
-
-  @override
-  SvgTextAttributes get textAttributes => stack.first.textAttributes;
-
-  @override
-  set textAttributes(SvgTextAttributes v) => stack.first.textAttributes = v;
-
-  void appendText(String added) {
-    added = added.replaceAll(_whitespace, ' ');
-    if (_trimLeft) {
-      added = added.trimLeft();
-    }
-    _trimLeft = added.endsWith(' ');
-    if (added != '') {
-      stack.last.appendToPart(added);
-    }
-  }
-
-  SvgTextSpan startSpan() {
-    final s = SvgTextSpan();
-    stack.add(s);
-    return s;
-  }
-
-  void endSpan() {
-    stack.removeLast();
-  }
-
-  @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
-      _Referrers referrers) {
-    return resolveMask(idLookup, ancestor, warn, referrers);
-  }
-
-  @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn) {
-    throw "@@";
-  }
-
-  @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
-    throw "@@";
-  }
-
-  @override
-  void collectCanon(CanonicalizedData<SIImageData> canon) {
-    throw "@@";
-  }
-
-  @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
-      {bool blendHandledByParent = false}) {
-    assert(stack.length == 1);
-    stack.first.trimRight();
-    throw "@@";
-  }
-}
-
-class SvgTextSpan extends SvgTextNodeAttributes
-    implements SvgTextSpanComponent {
-  @override
-  List<double>? x;
-  @override
-  List<double>? y;
-  List<SvgTextSpanComponent> parts = [];
-
-  void appendToPart(String added) {
-    parts.add(SvgTextSpanStringComponent(added));
-  }
-
-  @override
-  bool trimRight() {
-    for (int i = parts.length - 1; i >= 0; i--) {
-      if (parts[i].trimRight()) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-abstract class SvgTextSpanComponent {
-  bool trimRight();
-}
-
-class SvgTextSpanStringComponent extends SvgTextSpanComponent {
-  String text;
-
-  SvgTextSpanStringComponent(this.text) {
-    assert(text != '');
-  }
-
-  @override
-  bool trimRight() {
-    text = text.trimRight();
-    return true;
-  }
 }
 
 class SvgTextAttributes {
@@ -1508,6 +1358,16 @@ class SvgTextAttributes {
         fontWeight = SvgFontWeight.w400,
         fontSize = SvgFontSize.medium,
         textDecoration = SITextDecoration.none;
+
+  SvgTextAttributes cascade(SvgTextAttributes ancestor) {
+    return SvgTextAttributes(
+        fontSize: fontSize.orInherit(ancestor.fontSize),
+        fontFamily: fontFamily ?? ancestor.fontFamily,
+        textAnchor: textAnchor ?? ancestor.textAnchor,
+        textDecoration: textDecoration ?? ancestor.textDecoration,
+        fontWeight: fontWeight.orInherit(ancestor.fontWeight),
+        fontStyle: fontStyle ?? ancestor.fontStyle);
+  }
 
   SITextAttributes toSITextAttributes() => SITextAttributes(
       fontFamily: fontFamily!,
@@ -1585,14 +1445,7 @@ class _SvgFontSizeInherit extends SvgFontSize {
   const _SvgFontSizeInherit();
 
   @override
-  SvgFontSize orInherit(SvgFontSize ancestor) {
-    if (ancestor == SvgFontSize.inherit) {
-      assert(false);
-      return SvgFontSize.medium;
-    } else {
-      return ancestor;
-    }
-  }
+  SvgFontSize orInherit(SvgFontSize ancestor) => ancestor;
 }
 
 ///
@@ -1625,7 +1478,7 @@ abstract class SvgColor {
 
   static const SvgColor white = SvgValueColor(0xffffffff);
 
-  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) => this;
+  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup) => this;
 
   SIColor toSIColor(
       int? alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace);
@@ -1656,7 +1509,8 @@ class _SvgInheritColor extends SvgColor {
   const _SvgInheritColor._p();
 
   @override
-  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) => ancestor;
+  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup) =>
+      ancestor;
 
   @override
   SIColor toSIColor(int? alpha, SvgColor cascadedCurrentColor,
@@ -1694,12 +1548,16 @@ class _SvgColorReference extends SvgColor {
   _SvgColorReference(this.id);
 
   @override
-  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode> ids) {
-    final n = ids[id];
-    if (n is! SvgGradientNode) {
-      throw ParseError('Gradient $id not found');
+  SvgColor orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup) {
+    if (idLookup == null) {
+      return this; // We'll resolve it later
+    } else {
+      final n = idLookup[id];
+      if (n is! SvgGradientNode) {
+        throw ParseError('Gradient $id not found');
+      }
+      return n.gradient;
     }
-    return n.gradient;
   }
 
   @override

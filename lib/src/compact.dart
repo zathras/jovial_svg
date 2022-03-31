@@ -68,6 +68,8 @@ class ScalableImageCompact extends ScalableImageBase
   @override
   final List<List<double>> floatLists;
   @override
+  final List<double> floatValues;
+  @override
   final Uint8List children;
   @override
   final List<double> args; // Float32List or Float64List
@@ -87,6 +89,7 @@ class ScalableImageCompact extends ScalableImageBase
       required List<SIImage> images,
       required this.strings,
       required this.floatLists,
+      required this.floatValues,
       required this.children,
       required this.args,
       required this.transforms,
@@ -114,6 +117,7 @@ class ScalableImageCompact extends ScalableImageBase
           numPaints: numPaints,
           strings: strings,
           floatLists: floatLists,
+          floatValues: floatValues,
           images: images,
           children: children,
           args: args,
@@ -136,6 +140,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        floatValues: floatValues,
         images: images,
         children: children,
         args: args,
@@ -158,6 +163,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        floatValues: floatValues,
         images: images,
         children: children,
         args: args,
@@ -186,6 +192,7 @@ class ScalableImageCompact extends ScalableImageBase
           bigFloats: bigFloats,
           strings: strings,
           floatLists: floatLists,
+          floatValues: floatValues,
           images: images,
           visiteeChildren: children,
           visiteeArgs: args,
@@ -262,6 +269,9 @@ class ScalableImageCompact extends ScalableImageBase
     final floatLists = List<List<double>>.generate(_readSmallishInt(dis),
         (_) => _floatList(dis, bigFloats, _readSmallishInt(dis), Endian.big),
         growable: false);
+    final List<double> floatValues = version < 7
+        ? const []
+        : _floatList(dis, bigFloats, _readSmallishInt(dis), Endian.big);
     final images = List<SIImageData>.generate(_readSmallishInt(dis), (_) {
       final x = _readFloat(dis, bigFloats, true)!;
       final y = _readFloat(dis, bigFloats, true)!;
@@ -283,6 +293,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        floatValues: floatValues,
         images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
             growable: false),
         children: children,
@@ -359,20 +370,31 @@ class ScalableImageCompact extends ScalableImageBase
 ///
 abstract class _CompactVisitor<R>
     implements SIVisitor<CompactChildData, SIImage, R> {
-  late final List<String> _strings;
-  late final List<List<double>> _floatLists;
-  late final List<SIImage> _images;
+  @protected
+  late final List<String> strings;
+  @protected
+  late final List<List<double>> floatLists;
+  @protected
+  late final List<double> floatValues;
+  @protected
+  late final List<SIImage> images;
   RenderContext _context;
   RenderContext get context => _context;
 
   _CompactVisitor(this._context);
 
   @override
-  R init(R collector, List<SIImage> images, List<String> strings,
-      List<List<double>> floatLists) {
-    _images = images;
-    _strings = strings;
-    _floatLists = floatLists;
+  R init(
+      R collector,
+      List<SIImage> images,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<double> floatValues,
+      CMap<double>? floatValueMap) {
+    this.images = images;
+    this.strings = strings;
+    this.floatLists = floatLists;
+    this.floatValues = floatValues;
     return collector;
   }
 
@@ -399,15 +421,13 @@ abstract class _CompactVisitor<R>
   @override
   R legacyText(R collector, int xIndex, int yIndex, int textIndex,
       SITextAttributes ta, int? fontFamilyIndex, SIPaint p) {
-    return siText(
+    return acceptText(
         collector,
-        SIText.legacy(_strings[textIndex], _floatLists[xIndex],
-            _floatLists[yIndex], ta, p),
-        xIndex,
-        yIndex);
+        SIText.legacy(
+            strings[textIndex], floatLists[xIndex], floatLists[yIndex], ta, p));
   }
 
-  R siText(R collector, SIText text, int xIndex, int yIndex);
+  R acceptText(R collector, SIText text);
 
   void pushContext(RenderContext c) {
     assert(c.parent == _context);
@@ -429,7 +449,7 @@ abstract class _CompactVisitor<R>
 }
 
 class _PaintingVisitor extends _CompactVisitor<void>
-    with SIGroupHelper, SIMaskedHelper {
+    with SIGroupHelper, SIMaskedHelper, SITextHelper<void> {
   final Canvas canvas;
   List<_MaskStackEntry>? _maskStack;
   late final CompactTraverserBase<void, SIImage,
@@ -462,11 +482,10 @@ class _PaintingVisitor extends _CompactVisitor<void>
 
   @override
   void image(void collector, int imageIndex) =>
-      _images[imageIndex].paint(canvas, context);
+      images[imageIndex].paint(canvas, context);
 
   @override
-  void siText(void collector, SIText text, int xIndex, int yIndex) =>
-      text.paint(canvas, context);
+  void acceptText(void collector, SIText text) => text.paint(canvas, context);
 
   @override
   void masked(void collector, RectT? maskBounds, bool usesLuma) {
@@ -567,7 +586,8 @@ class LumaTraverser
   }
 }
 
-class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
+class _PruningVisitor extends _CompactVisitor<PruningBoundary>
+    with SITextHelper<PruningBoundary> {
   final PruningBoundary _boundary;
   final _parentStack = List<_PruningEntry>.empty(growable: true);
   final _PruningBuilder builder;
@@ -586,6 +606,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
             currentColor: si.currentColor,
             warn: false),
         super(RenderContext.root(si, Colors.black)) {
+    builder.initFloatValueMap(_theCanon.floatValues);
     builder.vector(
         width: viewport.width,
         height: viewport.height,
@@ -701,37 +722,29 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary> {
 
   @override
   PruningBoundary image(PruningBoundary boundary, int imageIndex) {
-    final SIImage image = _images[imageIndex];
+    final SIImage image = images[imageIndex];
     if (image.prunedBy({}, {}, boundary) != null) {
       if (_parentStack.isNotEmpty) {
         _parentStack.last.generateParentIfNeeded();
       }
-      int i = _theCanon.getIndex(_theCanon.images, image)!;
+      int i = _theCanon.images[image];
       builder.image(null, i);
     }
     return boundary;
   }
 
   @override
-  PruningBoundary siText(
-      PruningBoundary boundary, SIText text, int xIndex, int yIndex) {
-    throw "@@ TODO";
-    /*
+  PruningBoundary acceptText(PruningBoundary boundary, SIText text) {
     if (text.prunedBy({}, {}, boundary) != null) {
       if (_parentStack.isNotEmpty) {
         _parentStack.last.generateParentIfNeeded();
       }
-      final c = _theCanon;
-      xIndex = c.getIndex(c.floatLists, _floatLists[xIndex])!;
-      yIndex = c.getIndex(c.floatLists, _floatLists[yIndex])!;
-      int textIndex = c.getIndex(c.strings, text.text)!;
-      SITextAttributes ta = text.attributes;
-      int fontFamilyIndex = c.getIndex(c.strings, ta.fontFamily)!;
-      SIPaint p = text.siPaint;
-      builder.text(null, xIndex, yIndex, textIndex, ta, fontFamilyIndex, p);
+      builder.text(null);
+      for (final chunk in text.chunks) {
+        chunk.build(_theCanon, builder);
+      }
+      builder.textEnd(null);
     }
-
-     */
     return boundary;
   }
 }
@@ -752,21 +765,29 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
             warn: warn);
 
   @override
-  void init(void collector, List<SIImage> images, List<String> strings,
-      List<List<double>> floatLists) {
+  void init(
+      void collector,
+      List<SIImage> images,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<double> floatValues,
+      CMap<double>? floatValueMap) {
     // This is a little tricky.  When pruning, we collect the canonicalized
     // data on the fly, and only provide it to our supertype at the end,
-    // right before building the SI, so we need to discard this data here, which
-    // comes from the graph being pruned.
+    // right before building the SI.  For this reason, so we need to discard
+    // this data here.  It comes from the graph being pruned, not the one
+    // being produced, so we don't care about it.
   }
 
   ///
   /// Set the canonicalized data.  This can be done right before
-  /// calling `si`.
+  /// calling `si`.  It's used for pruning.
   ///
   void setCanon(CanonicalizedData<SIImage> canon) {
-    super.init(null, canon.toList(canon.images), canon.toList(canon.strings),
-        canon.toList(canon.floatLists));
+    super.init(null, canon.images.toList(), canon.strings.toList(),
+        canon.floatLists.toList(), canon.floatValues.toList(), null);
+    // Note that floatValueMap gets set before the traversal, by a call to
+    // initFloatValueMap() in the _PruningVisitor constructor.
   }
 
   ScalableImageCompact get si {
@@ -783,6 +804,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        floatValues: floatValues,
         images: images,
         children: childrenSink.toList(),
         args: args.toList(),
@@ -891,7 +913,8 @@ class _MaskedPruningEntry extends _PruningEntry {
   }
 }
 
-class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
+class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
+    with SITextHelper<PruningBoundary?> {
   PruningBoundary? boundary;
 
   final _boundaryStack = List<PruningBoundary?>.empty(growable: true);
@@ -983,14 +1006,12 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?> {
 
   @override
   PruningBoundary? image(PruningBoundary? collector, int imageIndex) {
-    return combine(boundary, _images[imageIndex].getBoundary());
+    return combine(boundary, images[imageIndex].getBoundary());
   }
 
   @override
-  PruningBoundary? siText(
-      PruningBoundary? boundary, SIText text, int xIndex, int yIndex) {
-    return combine(boundary, text.getBoundary());
-  }
+  PruningBoundary? acceptText(PruningBoundary? boundary, SIText text) =>
+      combine(boundary, text.getBoundary());
 }
 
 mixin _SICompactPathBuilder {
@@ -1062,6 +1083,7 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        floatValues: floatValues,
         images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
             growable: false),
         children: childrenSink.toList(),

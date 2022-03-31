@@ -1,0 +1,56 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="10cm" height="3cm" viewBox="0 0 2000 600"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+  <g font-family="Verdana" font-size="45" >
+    <text x="200" y="150" fill="blue" >
+      You are
+        <tspan font-weight="bold" fill="red" >not</tspan>
+      a b<tspan fill="purple">a</tspan>n<tspan fill="orange">a</tspan>n<tspan fill="green">a</tspan>.
+    </text>
+  </g>
+
+  <!-- Show outline of canvas using 'rect' element -->
+  <rect x="1" y="1" width="998" height="298"
+        fill="none" stroke="blue" stroke-width="2" />
+
+  <g transform="translate(1000, 0)">
+      <g font-family="Verdana" font-size="45" >
+        <text x="200" y="150" fill="blue" >
+          But you
+            <tspan dx="2em" dy="-50" font-weight="bold" fill="red" >
+              are
+            </tspan>
+            <tspan dy="100">
+               a peach!
+            </tspan>
+        </text>
+      </g>
+
+      <!-- Show outline of canvas using 'rect' element -->
+      <rect x="1" y="1" width="998" height="298"
+            fill="none" stroke="blue" stroke-width="2" />
+  </g>
+
+  <g transform="translate(500, 300)">
+      <g font-family="Verdana" font-size="45" >
+        <text fill="rgb(255,164,0)" >
+          <tspan x="300 350 400 450 500 550 600 650" y="100">
+            Cute 
+
+            and
+          </tspan>
+          <tspan x="375 425 475 525 575" y="190 210 200">
+          fuzzy
+          </tspan>
+        </text>
+      </g>
+
+      <!-- Show outline of canvas using 'rect' element -->
+      <rect x="1" y="1" width="998" height="298"
+            fill="none" stroke="blue" stroke-width="2" />
+  </g>
+</svg>
+

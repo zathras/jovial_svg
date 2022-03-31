@@ -1,10 +1,13 @@
 
 ## [1.1.2] - April 2022
 
+- implemented `tspan` tag
 - Fix `opacity` attribute handling (use `srcOver`)
 - Support `mix-blend-mode` attribute
 - Implement `clip-rule` attribute
 - Implement `text-decoration` attribute
+- Made viewBox scaling preserve aspect ratio
+- Improved runtime memory efficiency with .si images:  Path sharing
 
 ## [1.1.1] - March 2022
 

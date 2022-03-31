@@ -550,7 +550,9 @@ class _MaskedBuilder implements _SIParentBuilder {
 /// See [PathBuilder] for usage.
 ///
 abstract class SIGenericDagBuilder<PathDataT, IM>
-    extends SIBuilder<PathDataT, IM> implements _SIParentBuilder {
+    extends SIBuilder<PathDataT, IM>
+    with SITextHelper<void>
+    implements _SIParentBuilder {
   @override
   final _renderables = List<SIRenderable>.empty(growable: true);
   double? _width;
@@ -562,9 +564,16 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   final bool warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
   ScalableImageDag? _si;
-  late final List<SIImage> _images;
-  late final List<String> _strings;
-  late final List<List<double>> _floatLists;
+  @protected
+  late final List<SIImage> images;
+  @protected
+  @override
+  late final List<String> strings;
+  @protected
+  late final List<List<double>> floatLists;
+  @protected
+  @override
+  late final List<double> floatValues;
   final _paths = <Object?, Path>{};
   final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
@@ -599,13 +608,14 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   Path _getPath(PathDataT pathData) {
-    final p = _paths[pathData];
+    final key = immutableKey(pathData);
+    final p = _paths[key];
     if (p != null) {
       return p;
     }
     final pb = UIPathBuilder();
     makePath(pathData, pb, warn: warn);
-    return _paths[immutableKey(pathData)] = pb.path;
+    return _paths[key] = pb.path;
   }
 
   @override
@@ -626,11 +636,17 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
 
   @override
-  void init(void collector, List<IM> im, List<String> strings,
-      List<List<double>> floatLists) {
-    _images = convertImages(im);
-    _strings = strings;
-    _floatLists = floatLists;
+  void init(
+      void collector,
+      List<IM> im,
+      List<String> strings,
+      List<List<double>> floatLists,
+      List<double> floatValues,
+      CMap<double>? floatValueMap) {
+    images = convertImages(im);
+    this.strings = strings;
+    this.floatLists = floatLists;
+    this.floatValues = floatValues;
     assert(_si == null);
     final a = _si = ScalableImageDag._withoutRenderables(
         width: _width,
@@ -639,7 +655,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
         tintColor: (_tintColor == null) ? null : Color(_tintColor!),
         tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
         currentColor: currentColor,
-        images: _images);
+        images: images);
     context = RenderContext.root(a, a.currentColor);
     _parentStack.add(this);
   }
@@ -648,15 +664,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   void image(void collector, int imageIndex) =>
-      addRenderable(_images[imageIndex]);
-
-  @override
-  @mustCallSuper
-  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
-    addRenderable(SIText.legacy(_strings[textIndex], _floatLists[xIndex],
-        _floatLists[yIndex], a, _daggerize(paint)));
-  }
+      addRenderable(images[imageIndex]);
 
   ScalableImageDag get si {
     final r = _si;
@@ -728,6 +736,19 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     final mb = _parentStack.last as _MaskedBuilder;
     _parentStack.length = _parentStack.length - 1;
     addRenderable(_daggerize(mb.masked));
+  }
+
+  @override
+  @mustCallSuper
+  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
+      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
+    addRenderable(SIText.legacy(strings[textIndex], floatLists[xIndex],
+        floatLists[yIndex], a, _daggerize(paint)));
+  }
+
+  @override
+  void acceptText(void collector, SIText text) {
+    addRenderable(text);
   }
 }
 

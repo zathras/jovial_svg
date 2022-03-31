@@ -49,21 +49,27 @@ import 'svg_graph.dart';
 /// and https://developer.android.com/reference/android/graphics/drawable/VectorDrawable
 ///
 abstract class AvdParser extends GenericParser {
-  final SIBuilder _builder;
+  final SIBuilder<String, SIImageData> _avdBuilder;
+  late final SvgParseGraph avd;
 
-  AvdParser(this._builder);
+  SvgPath? _currPath;
+  // Initially, we didn't produce an intermediate graph for AVD files.
+  // SvgParseGraph came later.  Wanting to share floats (e.g. for gradients)
+  // requires an intermediate graph, so we just re-use the more general
+  // one initially written for SVG files.
 
+  AvdParser(this._avdBuilder);
+
+  final _parentStack = List<SvgGroup>.empty(growable: true);
   final _tagStack = List<String>.empty(growable: true);
-  _AvdPath? _currPath;
   SvgGradientColor? _currGradient;
   List<SvgGradientStop>? _defaultGradientStops;
   bool? _inFillColor; // else stroke
   bool _vectorStarted = false;
   bool _done = false;
-  void Function()? _onDone;
 
   @override
-  bool get warn => _builder.warn;
+  bool get warn => _avdBuilder.warn;
 
   void _startTag(XmlStartElementEvent evt) {
     if (_done) {
@@ -78,8 +84,7 @@ abstract class AvdParser extends GenericParser {
       }
       _parseVector(evt.attributes);
       if (_done) {
-        _onDone?.call();
-        _builder.endVector();
+        avd.build(_avdBuilder);
       }
     } else if (!_vectorStarted) {
       throw ParseError('Expected <vector>, got $evt');
@@ -90,19 +95,15 @@ abstract class AvdParser extends GenericParser {
       }
       _parseGroup(evt.attributes);
       if (evt.isSelfClosing) {
-        _builder.endGroup(null);
+        _parentStack.length--;
       } else {
         _tagStack.add('group');
       }
     } else if (evt.name == 'path') {
-      if (_currPath != null) {
-        throw ParseError('Nested path?!?');
-      }
-      final p = _parsePath(evt.attributes);
+      _parsePath(evt.attributes);
       if (evt.isSelfClosing) {
-        _finishPath(p);
+        _currPath = null;
       } else {
-        _currPath = p;
         _tagStack.add('path');
       }
     } else if (evt.name == 'clip-path') {
@@ -128,9 +129,9 @@ abstract class AvdParser extends GenericParser {
         throw ParseError('Gradient outside a path?!?');
       }
       if (_inFillColor == false) {
-        p.stroke = g;
+        p.paint.strokeColor = g;
       } else {
-        p.fill = g;
+        p.paint.fillColor = g;
       }
       if (evt.isSelfClosing) {
         _finishGradient(g);
@@ -159,23 +160,20 @@ abstract class AvdParser extends GenericParser {
         throw ParseError('Expected </vector>, got </${evt.name}');
       }
       _done = true;
-      _onDone?.call();
-      _builder.endVector();
+      avd.build(_avdBuilder);
     } else if (_tagStack.isEmpty) {
       throw ParseError('Unexpected end tag $evt');
     } else if (_tagStack.last != evt.name) {
       throw ParseError('Expected </${_tagStack.last}>, got $evt');
     } else {
       if (evt.name == 'path') {
-        assert(_currPath != null);
-        _finishPath(_currPath!);
         _currPath = null;
       } else if (evt.name == 'gradient') {
         assert(_currGradient != null);
         _finishGradient(_currGradient!);
         _currGradient = null;
       } else if (evt.name == 'group') {
-        _builder.endGroup(null);
+        _parentStack.length--;
       }
       _tagStack.removeLast();
     }
@@ -220,6 +218,7 @@ abstract class AvdParser extends GenericParser {
         tintMode = _getTintMode(a.value);
       }
     }
+    final root = SvgGroup();
     if (scaledWidth != null || scaledHeight != null) {
       if (width == null || height == null) {
         // If the viewportWidth and/or viewportHeight attribute aren't
@@ -251,25 +250,13 @@ abstract class AvdParser extends GenericParser {
           // Do nothing:  Fall through to the normal, unscaled case
         } else {
           // We should scale.  See issue 14.
-          _builder.vector(
-              width: scaledWidth,
-              height: scaledHeight,
-              tintColor: tintColor,
-              tintMode: tintMode);
-          final scaler =
+          root.transform =
               MutableAffine.scale(scaledWidth / width, scaledHeight / height);
-          _builder.init(null, const <SIImageData>[], const [], const []);
-          _builder.group(null, scaler, null, SIBlendMode.normal);
-          _onDone = () {
-            _builder.endGroup(null);
-          };
-          return;
         }
       }
     }
-    _builder.vector(
-        width: width, height: height, tintColor: tintColor, tintMode: tintMode);
-    _builder.init(null, const <SIImageData>[], const [], const []);
+    avd = SvgParseGraph(root, width, height, tintColor, tintMode);
+    _parentStack.add(avd.root);
   }
 
   void _parseGroup(List<XmlEventAttribute> attrs) {
@@ -330,12 +317,26 @@ abstract class AvdParser extends GenericParser {
     // not mean the viewport of the top-level tree, if we have a parent group
     // that did transformations on the way down.
 
-    _builder.group(null, (transform.isIdentity()) ? null : transform, null,
-        SIBlendMode.normal);
+    final g = SvgGroup();
+    if (!transform.isIdentity()) {
+      g.transform = transform;
+    }
+    _parentStack.last.children.add(g);
+    _parentStack.add(g);
   }
 
-  _AvdPath _parsePath(List<XmlEventAttribute> attrs) {
-    final path = _AvdPath();
+  void _parsePath(List<XmlEventAttribute> attrs) {
+    SvgColor fill = SvgColor.none;
+    SvgColor stroke = SvgColor.none;
+    double? strokeWidth;
+    int? strokeAlpha;
+    int? fillAlpha;
+    double? strokeMiterLimit;
+    SIStrokeJoin? strokeJoin;
+    SIStrokeCap? strokeCap;
+    SIFillType? fillType;
+    String? pathData;
+
     final dups = _DuplicateChecker();
 
     for (final a in attrs) {
@@ -343,26 +344,26 @@ abstract class AvdParser extends GenericParser {
       if (a.name == 'android:name') {
         // don't care
       } else if (a.name == 'android:pathData') {
-        path.pathData = a.value;
+        pathData = a.value;
       } else if (a.name == 'android:fillColor') {
-        path.fill = SvgColor.value(getColor(a.value.trim().toLowerCase()));
+        fill = SvgColor.value(getColor(a.value.trim().toLowerCase()));
       } else if (a.name == 'android:strokeColor') {
-        path.stroke = SvgColor.value(getColor(a.value.trim().toLowerCase()));
+        stroke = SvgColor.value(getColor(a.value.trim().toLowerCase()));
       } else if (a.name == 'android:strokeWidth') {
-        path.strokeWidth = getFloat(a.value);
+        strokeWidth = getFloat(a.value);
       } else if (a.name == 'android:strokeAlpha') {
-        path.strokeAlpha = getAlpha(a.value);
+        strokeAlpha = getAlpha(a.value);
       } else if (a.name == 'android:fillAlpha') {
-        path.fillAlpha = getAlpha(a.value);
+        fillAlpha = getAlpha(a.value);
       } else if (a.name == 'android:strokeLineCap') {
-        path.strokeCap = getStrokeCap(a.value);
+        strokeCap = getStrokeCap(a.value);
       } else if (a.name == 'android:strokeLineJoin') {
-        path.strokeJoin = getStrokeJoin(a.value);
+        strokeJoin = getStrokeJoin(a.value);
       } else if (a.name == 'android:strokeMiterLimit') {
-        path.strokeMiterLimit = getFloat(a.value);
+        strokeMiterLimit = getFloat(a.value);
       } else if (a.name == 'android:fillType') {
         try {
-          path.fillType = getFillType(a.value);
+          fillType = getFillType(a.value);
         } catch (err) {
           if (warn) {
             print('    Ignoring invalid fillType ${a.value}');
@@ -393,34 +394,24 @@ abstract class AvdParser extends GenericParser {
         print('    Ignoring unexpected attribute ${a.name}');
       }
     }
-    return path;
-  }
-
-  void _finishPath(final _AvdPath path) {
-    if (path.pathData == null) {
+    if (pathData == null) {
       if (warn) {
         print('    Path with no android:pathData - ignored');
       }
-    } else {
-      userSpace() => throw UnsupportedError("Internal error - userSpace");
-      if (path.fill != SvgColor.none || path.stroke != SvgColor.none) {
-        _builder.path(
-            null,
-            path.pathData,
-            SIPaint(
-                fillColor: path.fill
-                    .toSIColor(path.fillAlpha, SvgColor.none, userSpace),
-                strokeColor: path.stroke
-                    .toSIColor(path.strokeAlpha, SvgColor.none, userSpace),
-                strokeWidth: path.strokeWidth,
-                strokeMiterLimit: path.strokeMiterLimit,
-                strokeJoin: path.strokeJoin,
-                strokeCap: path.strokeCap,
-                fillType: path.fillType,
-                strokeDashArray: null,
-                strokeDashOffset: null));
-      }
+      return;
     }
+    final path = SvgPath(pathData);
+    path.paint.fillColor = fill;
+    path.paint.fillAlpha = fillAlpha;
+    path.paint.fillType = fillType;
+    path.paint.strokeColor = stroke;
+    path.paint.strokeWidth = strokeWidth;
+    path.paint.strokeAlpha = strokeAlpha;
+    path.paint.strokeMiterLimit = strokeMiterLimit;
+    path.paint.strokeJoin = strokeJoin;
+    path.paint.strokeCap = strokeCap;
+    _parentStack.last.children.add(path);
+    _currPath = path;
   }
 
   void _parseClipPath(List<XmlEventAttribute> attrs) {
@@ -441,7 +432,8 @@ abstract class AvdParser extends GenericParser {
         print('    clip path with no android:pathData - ignored');
       }
     } else {
-      _builder.clipPath(null, pathData);
+      final clip = AvdClipPath(pathData);
+      _parentStack.last.children.add(clip);
     }
   }
 
@@ -619,17 +611,35 @@ abstract class AvdParser extends GenericParser {
   }
 }
 
-class _AvdPath {
-  SvgColor fill = SvgColor.none;
-  SvgColor stroke = SvgColor.none;
-  double? strokeWidth;
-  int? strokeAlpha;
-  int? fillAlpha;
-  double? strokeMiterLimit;
-  SIStrokeJoin? strokeJoin;
-  SIStrokeCap? strokeCap;
-  SIFillType? fillType;
-  String? pathData;
+class AvdClipPath extends SvgNode {
+  final String pathData;
+
+  AvdClipPath(this.pathData);
+
+  @override
+  SIBlendMode get blendMode => SIBlendMode.normal;
+
+  @override
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
+      {bool blendHandledByParent = false}) {
+    builder.clipPath(null, pathData);
+    return true;
+  }
+
+  @override
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+          void Function(String p1) warn) =>
+      false;
+
+  @override
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
+          referrers) =>
+      this;
 }
 
 class _AvdParserEventHandler with XmlEventVisitor {
@@ -665,10 +675,11 @@ class _AvdParserEventHandler with XmlEventVisitor {
 class StreamAvdParser extends AvdParser {
   final Stream<String> _input;
 
-  StreamAvdParser(this._input, SIBuilder builder) : super(builder);
+  StreamAvdParser(this._input, SIBuilder<String, SIImageData> builder)
+      : super(builder);
 
   static StreamAvdParser fromByteStream(
-          Stream<List<int>> input, SIBuilder builder) =>
+          Stream<List<int>> input, SIBuilder<String, SIImageData> builder) =>
       StreamAvdParser(input.transform(utf8.decoder), builder);
 
   /// Throws a [ParseError] or other exception in case of error.
@@ -685,7 +696,8 @@ class StreamAvdParser extends AvdParser {
 class StringAvdParser extends AvdParser {
   final String _input;
 
-  StringAvdParser(this._input, SIBuilder builder) : super(builder);
+  StringAvdParser(this._input, SIBuilder<String, SIImageData> builder)
+      : super(builder);
 
   /// Throws a [ParseError] or other exception in case of error.
   void parse() {

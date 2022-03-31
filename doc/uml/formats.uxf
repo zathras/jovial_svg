@@ -156,24 +156,12 @@ render v</panel_attributes>
     <coordinates>
       <x>130</x>
       <y>80</y>
-      <w>270</w>
-      <h>100</h>
+      <w>80</w>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=-&gt;
 </panel_attributes>
-    <additional_attributes>10.0;10.0;250.0;80.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>130</x>
-      <y>60</y>
-      <w>270</w>
-      <h>50</h>
-    </coordinates>
-    <panel_attributes>lt=-&gt;
-</panel_attributes>
-    <additional_attributes>10.0;20.0;250.0;30.0</additional_attributes>
+    <additional_attributes>10.0;10.0;60.0;70.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
@@ -226,18 +214,6 @@ prune &gt;</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>130</x>
-      <y>20</y>
-      <w>480</w>
-      <h>110</h>
-    </coordinates>
-    <panel_attributes>lt=-&gt;
-</panel_attributes>
-    <additional_attributes>10.0;50.0;180.0;20.0;410.0;30.0;460.0;90.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
       <x>220</x>
       <y>40</y>
       <w>370</w>
@@ -245,6 +221,6 @@ prune &gt;</panel_attributes>
     </coordinates>
     <panel_attributes>lt=-&gt;
 </panel_attributes>
-    <additional_attributes>10.0;110.0;90.0;20.0;320.0;30.0;350.0;70.0</additional_attributes>
+    <additional_attributes>10.0;110.0;90.0;20.0;320.0;20.0;350.0;70.0</additional_attributes>
   </element>
 </diagram>
