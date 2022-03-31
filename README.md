@@ -129,7 +129,8 @@ it.
   *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
   *  Filter effects (SVG s. 15) are not supported.  They are not a part
      of SVG Tiny 1.2.
-  *  Text restrictions:
+  *  Text profile:
+      * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute
         is used when selecting a font, and fonts can be included in an 
         application that uses this library.  For example, the demo program
