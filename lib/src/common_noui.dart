@@ -45,7 +45,6 @@ import 'package:quiver/collection.dart' as quiver;
 import 'affine.dart';
 import 'path_noui.dart';
 
-typedef AlignmentT = Point<double>;
 typedef PointT = Point<double>;
 typedef RadiusT = Point<double>;
 typedef RectT = Rectangle<double>;
@@ -551,6 +550,7 @@ abstract class GenericParser {
     'blue': 0xFF0000FF,
     'fuchsia': 0xFFFF00FF,
     'gray': 0xFF808080,
+    'grey': 0xFF808080,
     'green': 0xFF008000,
     'lime': 0xFF00FF00,
     'maroon': 0xFF800000,
@@ -584,6 +584,7 @@ abstract class GenericParser {
     'darkcyan': 0xFF008B8B,
     'darkgoldenrod': 0xFFB8860B,
     'darkgray': 0xFFA9A9A9,
+    'darkgrey': 0xFFA9A9A9,
     'darkgreen': 0xFF006400,
     'darkkhaki': 0xFFBDB76B,
     'darkmagenta': 0xFF8B008B,
@@ -595,11 +596,13 @@ abstract class GenericParser {
     'darkseagreen': 0xFF8FBC8F,
     'darkslateblue': 0xFF483D8B,
     'darkslategray': 0xFF2F4F4F,
+    'darkslategrey': 0xFF2F4F4F,
     'darkturquoise': 0xFF00CED1,
     'darkviolet': 0xFF9400D3,
     'deeppink': 0xFFFF1493,
     'deepskyblue': 0xFF00BFFF,
     'dimgray': 0xFF696969,
+    'dimgrey': 0xFF696969,
     'dodgerblue': 0xFF1E90FF,
     'firebrick': 0xFFB22222,
     'floralwhite': 0xFFFFFAF0,
@@ -625,11 +628,13 @@ abstract class GenericParser {
     'lightgoldenrodyellow': 0xFFFAFAD2,
     'lightgreen': 0xFF90EE90,
     'lightgrey': 0xFFD3D3D3,
+    'lightgray': 0xFFD3D3D3,
     'lightpink': 0xFFFFB6C1,
     'lightsalmon': 0xFFFFA07A,
     'lightseagreen': 0xFF20B2AA,
     'lightskyblue': 0xFF87CEFA,
     'lightslategray': 0xFF778899,
+    'lightslategrey': 0xFF778899,
     'lightsteelblue': 0xFFB0C4DE,
     'lightyellow': 0xFFFFFFE0,
     'limegreen': 0xFF32CD32,
@@ -676,6 +681,7 @@ abstract class GenericParser {
     'skyblue': 0xFF87CEEB,
     'slateblue': 0xFF6A5ACD,
     'slategray': 0xFF708090,
+    'slategrey': 0xFF708090,
     'snow': 0xFFFFFAFA,
     'springgreen': 0xFF00FF7F,
     'steelblue': 0xFF4682B4,
@@ -723,7 +729,10 @@ abstract class GenericParser {
     if (nc != null) {
       return nc;
     }
-    throw ParseError('Unrecognized color $s');
+    if (warn) {
+      print('Unrecognized color "$s"');
+    }
+    return 0xFF000000;
   }
 
   static final _colorComponentMatch = RegExp(r'[0-9]+%?');

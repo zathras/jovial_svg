@@ -118,17 +118,15 @@ it.
   *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
      eliminated from SVG Tiny 1.2.
   *  The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
-  *  As per the Tiny spec s. 6.2, full CSS is not supported.  However, the
-     `style=` attribute is supported as a way of specifying presentation
-     attributes.
+  *  The `style` tag for inline CSS and the `style=` attribute are
+     supported to specify node attributes (not in Tiny - cf. s. 6.2).
   *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   *  Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
   *  A DOM and other features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
   *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
-  *  Filter effects (SVG s. 15) are not supported.  They are not a part
-     of SVG Tiny 1.2.
+  *  Filter effects (SVG s. 15) are not supported (not in Tiny).
   *  Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute

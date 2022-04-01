@@ -66,6 +66,7 @@ abstract class SvgParser extends GenericParser {
   final _parentStack = List<SvgGroup>.empty(growable: true);
 
   SvgText? _currentText;
+  StringBuffer? _currentStyle; // Within a style tag
   SvgGradientNode? _currentGradient;
 
   ///
@@ -75,12 +76,16 @@ abstract class SvgParser extends GenericParser {
   late final SvgParseGraph svg;
   bool _svgTagSeen = false;
 
+  /// Stylesheet.  Key is element type - see style.uml in doc/uml.
+  final Stylesheet _stylesheet = {};
+
   SvgParser(this.warn, this._builder);
 
   void buildResult() {
     if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
+    svg.root.applyStylesheet(_stylesheet);
     svg.build(_builder);
   }
 
@@ -105,7 +110,7 @@ abstract class SvgParser extends GenericParser {
           _parentStack.length--;
         }
       } else if (evt.name == 'defs') {
-        _processDefs(_toMap(evt.attributes));
+        _processDefs(_toMap(evt.attributes), 'defs');
         if (evt.isSelfClosing) {
           _parentStack.length--;
         }
@@ -135,9 +140,9 @@ abstract class SvgParser extends GenericParser {
       } else if (evt.name == 'line') {
         _processLine(_toMap(evt.attributes));
       } else if (evt.name == 'polyline') {
-        _processPoly(false, _toMap(evt.attributes));
+        _processPoly('polyline', false, _toMap(evt.attributes));
       } else if (evt.name == 'polygon') {
-        _processPoly(true, _toMap(evt.attributes));
+        _processPoly('polygon', true, _toMap(evt.attributes));
       } else if (evt.name == 'image') {
         _processImage(_toMap(evt.attributes));
       } else if (evt.name == 'text') {
@@ -154,6 +159,10 @@ abstract class SvgParser extends GenericParser {
         }
         if (evt.isSelfClosing) {
           _currentText?.endSpan();
+        }
+      } else if (evt.name == 'style') {
+        if (!evt.isSelfClosing) {
+          _currentStyle = StringBuffer();
         }
       } else if (evt.name == 'linearGradient') {
         _currentGradient = _processLinearGradient(_toMap(evt.attributes));
@@ -179,6 +188,7 @@ abstract class SvgParser extends GenericParser {
 
   void _textEvent(XmlTextEvent e) {
     _currentText?.appendText(e.text);
+    _currentStyle?.write(e.text);
   }
 
   void _endTag(XmlEndElementEvent evt) {
@@ -193,6 +203,9 @@ abstract class SvgParser extends GenericParser {
       _parentStack.length -= 2;
     } else if (evt.name == 'text') {
       _currentText = null;
+    } else if (evt.name == 'style' && _currentStyle != null) {
+      _processStyle(_currentStyle!.toString());
+      _currentStyle = null;
     } else if (evt.name == 'tspan') {
       _currentText?.endSpan();
     } else if (evt.name == 'linearGradient' || evt.name == 'radialGradient') {
@@ -208,9 +221,9 @@ abstract class SvgParser extends GenericParser {
     double? width = getFloat(attrs.remove('width'));
     double? height = getFloat(attrs.remove('height'));
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
-    final SvgGroup root;
+    final SvgRoot root;
     if (viewbox == null) {
-      root = SvgGroup();
+      root = SvgRoot();
     } else {
       final transform = MutableAffine.identity();
       if (width != null && height != null) {
@@ -234,9 +247,9 @@ abstract class SvgParser extends GenericParser {
       transform
           .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
       if (transform.isIdentity()) {
-        root = SvgGroup();
+        root = SvgRoot();
       } else {
-        root = SvgGroup()..transform = transform;
+        root = SvgRoot()..transform = transform;
       }
     }
     _processInheritable(root, attrs);
@@ -255,8 +268,8 @@ abstract class SvgParser extends GenericParser {
     _parentStack.add(group);
   }
 
-  void _processDefs(Map<String, String> attrs) {
-    final group = SvgDefs();
+  void _processDefs(Map<String, String> attrs, String tagName) {
+    final group = SvgDefs(tagName);
     _processId(group, attrs);
     _processInheritable(group, attrs);
     _warnUnusedAttributes(attrs);
@@ -268,7 +281,7 @@ abstract class SvgParser extends GenericParser {
     double? width = getFloat(attrs.remove('width'));
     double? height = getFloat(attrs.remove('height'));
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
-    _processDefs({});
+    _processDefs({}, 'symbol');
     _processGroup(attrs);
     SvgGroup us = _parentStack.last;
     if (viewbox == null) {
@@ -360,7 +373,7 @@ abstract class SvgParser extends GenericParser {
     final double cx = getFloat(attrs.remove('cx')) ?? 0;
     final double cy = getFloat(attrs.remove('cy')) ?? 0;
     final double r = getFloat(attrs.remove('r')) ?? 0;
-    final e = SvgEllipse(cx, cy, r, r);
+    final e = SvgEllipse('circle', cx, cy, r, r);
     _processId(e, attrs);
     _processInheritable(e, attrs);
     _warnUnusedAttributes(attrs);
@@ -372,7 +385,7 @@ abstract class SvgParser extends GenericParser {
     final double cy = getFloat(attrs.remove('cy')) ?? 0;
     final double rx = getFloat(attrs.remove('rx')) ?? 0;
     final double ry = getFloat(attrs.remove('ry')) ?? 0;
-    final e = SvgEllipse(cx, cy, rx, ry);
+    final e = SvgEllipse('ellipse', cx, cy, rx, ry);
     _processId(e, attrs);
     _processInheritable(e, attrs);
     _warnUnusedAttributes(attrs);
@@ -384,14 +397,14 @@ abstract class SvgParser extends GenericParser {
     final double y1 = getFloat(attrs.remove('y1')) ?? 0;
     final double x2 = getFloat(attrs.remove('x2')) ?? 0;
     final double y2 = getFloat(attrs.remove('y2')) ?? 0;
-    final line = SvgPoly(false, [Point(x1, y1), Point(x2, y2)]);
+    final line = SvgPoly('line', false, [Point(x1, y1), Point(x2, y2)]);
     _processId(line, attrs);
     _processInheritable(line, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(line);
   }
 
-  void _processPoly(bool close, Map<String, String> attrs) {
+  void _processPoly(String tagName, bool close, Map<String, String> attrs) {
     final str = attrs.remove('points') ?? '';
     final lex = BnfLexer(str);
     final pts = lex.getFloatList();
@@ -405,7 +418,7 @@ abstract class SvgParser extends GenericParser {
     for (int i = 0; i < pts.length; i += 2) {
       points.add(Point(pts[i], pts[i + 1]));
     }
-    final line = SvgPoly(close, points);
+    final line = SvgPoly(tagName, close, points);
     _processId(line, attrs);
     _processInheritable(line, attrs);
     _warnUnusedAttributes(attrs);
@@ -755,6 +768,7 @@ abstract class SvgParser extends GenericParser {
       SvgInheritableAttributes node, Map<String, String> attrs) {
     _processInheritableText(node, attrs);
     node.display = attrs.remove('display') != 'none';
+    node.styleClass = attrs.remove('class') ?? '';
     node.groupAlpha = getAlpha(attrs.remove('opacity'));
     if (node.groupAlpha == 0xff) {
       node.groupAlpha = null;
@@ -888,26 +902,30 @@ abstract class SvgParser extends GenericParser {
     }
     final style = map.remove('style');
     if (style != null) {
-      for (String el in style.split(';')) {
-        el = el.trim();
-        if (el == '') {
-          continue;
-        }
-        int pos = el.indexOf(':');
-        if (pos == -1) {
-          throw ParseError('Syntax error in style attribute "$style"');
-        }
-        final key = el.substring(0, pos).trim();
-        if (map.containsKey(key)) {
-          if (warn) {
-            print('    Ignoring duplicate style attribute $key');
-          }
-        } else {
-          map[key] = el.substring(pos + 1).trim();
-        }
-      }
+      _parseStyle(style, map);
     }
     return map;
+  }
+
+  void _parseStyle(String style, Map<String, String> map) {
+    for (String el in style.split(';')) {
+      el = el.trim();
+      if (el == '') {
+        continue;
+      }
+      int pos = el.indexOf(':');
+      if (pos == -1) {
+        throw ParseError('Syntax error in style attribute "$style"');
+      }
+      final key = el.substring(0, pos).trim();
+      if (map.containsKey(key)) {
+        if (warn) {
+          print('    Ignoring duplicate style attribute $key');
+        }
+      } else {
+        map[key] = el.substring(pos + 1).trim();
+      }
+    }
   }
 
   SvgColor getSvgColor(String? s) {
@@ -923,6 +941,54 @@ abstract class SvgParser extends GenericParser {
       return SvgColor.reference(s);
     } else {
       return SvgColor.value(super.getColor(lc));
+    }
+  }
+
+  static final _whitespaceOrNothing = RegExp(r'\s*');
+  static final _idToBrace = RegExp(r'[^\s{]+');
+  static final _consumeToBrace = RegExp(r'[^{]*');
+  static final _consumeToRBrace = RegExp(r'[^}]*');
+  void _processStyle(String string) {
+    int pos = _whitespaceOrNothing.matchAsPrefix(string, 0)?.end ?? 0;
+    int lastPos;
+    while (pos < string.length) {
+      lastPos = pos;
+      final idMatch = _idToBrace.matchAsPrefix(string, pos);
+      pos = idMatch?.end ?? pos;
+      pos = _consumeToBrace.matchAsPrefix(string, pos)?.end ?? pos;
+      if (pos < string.length) {
+        pos++;
+      }
+      pos = _whitespaceOrNothing.matchAsPrefix(string, pos)?.end ?? pos;
+      final contentM = _consumeToRBrace.matchAsPrefix(string, pos);
+      pos = contentM?.end ?? pos;
+      if (pos < string.length) {
+        pos++;
+      }
+      pos = _whitespaceOrNothing.matchAsPrefix(string, pos)?.end ?? pos;
+      if (idMatch != null && contentM != null) {
+        final id = string.substring(idMatch.start, idMatch.end);
+        final content = string.substring(contentM.start, contentM.end);
+        final String element;
+        final String styleClass;
+        final dp = id.indexOf('.');
+        if (dp == -1) {
+          element = id;
+          styleClass = '';
+        } else {
+          element = id.substring(0, dp);
+          styleClass = id.substring(dp + 1);
+        }
+        final s = Style(styleClass);
+        _stylesheet.putIfAbsent(element, () => []).add(s);
+        Map<String, String> attrs = {};
+        _parseStyle(content, attrs);
+        _processInheritable(s, attrs);
+      }
+      if (lastPos == pos) {
+        assert(false);
+        pos++;
+      }
     }
   }
 }

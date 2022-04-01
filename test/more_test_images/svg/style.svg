@@ -1,0 +1,47 @@
+<svg width="40" height="40" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    circle {
+        fill: aqua;
+    }
+    circle.foo{fill: purple;}.foo{
+      fill: gold;
+      stroke: maroon;
+      stroke-width: 2px;
+    }
+    .bar {
+      fill: orange;
+      stroke: green;
+    }
+    rect {
+      fill: yellow;
+    }g{
+      fill: orange;
+      stroke-width: 1;
+    }
+    svg {
+      stroke: brown;
+    }
+  </style>
+
+  <circle class="foo glorp bar" cx="5" cy="5" r="4" />
+  <circle class="foo bar glorp" cx="15" cy="5" r="4" />
+  <circle class="foo glorp" cx="5" cy="15" r="4" />
+  <circle class="foo bar" cx="15" cy="15" r="4" />
+  <g>
+      <rect x="8" y="8" width="4" height="4" />
+  </g>
+  <!-- order of IDs within class attribute has no effect.
+       Order of declarations in document matters, with declarations
+       occurring later having precedence (glorp trumps bar).
+       More specific trumps less specific -->
+  <style>
+    .glorp {
+      fill: grey;
+      stroke: navy;
+    }
+    circle {
+      fill: lightgrey;
+    }
+  </style>
+</svg>
+

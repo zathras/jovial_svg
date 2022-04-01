@@ -218,7 +218,7 @@ abstract class AvdParser extends GenericParser {
         tintMode = _getTintMode(a.value);
       }
     }
-    final root = SvgGroup();
+    final root = SvgRoot();
     if (scaledWidth != null || scaledHeight != null) {
       if (width == null || height == null) {
         // If the viewportWidth and/or viewportHeight attribute aren't
@@ -618,6 +618,9 @@ class AvdClipPath extends SvgNode {
 
   @override
   SIBlendMode get blendMode => SIBlendMode.normal;
+
+  @override
+  void applyStylesheet(Stylesheet stylesheet) {}
 
   @override
   bool build(

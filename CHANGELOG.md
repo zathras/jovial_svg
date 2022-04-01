@@ -2,6 +2,7 @@
 ## [1.1.2] - April 2022
 
 - implemented `tspan` tag
+- implemented `style` tag for inline CSS styles
 - Fix `opacity` attribute handling (use `srcOver`)
 - Support `mix-blend-mode` attribute
 - Implement `clip-rule` attribute

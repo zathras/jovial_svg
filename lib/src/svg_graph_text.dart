@@ -45,7 +45,7 @@ part of 'svg_graph.dart';
 // A lot of the complexity comes from SVG's rather unique notion of having a
 // coordinate be either a single value or a list.
 
-class SvgText extends SvgInheritableAttributes {
+class SvgText extends SvgInheritableAttributesNode {
   List<SvgTextSpan> stack = [SvgTextSpan()];
   bool _trimLeft = true;
 
@@ -57,6 +57,9 @@ class SvgText extends SvgInheritableAttributes {
     final root = stack.first;
     root.x = root.y = const [0.0];
   }
+
+  @override
+  String get tagName => 'text';
 
   List<double>? get x => stack.first.x;
   set x(List<double>? v) => stack.first.x = v;
@@ -155,7 +158,9 @@ class SvgText extends SvgInheritableAttributes {
     if (!display) {
       return false;
     }
-    final blend = blendHandledByParent ? SIBlendMode.normal : blendMode;
+    final blend = blendHandledByParent
+        ? SIBlendMode.normal
+        : (blendMode ?? SIBlendMode.normal);
     final needGroup =
         transform != null || groupAlpha != null || blend != SIBlendMode.normal;
     if (needGroup) {
