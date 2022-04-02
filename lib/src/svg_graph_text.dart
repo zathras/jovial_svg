@@ -104,11 +104,10 @@ class SvgText extends SvgInheritableAttributesNode {
 
   @override
   void applyStylesheet(Stylesheet stylesheet) {
-    // No call of super.applyStylesheet, because our attributes are on root,
-    // which has a tagName of 'text'.
+    super.applyStylesheet(stylesheet);
     assert(stack.length == 1);
     final SvgTextSpan root = stack.first;
-    root.applyStylesheet(stylesheet);
+    root.applyStylesheetToChildren(stylesheet);
   }
 
   @override
@@ -223,6 +222,10 @@ class SvgTextSpan extends SvgTextNodeAttributes
   @override
   void applyStylesheet(Stylesheet stylesheet) {
     super.applyStylesheet(stylesheet);
+    applyStylesheetToChildren(stylesheet);
+  }
+
+  void applyStylesheetToChildren(Stylesheet stylesheet) {
     for (final p in parts) {
       p.applyStylesheet(stylesheet);
     }

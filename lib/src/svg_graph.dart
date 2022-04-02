@@ -366,6 +366,7 @@ abstract class SvgInheritableTextAttributes implements SvgTextFields {
   }
 
   static final _whitespace = RegExp(r'\s+');
+  @mustCallSuper
   void applyStylesheet(Stylesheet stylesheet) {
     final ourClasses = styleClass.trim().split(_whitespace).toSet();
     if (ourClasses.isNotEmpty) {
