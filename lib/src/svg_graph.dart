@@ -338,6 +338,8 @@ abstract class SvgInheritableTextAttributes {
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
   String styleClass; // Doesn't inherit.
   String get tagName;
+  // WARNING:  Any fields added here need to be shadowed in SvgText,
+  // to redirect to the first text span.
 
   SvgInheritableTextAttributes({SvgPaint? paint, this.styleClass = ''})
       : paint = paint ?? SvgPaint.empty();

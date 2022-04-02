@@ -59,7 +59,7 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  String get tagName => 'text';
+  String get tagName => stack[0].tagName; // which is 'text'
 
   List<double>? get x => stack.first.x;
   set x(List<double>? v) => stack.first.x = v;
@@ -68,12 +68,12 @@ class SvgText extends SvgInheritableAttributesNode {
 
   @override
   SvgPaint get paint => stack.first.paint;
-
   @override
   SvgTextAttributes get textAttributes => stack.first.textAttributes;
-
   @override
   set textAttributes(SvgTextAttributes v) => stack.first.textAttributes = v;
+  String get styleClass => stack.first.styleClass;
+  set styleClass(String v) => stack.first.styleClass = v;
 
   void appendText(String added) {
     added = added.replaceAll(_whitespace, ' ');
