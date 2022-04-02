@@ -251,13 +251,21 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// An entry in the list of styles for a given element type in the
 /// stylesheet.
 class Style extends SvgInheritableAttributes {
-  Style(String styleClass) : super(styleClass: styleClass);
+  @override
+  final SvgPaint paint = SvgPaint.empty();
+  @override
+  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  @override
+  final String styleClass; // Doesn't inherit.
 
+  @override
   set styleClass(String v) {
     // Do nothing:  Unlike a node, our styleClass doesn't come from the
     // parser.  A badly formed CSS entry could try to set an attribute
     // called 'class,' so we ignore any such attempts.
   }
+
+  Style(this.styleClass);
 
   void applyText(SvgInheritableTextAttributes node) {
     node.paint.takeFrom(this);
@@ -332,17 +340,23 @@ class _Referrers {
   }
 }
 
-/// Just the inheritable attributes that are applicable to text
-abstract class SvgInheritableTextAttributes {
-  final SvgPaint paint;
+///
+/// The fields of SvgInheritableTextAttributes, suitable for most node
+/// types (but not SvgGroup or SvgText).
+///
+mixin SvgTextFields {
+  final SvgPaint paint = SvgPaint.empty();
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
-  String styleClass; // Doesn't inherit.
+  String styleClass = ''; // Doesn't inherit.
+}
+
+/// Just the inheritable attributes that are applicable to text.  The
+/// fields are split out as SvgTextFields, since the actual text node
+/// forwards those to its child.
+abstract class SvgInheritableTextAttributes implements SvgTextFields {
   String get tagName;
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
-
-  SvgInheritableTextAttributes({SvgPaint? paint, this.styleClass = ''})
-      : paint = paint ?? SvgPaint.empty();
 
   bool _isInvisible(SvgPaint cascaded) {
     return cascaded.hidden == true ||
@@ -391,9 +405,6 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
   SIBlendMode? blendMode;
   // Doesn't inherit; instead, a group is created
 
-  SvgInheritableAttributes({SvgPaint? paint, String styleClass = ''})
-      : super(paint: paint, styleClass: styleClass);
-
   @override
   void _takeFrom(Style s) {
     s.apply(this);
@@ -402,8 +413,6 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
-  SvgInheritableAttributesNode({SvgPaint? paint}) : super(paint: paint);
-
   @override
   bool _isInvisible(SvgPaint cascaded) =>
       !display || super._isInvisible(cascaded);
@@ -668,11 +677,17 @@ class SvgPaint {
 }
 
 class SvgGroup extends SvgInheritableAttributesNode {
+  @override
+  final SvgPaint paint;
+  @override
+  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  @override
+  String styleClass = '';
   var children = List<SvgNode>.empty(growable: true);
   @protected
   bool get multipleNodesOK => false;
 
-  SvgGroup({SvgPaint? paint}) : super(paint: paint);
+  SvgGroup({SvgPaint? paint}) : paint = paint ?? SvgPaint.empty();
 
   @override
   String get tagName => 'g';
@@ -913,7 +928,7 @@ class SvgMasked extends SvgNode {
   SIBlendMode? get blendMode => child.blendMode;
 }
 
-class SvgUse extends SvgInheritableAttributesNode {
+class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   String? childID;
 
   SvgUse(this.childID);
@@ -976,7 +991,8 @@ class SvgUse extends SvgInheritableAttributesNode {
   }
 }
 
-abstract class SvgPathMaker extends SvgInheritableAttributesNode {
+abstract class SvgPathMaker extends SvgInheritableAttributesNode
+    with SvgTextFields {
   @override
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
@@ -1413,7 +1429,7 @@ class SvgGradientNode implements SvgNode {
   SIBlendMode get blendMode => SIBlendMode.normal;
 }
 
-class SvgImage extends SvgInheritableAttributesNode {
+class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
   Uint8List imageData = _emptyData;
   double x = 0;
   double y = 0;

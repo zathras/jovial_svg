@@ -72,7 +72,9 @@ class SvgText extends SvgInheritableAttributesNode {
   SvgTextAttributes get textAttributes => stack.first.textAttributes;
   @override
   set textAttributes(SvgTextAttributes v) => stack.first.textAttributes = v;
+  @override
   String get styleClass => stack.first.styleClass;
+  @override
   set styleClass(String v) => stack.first.styleClass = v;
 
   void appendText(String added) {
@@ -190,6 +192,7 @@ class SvgText extends SvgInheritableAttributesNode {
 }
 
 class SvgTextSpan extends SvgTextNodeAttributes
+    with SvgTextFields
     implements SvgTextSpanComponent {
   @override
   List<double>? x;
