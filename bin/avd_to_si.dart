@@ -7,7 +7,7 @@ class AvdToSI extends ToSI {
   String get programName => 'avd_to_si';
 
   @override
-  void parse(String src, SIBuilder<String, SIImageData> builder) =>
+  void parse(String src, SIBuilder<String, SIImageData> builder, bool warn) =>
       StringAvdParser(src, builder).parse();
 
   @override

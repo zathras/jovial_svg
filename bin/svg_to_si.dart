@@ -9,7 +9,7 @@ import 'package:jovial_svg/src/svg_parser.dart';
 
 abstract class ToSI {
   String get programName;
-  void parse(String src, SIBuilder<String, SIImageData> builder);
+  void parse(String src, SIBuilder<String, SIImageData> builder, bool warn);
   String get extension;
 
   void usage(final ArgParser argp) {
@@ -31,8 +31,11 @@ abstract class ToSI {
     argp.addOption('out', abbr: 'o', help: 'output directory');
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
+    argp.addFlag('quiet',
+        abbr: 'q', help: 'Quiet:  Suppress warnings.');
     final ArgResults results = argp.parse(arguments);
     bool big = results['big'] == true;
+    bool warn = results['quiet'] != true;
     if (results.rest.isEmpty) {
       usage(argp);
     }
@@ -56,7 +59,7 @@ abstract class ToSI {
       } else {
         final b = SICompactBuilderNoUI(bigFloats: big, warn: true);
         try {
-          parse(f.readAsStringSync(), b);
+          parse(f.readAsStringSync(), b, warn);
         } catch (e) {
           print('');
           print('***** Error in ${f.path} : skipping *****');
@@ -95,8 +98,8 @@ class SvgToSI extends ToSI {
   String get extension => '.svg';
 
   @override
-  void parse(String src, SIBuilder<String, SIImageData> builder) =>
-      StringSvgParser(src, builder).parse();
+  void parse(String src, SIBuilder<String, SIImageData> builder, bool warn) =>
+      StringSvgParser(src, builder, warn: warn).parse();
 }
 
 Future<void> main(List<String> arguments) => SvgToSI().main(arguments);

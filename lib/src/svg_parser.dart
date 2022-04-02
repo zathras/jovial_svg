@@ -103,7 +103,7 @@ abstract class SvgParser extends GenericParser {
         }
       } else if (_parentStack.isEmpty) {
         if (warn) {
-          print('    Ignoring ${evtName} outside of <svg></svg>');
+          print('    Ignoring $evtName outside of <svg></svg>');
         }
       } else if (evtName == 'g') {
         _processGroup(_toMap(evt.attributes));
@@ -180,7 +180,7 @@ abstract class SvgParser extends GenericParser {
       } else if (evtName == 'use') {
         _processUse(_toMap(evt.attributes));
       } else if (warn && tagsIgnored.add(evtName)) {
-        print('    Ignoring ${evtName} tag(s)');
+        print('    Ignoring $evtName tag(s)');
       }
     } finally {
       _currTag = null;

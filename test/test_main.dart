@@ -36,6 +36,9 @@ import 'package:jovial_svg/src/exported.dart';
 import 'package:jovial_svg/src/svg_parser.dart';
 import 'package:jovial_svg/src/widget.dart';
 
+import '../bin/svg_to_si.dart' as svg_to_si;
+import '../bin/avd_to_si.dart' as avd_to_si;
+
 ///
 /// Test that reading the SVG and the SI results in the same root group,
 /// and that they render the same.
@@ -346,6 +349,29 @@ class CanvasRecorder implements Canvas {
   }
 }
 
+void _createSI() {
+  List<String> listFiles(String type, String extension) {
+    final List<String> r = [];
+    for (final f in Directory('demo/assets/$type').listSync()) {
+      final p = f.path;
+      if (p.endsWith('.$extension')) {
+        r.add(p);
+      }
+    }
+    return r;
+  }
+
+  Directory tmp = Directory('/tmp').createTempSync();
+  try {
+    final svgFiles = listFiles('svg', 'svg');
+    svg_to_si.SvgToSI().main(['-q', '-o', tmp.absolute.path, ...svgFiles]);
+    final avdFiles = listFiles('avd', 'xml');
+    avd_to_si.AvdToSI().main(['-q', '-o', tmp.absolute.path, ...avdFiles]);
+  } finally {
+    tmp.deleteSync(recursive: true);
+  }
+}
+
 void main() {
   test('compact drawing order', () async {
     final inputDir = Directory('demo/assets/si');
@@ -353,14 +379,22 @@ void main() {
       final name = ent.uri.pathSegments.last;
       final noExt = name.substring(0, name.lastIndexOf('.'));
       if (ent is File && noExt != 'README') {
-        final regular = ScalableImage.fromSIBytes(await ent.readAsBytes());
-        final compact =
+        var regular = ScalableImage.fromSIBytes(await ent.readAsBytes());
+        var compact =
             ScalableImage.fromSIBytes(await ent.readAsBytes(), compact: true);
-        final rr = CanvasRecorder();
-        regular.paint(rr);
-        final cr = CanvasRecorder();
-        compact.paint(cr);
-        expect(cr.records, rr.records, reason: '$ent differs');
+        for (int i = 0; i < 2; i++) {
+          final rr = CanvasRecorder();
+          regular.paint(rr);
+          final cr = CanvasRecorder();
+          compact.paint(cr);
+          expect(cr.records, rr.records, reason: '$ent differs');
+          // Do a quick smoke test of zoom/prune
+          final vp = regular.viewport;
+          final nvp = Rect.fromLTWH(vp.left + vp.width * .4,
+              vp.top + vp.height * .4, vp.width * .2, vp.height * .2);
+          regular = regular.withNewViewport(nvp, prune: true);
+          compact = compact.withNewViewport(nvp, prune: true);
+        }
       }
     }
   });
@@ -459,6 +493,7 @@ void main() {
     }
   });
   test('cache test', _cacheTest);
+  test('create SI smoke test', _createSI);
 }
 
 class TestSource extends ScalableImageSource {
