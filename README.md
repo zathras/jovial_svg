@@ -103,6 +103,9 @@ it.
 
 ## Supported SVG Profile
 
+Most features of SVG 1.1 that are applicable to static SVG documents are
+supported, including CSS via the `<style>` tag.
+
   *  SVG paths and transforms are of course supported.
   *  The `use` element is supported (including forward references).
   *  Stroke modifiers like `stroke-linecap`, `stroke-linejoin` and
@@ -115,8 +118,8 @@ it.
   *  Text elements are supported.
   *  Embedded images are supported.
   *  Inheritable properties are supported.
-  *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  It was
-     eliminated from SVG Tiny 1.2.
+  *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  (Not
+     in Tiny).
   *  The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
   *  The `style` tag for inline CSS and the `style=` attribute are
      supported to specify node attributes (not in Tiny - cf. s. 6.2).
@@ -126,7 +129,8 @@ it.
   *  A DOM and other features related to animation are not supported.
   *  Conditional processing (Tiny s. 5.8) is not supported
   *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
-  *  Filter effects (SVG s. 15) are not supported (not in Tiny).
+  *  Filter effects via the `filter` tag are not supported (not in Tiny, cf.
+     SVG s. 15) 
   *  Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute
