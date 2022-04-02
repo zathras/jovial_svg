@@ -255,9 +255,9 @@ class Style extends SvgInheritableAttributes {
   final SvgPaint paint = SvgPaint.empty();
   @override
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
-  @override
-  final String styleClass; // Doesn't inherit.
 
+  @override
+  final String styleClass;
   @override
   set styleClass(String v) {
     // Do nothing:  Unlike a node, our styleClass doesn't come from the
