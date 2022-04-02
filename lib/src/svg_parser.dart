@@ -91,8 +91,9 @@ abstract class SvgParser extends GenericParser {
 
   void _startTag(XmlStartElementEvent evt) {
     try {
-      _currTag = evt.name;
-      if (evt.name == 'svg') {
+      final String evtName = evt.localName;
+      _currTag = evtName;
+      if (evtName == 'svg') {
         if (_svgTagSeen) {
           throw ParseError('Second <svg> tag in file');
         }
@@ -102,55 +103,55 @@ abstract class SvgParser extends GenericParser {
         }
       } else if (_parentStack.isEmpty) {
         if (warn) {
-          print('    Ignoring ${evt.name} outside of <svg></svg>');
+          print('    Ignoring ${evtName} outside of <svg></svg>');
         }
-      } else if (evt.name == 'g') {
+      } else if (evtName == 'g') {
         _processGroup(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _parentStack.length--;
         }
-      } else if (evt.name == 'defs') {
+      } else if (evtName == 'defs') {
         _processDefs(_toMap(evt.attributes), 'defs');
         if (evt.isSelfClosing) {
           _parentStack.length--;
         }
-      } else if (evt.name == 'symbol') {
+      } else if (evtName == 'symbol') {
         _processSymbol(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _parentStack.length -= 2;
         }
-      } else if (evt.name == 'mask') {
+      } else if (evtName == 'mask') {
         _processMask(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
-      } else if (evt.name == 'clipPath') {
+      } else if (evtName == 'clipPath') {
         _processClipPath(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _parentStack.length = _parentStack.length - 1;
         }
-      } else if (evt.name == 'path') {
+      } else if (evtName == 'path') {
         _processPath(_toMap(evt.attributes));
-      } else if (evt.name == 'rect') {
+      } else if (evtName == 'rect') {
         _processRect(_toMap(evt.attributes));
-      } else if (evt.name == 'circle') {
+      } else if (evtName == 'circle') {
         _processCircle(_toMap(evt.attributes));
-      } else if (evt.name == 'ellipse') {
+      } else if (evtName == 'ellipse') {
         _processEllipse(_toMap(evt.attributes));
-      } else if (evt.name == 'line') {
+      } else if (evtName == 'line') {
         _processLine(_toMap(evt.attributes));
-      } else if (evt.name == 'polyline') {
+      } else if (evtName == 'polyline') {
         _processPoly('polyline', false, _toMap(evt.attributes));
-      } else if (evt.name == 'polygon') {
+      } else if (evtName == 'polygon') {
         _processPoly('polygon', true, _toMap(evt.attributes));
-      } else if (evt.name == 'image') {
+      } else if (evtName == 'image') {
         _processImage(_toMap(evt.attributes));
-      } else if (evt.name == 'text') {
+      } else if (evtName == 'text') {
         _currentText = _processText(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _currentText = null;
         }
-      } else if (evt.name == 'tspan') {
+      } else if (evtName == 'tspan') {
         final span = _currentText?.startSpan();
         if (span != null) {
           _processTextSpan(span, _toMap(evt.attributes));
@@ -160,26 +161,26 @@ abstract class SvgParser extends GenericParser {
         if (evt.isSelfClosing) {
           _currentText?.endSpan();
         }
-      } else if (evt.name == 'style') {
+      } else if (evtName == 'style') {
         if (!evt.isSelfClosing) {
           _currentStyle = StringBuffer();
         }
-      } else if (evt.name == 'linearGradient') {
+      } else if (evtName == 'linearGradient') {
         _currentGradient = _processLinearGradient(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _currentGradient = null;
         }
-      } else if (evt.name == 'radialGradient') {
+      } else if (evtName == 'radialGradient') {
         _currentGradient = _processRadialGradient(_toMap(evt.attributes));
         if (evt.isSelfClosing) {
           _currentGradient = null;
         }
-      } else if (evt.name == 'stop') {
+      } else if (evtName == 'stop') {
         _processStop(_toMap(evt.attributes));
-      } else if (evt.name == 'use') {
+      } else if (evtName == 'use') {
         _processUse(_toMap(evt.attributes));
-      } else if (warn && tagsIgnored.add(evt.name)) {
-        print('    Ignoring ${evt.name} tag(s)');
+      } else if (warn && tagsIgnored.add(evtName)) {
+        print('    Ignoring ${evtName} tag(s)');
       }
     } finally {
       _currTag = null;
@@ -192,23 +193,24 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _endTag(XmlEndElementEvent evt) {
+    final evtName = evt.localName;
     if (_parentStack.isNotEmpty &&
-        (evt.name == 'svg' ||
-            evt.name == 'g' ||
-            evt.name == 'defs' ||
-            evt.name == 'mask' ||
-            evt.name == 'clipPath')) {
+        (evtName == 'svg' ||
+            evtName == 'g' ||
+            evtName == 'defs' ||
+            evtName == 'mask' ||
+            evtName == 'clipPath')) {
       _parentStack.length = _parentStack.length - 1;
-    } else if (evt.name == 'symbol') {
+    } else if (evtName == 'symbol') {
       _parentStack.length -= 2;
-    } else if (evt.name == 'text') {
+    } else if (evtName == 'text') {
       _currentText = null;
-    } else if (evt.name == 'style' && _currentStyle != null) {
+    } else if (evtName == 'style' && _currentStyle != null) {
       _processStyle(_currentStyle!.toString());
       _currentStyle = null;
-    } else if (evt.name == 'tspan') {
+    } else if (evtName == 'tspan') {
       _currentText?.endSpan();
-    } else if (evt.name == 'linearGradient' || evt.name == 'radialGradient') {
+    } else if (evtName == 'linearGradient' || evtName == 'radialGradient') {
       _currentGradient = null;
     }
   }
@@ -433,7 +435,7 @@ abstract class SvgParser extends GenericParser {
     image.y = getFloat(attrs.remove('y')) ?? image.y;
     image.width = getFloat(attrs.remove('width')) ?? image.width;
     image.height = getFloat(attrs.remove('height')) ?? image.height;
-    String? data = attrs.remove('xlink:href');
+    String? data = attrs.remove('href');
     if (data != null) {
       // Remove spaces, newlines, etc.
       final uri = Uri.parse(data.replaceAll(_whitespace, ''));
@@ -605,19 +607,18 @@ abstract class SvgParser extends GenericParser {
   }
 
   String? _getHref(Map<String, String> attrs) {
-    final href = attrs.remove('xlink:href') ?? attrs.remove('href');
-    // Just 'href' is wrong, but browsers seem to buy it
+    final href = attrs.remove('href');
     if (href == null) {
       return href;
     }
     if (!href.startsWith('#')) {
-      throw ParseError('xlink:href does not start with "#"');
+      throw ParseError('href does not start with "#"');
     }
     return href.substring(1);
   }
 
   void _processId(SvgNode n, Map<String, String> attrs) {
-    final id = attrs.remove('id') ?? attrs.remove('xml:id');
+    final id = attrs.remove('id');
     if (id != null) {
       svg.idLookup[id] = n;
     }
@@ -901,7 +902,7 @@ abstract class SvgParser extends GenericParser {
   Map<String, String> _toMap(Iterable<XmlEventAttribute> attrs) {
     final map = HashMap<String, String>();
     for (final a in attrs) {
-      map[a.name.toLowerCase()] = a.value;
+      map[a.localName.toLowerCase()] = a.value;
     }
     final style = map.remove('style');
     if (style != null) {

@@ -131,6 +131,7 @@ supported, including CSS via the `<style>` tag.
   *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
   *  Filter effects via the `filter` tag are not supported (not in Tiny, cf.
      SVG s. 15) 
+  *  XML namespaces are ignored.
   *  Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute

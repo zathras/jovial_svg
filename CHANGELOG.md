@@ -9,6 +9,7 @@
 - Implement `text-decoration` attribute
 - Made viewBox scaling preserve aspect ratio
 - Improved runtime memory efficiency with .si images:  Path sharing
+- Ignore XML namespaces (treat "foo:name" like "name").
 
 ## [1.1.1] - March 2022
 
