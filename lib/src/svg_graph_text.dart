@@ -46,7 +46,7 @@ part of 'svg_graph.dart';
 // coordinate be either a single value or a list.
 
 class SvgText extends SvgInheritableAttributesNode {
-  List<SvgTextSpan> stack = [SvgTextSpan()];
+  List<SvgTextSpan> stack = [SvgTextSpan('text')];
   bool _trimLeft = true;
 
   late final List<SvgTextChunk> flattened = _flatten();
@@ -88,7 +88,7 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   SvgTextSpan startSpan() {
-    final s = SvgTextSpan();
+    final s = SvgTextSpan('tspan');
     stack.last.appendPart(s);
     stack.add(s);
     return s;
@@ -98,6 +98,15 @@ class SvgText extends SvgInheritableAttributesNode {
     if (stack.length > 1) {
       stack.removeLast();
     }
+  }
+
+  @override
+  void applyStylesheet(Stylesheet stylesheet) {
+    // No call of super.applyStylesheet, because our attributes are on root,
+    // which has a tagName of 'text'.
+    assert(stack.length == 1);
+    final SvgTextSpan root = stack.first;
+    root.applyStylesheet(stylesheet);
   }
 
   @override
@@ -187,6 +196,10 @@ class SvgTextSpan extends SvgTextNodeAttributes
   @override
   List<double>? y;
   List<SvgTextSpanComponent> parts = [];
+  @override
+  final String tagName;
+
+  SvgTextSpan(this.tagName);
 
   void appendToPart(String added) {
     parts.add(SvgTextSpanStringComponent(this, added));
@@ -202,6 +215,14 @@ class SvgTextSpan extends SvgTextNodeAttributes
       }
     }
     return false;
+  }
+
+  @override
+  void applyStylesheet(Stylesheet stylesheet) {
+    super.applyStylesheet(stylesheet);
+    for (final p in parts) {
+      p.applyStylesheet(stylesheet);
+    }
   }
 
   @override
@@ -294,6 +315,8 @@ abstract class SvgTextSpanComponent {
   bool trimRight();
 
   void flattenInto(List<SvgTextChunk> children, _FlattenContext fc);
+
+  void applyStylesheet(Stylesheet stylesheet);
 }
 
 class SvgTextSpanStringComponent extends SvgTextSpanComponent {
@@ -303,6 +326,9 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   SvgTextSpanStringComponent(this.parent, this.text) {
     assert(text != '');
   }
+
+  @override
+  void applyStylesheet(Stylesheet stylesheet) {}
 
   @override
   bool trimRight() {

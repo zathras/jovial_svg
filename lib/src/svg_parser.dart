@@ -625,6 +625,10 @@ abstract class SvgParser extends GenericParser {
 
   void _processInheritableText(
       SvgInheritableTextAttributes node, Map<String, String> attrs) {
+    final sc = attrs.remove('class');
+    if (sc != null) {
+      node.styleClass = sc;
+    }
     final SvgPaint p = node.paint;
     p.currentColor = getSvgColor(attrs.remove('color')?.trim());
     p.fillColor = getSvgColor(attrs.remove('fill')?.trim());
@@ -768,7 +772,6 @@ abstract class SvgParser extends GenericParser {
       SvgInheritableAttributes node, Map<String, String> attrs) {
     _processInheritableText(node, attrs);
     node.display = attrs.remove('display') != 'none';
-    node.styleClass = attrs.remove('class') ?? '';
     node.groupAlpha = getAlpha(attrs.remove('opacity'));
     if (node.groupAlpha == 0xff) {
       node.groupAlpha = null;

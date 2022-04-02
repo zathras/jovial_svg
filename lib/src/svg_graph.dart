@@ -251,16 +251,27 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// An entry in the list of styles for a given element type in the
 /// stylesheet.
 class Style extends SvgInheritableAttributes {
-  final String styleClass; // The element class this is for.  Can be "".
+  Style(String styleClass) : super(styleClass: styleClass);
 
-  Style(this.styleClass);
+  set styleClass(String v) {
+    // Do nothing:  Unlike a node, our styleClass doesn't come from the
+    // parser.  A badly formed CSS entry could try to set an attribute
+    // called 'class,' so we ignore any such attempts.
+  }
 
-  void apply(SvgInheritableAttributes node) {
+  void applyText(SvgInheritableTextAttributes node) {
     node.paint.takeFrom(this);
     node.textAttributes.takeFrom(this);
+  }
+
+  void apply(SvgInheritableAttributes node) {
+    applyText(node);
     node.transform = node.transform ?? transform;
     node.blendMode = node.blendMode ?? blendMode;
   }
+
+  @override
+  String get tagName => 'style'; // Not used
 }
 
 typedef Stylesheet = Map<String, List<Style>>;
@@ -325,8 +336,10 @@ class _Referrers {
 abstract class SvgInheritableTextAttributes {
   final SvgPaint paint;
   SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  String styleClass; // Doesn't inherit.
+  String get tagName;
 
-  SvgInheritableTextAttributes({SvgPaint? paint})
+  SvgInheritableTextAttributes({SvgPaint? paint, this.styleClass = ''})
       : paint = paint ?? SvgPaint.empty();
 
   bool _isInvisible(SvgPaint cascaded) {
@@ -334,6 +347,38 @@ abstract class SvgInheritableTextAttributes {
         ((cascaded.strokeAlpha == 0 || cascaded.strokeColor == SvgColor.none) &&
             (cascaded.fillAlpha == 0 || cascaded.fillColor == SvgColor.none) &&
             !cascaded.inClipPath);
+  }
+
+  static final _whitespace = RegExp(r'\s+');
+  void applyStylesheet(Stylesheet stylesheet) {
+    final ourClasses = styleClass.trim().split(_whitespace).toSet();
+    if (ourClasses.isNotEmpty) {
+      for (final tag in [tagName, '']) {
+        final List<Style>? styles = stylesheet[tag];
+        if (styles != null) {
+          for (int i = styles.length - 1; i >= 0; i--) {
+            final s = styles[i];
+            if (ourClasses.contains(s.styleClass)) {
+              _takeFrom(s);
+            }
+          }
+        }
+      }
+    }
+    final List<Style>? styles = stylesheet[tagName];
+    if (styles != null) {
+      for (int i = styles.length - 1; i >= 0; i--) {
+        final s = styles[i];
+        if (s.styleClass == '') {
+          _takeFrom(s);
+        }
+      }
+    }
+  }
+
+  @protected
+  void _takeFrom(Style s) {
+    s.applyText(this);
   }
 }
 
@@ -343,17 +388,19 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
   int? groupAlpha; // Doesn't inherit; instead, a group is created
   SIBlendMode? blendMode;
   // Doesn't inherit; instead, a group is created
-  String styleClass = '';
-  // Doesn't inherit.
 
-  SvgInheritableAttributes({SvgPaint? paint}) : super(paint: paint);
+  SvgInheritableAttributes({SvgPaint? paint, String styleClass = ''})
+      : super(paint: paint, styleClass: styleClass);
+
+  @override
+  void _takeFrom(Style s) {
+    s.apply(this);
+  }
 }
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
   SvgInheritableAttributesNode({SvgPaint? paint}) : super(paint: paint);
-
-  String get tagName;
 
   @override
   bool _isInvisible(SvgPaint cascaded) =>
@@ -417,35 +464,6 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
       }
     }
     return this;
-  }
-
-  static final _whitespace = RegExp(r'\s+');
-  @mustCallSuper
-  @override
-  void applyStylesheet(Stylesheet stylesheet) {
-    final ourClasses = styleClass.trim().split(_whitespace).toSet();
-    if (ourClasses.isNotEmpty) {
-      for (final tag in [tagName, '']) {
-        final List<Style>? styles = stylesheet[tag];
-        if (styles != null) {
-          for (int i = styles.length - 1; i >= 0; i--) {
-            final s = styles[i];
-            if (ourClasses.contains(s.styleClass)) {
-              s.apply(this);
-            }
-          }
-        }
-      }
-    }
-    final List<Style>? styles = stylesheet[tagName];
-    if (styles != null) {
-      for (int i = styles.length - 1; i >= 0; i--) {
-        final s = styles[i];
-        if (s.styleClass == '') {
-          s.apply(this);
-        }
-      }
-    }
   }
 }
 
