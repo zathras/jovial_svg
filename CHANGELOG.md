@@ -10,6 +10,7 @@
 - Made viewBox scaling preserve aspect ratio
 - Improved runtime memory efficiency with .si images:  Path sharing
 - Ignore XML namespaces (treat "foo:name" like "name").
+- Fix skew transform (degrees, not radians).
 
 ## [1.1.1] - March 2022
 

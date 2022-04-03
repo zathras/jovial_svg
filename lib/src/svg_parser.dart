@@ -856,19 +856,21 @@ abstract class SvgParser extends GenericParser {
         }
       } else if (t == 'skewx') {
         if (args.length == 1) {
-          result.multiplyBy(MutableAffine.skewX(args[0]));
+          result.multiplyBy(MutableAffine.skewX(args[0] * pi / 180));
           continue;
         }
       } else if (t == 'skewy') {
         if (args.length == 1) {
-          result.multiplyBy(MutableAffine.skewY(args[0]));
+          result.multiplyBy(MutableAffine.skewY(args[0] * pi / 180));
           continue;
         }
       }
-      throw ParseError('Unrecognized transform $t');
+      if (warn) {
+        print('    Unrecognized transform $t');
+      }
     }
-    if (!lexer.eof) {
-      throw ParseError('Unexpected characters at end of transfrom $s');
+    if (!lexer.eof && warn) {
+      print('    Unexpected characters at end of transform:  "$s"');
     }
     if (result.isIdentity()) {
       return null;
@@ -880,8 +882,8 @@ abstract class SvgParser extends GenericParser {
   List<double> getTransformArgs(String s) {
     final lex = BnfLexer(s);
     final result = lex.getFloatList();
-    if (!lex.eof) {
-      throw ParseError('Unrecognized text at end of transform args:  $s');
+    if (!lex.eof && warn) {
+      print('    Unrecognized text at end of transform args:  "$s"');
     }
     return result;
   }
