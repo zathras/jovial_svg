@@ -156,13 +156,6 @@ class SIImageData {
       required this.height,
       required this.encoded});
 
-  SIImageData.copy(SIImageData other)
-      : x = other.x,
-        y = other.y,
-        width = other.width,
-        height = other.height,
-        encoded = other.encoded;
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -214,17 +207,6 @@ class SIPaint {
 
   static const double strokeMiterLimitDefault = 4;
   static const double strokeWidthDefault = 1;
-
-  SIPaint forText() => SIPaint(
-      fillColor: fillColor,
-      strokeColor: strokeColor,
-      strokeWidth: strokeWidth,
-      strokeMiterLimit: null,
-      strokeJoin: null,
-      strokeCap: null,
-      fillType: null,
-      strokeDashArray: null,
-      strokeDashOffset: null);
 
   @override
   int get hashCode =>
@@ -1182,27 +1164,6 @@ class CanonicalizedData<IM> {
 
   /// Float values, notably used in text nodes
   final floatValues = CMap<double>();
-
-  ///
-  /// The float lists that are used as x and y
-  /// coordinates on text nodes, in the "legacy" SI format.  This bizarre
-  /// SVG feature really complicates text!
-  ///
-  final CMap<List<double>> floatLists = CMap(HashMap(
-      equals: (List<double> k1, List<double> k2) => quiver.listsEqual(k1, k2),
-      hashCode: (List<double> k) => quiver.hashObjects(k)));
-
-  List<T> toList<T>(Map<T, int> map) {
-    if (map.isEmpty) {
-      return List<T>.empty();
-    }
-    T random = map.entries.first.key;
-    final r = List<T>.filled(map.length, random);
-    for (final MapEntry<T, int> e in map.entries) {
-      r[e.value] = e.key;
-    }
-    return r;
-  }
 }
 
 class CMap<K> {
@@ -1212,10 +1173,6 @@ class CMap<K> {
   CMap([Map<K, int>? map])
       : _map = map ?? {},
         _growing = true;
-
-  CMap.fromList(List<K> list)
-      : _map = list.asMap().map((i, v) => MapEntry(v, i)),
-        _growing = false;
 
   int operator [](K key) {
     if (_growing) {

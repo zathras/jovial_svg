@@ -785,7 +785,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   ///
   void setCanon(CanonicalizedData<SIImage> canon) {
     super.init(null, canon.images.toList(), canon.strings.toList(),
-        canon.floatLists.toList(), canon.floatValues.toList(), null);
+        const [], canon.floatValues.toList(), null);
     // Note that floatValueMap gets set before the traversal, by a call to
     // initFloatValueMap() in the _PruningVisitor constructor.
   }

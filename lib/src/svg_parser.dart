@@ -217,7 +217,7 @@ abstract class SvgParser extends GenericParser {
 
   void _processSvg(Map<String, String> attrs) {
     attrs.remove('xmlns');
-    attrs.remove('xmlns:xlink');
+    attrs.remove('xlink');
     attrs.remove('version');
     attrs.remove('id');
     double? width = getFloat(attrs.remove('width'));

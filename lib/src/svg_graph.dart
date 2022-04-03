@@ -131,7 +131,7 @@ class SvgParseGraph {
         null,
         theCanon.images.toList(),
         theCanon.strings.toList(),
-        theCanon.floatLists.toList(),
+        const [],
         theCanon.floatValues.toList(),
         theCanon.floatValues);
     newRoot?.build(builder, theCanon, idLookup, rootPaint, rootTA);
@@ -942,7 +942,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
       _Referrers referrers) {
     if (childID == null) {
       if (warn) {
-        print('    <use> has no xlink:href');
+        print('    <use> has no href');
       }
       return null;
     }

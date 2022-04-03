@@ -1,0 +1,43 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" 
+    xmlns:xlink='http://www.w3.org/1999/xlink'
+    version="1.1">
+
+<linearGradient id="grad" x1="0" y1="1" x2="48" y2="1" 
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="purple"/>
+    <stop offset="1" stop-color="orange"/>
+</linearGradient>
+
+<radialGradient id="rgrad" cx="25" cy="20" r="30%"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="green"/>
+    <stop offset="0.5" stop-color="orange"/>
+    <stop offset="1" stop-color="aqua"/>
+</radialGradient>
+
+<g id="text" fill="url(#grad)" font-size="5">
+  <text font-weight="normal" x="15" y="10" text-anchor="start">align 
+    <tspan text-anchor="end" x="40">is <tspan font-weight="bold">fine</tspan></tspan></text>
+  <text x="15" y="15" text-anchor="middle">align 
+    <tspan x="40">is <tspan font-weight="bold">fine</tspan></tspan></text>
+  <text x="15" y="20" text-anchor="end">align 
+    <tspan text-anchor="start" x="40">is <tspan font-weight="bold">fine</tspan></tspan></text>
+</g>
+<mask id="mask">
+  <use xlink:href="#text"/>
+</mask>
+
+<g mask="url(#mask)" fill="url(#rgrad)" transform="translate(0, 10)">
+  <ellipse cx="15" cy="15" rx="15" ry="10" />
+  <circle cx="25" cy="5" r="4" />
+  <rect x="30" y="15" width="4" height="8" />
+  <polygon points="35, 5  45, 5 48, 10 43, 15 35, 15" />
+  <polyline stroke="url(#rgrad)" stroke-width="5"
+      points="35, 20  45, 20 40, 23" />
+  <line stroke="url(#rgrad)" stroke-width="5"
+      x1="35" y1="23" x2="38" y2="22" />
+</g>
+</svg>

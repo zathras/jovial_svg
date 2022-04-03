@@ -230,15 +230,6 @@ extension SIStrokeCapMapping on SIStrokeCap {
 }
 
 extension SIFillTypeMapping on SIFillType {
-  static SIFillType fromFillType(PathFillType t) {
-    switch (t) {
-      case PathFillType.evenOdd:
-        return SIFillType.evenOdd;
-      case PathFillType.nonZero:
-        return SIFillType.nonZero;
-    }
-  }
-
   PathFillType get asPathFillType {
     switch (this) {
       case SIFillType.evenOdd:
@@ -1257,10 +1248,10 @@ class SIMultiSpanChunk extends SITextChunk {
         c.translate(dx, dy);
         break;
       case SITextAnchor.middle:
-        c.translate(dx - _getWidth() / 2, 0);
+        c.translate(dx - _getWidth() / 2, dy);
         break;
       case SITextAnchor.end:
-        c.translate(dx - _getWidth(), 0);
+        c.translate(dx - _getWidth(), dy);
         break;
     }
     for (final span in spans) {
