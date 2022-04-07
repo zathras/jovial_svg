@@ -204,7 +204,7 @@ class ScalableImageCompact extends ScalableImageBase
   @override
   ScalableImageDag toDag() {
     final b = SIDagBuilderFromCompact(viewport,
-        warn: false, currentColor: currentColor);
+        warn: (_) {}, currentColor: currentColor);
     b.vector(
         width: width,
         height: height,
@@ -443,7 +443,7 @@ abstract class _CompactVisitor<R>
   }
 
   @override
-  void assertDone() {
+  void traversalDone() {
     assert(_context.parent == null);
   }
 }
@@ -535,11 +535,6 @@ class _PaintingVisitor extends _CompactVisitor<void>
   void endMasked(void collector) {
     finishMasked(canvas);
   }
-
-  @override
-  PruningBoundary? getBoundary() => null;
-  // We don't know our boundary (unlike the DAG implementation), so
-  // we're a little less efficient.
 }
 
 class _MaskStackEntry {
@@ -604,7 +599,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary>
             (si.bigFloats) ? Float64Sink() : Float32Sink(),
             viewport,
             currentColor: si.currentColor,
-            warn: false),
+            warn: (_) {}),
         super(RenderContext.root(si, Colors.black)) {
     builder.initFloatValueMap(_theCanon.floatValues);
     builder.vector(
@@ -759,7 +754,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
 
   _PruningBuilder(bool bigFloats, ByteSink childrenSink, FloatSink args,
       FloatSink transforms, this.viewport,
-      {required bool warn, required this.currentColor})
+      {required void Function(String) warn, required this.currentColor})
       : super(bigFloats, childrenSink,
             DataOutputSink(childrenSink, Endian.little), args, transforms,
             warn: warn);
@@ -784,8 +779,8 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   /// calling `si`.  It's used for pruning.
   ///
   void setCanon(CanonicalizedData<SIImage> canon) {
-    super.init(null, canon.images.toList(), canon.strings.toList(),
-        const [], canon.floatValues.toList(), null);
+    super.init(null, canon.images.toList(), canon.strings.toList(), const [],
+        canon.floatValues.toList(), null);
     // Note that floatValueMap gets set before the traversal, by a call to
     // initFloatValueMap() in the _PruningVisitor constructor.
   }
@@ -1015,17 +1010,9 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
 }
 
 mixin _SICompactPathBuilder {
-  void makePath(CompactChildData pathData, PathBuilder pb, {bool warn = true}) {
-    try {
-      CompactPathParser(pathData, pb).parse();
-    } catch (e) {
-      if (warn) {
-        print(e);
-        // As per the SVG spec, paths shall be parsed up to the first error,
-        // and it is recommended that errors be reported to the user if
-        // possible.
-      }
-    }
+  void makePath(CompactChildData pathData, PathBuilder pb,
+      {required void Function(String) warn}) {
+    CompactPathParser(pathData, pb).parse();
   }
 
   CompactChildData immutableKey(CompactChildData key) =>
@@ -1036,7 +1023,7 @@ class SIDagBuilderFromCompact
     extends SIGenericDagBuilder<CompactChildData, SIImage>
     with _SICompactPathBuilder {
   SIDagBuilderFromCompact(Rect? viewport,
-      {required bool warn, Color? currentColor})
+      {required void Function(String) warn, Color? currentColor})
       : super(viewport, warn, currentColor);
 
   @override
@@ -1048,7 +1035,8 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
   final Color? currentColor;
 
   SICompactBuilder._p(bool bigFloats, ByteSink childrenSink, FloatSink args,
-      FloatSink transforms, {required bool warn, this.currentColor})
+      FloatSink transforms,
+      {required void Function(String) warn, this.currentColor})
       : super(bigFloats, childrenSink,
             DataOutputSink(childrenSink, Endian.little), args, transforms,
             warn: warn);
@@ -1057,7 +1045,9 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
   void get initial {}
 
   factory SICompactBuilder(
-      {required bool bigFloats, required bool warn, Color? currentColor}) {
+      {required bool bigFloats,
+      required void Function(String) warn,
+      Color? currentColor}) {
     final cs = ByteSink();
     final a = bigFloats ? Float64Sink() : Float32Sink();
     final t = bigFloats ? Float64Sink() : Float32Sink();

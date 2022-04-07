@@ -34,7 +34,6 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.common_noui;
 
-import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -107,20 +106,11 @@ abstract class SIVisitor<PathDataT, IM, R> {
   R textEnd(R collector);
 
   /// Check any invariants that should be true at the end of a traversal
-  void assertDone() {}
+  void traversalDone() {}
 }
 
 abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
-  bool get warn;
-
-  final Set<String> _warned = {};
-
-  void printWarning(String warning) {
-    if (warn && !_warned.contains(warning)) {
-      print(warning);
-      _warned.add(warning);
-    }
-  }
+  Function(String) get warn;
 
   ///
   /// Called once, at the beginning of reading a file.
@@ -192,18 +182,13 @@ class SIPaint {
   const SIPaint(
       {required this.fillColor,
       required this.strokeColor,
-      required double? strokeWidth,
-      required double? strokeMiterLimit,
-      required SIStrokeJoin? strokeJoin,
-      required SIStrokeCap? strokeCap,
-      required SIFillType? fillType,
+      required this.strokeWidth,
+      required this.strokeMiterLimit,
+      required this.strokeJoin,
+      required this.strokeCap,
+      required this.fillType,
       required this.strokeDashArray,
-      required this.strokeDashOffset})
-      : strokeWidth = strokeWidth ?? strokeWidthDefault,
-        strokeMiterLimit = strokeMiterLimit ?? strokeMiterLimitDefault,
-        strokeJoin = strokeJoin ?? SIStrokeJoin.miter,
-        strokeCap = strokeCap ?? SIStrokeCap.square,
-        fillType = fillType ?? SIFillType.nonZero;
+      required this.strokeDashOffset});
 
   static const double strokeMiterLimitDefault = 4;
   static const double strokeWidthDefault = 1;
@@ -503,16 +488,15 @@ class SIColorVisitor {
 /// Mixin for SIBuilder that builds paths from strings
 ///
 mixin SIStringPathMaker {
-  void makePath(String pathData, PathBuilder pb, {bool warn = true}) {
+  void makePath(String pathData, PathBuilder pb,
+      {required void Function(String) warn}) {
     try {
       PathParser(pb, pathData).parse();
     } catch (e) {
-      if (warn) {
-        print(e);
-        // As per the SVG spec, paths shall be parsed up to the first error,
-        // and it is recommended that errors be reported to the user if
-        // posible.
-      }
+      warn(e.toString());
+      // As per the SVG spec, paths shall be parsed up to the first error,
+      // and it is recommended that errors be reported to the user if
+      // posible.
     }
   }
 
@@ -520,7 +504,7 @@ mixin SIStringPathMaker {
 }
 
 abstract class GenericParser {
-  bool get warn;
+  Function(String) get warn;
 
   /// Tiny s. 11.13.1 only requires the sixteen colors from HTML 4, but this
   /// is a more complete list from CSS, since it's easy to do.  Note that
@@ -711,9 +695,7 @@ abstract class GenericParser {
     if (nc != null) {
       return nc;
     }
-    if (warn) {
-      print('Unrecognized color "$s"');
-    }
+    warn('Unrecognized color "$s"');
     return 0xFF000000;
   }
 
@@ -742,7 +724,7 @@ abstract class GenericParser {
       if (s == 'inherit') {
         return null;
       }
-      throw ParseError('Invalid fill type value:  $s');
+      warn('Invalid fill type value:  $s');
     }
     return r;
   }
@@ -757,7 +739,8 @@ abstract class GenericParser {
     }
     final Match? m = _floatMatch.matchAsPrefix(s);
     if (m == null) {
-      throw ParseError('Expected float value, saw "$s".');
+      warn('Expected float value, saw "$s".');
+      return null;
     } else {
       String postfix = s.substring(m.end).trim();
       double val = double.parse(s.substring(m.start, m.end));
@@ -777,9 +760,9 @@ abstract class GenericParser {
         multiplier = 1;
       } else {
         multiplier = 1;
-        if (warn && !warnedAbout.contains(postfix)) {
+        if (!warnedAbout.contains(postfix)) {
           warnedAbout.add(postfix);
-          print('    (ignoring units "$postfix")');
+          warn('    (ignoring units "$postfix")');
         }
       }
       return multiplier * val;
@@ -1073,7 +1056,7 @@ class ParseError {
   ParseError(this.message);
 
   @override
-  String toString() => 'PathError($message)';
+  String toString() => 'ParseError($message)';
 }
 
 // Note:  The numerical values of this enum are externalized.
@@ -1162,7 +1145,7 @@ class CanonicalizedData<IM> {
   final images = CMap<IM>();
   final strings = CMap<String>();
 
-  /// Float values, notably used in text nodes
+  // Float values, notably used in text nodes
   final floatValues = CMap<double>();
 }
 

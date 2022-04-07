@@ -116,6 +116,7 @@ abstract class SIRenderable {
         xform);
   }
 
+  // The colors within a gradient, fed to a Flutter shader.
   List<Color> _gradientColors(Color current, SIGradientColor g) {
     Color cc = current;
     final v = SIColorVisitor(
@@ -182,17 +183,6 @@ extension SIGradientSpreadMethodMapping on SIGradientSpreadMethod {
 }
 
 extension SIStrokeJoinMapping on SIStrokeJoin {
-  static SIStrokeJoin fromStrokeJoin(StrokeJoin j) {
-    switch (j) {
-      case StrokeJoin.miter:
-        return SIStrokeJoin.miter;
-      case StrokeJoin.round:
-        return SIStrokeJoin.round;
-      case StrokeJoin.bevel:
-        return SIStrokeJoin.bevel;
-    }
-  }
-
   StrokeJoin get asStrokeJoin {
     switch (this) {
       case SIStrokeJoin.miter:
@@ -206,17 +196,6 @@ extension SIStrokeJoinMapping on SIStrokeJoin {
 }
 
 extension SIStrokeCapMapping on SIStrokeCap {
-  static SIStrokeCap fromStrokeCap(StrokeCap strokeCap) {
-    switch (strokeCap) {
-      case StrokeCap.butt:
-        return SIStrokeCap.butt;
-      case StrokeCap.round:
-        return SIStrokeCap.round;
-      case StrokeCap.square:
-        return SIStrokeCap.square;
-    }
-  }
-
   StrokeCap get asStrokeCap {
     switch (this) {
       case SIStrokeCap.butt:
@@ -379,10 +358,9 @@ mixin SIGroupHelper {
 
   void startPaintGroup(
       Canvas c, Affine? transform, int? groupAlpha, BlendMode? blendMode) {
-    late final bounds = getBoundary()?.getBounds();
     if (blendMode != null) {
       _blendModeStack.add(true);
-      c.saveLayer(bounds, Paint()..blendMode = blendMode);
+      c.saveLayer(null, Paint()..blendMode = blendMode);
     } else {
       _blendModeStack.add(false);
     }
@@ -390,7 +368,7 @@ mixin SIGroupHelper {
       c.save();
     } else {
       c.saveLayer(
-          bounds,
+          null,
           Paint()
             ..blendMode = BlendMode.srcOver
             ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff));
@@ -407,10 +385,6 @@ mixin SIGroupHelper {
     _blendModeStack.length--;
     c.restore();
   }
-
-  /// Implemented in the DAG subtype, this optimizes painting when alpha
-  /// blending is done.
-  PruningBoundary? getBoundary();
 }
 
 ///
@@ -854,9 +828,19 @@ class _ImageLoader {
     }
     assert(_decoded == null);
     final buf = await ui.ImmutableBuffer.fromUint8List(source.encoded);
-    final des = await ui.ImageDescriptor.encoded(buf);
-    final codec = _codec = await des.instantiateCodec();
-    final decoded = (await codec.getNextFrame()).image;
+    ui.ImageDescriptor? des;
+    ui.Codec? codec;
+    ui.Image? decoded;
+    try {
+      des = await ui.ImageDescriptor.encoded(buf);
+      codec = _codec = await des.instantiateCodec();
+      decoded = (await codec.getNextFrame()).image;
+    } catch (e) {
+      codec?.dispose();
+      decoded?.dispose();
+      buf.dispose();
+      return;
+    }
     if (_timesPrepared > 0) {
       _decoded = decoded;
       _codec = codec;
@@ -1363,3 +1347,7 @@ class RenderContext {
   @override
   int get hashCode => quiver.hash3(parent, currentColor, transform);
 }
+
+void defaultWarn(String s) => print(s); // coverage:ignore-line
+
+void nullWarn(String s) {} // coverage:ignore-line

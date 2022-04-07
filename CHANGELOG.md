@@ -11,6 +11,8 @@
 - Improved runtime memory efficiency with .si images:  Path sharing
 - Ignore XML namespaces (treat "foo:name" like "name").
 - Fix skew transform (degrees, not radians).
+- Extend API with a function to call when there is a parser warning.
+- More robust handling of SVG files with errors
 
 ## [1.1.1] - March 2022
 

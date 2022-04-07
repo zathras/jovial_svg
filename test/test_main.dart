@@ -27,17 +27,23 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jovial_misc/io_utils.dart';
 import 'package:jovial_svg/src/affine.dart';
+import 'package:jovial_svg/src/avd_parser.dart';
+import 'package:jovial_svg/src/common_noui.dart';
 import 'package:jovial_svg/src/compact_noui.dart';
 import 'package:jovial_svg/src/dag.dart';
 import 'package:jovial_svg/src/exported.dart';
+import 'package:jovial_svg/src/svg_graph.dart';
 import 'package:jovial_svg/src/svg_parser.dart';
 import 'package:jovial_svg/src/widget.dart';
 
 import '../bin/svg_to_si.dart' as svg_to_si;
 import '../bin/avd_to_si.dart' as avd_to_si;
+
+void _noWarn(String s) {}
 
 ///
 /// Test that reading the SVG and the SI results in the same root group,
@@ -50,33 +56,49 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README' && !name.endsWith('.swp')) {
       final fromSvg =
-          ScalableImage.fromSvgString(await ent.readAsString(), warn: false);
-      final b = SICompactBuilderNoUI(bigFloats: true, warn: false);
-      StringSvgParser(await ent.readAsString(), b, warn: false).parse();
+          ScalableImage.fromSvgString(await ent.readAsString(), warnF: _noWarn);
+      final fromSvgC = ScalableImage.fromSvgString(await ent.readAsString(),
+          warnF: _noWarn, compact: true, bigFloats: true);
+      final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
+      StringSvgParser(await ent.readAsString(), b, warn: _noWarn).parse();
       final cs = ByteSink();
       final dos = DataOutputSink(cs);
       b.si.writeToFile(dos);
       dos.close();
       final fromSi = ScalableImage.fromSIBytes(cs.toList(), compact: false);
-      final siB = await renderToBytes(fromSvg, format: ImageByteFormat.png);
-      final svgB = await renderToBytes(fromSi, format: ImageByteFormat.png);
+      final svgB = await renderToBytes(fromSvg, format: ImageByteFormat.png);
+      final svgcB = await renderToBytes(fromSvgC, format: ImageByteFormat.png);
+      final siB = await renderToBytes(fromSi, format: ImageByteFormat.png);
+      void fail(Uint8List si, Uint8List sv, bool compact) {
+        if (outputDir != null) {
+          final svgOut = File('${outputDir.path}/svg.png');
+          final siOut = File('${outputDir.path}/si.png');
+          print('Writing debug images for compact=$compact, $ent:');
+          print('    $svgOut');
+          print('    $siOut');
+          outputDir.createSync(recursive: true);
+          svgOut.writeAsBytesSync(sv);
+          siOut.writeAsBytesSync(si);
+        }
+      }
+
       try {
         (fromSvg as ScalableImageDag)
             .privateAssertIsEquivalent(fromSi as ScalableImageDag);
         expect(siB, svgB);
       } catch (failure) {
-        if (outputDir != null) {
-          final svgOut = File('${outputDir.path}/svg.png');
-          final siOut = File('${outputDir.path}/si.png');
-          print('Writing debug images for $ent:');
-          print('    $svgOut');
-          print('    $siOut');
-          outputDir.createSync(recursive: true);
-          svgOut.writeAsBytesSync(svgB);
-          // await renderToBytes(fromSvg, format: ImageByteFormat.png));
-          siOut.writeAsBytesSync(siB);
-          // await renderToBytes(fromSi, format: ImageByteFormat.png));
-        }
+        fail(siB, svgB, false);
+        rethrow;
+      }
+      try {
+        final rr = CanvasRecorder();
+        fromSvg.paint(rr);
+        final cr = CanvasRecorder();
+        fromSvgC.paint(cr);
+        expect(cr.records, rr.records, reason: '$ent differs');
+        expect(siB, svgcB);
+      } catch (failure) {
+        fail(svgB, svgcB, true);
         rethrow;
       }
     }
@@ -133,43 +155,59 @@ Future<void> _testReference(
         rethrow;
       }
 
-      final Uint8List renderedBytes = await renderToBytes(si,
-          scaleTo: scaleTo, format: ImageByteFormat.rawRgba);
-      try {
-        File refName = File('${referenceDir.path}/$noExt.png');
-        if (overrideReferenceDir != null) {
-          final o = File('${overrideReferenceDir.path}/$noExt.png');
-          if (o.existsSync()) {
-            refName = o;
-          }
+      File refName = File('${referenceDir.path}/$noExt.png');
+      if (overrideReferenceDir != null) {
+        final o = File('${overrideReferenceDir.path}/$noExt.png');
+        if (o.existsSync()) {
+          refName = o;
         }
-        final codec = await instantiateImageCodec(refName.readAsBytesSync());
-        final Image im = (await codec.getNextFrame()).image;
-        final reference = await im.toByteData(format: ImageByteFormat.rawRgba);
-        expect(renderedBytes, reference!.buffer.asUint8List(),
-            reason: '$description:  $ent and $refName differ');
-        codec.dispose();
-        im.dispose();
-      } catch (failed) {
-        if (outputDir != null) {
-          final outName = File('${outputDir.path}/$noExt.png');
-          print('Writing rendered result to $outName');
-          outputDir.createSync(recursive: true);
-          outName.writeAsBytesSync(await renderToBytes(si,
-              scaleTo: scaleTo, format: ImageByteFormat.png));
-        }
-        rethrow;
       }
+      await checkRendered(
+          si: si,
+          refName: refName,
+          outputDir: outputDir,
+          outNoExt: noExt,
+          description: '$description: $ent and',
+          scaleTo: scaleTo);
     }
+  }
+}
+
+Future<void> checkRendered(
+    {required ScalableImage si,
+    required File refName,
+    Directory? outputDir,
+    required String outNoExt,
+    required String description,
+    Size? scaleTo}) async {
+  final Uint8List renderedBytes = await renderToBytes(si,
+      scaleTo: scaleTo, format: ImageByteFormat.rawRgba);
+  try {
+    final codec = await instantiateImageCodec(refName.readAsBytesSync());
+    final Image im = (await codec.getNextFrame()).image;
+    final reference = await im.toByteData(format: ImageByteFormat.rawRgba);
+    expect(renderedBytes, reference!.buffer.asUint8List(),
+        reason: '$description $refName differ');
+    codec.dispose();
+    im.dispose();
+  } catch (failed) {
+    if (outputDir != null) {
+      final outName = File('${outputDir.path}/$outNoExt.png');
+      print('Writing rendered result to $outName');
+      outputDir.createSync(recursive: true);
+      outName.writeAsBytesSync(await renderToBytes(si,
+          scaleTo: scaleTo, format: ImageByteFormat.png));
+    }
+    rethrow;
   }
 }
 
 class CanvasRecorder implements Canvas {
   int _saveCount = 1;
-  final records = List<String>.empty(growable: true);
+  final records = List<Object>.empty(growable: true);
 
-  void record(String s) {
-    records.add(s);
+  void record(Object o) {
+    records.add(o);
   }
 
   @override
@@ -191,7 +229,7 @@ class CanvasRecorder implements Canvas {
   @override
   void drawArc(Rect rect, double startAngle, double sweepAngle, bool useCenter,
       Paint paint) {
-    record('drawArc');
+    record('drawArc $rect $startAngle $sweepAngle $useCenter $paint');
   }
 
   @override
@@ -202,22 +240,22 @@ class CanvasRecorder implements Canvas {
 
   @override
   void drawCircle(Offset c, double radius, Paint paint) {
-    record('drawCircle');
+    record('drawCircle $radius $paint');
   }
 
   @override
   void drawColor(Color color, BlendMode blendMode) {
-    record('drawColor');
+    record('drawColor $blendMode');
   }
 
   @override
   void drawDRRect(RRect outer, RRect inner, Paint paint) {
-    record('drawDRRect');
+    record('drawDRRect $outer $inner $paint');
   }
 
   @override
   void drawImage(Image image, Offset offset, Paint paint) {
-    record('drawImage');
+    record('drawImage $offset $paint');
   }
 
   @override
@@ -227,27 +265,28 @@ class CanvasRecorder implements Canvas {
 
   @override
   void drawImageRect(Image image, Rect src, Rect dst, Paint paint) {
-    record('drawImageRect');
+    record('drawImageRect $src $dst $paint');
   }
 
   @override
   void drawLine(Offset p1, Offset p2, Paint paint) {
-    record('drawLine');
+    record('drawLine $p1 $p2 $paint');
   }
 
   @override
   void drawOval(Rect rect, Paint paint) {
-    record('drawOval');
+    record('drawOval $rect $paint');
   }
 
   @override
   void drawPaint(Paint paint) {
-    record('drawPaint');
+    record('drawPaint $paint');
   }
 
   @override
   void drawParagraph(Paragraph paragraph, Offset offset) {
-    record('drawParagraph');
+    record('drawParagraph $offset');
+    record(paragraph.longestLine);
   }
 
   @override
@@ -262,12 +301,12 @@ class CanvasRecorder implements Canvas {
 
   @override
   void drawPoints(PointMode pointMode, List<Offset> points, Paint paint) {
-    record('drawPoints');
+    record('drawPoints $points $paint');
   }
 
   @override
   void drawRRect(RRect rrect, Paint paint) {
-    record('drawRRect');
+    record('drawRRect $rrect $paint');
   }
 
   @override
@@ -283,7 +322,7 @@ class CanvasRecorder implements Canvas {
 
   @override
   void drawRect(Rect rect, Paint paint) {
-    record('drawRect');
+    record('drawRect $rect $paint');
   }
 
   @override
@@ -294,7 +333,7 @@ class CanvasRecorder implements Canvas {
 
   @override
   void drawVertices(Vertices vertices, BlendMode blendMode, Paint paint) {
-    record('drawVertices');
+    record('drawVertices $vertices $blendMode $paint');
   }
 
   @override
@@ -310,7 +349,7 @@ class CanvasRecorder implements Canvas {
 
   @override
   void rotate(double radians) {
-    record('rotate');
+    record('rotate $radians');
   }
 
   @override
@@ -321,26 +360,23 @@ class CanvasRecorder implements Canvas {
 
   @override
   void saveLayer(Rect? bounds, Paint paint) {
-    record('saveLayer $paint');
-    // We intentionally don't save the bounds.  The compact implementation
-    // doesn't set it under certain circumstances, since calculating a bounds
-    // is slower (and more difficult!) with the compact representation.
+    record('saveLayer $bounds $paint');
     _saveCount++;
   }
 
   @override
   void scale(double sx, [double? sy]) {
-    record('scale');
+    record('scale $sx $sy');
   }
 
   @override
   void skew(double sx, double sy) {
-    record('skew');
+    record('skew $sx $sy');
   }
 
   @override
   void transform(Float64List matrix4) {
-    record('transform');
+    record('transform $matrix4');
   }
 
   @override
@@ -370,130 +406,6 @@ void _createSI() {
   } finally {
     tmp.deleteSync(recursive: true);
   }
-}
-
-void main() {
-  test('compact drawing order', () async {
-    final inputDir = Directory('demo/assets/si');
-    for (final ent in inputDir.listSync()) {
-      final name = ent.uri.pathSegments.last;
-      final noExt = name.substring(0, name.lastIndexOf('.'));
-      if (ent is File && noExt != 'README') {
-        var regular = ScalableImage.fromSIBytes(await ent.readAsBytes());
-        var compact =
-            ScalableImage.fromSIBytes(await ent.readAsBytes(), compact: true);
-        for (int i = 0; i < 2; i++) {
-          final rr = CanvasRecorder();
-          regular.paint(rr);
-          final cr = CanvasRecorder();
-          compact.paint(cr);
-          expect(cr.records, rr.records, reason: '$ent differs');
-          // Do a quick smoke test of zoom/prune
-          final vp = regular.viewport;
-          final nvp = Rect.fromLTWH(vp.left + vp.width * .4,
-              vp.top + vp.height * .4, vp.width * .2, vp.height * .2);
-          regular = regular.withNewViewport(nvp, prune: true);
-          compact = compact.withNewViewport(nvp, prune: true);
-        }
-      }
-    }
-  });
-
-  test('Reference Images', () async {
-    const String dirName = String.fromEnvironment('jovial_svg.output');
-    final outputDir = (dirName == '') ? null : Directory(dirName);
-    Directory? getDir(Directory? d, String name) =>
-        d == null ? null : Directory('${d.path}/$name');
-    final referenceDir = Directory('test/reference_images');
-
-    for (final inputDir in [
-      Directory('test/more_test_images'),
-      Directory('demo/assets')
-    ]) {
-      print('Running test:  SVG and SI are same');
-      await _testSvgSiSame(
-          getDir(inputDir, 'svg')!, getDir(outputDir, 'svg_si_same'));
-      await _testReference(
-          'SVG source',
-          getDir(inputDir, 'svg')!,
-          getDir(referenceDir, 'svg')!,
-          getDir(outputDir, 'svg'),
-          (File f) async =>
-              ScalableImage.fromSvgString(await f.readAsString(), warn: false));
-
-      // Make sure the latest .si format produces identical results
-      await _testReference(
-          'SVG => .si',
-          getDir(inputDir, 'svg')!,
-          getDir(referenceDir, 'svg')!,
-          getDir(outputDir, 'svg'), (File f) async {
-        final b = SICompactBuilderNoUI(bigFloats: true, warn: false);
-        StringSvgParser(await f.readAsString(), b, warn: false).parse();
-        final cs = ByteSink();
-        final dos = DataOutputSink(cs);
-        b.si.writeToFile(dos);
-        dos.close();
-        return ScalableImage.fromSIBytes(cs.toList(), compact: false);
-      });
-
-      await _testReference(
-        'SI source',
-        getDir(inputDir, 'si')!,
-        getDir(referenceDir, 'si')!,
-        getDir(outputDir, 'si'),
-        (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()),
-      );
-      await _testReference(
-          'SI source, compact',
-          getDir(inputDir, 'si')!,
-          getDir(referenceDir, 'si')!,
-          getDir(outputDir, 'si_compact'),
-          (File f) async =>
-              ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true),
-          overrideReferenceDir: getDir(referenceDir, 'si_compact')!);
-      // The compact renderer doesn't set a bounds for saveLayer() calls when
-      // calculating the boundary is required, because doing so is expensive
-      // (and a bit complicated :-) ).  This causes rendering to be slightly
-      // different, but not perceptibly so, and not in a way that's incorrect.
-
-      await _testReference(
-          'AVD source',
-          getDir(inputDir, 'avd')!,
-          getDir(referenceDir, 'avd')!,
-          getDir(outputDir, 'avd'),
-          (File f) async =>
-              ScalableImage.fromAvdString(await f.readAsString(), warn: false));
-    }
-  }, timeout: const Timeout(Duration(seconds: 120)));
-
-  test('Affine sanity check', () {
-    final rand = Random();
-    for (int i = 0; i < 1000; i++) {
-      final vec = Float64List(6);
-      for (int i = 0; i < vec.length; i++) {
-        vec[i] = (rand.nextDouble() > 0.5)
-            ? rand.nextDouble()
-            : (1 / (rand.nextDouble() + 0.00001));
-      }
-      final m1 = MutableAffine.cssTransform(vec);
-      if (m1.determinant().abs() > 0.0000000000001) {
-        final m2 = MutableAffine.copy(m1)..invert();
-        m1.multiplyBy(m2);
-        for (int r = 0; r < 3; r++) {
-          for (int c = 0; c < 3; c++) {
-            if (r == c) {
-              expect((m1.get(r, c) - 1).abs() < 0.0000001, true,
-                  reason: 'vec $vec');
-            } else {
-              expect(m1.get(r, c).abs() < 0.0000001, true, reason: 'vec $vec');
-            }
-          }
-        }
-      }
-    }
-  });
-  test('cache test', _cacheTest);
-  test('create SI smoke test', _createSI);
 }
 
 class TestSource extends ScalableImageSource {
@@ -529,11 +441,279 @@ void _cacheTest() {
     referenced.add(s);
     cache.addReference(s);
   }
-  for (int i = 0; i < 1000000; i++) {
+  for (int i = 0; i < 100000; i++) {
     final v = referenced[i % referenced.length];
     cache.removeReference(v);
     final s = TestSource();
     referenced[i % referenced.length] = s;
     cache.addReference(s);
   }
+}
+
+Future<void> _tint() async {
+  final orig = ScalableImage.fromSIBytes(
+          File('demo/assets/si/tiny_07_12_bbox01.si').readAsBytesSync())
+      .withNewViewport(const Rect.fromLTWH(50, 0, 100, 120));
+  const String dirName = String.fromEnvironment('jovial_svg.output');
+  final outputDir = (dirName == '') ? null : Directory(dirName);
+  for (final mode in BlendMode.values) {
+    final t = orig.modifyTint(
+        newTintMode: mode, newTintColor: const Color(0x7f7f7f00));
+    await checkRendered(
+        si: t,
+        refName: File('test/reference_images/blend/$mode.png'),
+        outputDir: outputDir,
+        outNoExt: mode.toString(),
+        description: 'blend mode $mode and');
+  }
+}
+
+Future<void> _miscCoverage() async {
+  void expectException(void Function() f) {
+    try {
+      f();
+      expect(true, false);
+    } catch (f) {
+      expect(true, true); // ya happy, lint?
+    }
+  }
+
+  Future<void> expectExceptionAsync(Future Function() f) async {
+    try {
+      await f();
+      expect(true, false);
+    } catch (f) {
+      expect(true, true); // ya happy, lint?
+    }
+  }
+
+  //
+  // Dart's code coverage is pretty immature.  To clean up some of the visual
+  // clutter, we call some unreachable APIs, and other random stuff.
+  //
+  for (final f in svgGraphUnreachablePrivate) {
+    try {
+      f();
+    } catch (_) {}
+  }
+  Style('').tagName;
+  SvgText((_) {}).textAttributes = SvgTextAttributes.empty();
+  ScalableImage.blank().toDag().modifyCurrentColor(const Color(0xff000000));
+  final something =
+      ScalableImage.fromSvgString('<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>')
+          as ScalableImageDag;
+  something.debugSizeMessage();
+  final compact = ScalableImage.fromSvgString(
+      '<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>',
+      compact: true);
+  compact.debugSizeMessage();
+  SvgPaint.empty().hashCode;
+  expect(false,
+      SvgPaint.empty() == (SvgPaint.empty()..strokeDashArray = const [1.1]));
+  SvgPaint.empty().userSpace();
+  await expectExceptionAsync(
+      () async => await ScalableImage.fromAvdStream(Stream.value('<error/>')));
+  await expectExceptionAsync(
+      () async => await ScalableImage.fromSvgStream(Stream.value('<error/>')));
+  await ScalableImage.fromAvdAsset(
+      rootBundle, '../../demo/assets/avd/svg11_gradient_1.xml',
+      warnF: _noWarn);
+  await ScalableImage.fromSvgAsset(
+      rootBundle, '../../demo/assets/svg/svg11_gradient_1.svg',
+      warnF: _noWarn);
+  await ScalableImage.fromSIAsset(
+      rootBundle, '../../demo/assets/si/svg11_gradient_1.si');
+
+  //
+  // Some real tests, of things like error conditions.
+  //
+  {
+    final compactR = CanvasRecorder();
+    compact.paint(compactR);
+    final compactR2 = CanvasRecorder();
+    ScalableImage.fromSIBytes(compact.toSIBytes()).paint(compactR2);
+    expect(compactR.records, compactR2.records);
+  }
+
+  // Test errors
+  ScalableImage.fromSvgString('<svg><path d="error"></svg>', warnF: _noWarn);
+  ScalableImage.fromSvgString('<svg/>', warnF: _noWarn);
+  ScalableImage.fromSvgString(
+      '<svg><g /><mask /><text /><symbol /><clipPath /><style />',
+      warnF: _noWarn);
+  // objectBoundingBox not supported on mask:
+  ScalableImage.fromSvgString(
+      '<svg><mask x="1" y="1" width="10" height="10"></mask></svg>',
+      warnF: _noWarn);
+  ScalableImage.fromSvgString('<svg><polygon points="1, 2 foo"/></svg>',
+      warnF: _noWarn);
+  ScalableImage.fromSvgString('<svg><polygon points="1, 2 3"/></svg>',
+      warnF: _noWarn);
+  ScalableImage.fromSvgString('<svg><image /></svg>', warnF: _noWarn);
+  expectException(
+      () => ScalableImage.fromSvgString('<svg><svg>', warnF: _noWarn));
+  ScalableImage.fromSvgString('<svg><defs/></svg>', warnF: _noWarn);
+  expectException(() => ScalableImage.fromAvdString('', warnF: _noWarn));
+  expectException(
+      () => ScalableImage.fromAvdString('', warnF: _noWarn, compact: true));
+  expectException(() =>
+      ScalableImage.fromSvgString('<svg><tspan /></svg>', warnF: _noWarn));
+  expectException(
+      () => ScalableImage.fromSvgString('<defs></defs>', warnF: _noWarn));
+  expectException(() => ScalableImageDag.blank().toSIBytes());
+  expectException(
+      () => something.privateAssertIsEquivalent(ScalableImageDag.blank()));
+  expectException(() => ScalableImage.fromSvgString('', warnF: _noWarn));
+  expectException(
+      () => ScalableImage.fromSvgString('<svg><stop /></svg>', warnF: _noWarn));
+  expectException(() => something.privateAssertIsEquivalent(something
+      .modifyCurrentColor(const Color(0x7f7f7f7f)) as ScalableImageDag));
+  expectException(() {
+    final m = CMap<int>()..toList();
+    m[3];
+  });
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  test('tint', _tint);
+  test('Misc. coverage tests', _miscCoverage);
+  test('compact drawing order', () async {
+    final inputDir = Directory('demo/assets/si');
+    for (final ent in inputDir.listSync()) {
+      final name = ent.uri.pathSegments.last;
+      final noExt = name.substring(0, name.lastIndexOf('.'));
+      if (ent is File && noExt != 'README') {
+        final oRegular = ScalableImage.fromSIBytes(await ent.readAsBytes());
+        final oCompact =
+            ScalableImage.fromSIBytes(await ent.readAsBytes(), compact: true);
+        var regular = oRegular;
+        var compact = oCompact;
+        for (int i = 0; i < 3; i++) {
+          final rr = CanvasRecorder();
+          regular.paint(rr);
+          final cr = CanvasRecorder();
+          compact.paint(cr);
+          expect(cr.records, rr.records, reason: '$ent differs');
+          // Do a quick smoke test of zoom/prune
+          final vp = regular.viewport;
+          final nvp = Rect.fromLTWH(vp.left + vp.width * .4,
+              vp.top + vp.height * .4, vp.width * .2, vp.height * .2);
+          regular = oRegular.withNewViewport(nvp, prune: i == 2);
+          compact = oCompact.withNewViewport(nvp, prune: i == 2);
+        }
+      }
+    }
+  });
+
+  test('Reference Images', () async {
+    const String dirName = String.fromEnvironment('jovial_svg.output');
+    final outputDir = (dirName == '') ? null : Directory(dirName);
+    Directory? getDir(Directory? d, String name) =>
+        d == null ? null : Directory('${d.path}/$name');
+    final referenceDir = Directory('test/reference_images');
+
+    for (final inputDir in [
+      Directory('test/more_test_images'),
+      Directory('demo/assets')
+    ]) {
+      print('Running test:  SVG and SI are same');
+      await _testSvgSiSame(
+          getDir(inputDir, 'svg')!, getDir(outputDir, 'svg_si_same'));
+      await _testReference(
+          'SVG source',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'),
+          (File f) async => ScalableImage.fromSvgString(await f.readAsString(),
+              warnF: _noWarn));
+      await _testReference(
+          'SVG source, compact',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'),
+          (File f) async => ScalableImage.fromSvgString(await f.readAsString(),
+              warnF: _noWarn, bigFloats: true, compact: true));
+
+      // Make sure the latest .si format produces identical results
+      await _testReference(
+          'SVG => .si',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'), (File f) async {
+        final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
+        StringSvgParser(await f.readAsString(), b, warn: _noWarn).parse();
+        final cs = ByteSink();
+        final dos = DataOutputSink(cs);
+        b.si.writeToFile(dos);
+        dos.close();
+        return ScalableImage.fromSIBytes(cs.toList(), compact: false);
+      });
+
+      await _testReference(
+        'SI source',
+        getDir(inputDir, 'si')!,
+        getDir(referenceDir, 'si')!,
+        getDir(outputDir, 'si'),
+        (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()),
+      );
+      await _testReference(
+          'SI source, compact',
+          getDir(inputDir, 'si')!,
+          getDir(referenceDir, 'si')!,
+          getDir(outputDir, 'si'),
+          (File f) async =>
+              ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true));
+
+      await _testReference(
+          'AVD source',
+          getDir(inputDir, 'avd')!,
+          getDir(referenceDir, 'avd')!,
+          getDir(outputDir, 'avd'),
+          (File f) async => ScalableImage.fromAvdString(await f.readAsString(),
+              warnF: _noWarn));
+    }
+    await _testReference(
+        'AVD => .si',
+        getDir(Directory('test/more_test_images'), 'avd')!,
+        getDir(referenceDir, 'avd')!,
+        getDir(outputDir, 'avd'), (File f) async {
+      final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
+      StringAvdParser(await f.readAsString(), b).parse();
+      final cs = ByteSink();
+      final dos = DataOutputSink(cs);
+      b.si.writeToFile(dos);
+      dos.close();
+      return ScalableImage.fromSIBytes(cs.toList(), compact: false);
+    });
+  }, timeout: const Timeout(Duration(seconds: 120)));
+
+  test('Affine sanity check', () {
+    final rand = Random();
+    for (int i = 0; i < 1000; i++) {
+      final vec = Float64List(6);
+      for (int i = 0; i < vec.length; i++) {
+        vec[i] = (rand.nextDouble() > 0.5)
+            ? rand.nextDouble()
+            : (1 / (rand.nextDouble() + 0.00001));
+      }
+      final m1 = MutableAffine.cssTransform(vec);
+      if (m1.determinant().abs() > 0.0000000000001) {
+        final m2 = MutableAffine.copy(m1)..invert();
+        m1.multiplyBy(m2);
+        for (int r = 0; r < 3; r++) {
+          for (int c = 0; c < 3; c++) {
+            if (r == c) {
+              expect((m1.get(r, c) - 1).abs() < 0.0000001, true,
+                  reason: 'vec $vec');
+            } else {
+              expect(m1.get(r, c).abs() < 0.0000001, true, reason: 'vec $vec');
+            }
+          }
+        }
+      }
+    }
+  });
+  test('cache test', _cacheTest);
+  test('create SI smoke test', _createSI);
 }

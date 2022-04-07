@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 /*
 Copyright (c) 2021-2022, William Foote
 

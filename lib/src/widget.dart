@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:quiver/core.dart' as quiver;
 
+import 'common.dart';
 import 'exported.dart';
 
 ///
@@ -370,9 +371,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         setState(() => _si = a);
       }
     }, onError: (Object err) {
-      if (widget._siSource.warn) {
-        print('Error loading:  $err');
-      }
+      widget._siSource._warnArg('Error loading:  $err');
       if (mounted && widget._siSource == src) {
         setState(() => _si = _error);
       }
@@ -434,7 +433,15 @@ abstract class ScalableImageSource {
   /// a mechanism to set this false.  The default version of this getter always
   /// returns true.
   ///
+  @Deprecated('Superseded by [warnF]')
   bool get warn => true;
+
+  ///
+  /// Function to call to warn if there is a problem
+  /// loading this asset.  The default version of this getter always
+  /// returns null.
+  ///
+  void Function(String)? get warnF => null;
 
   ///
   /// Compare this source to another.  Subclasses must override this, so that
@@ -457,6 +464,10 @@ abstract class ScalableImageSource {
     throw StateError('Must be overridden by subclasses');
   }
 
+  // ignore: deprecated_member_use_from_same_package
+  void Function(String) get _warnArg =>
+      warnF ?? (warn ? defaultWarn : nullWarn);
+
   ///
   /// Get a [ScalableImage] by parsing an Android Vector Drawable XML file from
   /// an asset bundle.  In
@@ -470,13 +481,21 @@ abstract class ScalableImageSource {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// If [warnF] is non-null, it will be called if the AVD asset contains
   /// unrecognized tags and/or tag attributes.
   ///
-  static ScalableImageSource fromAvd(AssetBundle bundle, String key,
-          {bool compact = false, bool bigFloats = false, bool warn = true}) =>
-      _AvdBundleSource(bundle, key,
-          compact: compact, bigFloats: bigFloats, warn: warn);
+  static ScalableImageSource fromAvd(
+    AssetBundle bundle,
+    String key, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superceded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
+    return _AvdBundleSource(bundle, key,
+        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+  }
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -548,16 +567,22 @@ class _AvdBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   @override
-  final bool warn;
+  bool get warn => false;
+  @override
+  final void Function(String)? warnF;
   _AvdBundleSource(this.bundle, this.key,
-      {required this.compact, required this.bigFloats, required this.warn});
+      {required this.compact, required this.bigFloats, required this.warnF});
 
   @override
   Future<ScalableImage> get si => createSI();
 
   @override
-  Future<ScalableImage> createSI() => ScalableImage.fromAvdAsset(bundle, key,
-      compact: compact, bigFloats: bigFloats, warn: warn);
+  Future<ScalableImage> createSI() {
+    final warnArg = warnF ?? defaultWarn;
+
+    return ScalableImage.fromAvdAsset(bundle, key,
+        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+  }
 
   @override
   bool operator ==(final Object other) {
@@ -597,7 +622,7 @@ class _SvgBundleSource extends ScalableImageSource {
       currentColor: currentColor,
       compact: compact,
       bigFloats: bigFloats,
-      warn: warn);
+      warnF: _warnArg);
 
   @override
   bool operator ==(final Object other) {
@@ -606,8 +631,7 @@ class _SvgBundleSource extends ScalableImageSource {
           key == other.key &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats &&
-          warn == other.warn;
+          bigFloats == other.bigFloats;
     } else {
       return false;
     }
@@ -615,13 +639,11 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x544f0d11 ^
-      quiver.hash4(
-          bundle, key, currentColor, quiver.hash3(compact, bigFloats, warn));
+      0x544f0d11 ^ Object.hash(bundle, key, currentColor, compact, bigFloats);
 
   @override
   String toString() =>
-      '_SVGBundleSource($key $bundle $compact $bigFloats $warn $currentColor)';
+      '_SVGBundleSource($key $bundle $compact $bigFloats currentColor)';
 }
 
 class _SvgHttpSource extends ScalableImageSource {
@@ -643,7 +665,7 @@ class _SvgHttpSource extends ScalableImageSource {
       currentColor: currentColor,
       compact: compact,
       bigFloats: bigFloats,
-      warn: warn);
+      warnF: _warnArg);
 
   @override
   bool operator ==(final Object other) {

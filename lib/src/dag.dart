@@ -202,7 +202,7 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
   @override
   Uint8List toSIBytes() {
     throw StateError('Cannot convert non-compact ScalableImage to .si bytes');
-    // NOTE:  One reason why this is impossible is because Dart's `Path`
+    // NOTE:  This is impossible is because Dart's `Path`
     // object is opaque; it does not let us inspect its contents, so a Dart
     // `Path` cannot be externalized.
   }
@@ -308,20 +308,6 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   @override
   void paint(Canvas c, RenderContext context) {
     Rect? bounds = maskBounds;
-    // If they specify a bounds, trust them that it's not too big.  If
-    // they didn't...
-    if (bounds == null) {
-      // Graphics memory is a scarce resource enough resource that it's
-      // probably worth the time to calculate the intersection of our
-      // childrens' bounds.
-      bounds = mask.getBoundary()?.getBounds();
-      final childB = child.getBoundary()?.getBounds();
-      if (bounds == null) {
-        bounds = childB;
-      } else if (childB != null) {
-        bounds = bounds.intersect(childB);
-      }
-    }
     startMask(c, bounds);
     mask.paint(c, context);
     if (usesLuma) {
@@ -386,9 +372,9 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     if (identical(this, other)) {
       return;
     } else if (other is! SIMasked) {
-      throw StateError('$this  $other');
+      throw StateError('$this  $other'); // coverage:ignore-line
     } else if (context != other.context || maskBounds != other.maskBounds) {
-      throw StateError('$this  $other');
+      throw StateError('$this  $other'); // coverage:ignore-line
     } else {
       mask.privateAssertIsEquivalent(other.mask);
       child.privateAssertIsEquivalent(other.child);
@@ -483,11 +469,11 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     if (identical(this, other)) {
       return;
     } else if (other is! SIGroup) {
-      throw StateError('$this $other');
+      throw StateError('$this $other'); // coverage:ignore-line
     } else if (context != other.context || groupAlpha != other.groupAlpha) {
-      throw StateError('$this $other');
+      throw StateError('$this $other'); // coverage:ignore-line
     } else if (_renderables.length != other._renderables.length) {
-      throw StateError('$this $other');
+      throw StateError('$this $other'); // coverage:ignore-line
     } else {
       for (int i = 0; i < _renderables.length; i++) {
         _renderables[i].privateAssertIsEquivalent(other._renderables[i]);
@@ -561,7 +547,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   SITintMode? _tintMode;
   final Rect? _viewport;
   @override
-  final bool warn;
+  final void Function(String) warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
   ScalableImageDag? _si;
   @protected
@@ -633,7 +619,8 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     });
   }
 
-  void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
+  void makePath(PathDataT pathData, PathBuilder pb,
+      {required void Function(String) warn});
 
   @override
   void init(
@@ -754,7 +741,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
 class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
     with SIStringPathMaker {
-  SIDagBuilder({required bool warn, Color? currentColor})
+  SIDagBuilder({required void Function(String) warn, Color? currentColor})
       : super(null, warn, currentColor);
 
   @override

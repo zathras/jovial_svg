@@ -305,7 +305,7 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.
   ///
   /// See also [ScalableImage.currentColor].
@@ -313,16 +313,18 @@ abstract class ScalableImage {
   static ScalableImage fromSvgString(String src,
       {bool compact = false,
       bool bigFloats = false,
-      bool warn = true,
+      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+      void Function(String)? warnF,
       Color? currentColor}) {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(
-          warn: warn, currentColor: currentColor, bigFloats: bigFloats);
-      StringSvgParser(src, b, warn: warn).parse();
+          warn: warnArg, currentColor: currentColor, bigFloats: bigFloats);
+      StringSvgParser(src, b, warn: warnArg).parse();
       return b.si;
     } else {
-      final b = SIDagBuilder(warn: warn, currentColor: currentColor);
-      StringSvgParser(src, b, warn: warn).parse();
+      final b = SIDagBuilder(warn: warnArg, currentColor: currentColor);
+      StringSvgParser(src, b, warn: warnArg).parse();
       return b.si;
     }
   }
@@ -339,7 +341,7 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.
   ///
   /// See also [ScalableImage.currentColor].
@@ -347,13 +349,15 @@ abstract class ScalableImage {
   static Future<ScalableImage> fromSvgAsset(AssetBundle b, String key,
       {bool compact = false,
       bool bigFloats = false,
-      bool warn = true,
+      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+      void Function(String)? warnF,
       Color? currentColor}) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String src = await b.loadString(key, cache: false);
     return fromSvgString(src,
         compact: compact,
         bigFloats: bigFloats,
-        warn: warn,
+        warnF: warnArg,
         currentColor: currentColor);
   }
 
@@ -372,7 +376,7 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.
   ///
   /// See also [ScalableImage.currentColor].
@@ -380,13 +384,15 @@ abstract class ScalableImage {
   static Future<ScalableImage> fromSvgHttpUrl(Uri url,
       {bool compact = false,
       bool bigFloats = false,
-      bool warn = true,
+      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+      void Function(String)? warnF,
       Color? currentColor}) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String content = await http.read(url);
     return fromSvgString(content,
         compact: compact,
         bigFloats: bigFloats,
-        warn: warn,
+        warnF: warnArg,
         currentColor: currentColor);
   }
 
@@ -402,20 +408,26 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromSvgStream(Stream<String> stream,
-      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+  static Future<ScalableImage> fromSvgStream(
+    Stream<String> stream, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
-      final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
-      await StreamSvgParser(stream, b, warn: warn).parse();
+      final b = SICompactBuilder(warn: warnArg, bigFloats: bigFloats);
+      await StreamSvgParser(stream, b, warn: warnArg).parse();
       return b.si;
     } else {
-      final b = SIDagBuilder(warn: warn);
-      await StreamSvgParser(stream, b, warn: warn).parse();
+      final b = SIDagBuilder(warn: warnArg);
+      await StreamSvgParser(stream, b, warn: warnArg).parse();
       return b.si;
     }
   }
@@ -431,17 +443,22 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
   /// unrecognized tags and/or tag attributes.
   ///
-  static ScalableImage fromAvdString(String src,
-      {bool compact = false, bool bigFloats = false, bool warn = true}) {
+  static ScalableImage fromAvdString(
+    String src, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
-      final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
+      final b = SICompactBuilder(warn: warnArg, bigFloats: bigFloats);
       StringAvdParser(src, b).parse();
       return b.si;
     } else {
-      final b = SIDagBuilder(warn: warn);
+      final b = SIDagBuilder(warn: warnArg);
       StringAvdParser(src, b).parse();
       return b.si;
     }
@@ -459,14 +476,21 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// If [warnF] is non-null, it will be called if the AVD asset contains
   /// unrecognized tags and/or tag attributes.
   ///
-  static Future<ScalableImage> fromAvdAsset(AssetBundle b, String key,
-      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+  static Future<ScalableImage> fromAvdAsset(
+    AssetBundle b,
+    String key, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final src = await b.loadString(key, cache: false);
     return fromAvdString(src,
-        compact: compact, bigFloats: bigFloats, warn: warn);
+        compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
 
   ///
@@ -485,16 +509,22 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromAvdHttpUrl(Uri url,
-      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+  static Future<ScalableImage> fromAvdHttpUrl(
+    Uri url, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String content = await http.read(url);
     return fromAvdString(content,
-        compact: compact, bigFloats: bigFloats, warn: warn);
+        compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
 
   ///
@@ -509,17 +539,23 @@ abstract class ScalableImage {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
+  /// If [warnF] is non-null, it will be called if the AVD asset contains
   /// unrecognized tags and/or tag attributes.
   ///
-  static Future<ScalableImage> fromAvdStream(Stream<String> stream,
-      {bool compact = false, bool bigFloats = false, bool warn = true}) async {
+  static Future<ScalableImage> fromAvdStream(
+    Stream<String> stream, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+  }) async {
+    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
-      final b = SICompactBuilder(warn: warn, bigFloats: bigFloats);
+      final b = SICompactBuilder(warn: warnArg, bigFloats: bigFloats);
       await StreamAvdParser(stream, b).parse();
       return b.si;
     } else {
-      final b = SIDagBuilder(warn: warn);
+      final b = SIDagBuilder(warn: warnArg);
       await StreamAvdParser(stream, b).parse();
       return b.si;
     }

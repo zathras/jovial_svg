@@ -11,7 +11,7 @@ linter:
         comment_references: true
         await_only_futures: true
         exhaustive_cases: true
-        avoid_print: false
+        avoid_print: true
 
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.

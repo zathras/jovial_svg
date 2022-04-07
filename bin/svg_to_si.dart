@@ -9,7 +9,8 @@ import 'package:jovial_svg/src/svg_parser.dart';
 
 abstract class ToSI {
   String get programName;
-  void parse(String src, SIBuilder<String, SIImageData> builder, bool warn);
+  void parse(String src, SIBuilder<String, SIImageData> builder,
+      void Function(String) warn);
   String get extension;
 
   void usage(final ArgParser argp) {
@@ -31,8 +32,7 @@ abstract class ToSI {
     argp.addOption('out', abbr: 'o', help: 'output directory');
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
-    argp.addFlag('quiet',
-        abbr: 'q', help: 'Quiet:  Suppress warnings.');
+    argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
     final ArgResults results = argp.parse(arguments);
     bool big = results['big'] == true;
     bool warn = results['quiet'] != true;
@@ -57,9 +57,10 @@ abstract class ToSI {
       if (!f.existsSync()) {
         print('$f not found - skipping');
       } else {
-        final b = SICompactBuilderNoUI(bigFloats: big, warn: true);
+        final warnF = warn ? (String s) => print(s) : (String _) {};
+        final b = SICompactBuilderNoUI(bigFloats: big, warn: warnF);
         try {
-          parse(f.readAsStringSync(), b, warn);
+          parse(f.readAsStringSync(), b, warnF);
         } catch (e) {
           print('');
           print('***** Error in ${f.path} : skipping *****');
@@ -98,7 +99,8 @@ class SvgToSI extends ToSI {
   String get extension => '.svg';
 
   @override
-  void parse(String src, SIBuilder<String, SIImageData> builder, bool warn) =>
+  void parse(String src, SIBuilder<String, SIImageData> builder,
+          void Function(String) warn) =>
       StringSvgParser(src, builder, warn: warn).parse();
 }
 

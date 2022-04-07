@@ -1,0 +1,133 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+     viewBox="0 0 70 32" font-size="4"
+     width="70" height="32">
+<linearGradient id="grad" x1="0" y1="1" x2="0" y2="7" spreadMethod="repeat"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="bad"/>
+    <stop offset="0" stop-color="navy"/>
+    <stop offset="20%" stop-color="current"/>
+    <stop offset="1" stop-color="yellow"/>
+</linearGradient>
+<linearGradient id="grad2" x1="0" y1="1" x2="0" y2="7" spreadMethod="repeat"
+        gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="url(#grad)"/>
+    <stop offset="0" stop-color="navy"/>
+    <stop offset="20%" stop-color="current"/>
+    <stop offset="1" stop-color="yellow"/>
+</linearGradient>
+
+<path d="none" fill="url(#notfound)" />
+<g transform="translate(-2, 0)" mix-blend-mode="error"
+        text-decoration="bad"
+        text-anchor="bad"
+        font-size="small"
+        font-weight="500"
+        font-style="italic">
+    <rect x="0" y="0" width="3" height="7" fill="current" 
+        transform="translate(2,0)"/>
+</g>
+<rect x="5" y="0" width="3" height="7" fill="url(#grad)"
+    transform="translate(3,0) translate(-3, 0)"/>
+<symbol id="foo"
+    transform="translate(0, 0.1)"
+    viewBox="0 0 35 16" width="35" height="16">
+    <path d="M 14 5.5 q 3.5 -7 7 0 t 7 -5" stroke="blue"
+        stroke-width="2" fill="none" />
+</symbol>
+<symbol id="notused"
+    viewBox="0 0 35 16" width="35" height="16">
+    <path d="M 14 5.5 q 3.5 -7 7 0 t 7 -5" stroke="blue"
+        stroke-width="2" fill="none" />
+</symbol>
+    <style>
+        foo.bar { error ; bad: ; bad: 3 }
+    </style>
+<use href="#foo"
+    transform="translate(0, 0) rotate(0, 0, 0) matrix(1 0 0 1 0 0)"
+    text-decoration="bad"/>
+<use href="#foo" transform="translate(17, 0) bad bad"
+    text-decoration="overline"/>
+<!-- Not displayed: -->
+<use href="foo" transform="translate(13, 0)"
+    text-decoration="overline"/>
+<use href="#nope" />
+<g transform="translate(17, 0 bad) bad((3))" />
+<text x="1" y="15" font-size="larger" font-weight="lighter">lighter</text>
+<text x="20" y="15" font-size="smaller" font-weight="bolder">bolder</text>
+<text x="1" y="20">normal
+    <tspan font-size="smaller" font-weight="bolder">sm
+    <tspan font-size="smaller" font-weight="bolder">sm
+    <tspan font-size="smaller" font-weight="bolder">sm
+    </tspan></tspan></tspan></text>
+<text x="1" y="25" font-style="bad" font-weight="bad">normal
+    <tspan font-size="larger" font-weight="lighter">lg
+    <tspan font-size="larger" font-weight="lighter">lg
+    <tspan font-size="larger" font-weight="lighter" font-style="invalid">lg
+    </tspan></tspan></tspan></text>
+<?processing_event_ignored?>
+    <garbage>
+<![CDATA[
+ignored
+]]>
+    </garbage>
+    <image x="1" y="10" width="2" height="2"
+        href="data:image/bad;base64, "/>
+    <image x="1" y="10" width="2" height="2"
+        href="data:image/png;base64,aa%"/>
+<path d="none" />
+<mask id="m" mask="url(#m)" />
+    <!-- gratituous comment -->
+<mask id="m2" >
+    <rect display="none" x="0" y="0" width="100" height="100" fill="red" />
+</mask>
+<rect mask="url(#m2)" x="10" y="10" width="90" height="90" fill="blue" />
+<path d="M600,350 
+           a25,25 -30 0,bad 50,-25 l 50,-25
+           a25,100 -30 bad,1 50,-25 l 50,-25" />
+<g font-size="bad" />
+    <path d="none" transform="%! #" />
+    <path d="none" fill-rule="inherit" />
+    <path d="none" fill-rule="bad" />
+</g>
+<path d="M600,bad0 
+           a25,25 -30 0,bad 50,-25 l 50,-25
+           a25,100 -30 bad,1 50,-25 l 50,-25"
+        fill="none" stroke="red" stroke-width="5"  />
+<path fill="none" stroke="none" d="M600,350 
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,25 -30 0,1 50,-25 l 50,-25
+           a25,100 -30 bad,1 50,-25 l 50,-25" />
+<path d=" " />
+</g>
+</g>
+</svg>
+</svg>

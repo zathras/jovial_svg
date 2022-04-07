@@ -5,7 +5,7 @@
     xmlns:xlink='http://www.w3.org/1999/xlink'
     version="1.1">
 
-<linearGradient id="grad" x1="0" y1="1" x2="48" y2="1" 
+<linearGradient id="grad" x1="0" y1="1" x2="48" y2="1"
         gradientUnits="userSpaceOnUse">
     <stop offset="0" stop-color="purple"/>
     <stop offset="1" stop-color="orange"/>
@@ -35,6 +35,7 @@
   <circle cx="25" cy="5" r="4" />
   <rect x="30" y="15" width="4" height="8" />
   <polygon points="35, 5  45, 5 48, 10 43, 15 35, 15" />
+  <polygon fill="none" points="35, 5  45, 5 48, 10 43, 15 35, 15" />
   <polyline stroke="url(#rgrad)" stroke-width="5"
       points="35, 20  45, 20 40, 23" />
   <line stroke="url(#rgrad)" stroke-width="5"

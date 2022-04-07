@@ -1,0 +1,46 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+    width="100" height="50"
+     fill="url(#grad)">
+<linearGradient id="grad" x1="5%" y1="55%" x2="65%" y2="5%" 
+        gradientTransform="rotate(-10)" 
+        gradientUnits="userSpaceOnUse"
+        spreadmethod="repeat">
+    <stop offset="0" stop-color="red"/>
+    <stop offset="70%" stop-color="green"/>
+    <stop offset="1" stop-color="blue"/>
+</linearGradient>
+<g stroke-width="3" stroke="aqua">
+    <ellipse cx="5" cy="5" rx="4" ry="3" fill="current" />
+    <rect x="10" y="3" width="12" height="12" rx="2" ry="5" />
+    <line x1="1" y1="10" x2="10" y2="20" stroke-linecap="square" />
+    <g transform="translate(25, 3)" stroke="purple">
+        <path d="M1,2.5 q1.5,-1.5 3,0" stroke-linecap="round" />
+        <g transform="translate(0, 4)" stroke-width="1.5">
+            <path d="M1,2.5 C2,2 8,2 8,4" />
+        </g>
+    </g>
+</g>
+<g transform="translate(12, 0) scale(0.6, 0.6)" 
+    stroke="green" stroke-width="1.5">
+  <polygon points="35, 5  45, 5 48, 10 43, 15 35, 15" />
+  <g transform="translate(0, 15)">
+  <polygon points="45, 5  45, 5 48, 10 43, 15 35, 15" />
+  </g>
+</g>
+<text x="1" y="30" fill="none" stroke="url(#grad)" 
+    font-family="Verdana" stroke-width="0.55" font-size="7.5"
+    text-decoration="overline">
+Mod
+<tspan mask="url(#nope)" stroke-width="0.4" text-decoration="line-through"
+  >Squ<tspan text-decoration="underline">a d</tspan></tspan>
+</text>
+<mask id="infinite" mask="url(#infinite)">
+  <polygon points="45, 5  45, 5 48, 10 43, 15 35, 15" />
+</mask>
+<style>
+foo.bar { class: ignored; }
+</style>
+</svg>

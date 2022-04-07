@@ -48,12 +48,13 @@ part of 'svg_graph.dart';
 class SvgText extends SvgInheritableAttributesNode {
   List<SvgTextSpan> stack = [SvgTextSpan('text')];
   bool _trimLeft = true;
+  final void Function(String) warn;
 
   late final List<SvgTextChunk> flattened = _flatten();
 
   static final _whitespace = RegExp(r'\s+');
 
-  SvgText() {
+  SvgText(this.warn) {
     final root = stack.first;
     root.x = root.y = const [0.0];
   }
@@ -103,16 +104,16 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  void applyStylesheet(Stylesheet stylesheet) {
-    super.applyStylesheet(stylesheet);
+  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    super.applyStylesheet(stylesheet, warn);
     assert(stack.length == 1);
     final SvgTextSpan root = stack.first;
-    root.applyStylesheetToChildren(stylesheet);
+    root.applyStylesheetToChildren(stylesheet, warn);
   }
 
   @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
-      _Referrers referrers) {
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn, _Referrers referrers) {
     // Even invisible text can influence layout, so we don't try to optimize
     // it away.
     return resolveMask(idLookup, ancestor, warn, referrers);
@@ -127,17 +128,16 @@ class SvgText extends SvgInheritableAttributesNode {
     stack.first.trimRight();
     List<SvgTextChunk> children = [];
     final SvgTextSpan root = stack.first;
-    root.flattenInto(children, _FlattenContext.empty());
+    root.flattenInto(children, _FlattenContext.empty(), warn);
     return children;
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn) {
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
     for (final chunk in flattened) {
       for (final span in chunk.spans) {
-        final cascaded = span.paint.cascade(ancestor, idLookup);
-        final p = cascaded.toSIPaint(warn);
+        final cascaded = span.paint.cascade(ancestor, idLookup, (_) {});
+        final p = cascaded.toSIPaint();
         if (p.canUseLuma) {
           return true;
         }
@@ -220,24 +220,26 @@ class SvgTextSpan extends SvgTextNodeAttributes
   }
 
   @override
-  void applyStylesheet(Stylesheet stylesheet) {
-    super.applyStylesheet(stylesheet);
-    applyStylesheetToChildren(stylesheet);
+  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    super.applyStylesheet(stylesheet, warn);
+    applyStylesheetToChildren(stylesheet, warn);
   }
 
-  void applyStylesheetToChildren(Stylesheet stylesheet) {
+  void applyStylesheetToChildren(
+      Stylesheet stylesheet, void Function(String) warn) {
     for (final p in parts) {
-      p.applyStylesheet(stylesheet);
+      p.applyStylesheet(stylesheet, warn);
     }
   }
 
   @override
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc) {
+  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+      void Function(String) warn) {
     // We cascade the paint and text attributes within the text tag's subtree,
     // since we're destroying that structure.
-    fc = _FlattenContext(fc, this);
+    fc = _FlattenContext(fc, this, warn);
     for (final p in parts) {
-      p.flattenInto(children, fc);
+      p.flattenInto(children, fc, warn);
     }
   }
 }
@@ -250,13 +252,14 @@ class _FlattenContext {
   final SvgTextAttributes ta;
   final SvgPaint paint;
 
-  _FlattenContext(_FlattenContext ancestor, SvgTextSpan span)
+  _FlattenContext(
+      _FlattenContext ancestor, SvgTextSpan span, void Function(String) warn)
       : x = _FCNumberSource.createOr(span.x, ancestor.x),
         y = _FCNumberSource.createOr(span.y, ancestor.y),
         dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
         dy = _FCNumberSource.createOr(span.dy, ancestor.dy),
         ta = span.textAttributes.cascade(ancestor.ta),
-        paint = span.paint.cascade(ancestor.paint, null);
+        paint = span.paint.cascade(ancestor.paint, null, warn);
 
   _FlattenContext.empty()
       : x = _FCNumberSource.root(),
@@ -320,9 +323,10 @@ class _FCLastValue {
 abstract class SvgTextSpanComponent {
   bool trimRight();
 
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc);
+  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+      void Function(String) warn);
 
-  void applyStylesheet(Stylesheet stylesheet);
+  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
 }
 
 class SvgTextSpanStringComponent extends SvgTextSpanComponent {
@@ -334,7 +338,7 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   }
 
   @override
-  void applyStylesheet(Stylesheet stylesheet) {}
+  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
 
   @override
   bool trimRight() {
@@ -343,7 +347,8 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   }
 
   @override
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc) {
+  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+      void Function(String) warn) {
     for (int i = 0; i < text.length; i++) {
       double? x = fc.pull(fc.x);
       double y = fc.pullOrLast(fc.y);
@@ -463,7 +468,7 @@ class SvgFlatSpan {
       SvgPaint ancestor,
       SvgTextAttributes ta) {
     ta = attributes.cascade(ta);
-    final cascaded = paint.cascade(ancestor, idLookup);
+    final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     final int? fontFamilyIndex;
     if (ta.fontFamily == '') {
       fontFamilyIndex = null;
@@ -474,15 +479,8 @@ class SvgFlatSpan {
     final dxIndex = canon.floatValues[x + dx];
     final dyIndex = canon.floatValues[y + dy];
     final fontSizeIndex = canon.floatValues[ta.fontSize.toSI()];
-    builder.textSpan(
-        null,
-        dxIndex,
-        dyIndex,
-        textIndex,
-        ta.toSITextAttributes(),
-        fontFamilyIndex,
-        fontSizeIndex,
-        cascaded.toSIPaint(builder.printWarning));
+    builder.textSpan(null, dxIndex, dyIndex, textIndex, ta.toSITextAttributes(),
+        fontFamilyIndex, fontSizeIndex, cascaded.toSIPaint());
   }
 
   RectT getBounds(double x, double y, SvgTextAttributes ancestor) {

@@ -33,7 +33,6 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.avd.parser;
 
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:xml/xml_events.dart';
@@ -69,7 +68,7 @@ abstract class AvdParser extends GenericParser {
   bool _done = false;
 
   @override
-  bool get warn => _avdBuilder.warn;
+  Function(String) get warn => _avdBuilder.warn;
 
   void _startTag(XmlStartElementEvent evt) {
     if (_done) {
@@ -107,8 +106,9 @@ abstract class AvdParser extends GenericParser {
         _tagStack.add('path');
       }
     } else if (evt.name == 'clip-path') {
-      if (_tagStack.isEmpty || _tagStack.last != 'group') {
-        throw ParseError('clip-path only valid inside a group:  $evt');
+      if (_tagStack.isNotEmpty && _tagStack.last != 'group') {
+        throw ParseError(
+            'clip-path only valid at top level or inside a group:  $evt');
       }
       _parseClipPath(evt.attributes);
       if (!evt.isSelfClosing) {
@@ -146,9 +146,7 @@ abstract class AvdParser extends GenericParser {
       }
     } else {
       _tagStack.add(evt.name);
-      if (warn) {
-        print('Unexpected tag inside vector:  $evt');
-      }
+      warn('Unexpected tag inside vector:  $evt');
     }
   }
 
@@ -189,9 +187,7 @@ abstract class AvdParser extends GenericParser {
 
     for (final a in attrs) {
       if (a.name == 'andoird:autoMirrored' || a.name == 'android:alpha') {
-        if (warn) {
-          print('   (ignoring ${a.name} ${a.value}.)');
-        }
+        warn('   (ignoring ${a.name} ${a.value}.)');
         // These parameters control how an AVD interacts with other graphical
         // elements, and they would require rendering the AVD to its own
         // layer.  If this kind of effect is desired, it's best to do it
@@ -238,10 +234,8 @@ abstract class AvdParser extends GenericParser {
         // in the path, and add in 2x the line width, if there were ever a
         // need to handle the (rare? illegal?) case where the viewportWidth
         // and viewportHeight attributes aren't specified.
-        if (warn) {
-          print('    Unable to scale to width/height:  '
-              'Need viewportWidth/viewportHeight.');
-        }
+        warn('    Unable to scale to width/height:  '
+            'Need viewportWidth/viewportHeight.');
         // Fall through
       } else {
         scaledWidth ??= width;
@@ -288,8 +282,8 @@ abstract class AvdParser extends GenericParser {
         translateX = getFloat(a.value);
       } else if (a.name == 'android:translateY') {
         translateY = getFloat(a.value);
-      } else if (warn) {
-        print('    Ignoring unexpected attribute ${a.name}');
+      } else {
+        warn('    Ignoring unexpected attribute ${a.name}');
       }
     }
     final transform = MutableAffine.identity();
@@ -365,16 +359,14 @@ abstract class AvdParser extends GenericParser {
         try {
           fillType = getFillType(a.value);
         } catch (err) {
-          if (warn) {
-            print('    Ignoring invalid fillType ${a.value}');
-          }
+          warn('    Ignoring invalid fillType ${a.value}');
         }
       } else if (a.name == 'android:trimPathStart' ||
           a.name == 'android:trimPathEnd' ||
           a.name == 'android:trimPathOffset') {
-        if (warn && !warnedAbout.contains('android:trimPath')) {
+        if (!warnedAbout.contains('android:trimPath')) {
           warnedAbout.add('android:trimPath');
-          print('    (ignoring animation attributes android:trimPathXXX)');
+          warn('    (ignoring animation attributes android:trimPathXXX)');
           // trimPathXXX are used for animation.  They're not useful here,
           // and supporting them would mean deferring path building to the
           // end.  They're not all that well-specified -
@@ -390,14 +382,12 @@ abstract class AvdParser extends GenericParser {
           // the time is to include the whole path anyway.  It's certainly
           // a reasonable thing to do.
         }
-      } else if (warn) {
-        print('    Ignoring unexpected attribute ${a.name}');
+      } else {
+        warn('    Ignoring unexpected attribute ${a.name}');
       }
     }
     if (pathData == null) {
-      if (warn) {
-        print('    Path with no android:pathData - ignored');
-      }
+      warn('    Path with no android:pathData - ignored');
       return;
     }
     final path = SvgPath(pathData);
@@ -423,14 +413,12 @@ abstract class AvdParser extends GenericParser {
         // don't care
       } else if (a.name == 'android:pathData') {
         pathData = a.value;
-      } else if (warn) {
-        print('    Ignoring unexpected attribute ${a.name}');
+      } else {
+        warn('    Ignoring unexpected attribute ${a.name}');
       }
     }
     if (pathData == null) {
-      if (warn) {
-        print('    clip path with no android:pathData - ignored');
-      }
+      warn('    clip path with no android:pathData - ignored');
     } else {
       final clip = AvdClipPath(pathData);
       _parentStack.last.children.add(clip);
@@ -463,11 +451,11 @@ abstract class AvdParser extends GenericParser {
           _inFillColor = true;
         } else if (a.value == 'android:strokeColor') {
           _inFillColor = false;
-        } else if (warn) {
-          print('    Ignoring unexpected android:name ${a.value}');
+        } else {
+          warn('    Ignoring unexpected android:name ${a.value}');
         }
-      } else if (warn) {
-        print('    Ignoring unexpected attribute ${a.name}');
+      } else {
+        warn('    Ignoring unexpected attribute ${a.name}');
       }
     }
   }
@@ -521,13 +509,13 @@ abstract class AvdParser extends GenericParser {
         } else if (s == 'mirror') {
           spreadMethod = SIGradientSpreadMethod.reflect;
         } else {
-          if (warn && s != 'clamp') {
-            print('    Unrecognized gradient tile mode:  $s');
+          if (s != 'clamp') {
+            warn('    Unrecognized gradient tile mode:  $s');
           }
           spreadMethod = SIGradientSpreadMethod.pad;
         }
-      } else if (warn) {
-        print('    Unrecognized gradient attribute  ${a.name}');
+      } else {
+        warn('    Unrecognized gradient attribute  ${a.name}');
       }
     }
     final stops =
@@ -589,8 +577,8 @@ abstract class AvdParser extends GenericParser {
         color = getColor(a.value);
       } else if (a.name == 'android:offset') {
         offset = getFloat(a.value);
-      } else if (warn) {
-        print('    Ignoring unexpected attribute ${a.name}');
+      } else {
+        warn('    Ignoring unexpected attribute ${a.name}');
       }
     }
     if (color == null) {
@@ -617,10 +605,11 @@ class AvdClipPath extends SvgNode {
   AvdClipPath(this.pathData);
 
   @override
-  SIBlendMode get blendMode => SIBlendMode.normal;
+  SIBlendMode get blendMode => SIBlendMode.normal; // coverage:ignore-line
 
   @override
-  void applyStylesheet(Stylesheet stylesheet) {}
+  void applyStylesheet(Stylesheet stylesheet,
+      void Function(String) warn) {} // coverage:ignore-line
 
   @override
   bool build(
@@ -635,13 +624,12 @@ class AvdClipPath extends SvgNode {
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-          void Function(String p1) warn) =>
-      false;
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
+      false; // coverage:ignore-line
 
   @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor, bool warn,
-          referrers) =>
+  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+          void Function(String) warn, referrers) =>
       this;
 }
 
@@ -657,16 +645,17 @@ class _AvdParserEventHandler with XmlEventVisitor {
   void visitEndElementEvent(XmlEndElementEvent e) => parser._endTag(e);
 
   @override
-  void visitCDATAEvent(XmlCDATAEvent event) {}
+  void visitCDATAEvent(XmlCDATAEvent event) {} // coverage:ignore-line
 
   @override
-  void visitCommentEvent(XmlCommentEvent event) {}
+  void visitCommentEvent(XmlCommentEvent event) {} // coverage:ignore-line
 
   @override
-  void visitDeclarationEvent(XmlDeclarationEvent event) {}
+  void visitDeclarationEvent(
+      XmlDeclarationEvent event) {} // coverage:ignore-line
 
   @override
-  void visitDoctypeEvent(XmlDoctypeEvent event) {}
+  void visitDoctypeEvent(XmlDoctypeEvent event) {} // coverage:ignore-line
 
   @override
   void visitProcessingEvent(XmlProcessingEvent event) {}
@@ -680,10 +669,6 @@ class StreamAvdParser extends AvdParser {
 
   StreamAvdParser(this._input, SIBuilder<String, SIImageData> builder)
       : super(builder);
-
-  static StreamAvdParser fromByteStream(
-          Stream<List<int>> input, SIBuilder<String, SIImageData> builder) =>
-      StreamAvdParser(input.transform(utf8.decoder), builder);
 
   /// Throws a [ParseError] or other exception in case of error.
   Future<void> parse() {

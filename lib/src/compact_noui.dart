@@ -40,8 +40,6 @@ import 'affine.dart';
 import 'common_noui.dart';
 import 'path_noui.dart';
 
-const _debugCompact = false;
-
 ///
 /// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
 /// traversing the represented graph.
@@ -132,7 +130,7 @@ abstract class CompactTraverserBase<R, IM,
     collector = visitor.init(
         collector, _images, _strings, _floatLists, _floatValues, null);
     final r = traverseGroup(collector);
-    visitor.assertDone();
+    visitor.traversalDone();
     closeStreams();
     return r;
   }
@@ -183,7 +181,7 @@ abstract class CompactTraverserBase<R, IM,
         collector = image(collector);
       } else if (code == SIGenericCompactBuilder.END_GROUP_CODE) {
         if (groupDepth <= 0) {
-          throw ParseError('Unexpected END_GROUP_CODE');
+          throw ParseError('Unexpected END_GROUP_CODE'); // coverage:ignore-line
         } else {
           collector = visitor.endGroup(collector);
           return collector;
@@ -192,7 +190,8 @@ abstract class CompactTraverserBase<R, IM,
         collector = maskedChild(collector);
       } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
         if (groupDepth <= 0) {
-          throw ParseError('Unexpected END_MASKED_CODE');
+          throw ParseError(
+              'Unexpected END_MASKED_CODE'); // coverage:ignore-line
         } else {
           return visitor.endMasked(collector);
         }
@@ -213,12 +212,6 @@ abstract class CompactTraverserBase<R, IM,
         }
         final bool usesLuma =
             code & 0xfe == SIGenericCompactBuilder.MASKED_CODE;
-        if (_debugCompact) {
-          int currArgSeek = _children.readUnsignedInt() - 100;
-          assert(currArgSeek == _args.seek);
-          int d = _children.readUnsignedShort();
-          assert(d == groupDepth, '$d == $groupDepth at ${_children.seek}');
-        }
         collector = masked(collector, maskBounds, usesLuma);
       } else if (code == SIGenericCompactBuilder.EXTENDED_GROUP_CODE) {
         int stuff = _children.readByte();
@@ -279,12 +272,6 @@ abstract class CompactTraverserBase<R, IM,
         _getTransform(hasTransform, hasTransformNumber, _children);
     final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
     collector = visitor.group(collector, transform, groupAlpha, blendMode);
-    if (_debugCompact) {
-      int currArgSeek = _children.readUnsignedInt() - 100;
-      assert(currArgSeek == _args.seek);
-      int d = _children.readUnsignedShort();
-      assert(d == groupDepth, '$d == $groupDepth at ${_children.seek}');
-    }
     groupDepth++;
     collector = traverseGroup(collector); // Traverse our children
     groupDepth--;
@@ -300,10 +287,6 @@ abstract class CompactTraverserBase<R, IM,
         hasPaintNumber: hasPaintNumber,
         fillColorType: fillColorType,
         strokeColorType: strokeColorType);
-    if (_debugCompact) {
-      int currArgSeek = _children.readUnsignedInt() - 100;
-      assert(currArgSeek == _args.seek, '$currArgSeek, $_args');
-    }
     final CompactChildData pathData = _getPathData(hasPathNumber);
     return visitor.path(collector, pathData, siPaint);
   }
@@ -397,10 +380,6 @@ abstract class CompactTraverserBase<R, IM,
   R clipPath(R collector, {required bool hasPathNumber}) {
     final CompactChildData pathData = _getPathData(hasPathNumber);
     collector = visitor.clipPath(collector, pathData);
-    if (_debugCompact) {
-      int currArgSeek = _children.readUnsignedInt() - 100;
-      assert(currArgSeek == _args.seek);
-    }
     return collector;
   }
 
@@ -456,8 +435,8 @@ abstract class CompactTraverserBase<R, IM,
     final r = SIPaint(
         fillColor: fillColor,
         strokeColor: strokeColor,
-        strokeWidth: strokeWidth,
-        strokeMiterLimit: strokeMiterLimit,
+        strokeWidth: strokeWidth ?? SIPaint.strokeWidthDefault,
+        strokeMiterLimit: strokeMiterLimit ?? SIPaint.strokeMiterLimitDefault,
         strokeJoin: strokeJoin,
         strokeCap: strokeCap,
         fillType: fillType,
@@ -672,9 +651,6 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
-    if (_debugCompact) {
-      throw StateError("Can't write file with _DEBUG_COMPACT turned on.");
-    }
     out.writeUnsignedInt(magicNumber);
     numWritten += 4;
     // There's plenty of extensibility built into this format, if one were
@@ -728,9 +704,11 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
 
     numWritten += _writeSmallishInt(out, floatLists.length);
     for (final fl in floatLists) {
-      numWritten += _writeSmallishInt(out, fl.length);
+      numWritten += _writeSmallishInt(out, fl.length); // coverage:ignore-line
+      // This is a remnant from the legacy text format
       for (final f in fl) {
-        numWritten += _writeFloatIfNotNull(out, f);
+        // coverage:ignore-line
+        numWritten += _writeFloatIfNotNull(out, f); // coverage:ignore-line
       }
     }
 
@@ -1106,6 +1084,8 @@ class ColorWriter {
           _writeSharedFloat(c.endAngle);
         }));
   }
+
+  void close() => children.close();
 }
 
 ///
@@ -1119,11 +1099,12 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   final DataOutputSink children;
   final FloatSink args;
   final FloatSink transforms;
-  late final colorWriter =
-      ColorWriter(children, _writeTransform, _writeSharedFloat);
+  ColorWriter? _colorWriter;
+  ColorWriter get colorWriter =>
+      _colorWriter ?? ColorWriter(children, _writeTransform, _writeSharedFloat);
 
   @override
-  final bool warn;
+  final void Function(String) warn;
 
   bool _done = false;
   double? _width;
@@ -1147,7 +1128,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   late final List<double> floatValues;
   late final CMap<double> _floatValueMap;
   late final List<IM> images;
-  int _debugGroupDepth = 0; // Should be optimized away when not used
 
   SIGenericCompactBuilder(this.bigFloats, this.childrenSink, this.children,
       this.args, this.transforms,
@@ -1259,9 +1239,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
       assert(len + 1 == _pathShare.length);
       makePath(pathData, CompactPathBuilder(this), warn: warn);
     }
-    if (_debugCompact) {
-      children.writeUnsignedInt(args.length + 100);
-    }
   }
 
   @override
@@ -1289,18 +1266,11 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     if (groupAlpha != null) {
       children.writeByte(groupAlpha);
     }
-    if (_debugCompact) {
-      children.writeUnsignedInt(args.length + 100);
-      children.writeUnsignedShort(_debugGroupDepth++);
-    }
   }
 
   @override
   void endGroup(void collector) {
     children.writeByte(END_GROUP_CODE);
-    if (_debugCompact) {
-      _debugGroupDepth--;
-    }
   }
 
   @override
@@ -1308,7 +1278,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     Object? key = immutableKey(pathData);
     final pb = startPath(paint, key);
     if (pb != null) {
-      makePath(pathData, pb, warn: false);
+      makePath(pathData, pb, warn: (_) {});
     }
   }
 
@@ -1450,9 +1420,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     } else {
       _writePaint(paint);
     }
-    if (_debugCompact) {
-      children.writeUnsignedInt(args.length + 100);
-    }
     if (pathNumber != null) {
       _writeSmallishInt(children, pathNumber);
       return null;
@@ -1463,7 +1430,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     }
   }
 
-  void makePath(PathDataT pathData, PathBuilder pb, {bool warn = true});
+  void makePath(PathDataT pathData, PathBuilder pb,
+      {required void Function(String) warn});
 
   PathDataT immutableKey(PathDataT pathData);
 
@@ -1480,10 +1448,6 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
       _writeFloat(maskBounds.width);
       _writeFloat(maskBounds.height);
     }
-    if (_debugCompact) {
-      children.writeUnsignedInt(args.length + 100);
-      children.writeUnsignedShort(_debugGroupDepth++);
-    }
   }
 
   @override
@@ -1494,9 +1458,13 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   @override
   void endMasked(void collector) {
     children.writeByte(END_MASKED_CODE);
-    if (_debugCompact) {
-      _debugGroupDepth--;
-    }
+  }
+
+  @override
+  @mustCallSuper
+  void traversalDone() {
+    super.traversalDone();
+    _colorWriter?.close();
   }
 }
 
@@ -1505,12 +1473,13 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
   ScalableImageCompactNoUI? _si;
 
   SICompactBuilderNoUI._p(bool bigFloats, ByteSink childrenSink, FloatSink args,
-      FloatSink transforms, {required bool warn})
+      FloatSink transforms, {required void Function(String) warn})
       : super(bigFloats, childrenSink,
             DataOutputSink(childrenSink, Endian.little), args, transforms,
             warn: warn);
 
-  factory SICompactBuilderNoUI({required bool bigFloats, required bool warn}) {
+  factory SICompactBuilderNoUI(
+      {required bool bigFloats, required void Function(String) warn}) {
     final cs = ByteSink();
     final a = bigFloats ? Float64Sink() : Float32Sink();
     final t = bigFloats ? Float64Sink() : Float32Sink();
@@ -1814,7 +1783,7 @@ int _readSmallishInt(ByteBufferDataInputStream str) {
   } else if (r < 0xff) {
     return str.readUnsignedShort();
   } else {
-    return str.readUnsignedInt();
+    return str.readUnsignedInt(); // coverage:ignore-line
   }
 }
 
@@ -1830,8 +1799,8 @@ int _writeSmallishInt(DataOutputSink out, int v) {
     out.writeUnsignedShort(v);
     return 3;
   } else {
-    out.writeByte(0xff);
-    out.writeUnsignedInt(v);
+    out.writeByte(0xff); // coverage:ignore-line
+    out.writeUnsignedInt(v); // coverage:ignore-line
     return 5;
   }
 }
