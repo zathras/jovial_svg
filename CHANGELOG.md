@@ -1,5 +1,5 @@
 
-## [1.1.2] - April 2022
+## [1.1.3] - April 2022
 
 - implemented `tspan` tag
 - implemented `style` tag for inline CSS styles
@@ -13,6 +13,10 @@
 - Fix skew transform (degrees, not radians).
 - Extend API with a function to call when there is a parser warning.
 - More robust handling of SVG files with errors
+
+## [1.1.2] - March 2022
+
+- Version number skipped (typo in `pubspec.yaml`).
 
 ## [1.1.1] - March 2022
 

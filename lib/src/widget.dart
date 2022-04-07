@@ -439,7 +439,8 @@ abstract class ScalableImageSource {
   ///
   /// Function to call to warn if there is a problem
   /// loading this asset.  The default version of this getter always
-  /// returns null.
+  /// returns null.  If it is null, the default
+  /// behavior is to print warnings.
   ///
   void Function(String)? get warnF => null;
 
@@ -485,7 +486,8 @@ abstract class ScalableImageSource {
   /// single-precision values.
   ///
   /// If [warnF] is non-null, it will be called if the AVD asset contains
-  /// unrecognized tags and/or tag attributes.
+  /// unrecognized tags and/or tag attributes.  If it is null, the default
+  /// behavior is to print warnings.
   ///
   static ScalableImageSource fromAvd(
     AssetBundle bundle,
