@@ -462,11 +462,14 @@ abstract class ScalableImageSource {
   @override
   int get hashCode {
     throw StateError('Must be overridden by subclasses');
+    // I really mean it :-)
   }
 
-  // ignore: deprecated_member_use_from_same_package
   void Function(String) get _warnArg =>
-      warnF ?? (warn ? defaultWarn : nullWarn);
+      warnF ??
+      (warn // ignore: deprecated_member_use_from_same_package
+          ? defaultWarn
+          : nullWarn);
 
   ///
   /// Get a [ScalableImage] by parsing an Android Vector Drawable XML file from

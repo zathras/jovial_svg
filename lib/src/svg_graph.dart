@@ -2163,7 +2163,7 @@ final svgGraphUnreachablePrivate = [
   () => SvgColor.inherit.toSIColor(0, SvgColor.white, SvgPaint._dummy),
   () => SvgColor.white.toString(),
   () => _SvgFontSizeRelativeDeferred(1, SvgFontSize.absolute(0)).toSI(),
-  () => _SvgFontSizeRelative(1).toSI(),
+  () => const _SvgFontSizeRelative(1).toSI(),
   () => SvgUse(null)._getUntransformedBounds(SvgTextAttributes.initial()),
   () => SvgUse(null).build(
       _CollectCanonBuilder(CanonicalizedData<void>()),
