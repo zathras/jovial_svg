@@ -142,7 +142,7 @@ supported, including CSS via the `<style>` tag.
         uses the 
         <a href="https://www.dafont.com/rollerball-1975.font">ROLLERBALL
         1975</a> font to render
-        <a href="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">this
+        <a href="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_hippie.png">this
         image</a>.
       * `textArea` is not supported (not in SVG 1.1).
       * `font-variant` (`small-caps`) is not supported.
