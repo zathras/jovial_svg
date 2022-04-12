@@ -139,9 +139,11 @@ supported, including CSS via the `<style>` tag.
       * Embedded fonts are not supported.  However, the `font-family` attribute
         is used when selecting a font, and fonts can be included in an 
         application that uses this library.  For example, the demo program
-        includes the 
+        uses the 
         <a href="https://www.dafont.com/rollerball-1975.font">ROLLERBALL
-        1975</a> font.
+        1975</a> font to render
+        <a href="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_mask.png">this
+        image</a>.
       * `textArea` is not supported (not in SVG 1.1).
       * `font-variant` (`small-caps`) is not supported.
       * `rotate` is not supported (but normal transformations, including 
