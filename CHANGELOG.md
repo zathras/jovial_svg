@@ -1,7 +1,7 @@
 
 ## [1.1.4] - April 2022
 
-- Support data: URLs for SVG and AVD files
+- Support `data:` URLs for SVG and AVD files
 - Support loading AVD via http in widget
 - Fixed bug with `rgb(x%, x%, x%)` syntax for colors
 - Finished adding tests driven by code coverage analysis

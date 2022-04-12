@@ -704,7 +704,7 @@ abstract class GenericParser {
   int _getColorComponent(String s) {
     if (s.endsWith('%')) {
       final pc = double.parse(s.substring(0, s.length - 1)) / 100;
-      return ((256 * pc - 0.5).floor()).clamp(0, 255);
+      return ((256 * pc).floor()).clamp(0, 255);
     } else {
       return int.parse(s).clamp(0, 255);
     }
