@@ -8,14 +8,14 @@
         gradientUnits="userSpaceOnUse">
     <stop offset="0" stop-color="bad"/>
     <stop offset="0" stop-color="navy"/>
-    <stop offset="20%" stop-color="current"/>
+    <stop offset="20%" stop-color="currentcolor"/>
     <stop offset="1" stop-color="yellow"/>
 </linearGradient>
 <linearGradient id="grad2" x1="0" y1="1" x2="0" y2="7" spreadMethod="repeat"
         gradientUnits="userSpaceOnUse">
     <stop offset="0" stop-color="url(#grad)"/>
     <stop offset="0" stop-color="navy"/>
-    <stop offset="20%" stop-color="current"/>
+    <stop offset="20%" stop-color="currentcolor"/>
     <stop offset="1" stop-color="yellow"/>
 </linearGradient>
 
@@ -26,7 +26,7 @@
         font-size="small"
         font-weight="500"
         font-style="italic">
-    <rect x="0" y="0" width="3" height="7" fill="current" 
+    <rect x="0" y="0" width="3" height="7" fill="currentcolor" 
         transform="translate(2,0)"/>
 </g>
 <rect x="5" y="0" width="3" height="7" fill="url(#grad)"

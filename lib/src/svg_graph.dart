@@ -136,6 +136,7 @@ class SvgParseGraph {
         const [], theCanon.floatValues.toList(), theCanon.floatValues);
     newRoot?.build(builder, theCanon, idLookup, rootPaint, rootTA);
     builder.endVector();
+    builder.traversalDone();
   }
 }
 
@@ -424,7 +425,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
 
   bool _hasNonMaskAttributes() =>
       transform != null ||
-      paint != SvgPaint.empty() ||
+      paint != (SvgPaint.empty()..mask = paint.mask) ||
       textAttributes != SvgTextAttributes.empty() ||
       groupAlpha != null ||
       blendMode != SIBlendMode.normal;
@@ -454,8 +455,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
       SvgNode? n = idLookup[paint.mask];
       if (n is SvgMask) {
         if (referrers.contains(n)) {
-          warn('    Ignoring mask that '
-              'refers to itself.'); // coverage:ignore-line
+          warn('    Ignoring mask that refers to itself.');
         } else {
           final masked = SvgMasked(this, n);
           if (_hasNonMaskAttributes()) {
@@ -475,8 +475,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
           }
         }
       } else {
-        warn('    $this references nonexistent '
-            'mask ${paint.mask}'); // coverage:ignore-line
+        warn('    $tagName references nonexistent mask ${paint.mask}');
       }
     }
     return this;
@@ -629,18 +628,16 @@ class SvgPaint {
   SIPaint toSIPaint() {
     if (hidden == true) {
       // Hidden nodes should be optimized away
-      assert(hidden != true); // coverage:ignore-line
-      return SIPaint(
-          // coverage:ignore-line
+      return unreachable(SIPaint(
           fillColor: SIColor.none,
           strokeColor: SIColor.none,
           strokeWidth: 0,
           strokeMiterLimit: 4,
           strokeJoin: SIStrokeJoin.miter,
           strokeCap: SIStrokeCap.butt,
-          fillType: clipFillType ?? SIFillType.nonZero,
+          fillType: fillType ?? SIFillType.nonZero,
           strokeDashArray: null,
-          strokeDashOffset: null);
+          strokeDashOffset: null));
     } else if (inClipPath) {
       // See SVG 1.1, s. 14.3.5
       return SIPaint(
@@ -807,13 +804,11 @@ class SvgDefs extends SvgGroup {
   bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
       Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
-    assert(false); // coverage:ignore-line
-    return false; // coverage:ignore-line
+    return unreachable(false);
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
-      null; // coverage:ignore-line
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) => unreachable(null);
 }
 
 ///
@@ -825,13 +820,8 @@ class SvgMask extends SvgGroup {
   @override
   SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn, _Referrers referrers) {
-    if (referrers.contains(this)) {
-      warn('    Ignoring mask contained by itself.');
-      return null;
-    } else {
-      super.resolve(idLookup, ancestor, warn, _Referrers(this, referrers));
-      return null;
-    }
+    super.resolve(idLookup, ancestor, warn, _Referrers(this, referrers));
+    return null;
   }
 }
 
@@ -846,7 +836,7 @@ class SvgMasked extends SvgNode {
 
   @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
-    assert(false); // coverage:ignore-line
+    assert(false);
     // Do nothing - stylesheets are applied before Masked are created.
   }
 
@@ -879,10 +869,8 @@ class SvgMasked extends SvgNode {
     final blend = blendHandledByParent
         ? SIBlendMode.normal
         : (blendMode ?? SIBlendMode.normal);
-    if (blend != SIBlendMode.normal) {
-      builder.group(null, null, null, blend);
-    }
-
+    assert(blend == SIBlendMode.normal);
+    // Blend is handled by a parent group inserted above us in resolveMask().
     bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
@@ -898,9 +886,6 @@ class SvgMasked extends SvgNode {
       builder.endGroup(null);
     }
     builder.endMasked(null);
-    if (blend != SIBlendMode.normal) {
-      builder.endGroup(null);
-    }
     return true;
   }
 
@@ -908,8 +893,7 @@ class SvgMasked extends SvgNode {
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn, _Referrers referrers) {
     // We're added during resolve, so this is unreachable
-    assert(false); // coverage:ignore-line
-    return null; // coverage:ignore-line
+    return unreachable(null);
   }
 
   @override
@@ -957,25 +941,21 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
-    assert(false); // coverage:ignore-line
-    return null; // coverage:ignore-line
-  }
+  RectT? _getUntransformedBounds(SvgTextAttributes ta) => unreachable(null);
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
-      {bool blendHandledByParent = false}) {
-    assert(false); // coverage:ignore-line
-    return false; // coverage:ignore-line
-  }
+  bool build(
+          SIBuilder<String, SIImageData> builder,
+          CanonicalizedData canon,
+          Map<String, SvgNode> idLookup,
+          SvgPaint ancestor,
+          SvgTextAttributes ta,
+          {bool blendHandledByParent = false}) =>
+      unreachable(false);
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
-    // Should be called after resolve, so we should never get here
-    assert(false); // coverage:ignore-line
-    return true; // coverage:ignore-line
-  }
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
+      unreachable(true); // Called after resolve, so we can't get here
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributesNode
@@ -1058,8 +1038,7 @@ class SvgPath extends SvgPathMaker {
 class _SvgPathBoundsBuilder implements PathBuilder {
   RectT? bounds;
 
-  @override
-  void addOval(RectT rect) {
+  void _addToBounds(RectT rect) {
     final b = bounds;
     if (b == null) {
       bounds = rect;
@@ -1069,69 +1048,35 @@ class _SvgPathBoundsBuilder implements PathBuilder {
   }
 
   @override
+  void addOval(RectT rect) => unreachable(_addToBounds(rect));
+
+  @override
   void arcToPoint(PointT arcEnd,
-      {required RadiusT radius,
-      required double rotation,
-      required bool largeArc,
-      required bool clockwise}) {
-    final b = bounds;
-    final rect = RectT.fromPoints(arcEnd, arcEnd);
-    if (b == null) {
-      bounds = rect;
-    } else {
-      bounds = b.boundingBox(rect);
-    }
-  }
+          {required RadiusT radius,
+          required double rotation,
+          required bool largeArc,
+          required bool clockwise}) =>
+      _addToBounds(RectT.fromPoints(arcEnd, arcEnd));
 
   @override
   void close() {}
 
   @override
-  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {
-    final b = bounds;
-    final rect = RectT.fromPoints(c1, c2).boundingBox(RectT.fromPoints(p, p));
-    if (b == null) {
-      bounds = rect;
-    } else {
-      bounds = b.boundingBox(rect);
-    }
-  }
+  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) => _addToBounds(
+      RectT.fromPoints(c1, c2).boundingBox(RectT.fromPoints(p, p)));
 
   @override
   void end() {}
 
   @override
-  void lineTo(PointT p) {
-    final b = bounds;
-    final rect = RectT.fromPoints(p, p);
-    if (b == null) {
-      bounds = rect;
-    } else {
-      bounds = b.boundingBox(rect);
-    }
-  }
+  void lineTo(PointT p) => _addToBounds(RectT.fromPoints(p, p));
 
   @override
-  void moveTo(PointT p) {
-    final b = bounds;
-    final rect = RectT.fromPoints(p, p);
-    if (b == null) {
-      bounds = rect;
-    } else {
-      bounds = b.boundingBox(rect);
-    }
-  }
+  void moveTo(PointT p) => _addToBounds(RectT.fromPoints(p, p));
 
   @override
-  void quadraticBezierTo(PointT control, PointT p, bool shorthand) {
-    final b = bounds;
-    final rect = RectT.fromPoints(control, p);
-    if (b == null) {
-      bounds = rect;
-    } else {
-      bounds = b.boundingBox(rect);
-    }
-  }
+  void quadraticBezierTo(PointT control, PointT p, bool shorthand) =>
+      _addToBounds(RectT.fromPoints(control, p));
 }
 
 class SvgRect extends SvgPathMaker {
@@ -1390,24 +1335,26 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) => null;
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) =>
+      unreachable(null);
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
-      {bool blendHandledByParent = false}) {
-    // Do nothing - gradients are included in SIPaint
-    return false;
-  }
+  bool build(
+          SIBuilder<String, SIImageData> builder,
+          CanonicalizedData canon,
+          Map<String, SvgNode> idLookup,
+          SvgPaint ancestor,
+          SvgTextAttributes ta,
+          {bool blendHandledByParent = false}) =>
+      unreachable(false);
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
-    return false; // Because this node doesn't directly do any rendering
-  }
+  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
+      unreachable(false);
 
   /// Meaningless for us
   @override
-  SIBlendMode get blendMode => SIBlendMode.normal;
+  SIBlendMode get blendMode => unreachable(SIBlendMode.normal);
 }
 
 class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
@@ -1533,6 +1480,27 @@ class SvgTextAttributes {
       fontStyle: fontStyle!,
       fontWeight: fontWeight.toSI(),
       fontSize: fontSize.toSI());
+
+  @override
+  int get hashCode =>
+      0x0ba469d9 ^
+      Object.hash(fontFamily, fontStyle, textAnchor, textDecoration, fontWeight,
+          fontSize);
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is SvgTextAttributes) {
+      return fontFamily == other.fontFamily &&
+          fontStyle == other.fontStyle &&
+          textAnchor == other.textAnchor &&
+          textDecoration == other.textDecoration &&
+          fontWeight == other.fontWeight &&
+          fontSize == other.fontSize;
+    } else {
+      return false;
+    }
+  }
 }
 
 ///
@@ -1589,10 +1557,7 @@ class _SvgFontSizeRelative extends SvgFontSize {
       _SvgFontSizeRelativeDeferred(scale, ancestor);
 
   @override
-  double toSI() {
-    assert(false); // coverage:ignore-line
-    return 12; // coverage:ignore-line
-  }
+  double toSI() => unreachable(12);
 }
 
 class _SvgFontSizeRelativeDeferred extends SvgFontSize {
@@ -1620,10 +1585,7 @@ class _SvgFontSizeInherit extends SvgFontSize {
   SvgFontSize orInherit(SvgFontSize ancestor) => ancestor;
 
   @override
-  double toSI() {
-    assert(false); // coverage:ignore-line
-    return 12; // coverage:ignore-line
-  }
+  double toSI() => unreachable(12);
 }
 
 ///
@@ -2165,11 +2127,37 @@ final svgGraphUnreachablePrivate = [
   () => _SvgFontSizeRelativeDeferred(1, SvgFontSize.absolute(0)).toSI(),
   () => const _SvgFontSizeRelative(1).toSI(),
   () => SvgUse(null)._getUntransformedBounds(SvgTextAttributes.initial()),
-  () => SvgUse(null).build(
-      _CollectCanonBuilder(CanonicalizedData<void>()),
-      CanonicalizedData<void>(),
-      const {},
-      SvgPaint.empty(),
-      SvgTextAttributes.initial()),
+  () => _testCallBuild(SvgUse(null)),
   () => SvgUse(null)._getUntransformedBounds(SvgTextAttributes.initial()),
+  () => SvgUse(null).canUseLuma({}, SvgPaint.empty()),
+  () => _testCallBuild(SvgDefs('')),
+  () => SvgDefs('')._getUntransformedBounds(SvgTextAttributes.initial()),
+  () => SvgMasked(SvgDefs(''), SvgMask()).applyStylesheet({}, (_) {}),
+  () => SvgMasked(SvgDefs(''), SvgMask())
+      .resolve(const {}, SvgPaint.empty(), (_) {}, _Referrers(null)),
+  () => (SvgPaint.empty()..hidden = true).toSIPaint(),
+  () => const _SvgFontSizeRelative(1).toSI(),
+  () => const _SvgFontSizeInherit().toSI(),
+  () => SvgGradientNode('', _testGradientColor)
+      ._getUserSpaceBoundary(SvgTextAttributes.initial()),
+  () => _testCallBuild(SvgGradientNode('', _testGradientColor)),
+  () => SvgGradientNode('', _testGradientColor)
+      .canUseLuma(const {}, SvgPaint.empty()),
+  () => SvgGradientNode('', _testGradientColor).blendMode,
+  () => _SvgPathBoundsBuilder().addOval(const RectT(0, 0, 0, 0)),
 ];
+void _testCallBuild(SvgNode n) => n.build(
+    _CollectCanonBuilder(CanonicalizedData<void>()),
+    CanonicalizedData<SIImageData>(),
+    const {},
+    SvgPaint.empty(),
+    SvgTextAttributes.initial());
+final _testGradientColor = SvgRadialGradientColor(
+    cx: null,
+    cy: null,
+    fx: null,
+    fy: null,
+    r: null,
+    objectBoundingBox: null,
+    transform: null,
+    spreadMethod: null);

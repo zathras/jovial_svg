@@ -703,8 +703,8 @@ abstract class GenericParser {
 
   int _getColorComponent(String s) {
     if (s.endsWith('%')) {
-      final pc = double.parse(s.substring(0, s.length - 1)).clamp(0, 1);
-      return ((256 * pc).ceil() - 1).clamp(0, 255);
+      final pc = double.parse(s.substring(0, s.length - 1)) / 100;
+      return ((256 * pc - 0.5).floor()).clamp(0, 255);
     } else {
       return int.parse(s).clamp(0, 255);
     }
@@ -905,10 +905,7 @@ class BnfLexer {
 
   /// Get the next path command.  It might not be a valid command.
   String nextPathCommand() {
-    skipWhitespace();
-    if (eof) {
-      error('Unexpected EOF');
-    }
+    assert(!eof);
     // It's just the next character.  No reason to get fancier than
     // this.
     final start = _pos++;
@@ -1069,8 +1066,41 @@ enum SIStrokeCap { butt, round, square }
 enum SIFillType { evenOdd, nonZero }
 
 // NOTE:  The numerical values of this enum are externalized.
-//        The default tint mode is srcIn.
-enum SITintMode { srcOver, srcIn, srcATop, multiply, screen, add }
+//        The default tint mode is srcIn.  The moded after "add"
+//        aren't supported by AVDs, but they can be set on a
+//        ScalableImage, because that API operates in terms of
+//        blend mode.
+enum SITintMode {
+  srcOver,
+  srcIn,
+  srcATop,
+  multiply,
+  screen,
+  add,
+  clear,
+  color,
+  colorBurn,
+  colorDodge,
+  darken,
+  difference,
+  dst,
+  dstATop,
+  dstIn,
+  dstOut,
+  dstOver,
+  exclusion,
+  hardLight,
+  hue,
+  lighten,
+  luminosity,
+  modulate,
+  overlay,
+  saturation,
+  softLight,
+  src,
+  srcOut,
+  xor
+}
 
 enum SIBlendMode {
   normal,
@@ -1191,3 +1221,17 @@ class CMap<K> {
     return r;
   }
 }
+
+///
+/// Mark a method as unreachable.  As of this writing, coverage in Flutter
+/// is immature and buggy; specifically, marking code as not subject to coverage
+/// is broken.  With that said, scattering comments around is pretty ugly, so
+/// I'll probably keep this function around after they fix it.  It's harmless,
+/// and should be optimized away by tree shaking.
+///
+// coverage:ignore-start
+T unreachable<T>(T result) {
+  assert(false);
+  return result;
+}
+// coverate:itnore-end

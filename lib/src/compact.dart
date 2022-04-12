@@ -203,8 +203,8 @@ class ScalableImageCompact extends ScalableImageBase
 
   @override
   ScalableImageDag toDag() {
-    final b = SIDagBuilderFromCompact(viewport,
-        warn: (_) {}, currentColor: currentColor);
+    final b = SIDagBuilderFromCompact(givenViewport,
+        warn: _noWarn, currentColor: currentColor);
     b.vector(
         width: width,
         height: height,
@@ -212,6 +212,7 @@ class ScalableImageCompact extends ScalableImageBase
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
     accept(b);
     b.endVector();
+    b.traversalDone();
     return b.si;
   }
 
@@ -571,8 +572,7 @@ class LumaTraverser
   @override
   void maskedChild(void collector) {
     if (groupDepth == _startGroupDepth) {
-      assert(assertEndPosition == currentPosition,
-          '$assertEndPosition != $currentPosition');
+      assert(assertEndPosition == currentPosition);
       endTraversalEarly();
       return collector;
     } else {
@@ -599,7 +599,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary>
             (si.bigFloats) ? Float64Sink() : Float32Sink(),
             viewport,
             currentColor: si.currentColor,
-            warn: (_) {}),
+            warn: _noWarn),
         super(RenderContext.root(si, Colors.black)) {
     builder.initFloatValueMap(_theCanon.floatValues);
     builder.vector(
@@ -618,6 +618,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary>
       return r;
     } else {
       builder.endVector();
+      builder.traversalDone();
       builder.setCanon(_theCanon);
       return _si = builder.si;
     }
@@ -749,9 +750,6 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   final Rect viewport;
   final Color? currentColor;
 
-  @override
-  void get initial {}
-
   _PruningBuilder(bool bigFloats, ByteSink childrenSink, FloatSink args,
       FloatSink transforms, this.viewport,
       {required void Function(String) warn, required this.currentColor})
@@ -769,7 +767,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
       CMap<double>? floatValueMap) {
     // This is a little tricky.  When pruning, we collect the canonicalized
     // data on the fly, and only provide it to our supertype at the end,
-    // right before building the SI.  For this reason, so we need to discard
+    // right before building the SI.  For this reason, we need to discard
     // this data here.  It comes from the graph being pruned, not the one
     // being produced, so we don't care about it.
   }
@@ -910,8 +908,6 @@ class _MaskedPruningEntry extends _PruningEntry {
 
 class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
     with SITextHelper<PruningBoundary?> {
-  PruningBoundary? boundary;
-
   final _boundaryStack = List<PruningBoundary?>.empty(growable: true);
 
   _BoundaryVisitor(ScalableImageCompact si)
@@ -1001,7 +997,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
 
   @override
   PruningBoundary? image(PruningBoundary? collector, int imageIndex) {
-    return combine(boundary, images[imageIndex].getBoundary());
+    return combine(collector, images[imageIndex].getBoundary());
   }
 
   @override
@@ -1022,9 +1018,9 @@ mixin _SICompactPathBuilder {
 class SIDagBuilderFromCompact
     extends SIGenericDagBuilder<CompactChildData, SIImage>
     with _SICompactPathBuilder {
-  SIDagBuilderFromCompact(Rect? viewport,
+  SIDagBuilderFromCompact(Rect? givenViewport,
       {required void Function(String) warn, Color? currentColor})
-      : super(viewport, warn, currentColor);
+      : super(givenViewport, warn, currentColor);
 
   @override
   List<SIImage> convertImages(List<SIImage> images) => images;
@@ -1040,9 +1036,6 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
       : super(bigFloats, childrenSink,
             DataOutputSink(childrenSink, Endian.little), args, transforms,
             warn: warn);
-
-  @override
-  void get initial {}
 
   factory SICompactBuilder(
       {required bool bigFloats,
@@ -1082,3 +1075,5 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
         viewport: null);
   }
 }
+
+void _noWarn(String msg) {}

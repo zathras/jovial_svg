@@ -64,17 +64,7 @@ Rect? convertRectTtoRect(RectT? r) {
 abstract class SIRenderable {
   void paint(Canvas c, RenderContext context);
 
-  bool _wouldPaint(SIColor c) {
-    bool hasWork = true;
-    c.accept(SIColorVisitor(
-        value: (SIValueColor c) {},
-        current: () {},
-        none: () => hasWork = false,
-        linearGradient: (SILinearGradientColor c) {},
-        radialGradient: (SIRadialGradientColor c) {},
-        sweepGradient: (SISweepGradientColor c) {}));
-    return hasWork;
-  }
+  bool _wouldPaint(SIColor c) => c is! SINoneColor;
 
   SIRenderable? prunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b);
@@ -118,26 +108,13 @@ abstract class SIRenderable {
 
   // The colors within a gradient, fed to a Flutter shader.
   List<Color> _gradientColors(Color current, SIGradientColor g) {
-    Color cc = current;
-    final v = SIColorVisitor(
-      value: (SIValueColor c) => cc = Color(c.argb),
-      none: () {
-        assert(false);
-      },
-      current: () => cc = current,
-      linearGradient: (_) {
-        assert(false);
-      },
-      radialGradient: (_) {
-        assert(false);
-      },
-      sweepGradient: (_) {
-        assert(false);
-      },
-    );
     final r = List<Color>.generate(g.colors.length, (i) {
-      g.colors[i].accept(v);
-      return cc;
+      final c = g.colors[i];
+      if (c is SIValueColor) {
+        return Color(c.argb);
+      }
+      assert(c is SICurrentColor, 'Gradient as gradient stop?!?');
+      return current;
     }, growable: false);
     return r;
   }
@@ -236,9 +213,52 @@ extension SITintModeMapping on SITintMode {
         return SITintMode.screen;
       case BlendMode.plus:
         return SITintMode.add;
-      default:
-        assert(false);
-        return SITintMode.srcIn;
+      case BlendMode.clear:
+        return SITintMode.clear;
+      case BlendMode.color:
+        return SITintMode.color;
+      case BlendMode.colorBurn:
+        return SITintMode.colorBurn;
+      case BlendMode.colorDodge:
+        return SITintMode.colorDodge;
+      case BlendMode.darken:
+        return SITintMode.darken;
+      case BlendMode.difference:
+        return SITintMode.difference;
+      case BlendMode.dst:
+        return SITintMode.dst;
+      case BlendMode.dstATop:
+        return SITintMode.dstATop;
+      case BlendMode.dstIn:
+        return SITintMode.dstIn;
+      case BlendMode.dstOut:
+        return SITintMode.dstOut;
+      case BlendMode.dstOver:
+        return SITintMode.dstOver;
+      case BlendMode.exclusion:
+        return SITintMode.exclusion;
+      case BlendMode.hardLight:
+        return SITintMode.hardLight;
+      case BlendMode.hue:
+        return SITintMode.hue;
+      case BlendMode.lighten:
+        return SITintMode.lighten;
+      case BlendMode.luminosity:
+        return SITintMode.luminosity;
+      case BlendMode.modulate:
+        return SITintMode.modulate;
+      case BlendMode.overlay:
+        return SITintMode.overlay;
+      case BlendMode.saturation:
+        return SITintMode.saturation;
+      case BlendMode.softLight:
+        return SITintMode.softLight;
+      case BlendMode.src:
+        return SITintMode.src;
+      case BlendMode.srcOut:
+        return SITintMode.srcOut;
+      case BlendMode.xor:
+        return SITintMode.xor;
     }
   }
 
@@ -256,6 +276,52 @@ extension SITintModeMapping on SITintMode {
         return BlendMode.screen;
       case SITintMode.add:
         return BlendMode.plus;
+      case SITintMode.clear:
+        return BlendMode.clear;
+      case SITintMode.color:
+        return BlendMode.color;
+      case SITintMode.colorBurn:
+        return BlendMode.colorBurn;
+      case SITintMode.colorDodge:
+        return BlendMode.colorDodge;
+      case SITintMode.darken:
+        return BlendMode.darken;
+      case SITintMode.difference:
+        return BlendMode.difference;
+      case SITintMode.dst:
+        return BlendMode.dst;
+      case SITintMode.dstATop:
+        return BlendMode.dstATop;
+      case SITintMode.dstIn:
+        return BlendMode.dstIn;
+      case SITintMode.dstOut:
+        return BlendMode.dstOut;
+      case SITintMode.dstOver:
+        return BlendMode.dstOver;
+      case SITintMode.exclusion:
+        return BlendMode.exclusion;
+      case SITintMode.hardLight:
+        return BlendMode.hardLight;
+      case SITintMode.hue:
+        return BlendMode.hue;
+      case SITintMode.lighten:
+        return BlendMode.lighten;
+      case SITintMode.luminosity:
+        return BlendMode.luminosity;
+      case SITintMode.modulate:
+        return BlendMode.modulate;
+      case SITintMode.overlay:
+        return BlendMode.overlay;
+      case SITintMode.saturation:
+        return BlendMode.saturation;
+      case SITintMode.softLight:
+        return BlendMode.softLight;
+      case SITintMode.src:
+        return BlendMode.src;
+      case SITintMode.srcOut:
+        return BlendMode.srcOut;
+      case SITintMode.xor:
+        return BlendMode.xor;
     }
   }
 }
@@ -715,7 +781,6 @@ class SIPath extends SIRenderable {
     } else if (siPaint == other.siPaint) {
       return;
     } else {
-      print(siPaint == other.siPaint);
       // Path is basically opaque; no good way to check it.
       throw StateError('$this $other');
     }
@@ -1285,9 +1350,6 @@ class PruningBoundary {
       min(min(a.y, b.y), min(c.y, d.y)),
       max(max(a.x, b.x), max(c.x, d.x)),
       max(max(a.y, b.y), max(c.y, d.y)));
-
-  @override
-  String toString() => 'PruningBoundary($a $b $c $d)';
 
   static Point<double> _tp(Point<double> p, Affine x) => x.transformed(p);
 

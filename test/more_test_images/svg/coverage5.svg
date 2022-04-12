@@ -1,0 +1,55 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" >
+<mask id="m1" >
+  <circle cx="2" cy="2" r="6" fill="aqua" />
+</mask>
+<circle cx="2" cy="2" r="6" fill="none" mask="url(#m1)" />
+<circle cx="4" cy="4" r="4" fill="currentColor" />
+<g color="purple" >
+  <circle cx="18" cy="4" r="4" fill="currentColor" />
+</g>
+<image x="10" y="10" width="1" height="1" href="data:image/png;base64,Cg=="/>
+<mask id="coverage5" color="white">
+  <rect x="7" y="4" width="8" height="14" fill="currentColor"/>
+  <image x="10" y="10" width="1" height="1" href="data:image/bad;base64,Cg=="/>
+</mask>
+<circle mask="url(#nope)" cx="11" cy="11" r="6" fill="yellow" />
+<g mask="url(#coverage5)" style="mix-blend-mode:luminosity;">
+  <circle cx="11" cy="11" r="6" fill="brown" />
+</g>
+<path d="M16,16 C18,18 20,18 22,20 L24,18 A 5,4 0 00 22,24 M16,16 C18,18 20,18 22,20 L24,18 A 5,4 0 00 22,24 Q 16,20 20,24 z"
+    stroke-linejoin="bevel" fill="url(#grad)" />
+<linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%" 
+        gradientUnits="userSpaceOnUse" spreadmethod="reflect" >
+    <stop offset="0" stop-color="currentcolor"/>
+    <stop offset="5%" stop-color="navy"/>
+    <stop offset="20%" stop-color="red"/>
+    <stop offset="50%" stop-color="aqua"/>
+    <stop offset="1" stop-color="yellow"/>
+</linearGradient>
+<circle cx="4" cy="18" r="4" fill="url(#ok2)" />
+<line x1="8" y1="22" x2="18" y2="22" stroke-width="2" stroke="aqua" />
+<line x1="8" y1="22" x2="18" y2="23" stroke-width="2" stroke="aqua" />
+<linearGradient id="bad1" href="#bad1" />
+<linearGradient id="bad2" href="#nope" />
+<linearGradient id="ok" href="#grad" />
+<linearGradient id="ok2" href="#ok" />
+<text x="0 7 15 27" y="28 28 28" font-weight="900" font-style="italic" 
+    font-size="5">foo<tspan fill="currentColor"
+        text-anchor="end">ba<tspan font-style="normal">r</tspan></tspan></text>
+<rect fill="url(#ok2)" x="22" y="2" width="2" height="22" />
+<rect fill="rgb(15%, 75%, 90%)" x="24" y="2" width="2" height="22" />
+<rect fill="rgb(99%, 99%)" x="26" y="2" width="2" height="22" />
+<rect fill="#7" x="26" y="2" width="2" height="22" />
+<path d="M16,16 C18,18 20,18 22,20 L24,18 A 5,4 0 01 22,24 z"
+    transform="translate(-17, 12)"
+    stroke-linejoin="bevel" fill="#7f1f1f" />
+<path d="M16,16 C18,18 20,18 22,20 L24,18 A 5,4 0 10 22,24 z"
+    transform="translate(-7, 12)"
+    stroke-linejoin="bevel" fill="#1f7f1f" />
+<path d="M16,16 C18,18 20,18 22,20 L24,18 A 5,4 0 11 22,24 z"
+    transform="translate(-2, 12)"
+    stroke-linejoin="bevel" fill="#1f1f7f" />
+</svg>

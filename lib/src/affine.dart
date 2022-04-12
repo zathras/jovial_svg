@@ -55,7 +55,19 @@ abstract class Affine {
 
   void copyIntoCompact(List<double> storage, [int offset = 0]);
 
-  double get(int row, int col);
+  void _checkIndices(int row, int col) {
+    if (row < 0 || row > 2) {
+      throw IndexError(row, this);
+    } else if (col < 0 || col > 2) {
+      throw IndexError(row, this);
+    }
+  }
+
+  double get(int row, int col) {
+    _checkIndices(row, col);
+    return _get(row, col);
+  }
+
   double _get(int row, int col);
 
   ///
@@ -159,20 +171,6 @@ class _CompactAffine extends Affine {
   }
 
   static int _storageIndex(int row, int column) => row * 3 + column;
-
-  void _checkIndices(int row, int col) {
-    if (row < 0 || row > 2) {
-      throw IndexError(row, this);
-    } else if (col < 0 || col > 2) {
-      throw IndexError(row, this);
-    }
-  }
-
-  @override
-  double get(int row, int col) {
-    _checkIndices(row, col);
-    return _get(row, col);
-  }
 
   @override
   bool _equals(Object other) {
@@ -286,9 +284,6 @@ class MutableAffine extends Affine {
 
   @override
   double _get(int row, int col) => _storage.entry(row, col);
-
-  @override
-  double get(int row, int col) => _get(row, col);
 
   @override
   void copyIntoCompact(List<double> storage, [int offset = 0]) {

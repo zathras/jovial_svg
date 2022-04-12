@@ -644,10 +644,11 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    2 = jovial_svg version 1.1.0, March 2022
   ///    3 = jovial_svg version 1.1.0 (later release candidate), March 2022
   ///    4 - jovial_svg version 1.1.1.rc-3, March 2022
-  ///    5 - jovial_svg version 1.1.2, April 2022
-  ///    6 - jovial_svg version 1.1.2, April 2022 (text decoration)
-  ///    7 - jovial_svg version 1.1.2, April 2022 (tspan)
-  static const int fileVersionNumber = 7;
+  ///    5 - jovial_svg version 1.1.3, April 2022
+  ///    6 - jovial_svg version 1.1.3, April 2022 (text decoration)
+  ///    7 - jovial_svg version 1.1.3, April 2022 (tspan)
+  ///    8 - jovial_svg version 1.1.4, April 2022 (expanded tint mode)
+  static const int fileVersionNumber = 8;
 
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;

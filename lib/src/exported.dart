@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.exported;
 
+import 'dart:convert' show utf8;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -370,6 +371,8 @@ abstract class ScalableImage {
   ///     Uri.parse('https://jovial.com/images/jupiter.svg'));
   /// ```
   ///
+  /// [url] is an http:, https: or data: Uri
+  ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  See
   /// [toDag] for a discussion of the two representations.
@@ -391,7 +394,8 @@ abstract class ScalableImage {
       void Function(String)? warnF,
       Color? currentColor}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content = await http.read(url);
+    final String content =
+        url.data?.contentAsString(encoding: utf8) ?? await http.read(url);
     return fromSvgString(content,
         compact: compact,
         bigFloats: bigFloats,
@@ -508,6 +512,8 @@ abstract class ScalableImage {
   ///     Uri.parse('https://jovial.com/images/jupiter.avd'));
   /// ```
   ///
+  /// [url] is an http:, https: or data: Uri
+  ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  See
   /// [toDag] for a discussion of the two representations.
@@ -530,7 +536,8 @@ abstract class ScalableImage {
     void Function(String)? warnF,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content = await http.read(url);
+    final String content =
+        url.data?.contentAsString(encoding: utf8) ?? await http.read(url);
     return fromAvdString(content,
         compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
@@ -635,14 +642,15 @@ abstract class ScalableImageBase extends ScalableImage {
   @protected
   final List<SIImage> images;
 
-  final Rect? _givenViewport;
+  @protected
+  final Rect? givenViewport;
 
   ///
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
   ScalableImageBase(double? width, double? height, Color? tintColor,
-      BlendMode tintMode, this._givenViewport, this.images, Color? currentColor)
+      BlendMode tintMode, this.givenViewport, this.images, Color? currentColor)
       : super._p(width, height, tintColor, tintMode, currentColor);
 
   ///
@@ -654,9 +662,8 @@ abstract class ScalableImageBase extends ScalableImage {
       required Color currentColor,
       required Color? tintColor,
       required BlendMode tintMode,
-      List<SIImage>? images})
-      : images = images ?? other.images,
-        _givenViewport = _newViewport(viewport, other._givenViewport),
+      required this.images})
+      : givenViewport = _newViewport(viewport, other.givenViewport),
         super._p(
           viewport?.width ?? other.width,
           viewport?.height ?? other.height,
@@ -677,8 +684,8 @@ abstract class ScalableImageBase extends ScalableImage {
   late final Rect viewport = _initViewport();
 
   Rect _initViewport() {
-    if (_givenViewport != null) {
-      return _givenViewport!;
+    if (givenViewport != null) {
+      return givenViewport!;
     }
     double? w = width;
     double? h = height;

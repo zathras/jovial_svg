@@ -530,7 +530,31 @@ abstract class ScalableImageSource {
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
-  /// a http: or https: URL.
+  /// a http:, https: or data: URL.
+  ///
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  It will
+  /// occupy perhaps an order of magnitude less memory, but render perhaps
+  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warn] is true, warnings will be printed if the SVG asset contains
+  /// unrecognized tags and/or tag attributes.
+  ///
+  /// See also [ScalableImage.currentColor].
+  ///
+  static ScalableImageSource fromSvgHttpUrl(Uri url,
+          {Color? currentColor,
+          bool compact = false,
+          bool bigFloats = false,
+          bool warn = true}) =>
+      _SvgHttpSource(url, currentColor,
+          compact: compact, bigFloats: bigFloats, warn: warn);
+
+  ///
+  /// Get a [ScalableImage] by parsing an AVD XML file from
+  /// a http:, https: or data: URL.
   ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  It will
@@ -544,13 +568,12 @@ abstract class ScalableImageSource {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static ScalableImageSource fromSvgHttpUrl(Uri url,
+  static ScalableImageSource fromAvdHttpUrl(Uri url,
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
           bool warn = true}) =>
-      _SvgHttpSource(url, currentColor,
-          compact: compact, bigFloats: bigFloats, warn: warn);
+      _AvdHttpSource(url, compact: compact, bigFloats: bigFloats, warn: warn);
 
   ///
   /// Get a [ScalableImage] by reading a pre-compiled `.si` file.
@@ -687,12 +710,47 @@ class _SvgHttpSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0xf7972f9b ^
-      quiver.hash4(url, currentColor, compact, quiver.hash2(bigFloats, warn));
+      0xf7972f9b ^ Object.hash(url, currentColor, compact, bigFloats, warn);
 
   @override
   String toString() =>
       '_SVGHttpSource($url $compact $bigFloats $warn $currentColor)';
+}
+
+class _AvdHttpSource extends ScalableImageSource {
+  final Uri url;
+  final bool compact;
+  final bool bigFloats;
+  @override
+  final bool warn;
+
+  _AvdHttpSource(this.url,
+      {required this.compact, required this.bigFloats, required this.warn});
+
+  @override
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() => ScalableImage.fromAvdHttpUrl(url,
+      compact: compact, bigFloats: bigFloats, warnF: _warnArg);
+
+  @override
+  bool operator ==(final Object other) {
+    if (other is _AvdHttpSource) {
+      return url == other.url &&
+          compact == other.compact &&
+          bigFloats == other.bigFloats &&
+          warn == other.warn;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode => 0x95ccea44 ^ Object.hash(url, compact, bigFloats, warn);
+
+  @override
+  String toString() => '_AVDHttpSource($url $compact $bigFloats $warn)';
 }
 
 class _SIBundleSource extends ScalableImageSource {

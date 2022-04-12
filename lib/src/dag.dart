@@ -371,10 +371,10 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   void privateAssertIsEquivalent(final SIRenderable other) {
     if (identical(this, other)) {
       return;
-    } else if (other is! SIMasked) {
-      throw StateError('$this  $other'); // coverage:ignore-line
-    } else if (context != other.context || maskBounds != other.maskBounds) {
-      throw StateError('$this  $other'); // coverage:ignore-line
+    } else if (other is! SIMasked ||
+        context != other.context ||
+        maskBounds != other.maskBounds) {
+      throw StateError('$this  $other');
     } else {
       mask.privateAssertIsEquivalent(other.mask);
       child.privateAssertIsEquivalent(other.child);
@@ -468,11 +468,10 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   void privateAssertIsEquivalent(SIRenderable other) {
     if (identical(this, other)) {
       return;
-    } else if (other is! SIGroup) {
-      throw StateError('$this $other'); // coverage:ignore-line
-    } else if (context != other.context || groupAlpha != other.groupAlpha) {
-      throw StateError('$this $other'); // coverage:ignore-line
-    } else if (_renderables.length != other._renderables.length) {
+    } else if (other is! SIGroup ||
+        context != other.context ||
+        groupAlpha != other.groupAlpha ||
+        _renderables.length != other._renderables.length) {
       throw StateError('$this $other'); // coverage:ignore-line
     } else {
       for (int i = 0; i < _renderables.length; i++) {
@@ -545,7 +544,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   double? _height;
   int? _tintColor;
   SITintMode? _tintMode;
-  final Rect? _viewport;
+  final Rect? _givenViewport;
   @override
   final void Function(String) warn;
   final _parentStack = List<_SIParentBuilder>.empty(growable: true);
@@ -566,7 +565,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   @override
   late final RenderContext context;
 
-  SIGenericDagBuilder(this._viewport, this.warn, this.currentColor);
+  SIGenericDagBuilder(this._givenViewport, this.warn, this.currentColor);
 
   T _daggerize<T extends Object>(T r) {
     var result = _dagger.lookup(r);
@@ -638,7 +637,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     final a = _si = ScalableImageDag._withoutRenderables(
         width: _width,
         height: _height,
-        viewport: _viewport,
+        viewport: _givenViewport,
         tintColor: (_tintColor == null) ? null : Color(_tintColor!),
         tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
         currentColor: currentColor,

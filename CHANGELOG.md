@@ -1,4 +1,9 @@
 
+## [1.1.4] - April 2022
+
+- Fixed bug with `rgb(x%, x%, x%)` syntax for colors
+- Finished adding tests driven by code coverage analysis
+
 ## [1.1.3] - April 2022
 
 - implemented `tspan` tag
