@@ -630,6 +630,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ColorT? get tintColor;
   BlendModeT get tintMode;
   int get fileVersion;
+  int? get currentColorARGB;
+  RectT? get givenViewportNoUI;
 
   ///
   /// The magic number for a .si file, which is written big-endian
@@ -649,15 +651,14 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    6 - jovial_svg version 1.1.3, April 2022 (text decoration)
   ///    7 - jovial_svg version 1.1.3, April 2022 (tspan)
   ///    8 - jovial_svg version 1.1.4, April 2022 (expanded tint mode)
-  static const int fileVersionNumber = 8;
+  ///    9 - jovial_svg version 1.1.4, April 2022 (givenViewport, currentColor)
+  static const int latestFileVersion = 9;
 
   ///
   /// Write the compact representation out.
   ///
-  /// NOTE:  This does not save any viewport that might have been
-  /// programmatically set.
-  ///
   int writeToFile(DataOutputSink out) {
+    assert(fileVersion == latestFileVersion);
     int numWritten = 0;
     out.writeUnsignedInt(magicNumber);
     numWritten += 4;
@@ -672,7 +673,9 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     out.writeByte(_flag(width != null, 0) |
         _flag(height != null, 1) |
         _flag(bigFloats, 2) |
-        _flag(tintColor != null, 3));
+        _flag(tintColor != null, 3) |
+        _flag(currentColorARGB != null, 4) |
+        _flag(givenViewportNoUI != null, 5));
     numWritten += 4;
     out.writeUnsignedInt(numPaths);
     out.writeUnsignedInt(numPaints);
@@ -701,6 +704,20 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       out.writeByte(blendModeToSI(tintMode).index);
       numWritten += 5;
     }
+    {
+      final cc = currentColorARGB;
+      final gv = givenViewportNoUI;
+      if (cc != null) {
+        numWritten += 4;
+        out.writeUnsignedInt(cc);
+      }
+      if (gv != null) {
+        numWritten += _writeFloatIfNotNull(out, gv.left);
+        numWritten += _writeFloatIfNotNull(out, gv.top);
+        numWritten += _writeFloatIfNotNull(out, gv.width);
+        numWritten += _writeFloatIfNotNull(out, gv.height);
+      }
+    }
 
     numWritten += _writeSmallishInt(out, strings.length);
     for (final s in strings) {
@@ -720,13 +737,9 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       }
     }
 
-    if (fileVersion >= 7) {
-      numWritten += _writeSmallishInt(out, floatValues.length);
-      for (final f in floatValues) {
-        numWritten += _writeFloatIfNotNull(out, f);
-      }
-    } else {
-      assert(floatValues.isEmpty);
+    numWritten += _writeSmallishInt(out, floatValues.length);
+    for (final f in floatValues) {
+      numWritten += _writeFloatIfNotNull(out, f);
     }
 
     numWritten += _writeSmallishInt(out, images.length);
@@ -781,7 +794,7 @@ class ScalableImageCompactNoUI
   // Our fileVersion is always the latest, because we were just created
   // from scratch.
   @override
-  int get fileVersion => ScalableImageCompactGeneric.fileVersionNumber;
+  int get fileVersion => ScalableImageCompactGeneric.latestFileVersion;
 
   @override
   final List<String> strings;
@@ -824,6 +837,14 @@ class ScalableImageCompactNoUI
 
   @override
   final SITintMode tintMode;
+
+  @override
+  int? get currentColorARGB => null;
+
+  // givenViewport is the one programmatically given to a ScalableImage
+  // after it has been created.
+  @override
+  RectT? get givenViewportNoUI => null;
 
   ScalableImageCompactNoUI(
       this.strings,

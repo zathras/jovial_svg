@@ -53,6 +53,14 @@ Rect? convertRectTtoRect(RectT? r) {
   }
 }
 
+RectT? convertRectToRectT(Rect? r) {
+  if (r == null) {
+    return null;
+  } else {
+    return RectT(r.left, r.top, r.width, r.height);
+  }
+}
+
 ///
 /// Base class for a renderable node.  Note that, though it is
 /// `@immutable`, an image node isn't immutable, due to the need to
@@ -627,16 +635,9 @@ class SIClipPath extends SIRenderable {
   }
 
   @override
-  SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
-    Rect pathB = path.getBounds();
-    final bb = b.getBounds();
-    if (pathB.overlaps(bb)) {
-      return this;
-    } else {
-      return null;
-    }
-  }
+  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet,
+          PruningBoundary? b) =>
+      this;
 
   @override
   PruningBoundary? getBoundary() => PruningBoundary(path.getBounds());
@@ -743,7 +744,10 @@ class SIPath extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+    if (b == null) {
+      return this;
+    }
     final Rect pathB = getBounds();
     final bb = b.getBounds();
     if (pathB.overlaps(bb)) {
@@ -819,7 +823,11 @@ class SIImage extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+    if (b == null) {
+      imageSet.add(this);
+      return this;
+    }
     final Rect imageB =
         Rect.fromLTWH(x, y, width.toDouble(), height.toDouble());
     final bb = b.getBounds();
@@ -983,9 +991,12 @@ class SIText extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
     if (chunks.isEmpty) {
       return null;
+    }
+    if (b == null) {
+      return this;
     }
     Rect textB = _bounds;
     final bb = b.getBounds();
@@ -1376,7 +1387,10 @@ class RenderContext {
     }
   }
 
-  PruningBoundary transformBoundaryFromParent(PruningBoundary b) {
+  PruningBoundary? transformBoundaryFromParent(PruningBoundary? b) {
+    if (b == null) {
+      return b;
+    }
     final t = transform;
     if (t != null) {
       final reverseXform = t.mutableCopy()..invert();

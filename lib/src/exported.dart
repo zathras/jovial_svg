@@ -170,7 +170,7 @@ abstract class ScalableImage {
   ///
   const ScalableImage._p(this.width, this.height, this.tintColor, this.tintMode,
       Color? currentColor)
-      : currentColor = currentColor ?? Colors.black;
+      : currentColor = currentColor ?? ScalableImageBase.defaultCurrentColor;
 
   ///
   /// Give the viewport for this scalable image, in pixels.  By default,
@@ -644,6 +644,8 @@ abstract class ScalableImageBase extends ScalableImage {
 
   @protected
   final Rect? givenViewport;
+
+  static const Color defaultCurrentColor = Colors.black;
 
   ///
   /// Constructor intended for internal use.  See the static

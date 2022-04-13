@@ -419,7 +419,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   @override
   List<SIRenderable> _childrenPrunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
-    b = context.transformBoundaryFromParent(b);
+    b = context.transformBoundaryFromParent(b)!;
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
 

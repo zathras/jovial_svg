@@ -460,7 +460,8 @@ Future<void> _tint() async {
   for (final compact in [true, false]) {
     final orig = ScalableImage.fromSIBytes(
             File('demo/assets/si/tiny_07_12_bbox01.si').readAsBytesSync(),
-            compact: compact)
+            compact: compact,
+            currentColor: const Color(0x12345642))
         .withNewViewport(const Rect.fromLTWH(50, 0, 100, 120));
     const String dirName = String.fromEnvironment('jovial_svg.output');
     final outputDir = (dirName == '') ? null : Directory(dirName);
@@ -475,6 +476,7 @@ Future<void> _tint() async {
           description: 'blend mode $mode compact $compact');
       if (compact) {
         final dag = t.toDag();
+        expect(dag.currentColor, const Color(0x12345642));
         await checkRendered(
             si: dag,
             refName: File('test/reference_images/blend/$mode.png'),
@@ -485,8 +487,8 @@ Future<void> _tint() async {
         final dos = DataOutputSink(cs);
         (t as ScalableImageCompact).writeToFile(dos);
         dos.close();
-        final si2 = ScalableImage.fromSIBytes(cs.toList(), compact: compact)
-            .withNewViewport(const Rect.fromLTWH(50, 0, 100, 120));
+        final si2 = ScalableImage.fromSIBytes(t.toSIBytes(), compact: compact);
+        expect(si2.currentColor, const Color(0x12345642));
         await checkRendered(
             si: si2,
             refName: File('test/reference_images/blend/$mode.png'),
