@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///  generally consists of the features that are relevant to static images
 ///  defined in
 ///  [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/),
-///  plus commonly-used elements from
+///  plus many commonly-used elements from
 ///  [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  More details
 ///  about the supported SVG profile can be found in the top-level
 ///  documentation, or in the
