@@ -513,8 +513,9 @@ abstract class ScalableImageSource {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
-  /// unrecognized tags and/or tag attributes.
+  /// If [warnF] is non-null, it will be called if the AVD asset contains
+  /// unrecognized tags and/or tag attributes.  If it is null, the default
+  /// behavior is to print warnings.
   ///
   /// See also [ScalableImage.currentColor].
   ///
@@ -539,8 +540,9 @@ abstract class ScalableImageSource {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the SVG asset contains
-  /// unrecognized tags and/or tag attributes.
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
+  /// unrecognized tags and/or tag attributes.  If it is null, the default
+  /// behavior is to print warnings.
   ///
   /// See also [ScalableImage.currentColor].
   ///
@@ -565,8 +567,9 @@ abstract class ScalableImageSource {
   /// will use 8 byte double-precision float values, rather than 4 byte
   /// single-precision values.
   ///
-  /// If [warn] is true, warnings will be printed if the AVD asset contains
-  /// unrecognized tags and/or tag attributes.
+  /// If [warnF] is non-null, it will be called if the AVD asset contains
+  /// unrecognized tags and/or tag attributes.  If it is null, the default
+  /// behavior is to print warnings.
   ///
   /// See also [ScalableImage.currentColor].
   ///
