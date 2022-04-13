@@ -38,7 +38,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:vector_math/vector_math_64.dart';
-import 'package:quiver/core.dart' as quiver;
 
 abstract class Affine {
   Affine._p();
@@ -116,8 +115,8 @@ abstract class Affine {
   @override
   int get hashCode =>
       0x6a41efee ^
-      quiver.hash4(_get(0, 0), _get(0, 1), _get(0, 2),
-          quiver.hash3(_get(1, 0), _get(1, 1), _get(1, 2)));
+      Object.hash(_get(0, 0), _get(0, 1), _get(0, 2), _get(1, 0), _get(1, 1),
+          _get(1, 2));
 
   @override
   bool operator ==(Object other) => _equals(other);

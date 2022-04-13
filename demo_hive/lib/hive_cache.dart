@@ -33,7 +33,6 @@ import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import 'package:jovial_misc/async_fetcher.dart';
 import 'package:jovial_svg/jovial_svg.dart';
-import 'package:quiver/core.dart' as quiver;
 
 ///
 /// A persistent cache of scalable images originally created from SVG files.
@@ -142,7 +141,7 @@ class _HiveSource extends ScalableImageSource {
       other is _HiveSource && _url == other._url && _cache == other._cache;
 
   @override
-  int get hashCode => quiver.hash2(_url, _cache) ^ 0x5eb3bb2c;
+  int get hashCode => Object.hash(_url, _cache) ^ 0x5eb3bb2c;
   // The hex constant is just a random number.  This ensures that _HiveSource
   // hashes to different values than other ScalableImageSource subtypes.
 

@@ -629,6 +629,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   List<double> get transforms; // Float32List or Float64List
   ColorT? get tintColor;
   BlendModeT get tintMode;
+  int get fileVersion;
 
   ///
   /// The magic number for a .si file, which is written big-endian
@@ -650,6 +651,12 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    8 - jovial_svg version 1.1.4, April 2022 (expanded tint mode)
   static const int fileVersionNumber = 8;
 
+  ///
+  /// Write the compact representation out.
+  ///
+  /// NOTE:  This does not save any viewport that might have been
+  /// programmatically set.
+  ///
   int writeToFile(DataOutputSink out) {
     int numWritten = 0;
     out.writeUnsignedInt(magicNumber);
@@ -661,7 +668,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     // mismatch would probably be overkill, if the format ever does
     // significantly evolve, beyond adding features.
     out.writeByte(0); // Word align
-    out.writeUnsignedShort(fileVersionNumber);
+    out.writeUnsignedShort(fileVersion); // Might not be the latest!
     out.writeByte(_flag(width != null, 0) |
         _flag(height != null, 1) |
         _flag(bigFloats, 2) |
@@ -713,9 +720,13 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       }
     }
 
-    numWritten += _writeSmallishInt(out, floatValues.length);
-    for (final f in floatValues) {
-      numWritten += _writeFloatIfNotNull(out, f);
+    if (fileVersion >= 7) {
+      numWritten += _writeSmallishInt(out, floatValues.length);
+      for (final f in floatValues) {
+        numWritten += _writeFloatIfNotNull(out, f);
+      }
+    } else {
+      assert(floatValues.isEmpty);
     }
 
     numWritten += _writeSmallishInt(out, images.length);
@@ -767,6 +778,11 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
 
 class ScalableImageCompactNoUI
     with ScalableImageCompactGeneric<int, SITintMode, SIImageData> {
+  // Our fileVersion is always the latest, because we were just created
+  // from scratch.
+  @override
+  int get fileVersion => ScalableImageCompactGeneric.fileVersionNumber;
+
   @override
   final List<String> strings;
 

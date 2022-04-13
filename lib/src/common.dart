@@ -38,9 +38,8 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:quiver/core.dart' as quiver;
-import 'package:quiver/collection.dart' as quiver;
 
 import '../jovial_svg.dart';
 import 'affine.dart';
@@ -798,7 +797,7 @@ class SIPath extends SIRenderable {
   }
 
   @override
-  int get hashCode => 0xa8f8de16 ^ quiver.hash2(path, siPaint);
+  int get hashCode => 0xa8f8de16 ^ Object.hash(path, siPaint);
 }
 
 class SIImage extends SIRenderable {
@@ -853,15 +852,13 @@ class SIImage extends SIRenderable {
           y == other.y &&
           width == other.width &&
           height == other.height &&
-          quiver.listsEqual(encoded, other.encoded);
+          encoded.equals(other.encoded);
     }
   }
 
   @override
   int get hashCode =>
-      0xc36c5d4e ^
-      quiver.hash2(
-          quiver.hash4(x, y, width, height), quiver.hashObjects(encoded));
+      0xc36c5d4e ^ Object.hash(x, y, width, height, Object.hashAll(encoded));
 }
 
 class _ImageLoader {
@@ -1024,7 +1021,7 @@ class SIText extends SIRenderable {
     } else if (other is! SIText) {
       return false;
     } else {
-      return quiver.listsEqual(chunks, other.chunks);
+      return chunks.equals(other.chunks);
     }
   }
 
@@ -1317,9 +1314,7 @@ class SIMultiSpanChunk extends SITextChunk {
     } else if (other is! SIMultiSpanChunk) {
       return false;
     } else {
-      return dx == other.dx &&
-          dy == other.dy &&
-          quiver.listsEqual(spans, other.spans);
+      return dx == other.dx && dy == other.dy && spans.equals(other.spans);
     }
   }
 
@@ -1407,7 +1402,7 @@ class RenderContext {
   }
 
   @override
-  int get hashCode => quiver.hash3(parent, currentColor, transform);
+  int get hashCode => Object.hash(parent, currentColor, transform);
 }
 
 void defaultWarn(String s) => print(s); // coverage:ignore-line

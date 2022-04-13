@@ -32,7 +32,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:quiver/core.dart' as quiver;
 
 import 'common.dart';
 import 'exported.dart';
@@ -627,8 +626,7 @@ class _AvdBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x94fadcba ^
-      quiver.hash4(bundle, key, compact, quiver.hash2(bigFloats, warn));
+      0x94fadcba ^ Object.hash(bundle, key, compact, bigFloats, warn);
 }
 
 class _SvgBundleSource extends ScalableImageSource {
@@ -779,7 +777,7 @@ class _SIBundleSource extends ScalableImageSource {
   }
 
   @override
-  int get hashCode => 0xf67cd716 ^ quiver.hash3(bundle, key, currentColor);
+  int get hashCode => 0xf67cd716 ^ Object.hash(bundle, key, currentColor);
 
   @override
   String toString() => '_SIBundleSource($key $bundle $currentColor)';

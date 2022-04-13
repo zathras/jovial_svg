@@ -485,13 +485,14 @@ Future<void> _tint() async {
         final dos = DataOutputSink(cs);
         (t as ScalableImageCompact).writeToFile(dos);
         dos.close();
-        final dag2 = ScalableImage.fromSIBytes(cs.toList(), compact: compact);
+        final si2 = ScalableImage.fromSIBytes(cs.toList(), compact: compact)
+            .withNewViewport(const Rect.fromLTWH(50, 0, 100, 120));
         await checkRendered(
-            si: dag,
+            si: si2,
             refName: File('test/reference_images/blend/$mode.png'),
             outputDir: outputDir,
             outNoExt: mode.toString(),
-            description: 'blend mode $mode compact to dag2');
+            description: 'blend mode $mode compact to si2');
       }
     }
   }
@@ -655,7 +656,6 @@ void _checkDrawingSame(ScalableImage a, ScalableImage b, String reason) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  testSIWidget();
   test('tint', _tint);
   test('Misc. coverage tests', _miscCoverage);
   test('compact drawing order', () async {
@@ -813,4 +813,5 @@ void main() {
   });
   test('cache test', _cacheTest);
   test('create SI smoke test', _createSI);
+  testSIWidget();
 }

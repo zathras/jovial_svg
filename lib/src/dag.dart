@@ -37,10 +37,9 @@ library jovial_svg.dag;
 
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:quiver/core.dart' as quiver;
-import 'package:quiver/collection.dart' as quiver;
 import 'affine.dart';
 import 'common.dart';
 import 'common_noui.dart';
@@ -489,14 +488,14 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     } else {
       return context == other.context &&
           groupAlpha == other.groupAlpha &&
-          quiver.listsEqual(_renderables, other._renderables);
+          _renderables.equals(other._renderables);
     }
   }
 
   @override
   late final int hashCode = 0xfddf5e28 ^
-      quiver.hash3(
-        quiver.hashObjects(_renderables),
+      Object.hash(
+        Object.hashAll(_renderables),
         groupAlpha,
         context,
       );

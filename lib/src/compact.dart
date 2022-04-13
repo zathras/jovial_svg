@@ -56,6 +56,7 @@ import 'path.dart';
 @immutable
 class ScalableImageCompact extends ScalableImageBase
     with ScalableImageCompactGeneric<Color, BlendMode, SIImage> {
+  @override
   final int fileVersion;
   @override
   final bool bigFloats;

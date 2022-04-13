@@ -35,9 +35,9 @@ library jovial_svg.svg_graph;
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:jovial_misc/io_utils.dart';
 import 'package:meta/meta.dart';
-import 'package:quiver/collection.dart' as quiver;
 
 import 'affine.dart';
 import 'common_noui.dart';
@@ -618,7 +618,8 @@ class SvgPaint {
           fillType == other.fillType &&
           clipFillType == other.clipFillType &&
           inClipPath == other.inClipPath &&
-          quiver.listsEqual(strokeDashArray, other.strokeDashArray) &&
+          (const ListEquality<double>())
+              .equals(strokeDashArray, other.strokeDashArray) &&
           strokeDashOffset == other.strokeDashOffset;
     } else {
       return false;
@@ -1282,7 +1283,7 @@ class SvgPoly extends SvgPathMaker {
     } else if (other is SvgPoly) {
       return close == other.close &&
           display == other.display &&
-          quiver.listsEqual(points, other.points);
+          points.equals(other.points);
     } else {
       return false;
     }
