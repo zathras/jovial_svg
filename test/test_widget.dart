@@ -34,6 +34,8 @@ class TestSource extends ScalableImageSource {
   final String svg;
   final int delay;
   final done = Completer<void>();
+  @override
+  void Function(String) get warnF => _noWarn;
 
   TestSource(this.svg, this.delay);
 
@@ -77,21 +79,24 @@ class TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final widgets = [
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSvgHttpUrl(
-              Uri.dataFromString(simpleSVG))),
+          si: ScalableImageSource.fromSvgHttpUrl(Uri.dataFromString(simpleSVG),
+              warnF: _noWarn)),
       ScalableImageWidget.fromSISource(
           si: ScalableImageSource.fromSvgHttpUrl(
-              Uri.parse('https://jovial.com/images/jupiter.svg'))),
+              Uri.parse('https://jovial.com/images/jupiter.svg'),
+              warnF: _noWarn)),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromAvdHttpUrl(
-              Uri.dataFromString(simpleAVD))),
+          si: ScalableImageSource.fromAvdHttpUrl(Uri.dataFromString(simpleAVD),
+              warnF: _noWarn)),
       ScalableImageWidget.fromSISource(
           si: ScalableImageSource.fromSvgHttpUrl(
-              Uri.parse('https://jovial.com/images/jupiter.svg'))),
+              Uri.parse('https://jovial.com/images/jupiter.svg'),
+              warnF: _noWarn)),
       ScalableImageWidget.fromSISource(
           si: ScalableImageSource.fromSvg(
         rootBundle,
         '../../demo/assets/svg/svg11_gradient_1.svg',
+        warnF: _noWarn,
       )),
       ScalableImageWidget.fromSISource(
           si: ScalableImageSource.fromSI(
@@ -104,6 +109,7 @@ class TestApp extends StatelessWidget {
           si: ScalableImageSource.fromAvd(
             rootBundle,
             '../../demo/assets/avd/svg11_gradient_1.xml',
+            warnF: _noWarn,
           )),
       ScalableImageWidget.fromSISource(reload: true, si: testSource),
       ScalableImageWidget.fromSISource(reload: true, si: errorSource),
@@ -137,3 +143,5 @@ void testSIWidget() {
     await app.errorSource.done.future;
   });
 }
+
+void _noWarn(String message) {}

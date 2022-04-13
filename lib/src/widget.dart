@@ -496,9 +496,8 @@ abstract class ScalableImageSource {
     @Deprecated("[warn] has been superceded by [warnF].") bool warn = true,
     void Function(String)? warnF,
   }) {
-    final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     return _AvdBundleSource(bundle, key,
-        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+        compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
   }
 
   ///
@@ -523,9 +522,11 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          bool warn = true}) =>
+          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
+              true,
+          void Function(String)? warnF}) =>
       _SvgBundleSource(bundle, key, currentColor,
-          compact: compact, bigFloats: bigFloats, warn: warn);
+          compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -547,9 +548,11 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          bool warn = true}) =>
+          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
+              true,
+          void Function(String)? warnF}) =>
       _SvgHttpSource(url, currentColor,
-          compact: compact, bigFloats: bigFloats, warn: warn);
+          compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -571,8 +574,11 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          bool warn = true}) =>
-      _AvdHttpSource(url, compact: compact, bigFloats: bigFloats, warn: warn);
+          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
+              true,
+          void Function(String)? warnF}) =>
+      _AvdHttpSource(url,
+          compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
 
   ///
   /// Get a [ScalableImage] by reading a pre-compiled `.si` file.
@@ -594,11 +600,14 @@ class _AvdBundleSource extends ScalableImageSource {
   final bool compact;
   final bool bigFloats;
   @override
-  bool get warn => false;
+  final bool warn;
   @override
   final void Function(String)? warnF;
   _AvdBundleSource(this.bundle, this.key,
-      {required this.compact, required this.bigFloats, required this.warnF});
+      {required this.compact,
+      required this.bigFloats,
+      required this.warn,
+      required this.warnF});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -618,7 +627,8 @@ class _AvdBundleSource extends ScalableImageSource {
           key == other.key &&
           compact == other.compact &&
           bigFloats == other.bigFloats &&
-          warn == other.warn;
+          warn == other.warn &&
+          warnF == other.warnF;
     } else {
       return false;
     }
@@ -626,7 +636,7 @@ class _AvdBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x94fadcba ^ Object.hash(bundle, key, compact, bigFloats, warn);
+      0x94fadcba ^ Object.hash(bundle, key, compact, bigFloats, warn, warnF);
 }
 
 class _SvgBundleSource extends ScalableImageSource {
@@ -637,8 +647,14 @@ class _SvgBundleSource extends ScalableImageSource {
   final bool bigFloats;
   @override
   final bool warn;
+  @override
+  final void Function(String)? warnF;
+
   _SvgBundleSource(this.bundle, this.key, this.currentColor,
-      {required this.compact, required this.bigFloats, required this.warn});
+      {required this.compact,
+      required this.bigFloats,
+      required this.warn,
+      required this.warnF});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -657,7 +673,9 @@ class _SvgBundleSource extends ScalableImageSource {
           key == other.key &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats;
+          bigFloats == other.bigFloats &&
+          warn == other.warn &&
+          warnF == other.warnF;
     } else {
       return false;
     }
@@ -665,7 +683,8 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x544f0d11 ^ Object.hash(bundle, key, currentColor, compact, bigFloats);
+      0x544f0d11 ^
+      Object.hash(bundle, key, currentColor, compact, bigFloats, warn, warnF);
 
   @override
   String toString() =>
@@ -679,9 +698,14 @@ class _SvgHttpSource extends ScalableImageSource {
   final bool bigFloats;
   @override
   final bool warn;
+  @override
+  final void Function(String)? warnF;
 
   _SvgHttpSource(this.url, this.currentColor,
-      {required this.compact, required this.bigFloats, required this.warn});
+      {required this.compact,
+      required this.bigFloats,
+      required this.warn,
+      required this.warnF});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -700,7 +724,8 @@ class _SvgHttpSource extends ScalableImageSource {
           currentColor == other.currentColor &&
           compact == other.compact &&
           bigFloats == other.bigFloats &&
-          warn == other.warn;
+          warn == other.warn &&
+          warnF == other.warnF;
     } else {
       return false;
     }
@@ -708,11 +733,11 @@ class _SvgHttpSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0xf7972f9b ^ Object.hash(url, currentColor, compact, bigFloats, warn);
+      0xf7972f9b ^
+      Object.hash(url, currentColor, compact, bigFloats, warn, warnF);
 
   @override
-  String toString() =>
-      '_SVGHttpSource($url $compact $bigFloats $warn $currentColor)';
+  String toString() => '_SVGHttpSource($url $compact $bigFloats $currentColor)';
 }
 
 class _AvdHttpSource extends ScalableImageSource {
@@ -721,9 +746,14 @@ class _AvdHttpSource extends ScalableImageSource {
   final bool bigFloats;
   @override
   final bool warn;
+  @override
+  final void Function(String)? warnF;
 
   _AvdHttpSource(this.url,
-      {required this.compact, required this.bigFloats, required this.warn});
+      {required this.compact,
+      required this.bigFloats,
+      required this.warn,
+      required this.warnF});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -738,17 +768,19 @@ class _AvdHttpSource extends ScalableImageSource {
       return url == other.url &&
           compact == other.compact &&
           bigFloats == other.bigFloats &&
-          warn == other.warn;
+          warn == other.warn &&
+          warnF == other.warnF;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode => 0x95ccea44 ^ Object.hash(url, compact, bigFloats, warn);
+  int get hashCode =>
+      0x95ccea44 ^ Object.hash(url, compact, bigFloats, warn, warnF);
 
   @override
-  String toString() => '_AVDHttpSource($url $compact $bigFloats $warn)';
+  String toString() => '_AVDHttpSource($url $compact $bigFloats)';
 }
 
 class _SIBundleSource extends ScalableImageSource {
