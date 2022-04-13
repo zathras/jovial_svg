@@ -952,7 +952,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   static final _whitespaceOrNothing = RegExp(r'\s*');
-  static final _idToBrace = RegExp(r'[^\s{]+');
+  static final _idToBrace = RegExp(r'[^{]+');
   static final _consumeToBrace = RegExp(r'[^{]*');
   static final _consumeToRBrace = RegExp(r'[^}]*');
   void _processStyle(String string) {
@@ -974,23 +974,26 @@ abstract class SvgParser extends GenericParser {
       }
       pos = _whitespaceOrNothing.matchAsPrefix(string, pos)?.end ?? pos;
       if (idMatch != null && contentM != null) {
-        final id = string.substring(idMatch.start, idMatch.end);
+        final ids = string.substring(idMatch.start, idMatch.end);
         final content = string.substring(contentM.start, contentM.end);
-        final String element;
-        final String styleClass;
-        final dp = id.indexOf('.');
-        if (dp == -1) {
-          element = id;
-          styleClass = '';
-        } else {
-          element = id.substring(0, dp);
-          styleClass = id.substring(dp + 1);
+        for (String id in ids.split(',')) {
+          id = id.trim();
+          final String element;
+          final String styleClass;
+          final dp = id.indexOf('.');
+          if (dp == -1) {
+            element = id;
+            styleClass = '';
+          } else {
+            element = id.substring(0, dp);
+            styleClass = id.substring(dp + 1);
+          }
+          final s = Style(styleClass);
+          _stylesheet.putIfAbsent(element, () => []).add(s);
+          Map<String, String> attrs = {};
+          _parseStyle(content, attrs);
+          _processInheritable(s, attrs);
         }
-        final s = Style(styleClass);
-        _stylesheet.putIfAbsent(element, () => []).add(s);
-        Map<String, String> attrs = {};
-        _parseStyle(content, attrs);
-        _processInheritable(s, attrs);
       }
       assert(lastPos != pos);
       pos = (lastPos == pos) ? pos++ : pos; // Cowardice is good

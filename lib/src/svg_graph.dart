@@ -575,6 +575,7 @@ class SvgPaint {
     strokeDashArray = strokeDashArray ?? style.paint.strokeDashArray;
     strokeDashOffset = strokeDashOffset ?? style.paint.strokeDashOffset;
     hidden = hidden ?? style.paint.hidden;
+    mask = mask ?? style.paint.mask;
   }
 
   @override

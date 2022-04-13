@@ -44,6 +44,7 @@ flutter:
     - assets/svg/paris-text.svg
     - assets/svg/paris.svg
     - assets/svg/swiss-xvii.svg
+    - assets/svg/stylesheet.svg
     - assets/svg/svg11_gradient_1.svg
     - assets/svg/tango.svg
     - assets/svg/tiger.svg
@@ -95,6 +96,7 @@ flutter:
     - assets/si/paris.si
     - assets/si/svg11_gradient_1.si
     - assets/si/swiss-xvii.si
+    - assets/si/stylesheet.si
     - assets/si/tango.si
     - assets/si/tiger.si
     - assets/si/tiny_07_12.si

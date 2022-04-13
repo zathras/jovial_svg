@@ -111,8 +111,8 @@ enum ImageDisposeBugWorkaround {
 /// different assets.
 ///
 /// A [ScalableImage] can be used directly, e.g. using a Flutter
-/// `CustomPaint` widget, or it can be displayed using a 
-/// [ScalableImageWidget].
+/// `CustomPaint` widget, or it can be displayed using a
+/// `ScalableImageWidget`.
 ///
 /// Note that rendering a scalable image can be time-consuming if the
 /// underlying scene is complex.  Notably, GPU performance can be a
@@ -120,7 +120,7 @@ enum ImageDisposeBugWorkaround {
 /// or has animation played over it, it might be worthwhile to cache
 /// a pre-rendered version of the [ScalableImage].  cf. Flutter's
 /// `Picture.toImage` and the notes about `RepaintBoundary` in
-/// [ScalableImageWidget].
+/// `ScalableImageWidget`.
 ///
 /// Note that, while [ScalableImage] is declared as `@immutable`, and obeys
 /// the `@immutable` contract, instances
