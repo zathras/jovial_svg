@@ -5,6 +5,7 @@
 - Support loading AVD via http in widget
 - Fixed bug with `rgb(x%, x%, x%)` syntax for colors
 - Finished adding tests driven by code coverage analysis
+- ScalableImage.toSIBytes():  Always write latest file format version.
 
 ## [1.1.3] - April 2022
 
