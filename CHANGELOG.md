@@ -5,8 +5,8 @@
 - Support loading AVD via http in widget
 - Fixed bug with `rgb(x%, x%, x%)` syntax for colors
 - Finished adding tests driven by code coverage analysis
-- ScalableImage.toSIBytes():  Always write latest file format version.
-- Handle comma-separated IDs in stylesheets
+- `ScalableImage.toSIBytes()`:  Always write latest file format version
+- Handle comma-separated class IDs in stylesheets
 
 ## [1.1.3] - April 2022
 
