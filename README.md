@@ -12,8 +12,7 @@ includes the parts of
 that are applicable to static images, plus a healthy subset of
 [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  In-line 
 Cascading style sheets (CSS) are supported, via the `<style>` tag.  
-In addition to SVG, 
-[Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
+In addition to SVG, [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
 
 The library is [published to `pub.dev`](https://pub.dev/packages/jovial_svg),
