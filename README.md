@@ -11,7 +11,7 @@ includes the parts of
 [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/)
 that are applicable to static images, plus a healthy subset of
 [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  In-line 
-Cascading style sheets (CSS) are supported, via the `<style>` tag.  
+Cascading style sheets (CSS) are supported, via the `<style>` tag.
 In addition to SVG, [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
 
