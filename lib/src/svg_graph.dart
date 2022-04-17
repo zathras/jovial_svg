@@ -288,6 +288,11 @@ class Style extends SvgInheritableAttributes {
   // Not used
 }
 
+///
+/// A stylesheet is a map from a tagName, like "tspan" or "", to a list
+/// of [Style] instances, in the order they were encountered in the
+/// SVG source file.
+///
 typedef Stylesheet = Map<String, List<Style>>;
 
 abstract class SvgNode {
