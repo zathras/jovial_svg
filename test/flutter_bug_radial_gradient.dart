@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/material.dart' as material;
 import 'dart:ui';
 
 void main() async {
@@ -37,7 +38,12 @@ void main() async {
       TileMode.mirror,
       xform,
       Offset(2.55, 0.4));
-  c.drawRect(Rect.fromLTWH(0, 0, 600, 400), p);
+  final span = material.TextSpan(
+      style: material.TextStyle(foreground: p, fontSize: 200), text: 'Woodstock!');
+  final tp = material.TextPainter(text: span, textDirection: TextDirection.ltr);
+  tp.layout();
+  tp.paint(c, Offset(10, 150));
+
   final Picture pict = recorder.endRecording();
   final Image rendered = await pict.toImage(600, 400);
   final bd = await rendered.toByteData(format: ImageByteFormat.png);
