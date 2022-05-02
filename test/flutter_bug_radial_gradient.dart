@@ -25,15 +25,21 @@ void main() async {
     1.0
   ]);
   p.shader = Gradient.radial(
-      Offset(-0.1, -1.7),
-      0.5,
-      [Color(0xffff0000), Color(0xff00ff00)],
-      [0.0, 1.0],
-      TileMode.repeated,
-      xform);
-  c.drawRect(Rect.fromLTWH(0, 0, 100, 100), p);
+      Offset(2.5, 0.33),
+      0.8,
+      [
+        Color(0xffff0000),
+        Color(0xff00ff00),
+        Color(0xff0000ff),
+        Color(0xffff00ff)
+      ],
+      [0.0, 0.3, 0.7, 0.9],
+      TileMode.mirror,
+      xform,
+      Offset(2.55, 0.4));
+  c.drawRect(Rect.fromLTWH(0, 0, 600, 400), p);
   final Picture pict = recorder.endRecording();
-  final Image rendered = await pict.toImage(100, 100);
+  final Image rendered = await pict.toImage(600, 400);
   final bd = await rendered.toByteData(format: ImageByteFormat.png);
   final bytes = Uint8List.fromList(bd!.buffer.asUint8List());
   File('flutter_bug.png').writeAsBytesSync(bytes);
