@@ -113,7 +113,7 @@ class SvgText extends SvgInheritableAttributesNode {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     // Even invisible text can influence layout, so we don't try to optimize
     // it away.
     return resolveMask(idLookup, ancestor, warn, referrers);
@@ -128,7 +128,7 @@ class SvgText extends SvgInheritableAttributesNode {
     stack.first.trimRight();
     List<SvgTextChunk> children = [];
     final SvgTextSpan root = stack.first;
-    root.flattenInto(children, _FlattenContext.empty(), warn);
+    root._flattenInto(children, _FlattenContext.empty(), warn);
     return children;
   }
 
@@ -233,13 +233,13 @@ class SvgTextSpan extends SvgTextNodeAttributes
   }
 
   @override
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn) {
     // We cascade the paint and text attributes within the text tag's subtree,
     // since we're destroying that structure.
     fc = _FlattenContext(fc, this, warn);
     for (final p in parts) {
-      p.flattenInto(children, fc, warn);
+      p._flattenInto(children, fc, warn);
     }
   }
 }
@@ -323,7 +323,7 @@ class _FCLastValue {
 abstract class SvgTextSpanComponent {
   bool trimRight();
 
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn);
 
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
@@ -347,7 +347,7 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   }
 
   @override
-  void flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn) {
     for (int i = 0; i < text.length; i++) {
       double? x = fc.pull(fc.x);

@@ -529,15 +529,15 @@ class _PaintingVisitor extends _CompactVisitor<void>
   void masked(void collector, RectT? maskBounds, bool usesLuma) {
     Rect? r = convertRectTtoRect(maskBounds);
     final s = (_maskStack ??= List.empty(growable: true));
-    final LumaTraverser? lumaTraverser;
+    final _LumaTraverser? lumaTraverser;
     if (usesLuma) {
-      LumaTraverser? parentT;
+      _LumaTraverser? parentT;
       for (int i = s.length - 1; parentT == null && i >= 0; i--) {
         if (s[i].lumaTraverser?.active == true) {
           parentT = s[i].lumaTraverser;
         }
       }
-      lumaTraverser = LumaTraverser(parentT ?? traverser, this);
+      lumaTraverser = _LumaTraverser(parentT ?? traverser, this);
     } else {
       lumaTraverser = null;
     }
@@ -552,7 +552,7 @@ class _PaintingVisitor extends _CompactVisitor<void>
     if (lt != null) {
       startLumaMask(canvas, mse.bounds);
       assert(() {
-        LumaTraverser? parentT;
+        _LumaTraverser? parentT;
         final s = _maskStack!;
         for (int i = s.length - 1; parentT == null && i >= 0; i--) {
           if (s[i].lumaTraverser?.active == true) {
@@ -577,7 +577,7 @@ class _PaintingVisitor extends _CompactVisitor<void>
 
 class _MaskStackEntry {
   final Rect? bounds;
-  final LumaTraverser? lumaTraverser;
+  final _LumaTraverser? lumaTraverser;
 
   _MaskStackEntry(this.bounds, this.lumaTraverser);
 }
@@ -586,13 +586,13 @@ class _MaskStackEntry {
 /// For masked, we sometimes need to traverse the mask twice, once for
 /// alpha and once for luma.  This clone traverser lets us do that.
 ///
-class LumaTraverser
+class _LumaTraverser
     extends CompactTraverserBase<void, SIImage, _PaintingVisitor> {
   final int _startGroupDepth;
   bool active = false;
   int assertEndPosition = -1;
 
-  LumaTraverser(
+  _LumaTraverser(
       CompactTraverserBase<void, SIImage,
               SIVisitor<CompactChildData, SIImage, void>>
           parent,

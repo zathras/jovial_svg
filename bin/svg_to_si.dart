@@ -87,7 +87,7 @@ abstract class ToSI {
     if (fileName.toLowerCase().endsWith(extension)) {
       fileName = fileName.substring(0, fileName.length - extension.length);
     }
-    return fileName + '.si';
+    return '$fileName.si';
   }
 }
 

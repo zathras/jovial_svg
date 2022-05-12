@@ -28,23 +28,23 @@ void main() async {
     1.0
   ]);
   p.shader = Gradient.radial(
-      Offset(2.5, 0.33),
+      const Offset(2.5, 0.33),
       0.8,
       [
-        Color(0xffff0000),
-        Color(0xff00ff00),
-        Color(0xff0000ff),
-        Color(0xffff00ff)
+        const Color(0xffff0000),
+        const Color(0xff00ff00),
+        const Color(0xff0000ff),
+        const Color(0xffff00ff)
       ],
       [0.0, 0.3, 0.7, 0.9],
       TileMode.mirror,
       xform,
-      Offset(2.55, 0.4));
+      const Offset(2.55, 0.4));
   final span = material.TextSpan(
       style: material.TextStyle(foreground: p, fontSize: 200), text: 'Woodstock!');
   final tp = material.TextPainter(text: span, textDirection: TextDirection.ltr);
   tp.layout();
-  tp.paint(c, Offset(10, 150));
+  tp.paint(c, const Offset(10, 150));
 
   final Picture pict = recorder.endRecording();
   final Image rendered = await pict.toImage(600, 400);

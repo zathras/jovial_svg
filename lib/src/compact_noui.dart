@@ -699,8 +699,9 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     }
     numWritten += _writeFloatIfNotNull(out, width);
     numWritten += _writeFloatIfNotNull(out, height);
-    if (tintColor != null) {
-      out.writeUnsignedInt(colorValue(tintColor!));
+    final tc = tintColor;
+    if (tc != null) {
+      out.writeUnsignedInt(colorValue(tc));
       out.writeByte(blendModeToSI(tintMode).index);
       numWritten += 5;
     }

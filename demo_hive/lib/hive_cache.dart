@@ -64,7 +64,7 @@ class HiveSICache {
   /// [ScalableImage] based on data found at [url], which might have been
   /// previously cached.
   ///
-  ScalableImageSource get(String url) => _HiveSource(this, url);
+  ScalableImageSource get(String url) => _HiveSource(this, url, warn: true);
 }
 
 ///

@@ -884,11 +884,11 @@ class BnfLexer {
     String segment = source;
     int pos = _pos;
     if (pos > 30) {
-      segment = '...' + segment.substring(pos - 30);
+      segment = '...${segment.substring(pos - 30)}';
       pos = 33;
     }
     if (segment.length > 67) {
-      segment = segment.substring(0, 64) + '...';
+      segment = '${segment.substring(0, 64)}...';
     }
     final String caret = '^'.padLeft(pos + 1);
     throw ParseError(

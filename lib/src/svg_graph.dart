@@ -114,7 +114,7 @@ class SvgParseGraph {
     final rootPaint = SvgPaint.root(userSpace);
     final rootTA = SvgTextAttributes.initial();
     SvgNode? newRoot =
-        root.resolve(idLookup, rootPaint, builder.warn, _Referrers(this));
+        root.resolve(idLookup, rootPaint, builder.warn, SvgNodeReferrers(this));
     _resolved = true;
     builder.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
@@ -299,7 +299,7 @@ abstract class SvgNode {
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
 
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers);
+      void Function(String) warn, SvgNodeReferrers referrers);
 
   bool build(
       SIBuilder<String, SIImageData> builder,
@@ -332,14 +332,14 @@ class _NullSink<T> implements Sink<T> {
 // Things that refer to a node, like a group.
 // This is used to catch reference loops.
 //
-class _Referrers {
+class SvgNodeReferrers {
   final Object? referrer;
-  final _Referrers? parent;
+  final SvgNodeReferrers? parent;
 
-  _Referrers(this.referrer, [this.parent]);
+  SvgNodeReferrers(this.referrer, [this.parent]);
 
   bool contains(SvgNode n) {
-    _Referrers? s = this;
+    SvgNodeReferrers? s = this;
     while (s != null) {
       if (identical(s.referrer, n)) {
         return true;
@@ -455,7 +455,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   RectT? _getUntransformedBounds(SvgTextAttributes ta);
 
   SvgNode resolveMask(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (paint.mask != null) {
       SvgNode? n = idLookup[paint.mask];
       if (n is SvgMask) {
@@ -701,10 +701,10 @@ class SvgGroup extends SvgInheritableAttributesNode {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     final cascaded = paint.cascade(ancestor, idLookup, warn);
     final newC = List<SvgNode>.empty(growable: true);
-    referrers = _Referrers(this, referrers);
+    referrers = SvgNodeReferrers(this, referrers);
     for (SvgNode n in children) {
       final nn = n.resolve(idLookup, cascaded, warn, referrers);
       if (nn != null) {
@@ -802,7 +802,7 @@ class SvgDefs extends SvgGroup {
 
   @override
   SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     super.resolve(idLookup, ancestor, warn, referrers);
     return null;
   }
@@ -826,8 +826,8 @@ class SvgMask extends SvgGroup {
 
   @override
   SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
-    super.resolve(idLookup, ancestor, warn, _Referrers(this, referrers));
+      void Function(String) warn, SvgNodeReferrers referrers) {
+    super.resolve(idLookup, ancestor, warn, SvgNodeReferrers(this, referrers));
     return null;
   }
 }
@@ -898,7 +898,7 @@ class SvgMasked extends SvgNode {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     // We're added during resolve, so this is unreachable
     return unreachable(null);
   }
@@ -922,7 +922,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (childID == null) {
       warn('    <use> has no href');
       return null;
@@ -1013,7 +1013,7 @@ class SvgPath extends SvgPathMaker {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (pathData == '') {
       return null;
     } else {
@@ -1101,7 +1101,7 @@ class SvgRect extends SvgPathMaker {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (width <= 0 || height <= 0) {
       return null;
     } else {
@@ -1184,7 +1184,7 @@ class SvgEllipse extends SvgPathMaker {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (rx <= 0 || ry <= 0) {
       return null;
     } else {
@@ -1240,7 +1240,7 @@ class SvgPoly extends SvgPathMaker {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (points.length < 2) {
       return null;
     } else {
@@ -1311,7 +1311,7 @@ class SvgGradientNode implements SvgNode {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     final pid = parentID;
     if (pid != null) {
       var parent = idLookup[pid];
@@ -1380,7 +1380,7 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _Referrers referrers) {
+      void Function(String) warn, SvgNodeReferrers referrers) {
     if (width <= 0 || height <= 0) {
       return null;
     }
@@ -2141,7 +2141,7 @@ final svgGraphUnreachablePrivate = [
   () => SvgDefs('')._getUntransformedBounds(SvgTextAttributes.initial()),
   () => SvgMasked(SvgDefs(''), SvgMask()).applyStylesheet({}, (_) {}),
   () => SvgMasked(SvgDefs(''), SvgMask())
-      .resolve(const {}, SvgPaint.empty(), (_) {}, _Referrers(null)),
+      .resolve(const {}, SvgPaint.empty(), (_) {}, SvgNodeReferrers(null)),
   () => (SvgPaint.empty()..hidden = true).toSIPaint(),
   () => const _SvgFontSizeRelative(1).toSI(),
   () => const _SvgFontSizeInherit().toSI(),
