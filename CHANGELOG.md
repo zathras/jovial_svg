@@ -1,4 +1,8 @@
 
+## [1.1.5] - May 2022
+
+- Update dependencies for Flutter 3.0 release
+
 ## [1.1.4] - April 2022
 
 - Support `data:` URLs for SVG and AVD files
