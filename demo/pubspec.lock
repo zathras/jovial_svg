@@ -120,7 +120,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.1.4"
+    version: "1.1.5"
   js:
     dependency: transitive
     description:
@@ -169,7 +169,7 @@ packages:
       name: petitparser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.4.0"
+    version: "5.0.0"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -321,7 +321,7 @@ packages:
       name: xml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.3.1"
+    version: "6.0.1"
 sdks:
-  dart: ">=2.17.0-0 <3.0.0"
-  flutter: ">=2.10.0"
+  dart: ">=2.17.0 <3.0.0"
+  flutter: ">=3.0.0"

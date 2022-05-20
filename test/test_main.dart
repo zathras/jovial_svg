@@ -181,19 +181,6 @@ Future<void> checkRendered(
     Size? scaleTo}) async {
   final Uint8List renderedBytes = await renderToBytes(si,
       scaleTo: scaleTo, format: ImageByteFormat.rawRgba);
-  if (refName.path == "test/reference_images/svg/coverage4.png" ||
-      refName.path == "test/reference_images/svg/svg11_gradient_1.png" ||
-      refName.path == "test/reference_images/si/svg11_gradient_1.png" ||
-      refName.path == "test/reference_images/svg/text_decoration.png" ||
-      refName.path == "test/reference_images/si/text_decoration.png") {
-    print("");
-    print("  **** WARNING ****");
-    print("      skipping $refName");
-    print("      Bug in flutter.");
-    print("      See https://github.com/zathras/jovial_svg/issues/20");
-    print("");
-    return;
-  }
   try {
     final codec = await instantiateImageCodec(refName.readAsBytesSync());
     final Image im = (await codec.getNextFrame()).image;
