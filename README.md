@@ -116,6 +116,11 @@ supported, including CSS via the `<style>` tag.
   *  Gradients are supported, and additionally support `xlink:href` attributes 
      to other gradients, and `gradientTransform` attributes from SVG 1.1.
   *  The `mask` element is supported (not in Tiny; see SVG 1.1 s. 14.4).
+     Note that as of this writing, a long-standing 
+     <a href="https://github.com/flutter/flutter/issues/48417>bug in Flutter
+     web's "html" renderer</a> prevents it from working on this niche
+     platform, though it works with the canvaskit renderer.  See also
+     <a href="https://github.com/zathras/jovial_svg/issues/24">Issue 24</a>.
   *  Text elements are supported.
   *  Embedded images are supported.
   *  Inheritable properties are supported.
