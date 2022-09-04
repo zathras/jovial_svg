@@ -142,7 +142,7 @@ class _HomePageState extends State<HomePage> {
         ElevatedButton(
             onPressed: _clearStorage,
             child: const Text('Clear Storage'),
-            style: ElevatedButton.styleFrom(primary: Colors.purple))
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple))
       ]),
       body: GridView.builder(
           itemCount: widget.svgs.length,
