@@ -1,4 +1,8 @@
 
+## [1.1.6] - September 2022
+
+- Update for Flutter 3.3 release (change in lints)
+
 ## [1.1.5] - May 2022
 
 - Update dependencies for Flutter 3.0 release
