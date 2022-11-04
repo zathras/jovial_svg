@@ -46,6 +46,7 @@ library jovial_svg.svg_parser;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -176,8 +177,9 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _textEvent(XmlTextEvent e) {
-    _currentText?.appendText(e.text);
-    _currentStyle?.write(e.text);
+    final text = utf8.decode(e.text.codeUnits);
+    _currentText?.appendText(text);
+    _currentStyle?.write(text);
   }
 
   void _endTag(XmlEndElementEvent evt) {
