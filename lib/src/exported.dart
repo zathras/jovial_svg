@@ -392,8 +392,8 @@ abstract class ScalableImage {
       void Function(String)? warnF,
       Color? currentColor}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content =
-        url.data?.contentAsString(encoding: utf8) ?? await http.read(url);
+    final String content = url.data?.contentAsString(encoding: utf8) ??
+        utf8.decode((await http.read(url)).codeUnits);
     return fromSvgString(content,
         compact: compact,
         bigFloats: bigFloats,
@@ -534,8 +534,8 @@ abstract class ScalableImage {
     void Function(String)? warnF,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content =
-        url.data?.contentAsString(encoding: utf8) ?? await http.read(url);
+    final String content = url.data?.contentAsString(encoding: utf8) ??
+        utf8.decode((await http.read(url)).codeUnits);
     return fromAvdString(content,
         compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
