@@ -34,7 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg.exported;
 
-import 'dart:convert' show utf8;
+import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -383,6 +383,11 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [defaultEncoding] specifies the character encoding to use if the
+  /// content-type header of the HTTP response does not indicate an encoding.
+  /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
+  /// to UTF8.
+  ///
   /// See also [ScalableImage.currentColor].
   ///
   static Future<ScalableImage> fromSvgHttpUrl(Uri url,
@@ -390,11 +395,10 @@ abstract class ScalableImage {
       bool bigFloats = false,
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
-      Color? currentColor}) async {
+      Color? currentColor,
+      Encoding defaultEncoding = utf8}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content = url.data?.contentAsString(encoding: utf8) ??
-        utf8.decode((await http.read(url)).codeUnits);
-    return fromSvgString(content,
+    return fromSvgString(await _getContent(url, defaultEncoding),
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
@@ -524,6 +528,11 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [defaultEncoding] specifies the character encoding to use if the
+  /// content-type header of the HTTP response does not indicate an encoding.
+  /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
+  /// to UTF8.
+  ///
   /// See also [ScalableImage.currentColor].
   ///
   static Future<ScalableImage> fromAvdHttpUrl(
@@ -532,12 +541,30 @@ abstract class ScalableImage {
     bool bigFloats = false,
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
-  }) async {
+    Encoding defaultEncoding = utf8}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    final String content = url.data?.contentAsString(encoding: utf8) ??
-        utf8.decode((await http.read(url)).codeUnits);
-    return fromAvdString(content,
+    return fromAvdString(await _getContent(url, defaultEncoding),
         compact: compact, bigFloats: bigFloats, warnF: warnArg);
+  }
+
+  static Future<String> _getContent(Uri url, Encoding defaultEncoding) async {
+    String? content = url.data?.contentAsString(encoding: defaultEncoding);
+    if (content == null) {
+      final client = http.Client();
+      try {
+        final response = await client.get(url);
+        final ct = response.headers['content-type'];
+        if (ct == null || !ct.toLowerCase().contains('charset')) {
+          //  Use default if not specified in content-type header
+          content = defaultEncoding.decode(response.bodyBytes);
+        } else {
+          content = response.body;
+        }
+      } finally {
+        client.close();
+      }
+    }
+    return content;
   }
 
   ///
