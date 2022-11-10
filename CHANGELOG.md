@@ -1,4 +1,8 @@
 
+## [1.1.7] - November 2022
+
+- For http loading, default to UTF8, allow encoding to be specified.
+
 ## [1.1.6] - September 2022
 
 - Update for Flutter 3.3 release (change in lints)
