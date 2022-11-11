@@ -535,13 +535,12 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromAvdHttpUrl(
-    Uri url, {
-    bool compact = false,
-    bool bigFloats = false,
-    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
-    void Function(String)? warnF,
-    Encoding defaultEncoding = utf8}) async {
+  static Future<ScalableImage> fromAvdHttpUrl(Uri url,
+      {bool compact = false,
+      bool bigFloats = false,
+      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+      void Function(String)? warnF,
+      Encoding defaultEncoding = utf8}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     return fromAvdString(await _getContent(url, defaultEncoding),
         compact: compact, bigFloats: bigFloats, warnF: warnArg);

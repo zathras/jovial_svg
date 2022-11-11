@@ -41,7 +41,8 @@ void main() async {
       xform,
       const Offset(2.55, 0.4));
   final span = material.TextSpan(
-      style: material.TextStyle(foreground: p, fontSize: 200), text: 'Woodstock!');
+      style: material.TextStyle(foreground: p, fontSize: 200),
+      text: 'Woodstock!');
   final tp = material.TextPainter(text: span, textDirection: TextDirection.ltr);
   tp.layout();
   tp.paint(c, const Offset(10, 150));
