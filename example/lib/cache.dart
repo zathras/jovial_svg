@@ -25,7 +25,11 @@ Future<List<Uri>> getSvgs() async {
   final url = Uri.parse('https://pastebin.com/raw/iLn5UqZM');
   final response = await http.get(url);
   final svgs = (jsonDecode(response.body) as List).cast<String>();
-  return svgs.map((s) => Uri.parse(s)).toList(growable: false);
+  final r = svgs.map((s) => Uri.parse(s)).toList(growable: true);
+  const usesUtf8 =
+      'https://openseauserdata.com/files/0817d1e5f53e504601a85e900cae85d1.svg';
+  r.add(Uri.parse(usesUtf8));
+  return r;
   // If the external assets, above, ever go away, we can do this:
   // return List.generate(100,
   //      (i) => Uri.parse('https://jovial.com/images/jupiter.svg?x=$i'));
