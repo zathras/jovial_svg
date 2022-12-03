@@ -1,5 +1,5 @@
 name: example
-description: Minimal SVG Sample
+description: Minimal SVG example programs
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -21,3 +21,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+# Asset for the asset.dart demo
+  assets:
+    - assets/tiger.svg

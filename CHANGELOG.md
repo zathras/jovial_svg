@@ -1,7 +1,8 @@
 
-## [1.1.7] - November 2022
+## [1.1.7] - December 2022
 
 - For http loading, default to UTF8, allow encoding to be specified.
+- Added `example/asset.dart` to show common case of SVG in an asset
 
 ## [1.1.6] - September 2022
 

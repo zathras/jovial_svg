@@ -40,6 +40,9 @@ discussed below.
 
 [Sample applicatons](https://github.com/zathras/jovial_svg/tree/main/example) 
 are available.  The 
+[asset sample](https://github.com/zathras/jovial_svg/blob/main/example/lib/asset.dart)
+shows the common case of a static SVG asset bundled with the application.
+The 
 [cache sample](https://github.com/zathras/jovial_svg/blob/main/example/lib/cache.dart) 
 might be of interest if `ScalableImageWidget` is used in a widget that is
 frequently rebuilt (e.g. because it's used in an animation), or if SVGs 
