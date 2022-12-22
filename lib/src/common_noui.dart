@@ -731,35 +731,23 @@ abstract class GenericParser {
     if (s == null || s == 'inherit') {
       return null;
     }
-    final Match? m = _floatMatch.matchAsPrefix(s);
-    if (m == null) {
+    final lex = BnfLexer(s);
+    double? val = lex.tryNextFloat();
+    if (val == null) {
       warn('Expected float value, saw "$s".');
       return null;
     } else {
-      String postfix = s.substring(m.end).trim();
-      double val = double.parse(s.substring(m.start, m.end));
-      final double multiplier;
-      if (postfix == '') {
-        multiplier = 1.0;
-      } else if (postfix == 'cm') {
-        multiplier = 96.0 / 2.54;
-        // 96 dpi is as good as anything else.  This isn't terribly
-        // important - see Tiny 7.11
-      } else if (postfix == 'mm') {
-        multiplier = 96.0 / 25.4;
-      } else if (postfix == 'in') {
-        multiplier = 96.0;
-      } else if (postfix == '%' && percent != null) {
+      lex.skipWhitespace();
+      String postfix = lex.getRemaining();
+      if (postfix == '%' && percent != null) {
         val = percent(val);
-        multiplier = 1;
-      } else {
-        multiplier = 1;
+      } else if (postfix != '') {
         if (!warnedAbout.contains(postfix)) {
           warnedAbout.add(postfix);
           warn('    (ignoring units "$postfix")');
         }
       }
-      return multiplier * val;
+      return val;
     }
   }
 
@@ -917,12 +905,7 @@ class BnfLexer {
       return null;
     } else {
       _pos = m.end;
-      final value = source.substring(m.start, m.end);
-      if (matcher == _floatMatch &&
-          source.substring(m.end).trim().startsWith('em')) {
-        return (double.parse(value) * 16).toString();
-      }
-      return value;
+      return source.substring(m.start, m.end);
     }
   }
 
@@ -935,7 +918,31 @@ class BnfLexer {
     if (sf == null) {
       return null;
     } else {
-      return double.parse(sf);
+      skipWhitespace();
+      final double multiplier;
+      if (_pos+2 > source.length) {
+        multiplier = 1.0;
+      } else {
+        final units = source.substring(_pos, _pos + 2).toLowerCase();
+        if (units == 'cm') {
+          multiplier = 96.0 / 2.54;
+          // 96 dpi is as good as anything else.  This isn't terribly
+          // important - see Tiny 7.11
+          _pos += 2;
+        } else if (units == 'mm') {
+          multiplier = 96.0 / 25.4;
+          _pos += 2;
+        } else if (units == 'in') {
+          multiplier = 96.0;
+          _pos += 2;
+        } else if (units == 'em') {
+          multiplier = 16.0;
+          _pos += 2;
+        } else {
+          multiplier = 1.0;
+        }
+      }
+      return multiplier * double.parse(sf);
     }
   }
 
@@ -1007,6 +1014,10 @@ class BnfLexer {
       _pos = m.end;
     }
   }
+
+  /// Get whatever characters are remaining at the end of the string, without
+  /// consuming them.
+  String getRemaining() => source.substring(_pos);
 
   ///
   /// Give the next identifier, that is, the next sequence of letters
