@@ -892,7 +892,7 @@ abstract class SvgParser extends GenericParser {
 
   void _warnUnusedAttributes(Map<String, String> attrs) {
     for (final a in attrs.keys) {
-      if (attributesIgnored.add('$_currTag:$a')) {
+      if (!a.startsWith('data-') && attributesIgnored.add('$_currTag:$a')) {
         warn('    Ignoring $a attribute(s) in $_currTag');
       }
     }
