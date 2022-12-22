@@ -917,7 +917,12 @@ class BnfLexer {
       return null;
     } else {
       _pos = m.end;
-      return source.substring(m.start, m.end);
+      final value = source.substring(m.start, m.end);
+      if (matcher == _floatMatch &&
+          source.substring(m.end).trim().startsWith('em')) {
+        return (double.parse(value) * 16).toString();
+      }
+      return value;
     }
   }
 
