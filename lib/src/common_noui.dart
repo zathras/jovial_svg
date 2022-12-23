@@ -723,8 +723,6 @@ abstract class GenericParser {
     return r;
   }
 
-  static final _floatMatch = RegExp(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?');
-
   final warnedAbout = {'px', ''};
 
   double? getFloat(String? s, {double Function(double)? percent}) {

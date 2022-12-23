@@ -22,7 +22,7 @@ void main() async {
 class AssetSample extends StatelessWidget {
   final ScalableImage tigerSvg;
 
-  AssetSample(this.tigerSvg, {Key? key}) : super(key: key);
+  const AssetSample(this.tigerSvg, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
