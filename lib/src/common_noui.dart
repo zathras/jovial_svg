@@ -920,7 +920,7 @@ class BnfLexer {
     } else {
       skipWhitespace();
       final double multiplier;
-      if (_pos+2 > source.length) {
+      if (_pos + 2 > source.length) {
         multiplier = 1.0;
       } else {
         final units = source.substring(_pos, _pos + 2).toLowerCase();

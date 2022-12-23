@@ -1,3 +1,7 @@
+## [1.1.8] - December 2022
+
+- Add em units, and consistently allow units in SVG files
+- Suppress warnings about "data-*" attributes in SVG files
 
 ## [1.1.7] - December 2022
 
