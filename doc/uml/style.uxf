@@ -117,9 +117,9 @@ String</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>520</x>
-      <y>60</y>
+      <y>50</y>
       <w>170</w>
-      <h>120</h>
+      <h>130</h>
     </coordinates>
     <panel_attributes>/SvgInheritableAttributes/
 --
@@ -128,6 +128,7 @@ String</panel_attributes>
 paint
 textAttributes
 transform
+groupAlpha
 etc.</panel_attributes>
     <additional_attributes/>
   </element>
@@ -145,8 +146,8 @@ etc.</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>510</x>
-      <y>270</y>
+      <x>70</x>
+      <y>330</y>
       <w>250</w>
       <h>130</h>
     </coordinates>
@@ -163,12 +164,100 @@ For element type foo class bar,
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>460</x>
-      <y>250</y>
-      <w>70</w>
-      <h>70</h>
+      <x>260</x>
+      <y>240</y>
+      <w>120</w>
+      <h>110</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
-    <additional_attributes>10.0;10.0;50.0;50.0</additional_attributes>
+    <additional_attributes>100.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>490</x>
+      <y>310</y>
+      <w>220</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SvgInheritableAttributesNode</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>580</x>
+      <y>170</y>
+      <w>30</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>390</x>
+      <y>400</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SvgPathMaker</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>510</x>
+      <y>400</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>SvgGroup</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>400</y>
+      <w>100</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>...</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>550</x>
+      <y>330</y>
+      <w>70</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>50.0;10.0;50.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>330</y>
+      <w>180</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>160.0;10.0;160.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>330</y>
+      <w>100</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;80.0;40.0;80.0;70.0</additional_attributes>
   </element>
 </diagram>

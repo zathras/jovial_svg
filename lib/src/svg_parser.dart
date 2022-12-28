@@ -200,7 +200,7 @@ abstract class SvgParser extends GenericParser {
     if (evtName == 'text') {
       _currentText = null;
     } else if (evtName == 'style' && _currentStyle != null) {
-      _processStyle(_currentStyle!.toString());
+      _processStyle(_currentStyle.toString());
       _currentStyle = null;
     } else if (evtName == 'tspan') {
       _currentText?.endSpan();

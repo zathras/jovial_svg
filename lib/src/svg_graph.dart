@@ -281,6 +281,7 @@ class Style extends SvgInheritableAttributes {
     applyText(node, warn);
     node.transform = node.transform ?? transform;
     node.blendMode = node.blendMode ?? blendMode;
+    node.groupAlpha = node.groupAlpha ?? groupAlpha;
   }
 
   @override
