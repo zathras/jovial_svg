@@ -681,7 +681,7 @@ abstract class GenericParser {
         throw ParseError('Invalid rgba() syntax: $s');
       }
       return 0x00000000 |
-          (_getColorComponent(rgb[3]) * 255).toInt() << 24 |
+          (double.parse(rgb[3]) * 255).toInt() << 24 |
           _getColorComponent(rgb[0]) << 16 |
           _getColorComponent(rgb[1]) << 8 |
           _getColorComponent(rgb[2]);
