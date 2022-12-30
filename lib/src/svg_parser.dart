@@ -1007,7 +1007,6 @@ abstract class SvgParser extends GenericParser {
 class _TagEntry {
   final int parentPos;
   final String tag;
-
   _TagEntry(this.parentPos, this.tag);
 }
 
