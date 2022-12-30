@@ -177,7 +177,9 @@ abstract class SvgParser extends GenericParser {
 
   void _textEvent(XmlTextEvent e) {
     _currentText?.appendText(e.text);
-    _currentStyle?.write(e.text);
+    if (e.text != '/*' && e.text != '*/') {
+      _currentStyle?.write(e.text);
+    }
   }
 
   void _endTag(XmlEndElementEvent evt) {
@@ -955,6 +957,7 @@ abstract class SvgParser extends GenericParser {
   static final _idToBrace = RegExp(r'[^{]+');
   static final _consumeToBrace = RegExp(r'[^{]*');
   static final _consumeToRBrace = RegExp(r'[^}]*');
+
   void _processStyle(String string) {
     int pos = _whitespaceOrNothing.matchAsPrefix(string, 0)?.end ?? 0;
     int lastPos;
@@ -1004,6 +1007,7 @@ abstract class SvgParser extends GenericParser {
 class _TagEntry {
   final int parentPos;
   final String tag;
+
   _TagEntry(this.parentPos, this.tag);
 }
 
@@ -1019,7 +1023,13 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitEndElementEvent(XmlEndElementEvent e) => parser._endTag(e);
 
   @override
-  void visitCDATAEvent(XmlCDATAEvent event) {}
+  void visitCDATAEvent(XmlCDATAEvent event) {
+    String text = event.text;
+    if (text.startsWith('*/') && text.endsWith('/*')) {
+      text = text.substring(2, text.length - 2);
+    }
+    parser._textEvent(XmlTextEvent(text));
+  }
 
   @override
   void visitCommentEvent(XmlCommentEvent event) {}
