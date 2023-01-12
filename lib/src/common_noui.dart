@@ -674,7 +674,18 @@ abstract class GenericParser {
       }
       throw ParseError('Color is not #rgb #rrggbb or #aarrggbb:  $s');
     }
-    if (s.startsWith('rgb') && s.endsWith(')')) {
+    if (s.startsWith('rgba') && s.endsWith(')')) {
+      final lex = BnfLexer(s.substring(5, s.length - 1));
+      final rgb = lex.getList(_colorComponentMatch);
+      if (rgb.length != 4) {
+        throw ParseError('Invalid rgba() syntax: $s');
+      }
+      return 0x00000000 |
+          (double.parse(rgb[3]) * 255).toInt() << 24 |
+          _getColorComponent(rgb[0]) << 16 |
+          _getColorComponent(rgb[1]) << 8 |
+          _getColorComponent(rgb[2]);
+    } else if (s.startsWith('rgb') && s.endsWith(')')) {
       final lex = BnfLexer(s.substring(4, s.length - 1));
       final rgb = lex.getList(_colorComponentMatch);
       if (rgb.length != 3) {
