@@ -175,11 +175,9 @@ abstract class SvgParser extends GenericParser {
     }
   }
 
-  void _textEvent(XmlTextEvent e) {
-    _currentText?.appendText(e.text);
-    if (e.text != '/*' && e.text != '*/') {
-      _currentStyle?.write(e.text);
-    }
+  void _textEvent(String text) {
+    _currentText?.appendText(text);
+    _currentStyle?.write(text);
   }
 
   void _endTag(XmlEndElementEvent evt) {
@@ -782,7 +780,7 @@ abstract class SvgParser extends GenericParser {
     String? attr = attrs.remove('mix-blend-mode');
     {
       const vals = {
-        null: SIBlendMode.normal,
+        null: null,
         'inherit': SIBlendMode.normal,
         'normal': SIBlendMode.normal,
         'multiply': SIBlendMode.multiply,
@@ -804,7 +802,7 @@ abstract class SvgParser extends GenericParser {
       final v = vals[attr];
       if (v != null) {
         node.blendMode = v;
-      } else {
+      } else if (attr != null) {
         warn('    Ignoring invalid mix-blend-mode "$attr"');
       }
     }
@@ -957,8 +955,21 @@ abstract class SvgParser extends GenericParser {
   static final _idToBrace = RegExp(r'[^{]+');
   static final _consumeToBrace = RegExp(r'[^{]*');
   static final _consumeToRBrace = RegExp(r'[^}]*');
-
   void _processStyle(String string) {
+    // First, strip out comments
+    for (;;) {
+      int pos = string.indexOf('/*');
+      if (pos == -1) {
+        break;
+      }
+      int end = string.indexOf('*/', pos + 2);
+      if (end == -1) {
+        string = '';
+        break;
+      }
+      string = string.substring(0, pos) + string.substring(end + 2);
+    }
+    // Now parse the stylesheet
     int pos = _whitespaceOrNothing.matchAsPrefix(string, 0)?.end ?? 0;
     int lastPos;
     while (pos < string.length) {
@@ -1022,13 +1033,7 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitEndElementEvent(XmlEndElementEvent e) => parser._endTag(e);
 
   @override
-  void visitCDATAEvent(XmlCDATAEvent event) {
-    String text = event.text;
-    if (text.startsWith('*/') && text.endsWith('/*')) {
-      text = text.substring(2, text.length - 2);
-    }
-    parser._textEvent(XmlTextEvent(text));
-  }
+  void visitCDATAEvent(XmlCDATAEvent event) => parser._textEvent(event.text);
 
   @override
   void visitCommentEvent(XmlCommentEvent event) {}
@@ -1043,7 +1048,7 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitProcessingEvent(XmlProcessingEvent event) {}
 
   @override
-  void visitTextEvent(XmlTextEvent event) => parser._textEvent(event);
+  void visitTextEvent(XmlTextEvent event) => parser._textEvent(event.text);
 }
 
 class StreamSvgParser extends SvgParser {

@@ -680,8 +680,13 @@ abstract class GenericParser {
       if (rgb.length != 4) {
         throw ParseError('Invalid rgba() syntax: $s');
       }
-      return 0x00000000 |
-          (double.parse(rgb[3]) * 255).toInt() << 24 |
+      final int alpha;
+      try {
+        alpha = (double.parse(rgb[3]) * 255).toInt().clamp(0, 255);
+      } catch (e) {
+        throw ParseError("Bad float value in in color's alpha:  $s");
+      }
+      return alpha << 24 |
           _getColorComponent(rgb[0]) << 16 |
           _getColorComponent(rgb[1]) << 8 |
           _getColorComponent(rgb[2]);
@@ -704,7 +709,7 @@ abstract class GenericParser {
     return 0xFF000000;
   }
 
-  static final _colorComponentMatch = RegExp(r'[0-9]+%?');
+  static final _colorComponentMatch = RegExp(r'[0-9.]+%?');
 
   int _getColorComponent(String s) {
     if (s.endsWith('%')) {

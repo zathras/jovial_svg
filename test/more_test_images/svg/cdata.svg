@@ -1,0 +1,14 @@
+<svg width="25" height="25" viewBox="0 0 25 25">
+  <rect width="100%" height="100%">
+    <title>Testing regular CDATA in inline SVG</title>
+  </rect>
+  <text id="t" x="12" y="10" fill="navy" text-anchor="middle" font-size="10px">ok<![CDATA[ay]]></text>
+  stray
+  <style>
+  /*
+    <![CDATA[
+    */
+      rect { fill: lightgreen }
+    ]]>
+  </style>
+</svg>

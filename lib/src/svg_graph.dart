@@ -434,7 +434,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
       paint != (SvgPaint.empty()..mask = paint.mask) ||
       textAttributes != SvgTextAttributes.empty() ||
       groupAlpha != null ||
-      blendMode != SIBlendMode.normal;
+      (blendMode ?? SIBlendMode.normal) != SIBlendMode.normal;
 
   @override
   _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
@@ -1644,7 +1644,11 @@ class SvgValueColor extends SvgColor {
   @override
   SIColor toSIColor(
       int alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
-    return SIValueColor((_value & 0xffffff) | (alpha << 24));
+    if (alpha == 0xff) {
+      return SIValueColor(_value);
+    } else {
+      return SIValueColor((_value & 0xffffff) | (alpha << 24));
+    }
   }
 
   @override

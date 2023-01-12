@@ -1,6 +1,9 @@
 ## [1.1.9] - January 2023
 
 - Add missing support for opacity attribute in style tags
+- Add support for rgba colors
+- Add support for CDATA
+- Add support for comments in stylesheets
 
 ## [1.1.8] - December 2022
 
