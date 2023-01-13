@@ -955,6 +955,7 @@ abstract class SvgParser extends GenericParser {
   static final _idToBrace = RegExp(r'[^{]+');
   static final _consumeToBrace = RegExp(r'[^{]*');
   static final _consumeToRBrace = RegExp(r'[^}]*');
+
   void _processStyle(String string) {
     // First, strip out comments
     for (;;) {

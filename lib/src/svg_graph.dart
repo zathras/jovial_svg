@@ -280,6 +280,12 @@ class Style extends SvgInheritableAttributes {
   void apply(SvgInheritableAttributes node, void Function(String) warn) {
     applyText(node, warn);
     node.transform = node.transform ?? transform;
+    // NOTE:  SVG's transform isn't the same as CSS's.  SVG's is almost
+    // certainly simpler, but there may be other differences.  The line above
+    // assumes they're the same.  Depending on how different they are, for full
+    // support it might even be necessary to treat them as different things.
+    // For example, the origin for SVG's transforms is 0,0; maybe CSS does
+    // something different?
     node.blendMode = node.blendMode ?? blendMode;
     node.groupAlpha = node.groupAlpha ?? groupAlpha;
   }

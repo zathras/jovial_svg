@@ -108,40 +108,43 @@ it.
 ## Supported SVG Profile
 
 Most features of SVG 1.1 that are applicable to static SVG documents are
-supported, including CSS via the `<style>` tag.
+supported.  This includes using CSS (the `<style>` tag) to specify SVG
+attributes.
 
-  *  SVG paths and transforms are of course supported.
-  *  The `use` element is supported (including forward references).
-  *  Stroke modifiers like `stroke-linecap`, `stroke-linejoin` and
+  * SVG paths and transforms are of course supported.
+  * The `use` element is supported (including forward references).
+  * Stroke modifiers like `stroke-linecap`, `stroke-linejoin` and
      `stroke-miterlimit` are supported.
-  *  The `stroke-dasharray` and `stroke-dashoffset` attributes are
+  * The `stroke-dasharray` and `stroke-dashoffset` attributes are
      supported (cf. Tiny s. 11.4).
-  *  Gradients are supported, and additionally support `xlink:href` attributes 
+  * Gradients are supported, and additionally support `xlink:href` attributes 
      to other gradients, and `gradientTransform` attributes from SVG 1.1.
-  *  The `mask` element is supported (not in Tiny; see SVG 1.1 s. 14.4).
+  * The `mask` element is supported (not in Tiny; see SVG 1.1 s. 14.4).
      Note that as of this writing, a long-standing 
      <a href="https://github.com/flutter/flutter/issues/48417">bug in Flutter
      web's "html" renderer</a> prevents it from working on this niche
      platform, though it works with the canvaskit renderer.  See also
      <a href="https://github.com/zathras/jovial_svg/issues/24">Issue 24</a>.
-  *  Text elements are supported.
-  *  Embedded images are supported.
-  *  Inheritable properties are supported.
-  *  Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  (Not
+  * Text elements are supported.
+  * Embedded images are supported.
+  * Inheritable properties are supported.
+  * Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  (Not
      in Tiny).
-  *  The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
-  *  The `style` tag for inline CSS and the `style=` attribute are
+  * The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
+  * The `style` tag for inline CSS and the `style=` attribute are
      supported to specify node attributes (not in Tiny - cf. s. 6.2).
-  *  Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
-  *  Constrained transformations are not supported (not in SVG 1.1;
+  * CSS attributes that don't have a corresponding SVG attribute generally
+    are not supported, e.g. `background` and `transform-origin` are not.
+  * Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
+  * Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
-  *  A DOM and other features related to animation are not supported.
-  *  Conditional processing (Tiny s. 5.8) is not supported
-  *  The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
-  *  Filter effects via the `filter` tag are not supported (not in Tiny, cf.
+  * A DOM and other features related to animation are not supported.
+  * Conditional processing (Tiny s. 5.8) is not supported
+  * The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
+  * Filter effects via the `filter` tag are not supported (not in Tiny, cf.
      SVG s. 15) 
-  *  XML namespaces are ignored.
-  *  Text profile:
+  * XML namespaces are ignored.
+  * Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute
         is used when selecting a font, and fonts can be included in an 
