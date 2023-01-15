@@ -340,9 +340,15 @@ abstract class AvdParser extends GenericParser {
       } else if (a.name == 'android:pathData') {
         pathData = a.value;
       } else if (a.name == 'android:fillColor') {
-        fill = SvgColor.value(getColor(a.value.trim().toLowerCase()));
+        final color = getColor(a.value.trim().toLowerCase());
+        if (color != null) {
+          fill = SvgColor.value(color);
+        }
       } else if (a.name == 'android:strokeColor') {
-        stroke = SvgColor.value(getColor(a.value.trim().toLowerCase()));
+        final color = getColor(a.value.trim().toLowerCase());
+        if (color != null) {
+          stroke = SvgColor.value(color);
+        }
       } else if (a.name == 'android:strokeWidth') {
         strokeWidth = getFloat(a.value);
       } else if (a.name == 'android:strokeAlpha') {

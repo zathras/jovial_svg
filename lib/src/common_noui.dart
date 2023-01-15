@@ -655,7 +655,7 @@ abstract class GenericParser {
     'yellowgreen': 0xFF9ACD33,
   };
 
-  int getColor(String s) {
+  int? getColor(String s) {
     if (s.startsWith('#')) {
       if (s.length == 4) {
         final int v = int.parse(s.substring(1), radix: 16);
@@ -672,19 +672,22 @@ abstract class GenericParser {
         // I don't think SVG/AVD files have this, but it doesn't hurt.
         return int.parse(s.substring(1), radix: 16);
       }
-      throw ParseError('Color is not #rgb #rrggbb or #aarrggbb:  $s');
+      warn('Color is not #rgb #rrggbb or #aarrggbb:  $s');
+      return null;
     }
     if (s.startsWith('rgba') && s.endsWith(')')) {
       final lex = BnfLexer(s.substring(5, s.length - 1));
       final rgb = lex.getList(_colorComponentMatch);
       if (rgb.length != 4) {
-        throw ParseError('Invalid rgba() syntax: $s');
+        warn('Invalid rgba() syntax: $s');
+        return null;
       }
       final int alpha;
       try {
         alpha = (double.parse(rgb[3]) * 255).toInt().clamp(0, 255);
       } catch (e) {
-        throw ParseError("Bad float value in in color's alpha:  $s");
+        warn("Bad float value in in color's alpha:  $s");
+        return null;
       }
       return alpha << 24 |
           _getColorComponent(rgb[0]) << 16 |
@@ -694,7 +697,8 @@ abstract class GenericParser {
       final lex = BnfLexer(s.substring(4, s.length - 1));
       final rgb = lex.getList(_colorComponentMatch);
       if (rgb.length != 3) {
-        throw ParseError('Invalid rgb() syntax: $s');
+        warn('Invalid rgb() syntax: $s');
+        return null;
       }
       return 0xff000000 |
           _getColorComponent(rgb[0]) << 16 |
