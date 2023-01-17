@@ -1,3 +1,6 @@
+## [1.1.10] - January 2023
+
+- Add `ScalableImageWidget.isComplex`
 ## [1.1.9] - January 2023
 
 - Add missing support for opacity attribute in style tags

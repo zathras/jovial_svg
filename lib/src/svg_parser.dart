@@ -949,7 +949,7 @@ abstract class SvgParser extends GenericParser {
     } else {
       final color = super.getColor(lc);
       if (color != null) {
-        return SvgColor.value(color!);
+        return SvgColor.value(color);
       } else {
         return SvgColor.none;
       }

@@ -50,7 +50,14 @@ import 'exported.dart';
 /// might result in significantly better performance.
 ///
 abstract class ScalableImageWidget extends StatefulWidget {
-  const ScalableImageWidget._p(Key? key) : super(key: key);
+  ///
+  /// Whether the underlying `ScalableImage`'s painting is complex enough
+  /// to benefit from caching.  This is forwarded to [CustomPaint] -- see
+  /// [CustomPaint.isComplex].
+  ///
+  final bool isComplex;
+
+  const ScalableImageWidget._p(Key? key, this.isComplex) : super(key: key);
 
   ///
   /// Create a widget to display a pre-loaded [ScalableImage].
@@ -78,6 +85,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// which affects advanced use of the `mix-blend-mode` attribute applied over
   /// areas without other drawing.
   ///
+  /// [isComplex] see [ScalableImageWidget.isComplex]
+  ///
   factory ScalableImageWidget(
           {Key? key,
           required ScalableImage si,
@@ -85,8 +94,10 @@ abstract class ScalableImageWidget extends StatefulWidget {
           Alignment alignment = Alignment.center,
           bool clip = true,
           double scale = 1,
-          Color? background}) =>
-      _SyncSIWidget(key, si, fit, alignment, clip, scale, background);
+          Color? background,
+          bool isComplex = false}) =>
+      _SyncSIWidget(
+          key, si, fit, alignment, clip, scale, background, isComplex);
 
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
@@ -114,6 +125,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
   ///
   /// [reload] forces the [ScalableImage] to be reloaded, e.g. if a networking
   /// error might have been resolved, or if the asset might have changed.
+  ///
+  /// [isComplex] see [ScalableImageWidget.isComplex]
   ///
   /// [onLoading] is called to give a widget to show while the asset is being
   /// loaded.  It defaults to a 1x1 SizedBox.
@@ -146,6 +159,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       double scale = 1,
       Color? background,
       bool reload = false,
+      bool isComplex = false,
       ScalableImageCache? cache,
       Widget Function(BuildContext)? onLoading,
       Widget Function(BuildContext)? onError}) {
@@ -156,7 +170,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       cache.forceReload(si);
     }
     return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache,
-        onLoading, onError, background);
+        onLoading, onError, background, isComplex);
   }
 }
 
@@ -169,8 +183,8 @@ class _SyncSIWidget extends ScalableImageWidget {
   final Color? _background;
 
   const _SyncSIWidget(Key? key, this._si, this._fit, this._alignment,
-      this._clip, this._scale, this._background)
-      : super._p(key);
+      this._clip, this._scale, this._background, bool isComplex)
+      : super._p(key, isComplex);
 
   @override
   State<StatefulWidget> createState() => _SyncSIWidgetState();
@@ -221,7 +235,7 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
 
   @override
   Widget build(BuildContext context) =>
-      CustomPaint(painter: _painter, size: _size);
+      CustomPaint(painter: _painter, size: _size, isComplex: widget.isComplex);
 }
 
 class _SIPainter extends CustomPainter {
@@ -326,8 +340,9 @@ class _AsyncSIWidget extends ScalableImageWidget {
       this._cache,
       this._onLoading,
       this._onError,
-      this._background)
-      : super._p(key);
+      this._background,
+      bool isComplex)
+      : super._p(key, isComplex);
 
   @override
   State<StatefulWidget> createState() => _AsyncSIWidgetState();
@@ -387,7 +402,7 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
       return widget._onError(context);
     } else {
       return _SyncSIWidget(null, si, widget._fit, widget._alignment,
-          widget._clip, widget._scale, widget._background);
+          widget._clip, widget._scale, widget._background, widget.isComplex);
     }
   }
 }
