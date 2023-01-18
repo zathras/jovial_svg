@@ -211,10 +211,13 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   @override
   void didUpdateWidget(_SyncSIWidget old) {
     super.didUpdateWidget(old);
-    _painter = _newPainter(widget, true);
+    _painter = _newPainter(widget, _painter._preparing);
     _size = _newSize(widget);
-    _registerWithFuture(widget._si.prepareImages());
-    old._si.unprepareImages();
+    if (_painter._preparing) {
+      // If images are still loading, we need the callback when it's done.
+      _registerWithFuture(widget._si.prepareImages());
+      old._si.unprepareImages();
+    }
   }
 
   @override
@@ -262,7 +265,9 @@ class _SIPainter extends CustomPainter {
       canvas.drawColor(const Color(0x00ffffff), BlendMode.src);
     }
     try {
-      if (_fit == BoxFit.none && _alignment == Alignment.topLeft) {
+      if (_fit == BoxFit.none &&
+          _alignment.x == Alignment.topLeft.x &&
+          _alignment.y == Alignment.topLeft.y) {
         _si.paint(canvas);
         return;
       }
@@ -315,7 +320,8 @@ class _SIPainter extends CustomPainter {
       _preparing != oldDelegate._preparing ||
       _si != oldDelegate._si ||
       _fit != oldDelegate._fit ||
-      _alignment != oldDelegate._alignment ||
+      _alignment.x != oldDelegate._alignment.x ||
+      _alignment.y != oldDelegate._alignment.y ||
       _clip != oldDelegate._clip;
 }
 
