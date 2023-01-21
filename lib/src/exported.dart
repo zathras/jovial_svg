@@ -200,12 +200,18 @@ abstract class ScalableImage {
   ///
   /// Return a new ScalableImage like this one, with tint modified.
   ///
+  /// Note that the new instance shares most of its underlying state with the
+  /// original, so it does not use much memory.
+  ///
   ScalableImage modifyTint(
       {required BlendMode newTintMode, required Color? newTintColor});
 
   ///
   /// Return a new ScalableImage like this one, with currentColor
   /// modified.
+  ///
+  /// Note that the new instance shares most of its underlying state with the
+  /// original, so it does not use much memory.
   ///
   ScalableImage modifyCurrentColor(Color newCurrentColor);
 
@@ -636,7 +642,10 @@ abstract class ScalableImage {
   void unprepareImages();
 
   ///
-  /// Paint this ScalableImage to the canvas c.
+  /// Paint this ScalableImage to the canvas c.  This method saves the
+  /// [Canvas]'s state, translates the
+  /// canvas by the [viewport]'s origin, clips to the [viewport]'s size,
+  /// paints the image, and restores the [Canvas].
   ///
   void paint(Canvas c);
 
@@ -748,13 +757,18 @@ abstract class ScalableImageBase extends ScalableImage {
 
   @override
   void paint(Canvas c) {
-    Rect vp = viewport;
-    c.translate(-vp.left, -vp.top);
-    c.clipRect(vp);
-    paintChildren(c, currentColor);
-    final tc = tintColor;
-    if (tc != null) {
-      c.drawColor(tc, tintMode);
+    try {
+      c.save();
+      Rect vp = viewport;
+      c.translate(-vp.left, -vp.top);
+      c.clipRect(vp);
+      paintChildren(c, currentColor);
+      final tc = tintColor;
+      if (tc != null) {
+        c.drawColor(tc, tintMode);
+      }
+    } finally {
+      c.restore();
     }
   }
 

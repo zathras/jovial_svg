@@ -64,4 +64,8 @@ library jovial_svg;
 
 export 'src/exported.dart' show ScalableImage, ImageDisposeBugWorkaround;
 export 'src/widget.dart'
-    show ScalableImageWidget, ScalableImageSource, ScalableImageCache;
+    show
+        ScalableImageWidget,
+        ScalableImageSource,
+        ScalableImageCache,
+        ScalingTransform;

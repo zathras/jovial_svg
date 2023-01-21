@@ -29,7 +29,7 @@ library jovial_svg.widget;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
+import 'dart:math' show Point, min, max;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -271,42 +271,12 @@ class _SIPainter extends CustomPainter {
         _si.paint(canvas);
         return;
       }
-      final vp = _si.viewport;
-      if (vp.width <= 0 || vp.height <= 0) {
-        return;
-      }
-      final double sx;
-      final double sy;
-      switch (_fit) {
-        case BoxFit.fill:
-          sx = size.width / vp.width;
-          sy = size.height / vp.height;
-          break;
-        case BoxFit.contain:
-          sx = sy = min(size.width / vp.width, size.height / vp.height);
-          break;
-        case BoxFit.cover:
-          sx = sy = max(size.width / vp.width, size.height / vp.height);
-          break;
-        case BoxFit.fitWidth:
-          sx = sy = size.width / vp.width;
-          break;
-        case BoxFit.fitHeight:
-          sx = sy = size.height / vp.height;
-          break;
-        case BoxFit.none:
-          sx = sy = 1;
-          break;
-        case BoxFit.scaleDown:
-          sx = sy = min(1, min(size.width / vp.width, size.height / vp.height));
-          break;
-      }
-      final extraX = size.width - vp.width * sx;
-      final extraY = size.height - vp.height * sy;
-      final tx = (1 + _alignment.x) * extraX / 2;
-      final ty = (1 + _alignment.y) * extraY / 2;
-      canvas.translate(tx, ty);
-      canvas.scale(sx, sy);
+      ScalingTransform(
+              containerSize: size,
+              siViewport: _si.viewport,
+              fit: _fit,
+              alignment: _alignment)
+          .applyToCanvas(canvas);
       _si.paint(canvas);
     } finally {
       if (background != null) {
@@ -1078,4 +1048,117 @@ class ScalableImageCache {
     assert(identical(removed, victim));
     assert(victim._refCount == 0);
   }
+}
+
+///
+/// A coordinate system transformation to fit a `ScalableImage` into a
+/// given container, for a given [BoxFit] and [Alignment].  This class is
+/// offered as a convenience for scaling [ScalableImage] instances.  It
+/// also helps converting positions as rendered back into the [ScalableImage]'s
+/// coordinate, e.g. when mapping a touch event into the original
+/// SVG's coordinate space.
+///
+class ScalingTransform {
+  ///
+  /// The horizontal scale factor
+  ///
+  final double scaleX;
+
+  ///
+  /// The vertical scale factor
+  ///
+  final double scaleY;
+
+  ///
+  /// The horizontal translation, before scaling is applied.  This does not
+  /// include any translation to the SI's viewport's origin.  cf.
+  /// [ScalableImage.paint].
+  ///
+  final double translateX;
+
+  ///
+  /// The vertical translation, before scaling is applied.  This does not
+  /// include any translation to the SI's viewport's origin.  cf.
+  /// [ScalableImage.paint].
+  ///
+  final double translateY;
+
+  ///
+  /// The [ScalableImage.viewport] of the image being transformed.
+  ///
+  final Rect siViewport;
+
+  ScalingTransform._p(this.scaleX, this.scaleY, this.translateX,
+      this.translateY, this.siViewport);
+
+  factory ScalingTransform(
+      {required Size containerSize,
+      required Rect siViewport,
+      BoxFit fit = BoxFit.contain,
+      Alignment alignment = Alignment.center}) {
+    final double sx;
+    final double sy;
+
+    switch (fit) {
+      case BoxFit.fill:
+        sx = containerSize.width / siViewport.width;
+        sy = containerSize.height / siViewport.height;
+        break;
+      case BoxFit.contain:
+        sx = sy = min(containerSize.width / siViewport.width,
+            containerSize.height / siViewport.height);
+        break;
+      case BoxFit.cover:
+        sx = sy = max(containerSize.width / siViewport.width,
+            containerSize.height / siViewport.height);
+        break;
+      case BoxFit.fitWidth:
+        sx = sy = containerSize.width / siViewport.width;
+        break;
+      case BoxFit.fitHeight:
+        sx = sy = containerSize.height / siViewport.height;
+        break;
+      case BoxFit.none:
+        sx = sy = 1;
+        break;
+      case BoxFit.scaleDown:
+        sx = sy = min(
+            1,
+            min(containerSize.width / siViewport.width,
+                containerSize.height / siViewport.height));
+        break;
+    }
+    final extraX = containerSize.width - siViewport.width * sx;
+    final extraY = containerSize.height - siViewport.height * sy;
+    final tx = (1 + alignment.x) * extraX / 2;
+    final ty = (1 + alignment.y) * extraY / 2;
+    return ScalingTransform._p(sx, sy, tx, ty, siViewport);
+  }
+
+  ///
+  /// Apply this transform to the given Canvas, by first translating
+  /// and then by scaling.
+  ///
+  void applyToCanvas(Canvas canvas) {
+    canvas.translate(translateX, translateY);
+    canvas.scale(scaleX, scaleY);
+  }
+
+  ///
+  /// Transform a point from the coordinate system of the container into
+  /// the [ScalableImage]'s coordinate system.  This method adjusts for
+  /// the origin of the SI's viewport.
+  ///
+  Point<double> toSICoordinate(final Point<double> c) => Point(
+      (c.x - translateX) * scaleX + siViewport.left,
+      (c.y - translateY) * scaleY + siViewport.top);
+
+  ///
+  /// Transform a point from the coordinate system of the [ScalableImage] into
+  /// the container's coordinate system.  This method adjusts for
+  /// the origin of the SI's viewport.
+  ///
+  Point<double> toContainerCoordinate(final Point<double> si) => Point(
+      (si.x - siViewport.left) / scaleX + translateX,
+      (si.y - siViewport.top) / scaleY + translateY);
 }
