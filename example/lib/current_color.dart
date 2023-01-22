@@ -10,7 +10,7 @@ void main() {
         stroke="#ff0000"/>
     <circle cx="205" cy="105" r="45" fill="currentColor" />
     </svg>
-  """);
+  """, currentColor:  Colors.amber);
   runApp(MinimalSample(si));
 }
 
@@ -29,14 +29,15 @@ class MinimalSample extends StatefulWidget {
 }
 
 class _MinimalSampleState extends State<MinimalSample> {
-  Color currentColor = Colors.green;
-  late ScalableImage current;
+  ScalableImage current = ScalableImage.blank();
   final rand = Random();
+
+  _MinimalSampleState();
 
   @override
   initState() {
     super.initState();
-    current = widget.initial.modifyCurrentColor(currentColor);
+    current = widget.initial;
   }
 
   @override
@@ -48,7 +49,7 @@ class _MinimalSampleState extends State<MinimalSample> {
           ElevatedButton(
             onPressed: () {
               setState(() {
-                currentColor = Color(rand.nextInt(0xffffff) | 0xff000000);
+                final currentColor = Color(rand.nextInt(0xffffff) | 0xff000000);
                 current = widget.initial.modifyCurrentColor(currentColor);
               });
             },
