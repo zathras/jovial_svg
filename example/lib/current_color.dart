@@ -10,7 +10,7 @@ void main() {
         stroke="#ff0000"/>
     <circle cx="205" cy="105" r="45" fill="currentColor" />
     </svg>
-  """, currentColor:  Colors.amber);
+  """, currentColor: Colors.amber);
   runApp(MinimalSample(si));
 }
 
@@ -18,11 +18,9 @@ void main() {
 /// A minimal application demonstrating SVG's currentColor feature.
 ///
 class MinimalSample extends StatefulWidget {
-
   final ScalableImage initial;
 
-  const MinimalSample(this.initial, {Key? key}) :
-        super(key: key);
+  const MinimalSample(this.initial, {Key? key}) : super(key: key);
 
   @override
   State<MinimalSample> createState() => _MinimalSampleState();
@@ -45,16 +43,16 @@ class _MinimalSampleState extends State<MinimalSample> {
     return MaterialApp(
         title: 'SVG currentColor Sample',
         home: Column(children: [
-            ScalableImageWidget(si: current),
+          ScalableImageWidget(si: current),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                final currentColor = Color(rand.nextInt(0xffffff) | 0xff000000);
-                current = widget.initial.modifyCurrentColor(currentColor);
-              });
-            },
-            child: const Text('Change currentColor')
-          ),
+              onPressed: () {
+                setState(() {
+                  final currentColor =
+                      Color(rand.nextInt(0xffffff) | 0xff000000);
+                  current = widget.initial.modifyCurrentColor(currentColor);
+                });
+              },
+              child: const Text('Change currentColor')),
         ]));
   }
 }

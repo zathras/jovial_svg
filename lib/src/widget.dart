@@ -29,7 +29,7 @@ library jovial_svg.widget;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' show Point, min, max;
+import 'dart:math' show min, max;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -1149,16 +1149,16 @@ class ScalingTransform {
   /// the [ScalableImage]'s coordinate system.  This method adjusts for
   /// the origin of the SI's viewport.
   ///
-  Point<double> toSICoordinate(final Point<double> c) => Point(
-      (c.x - translateX) * scaleX + siViewport.left,
-      (c.y - translateY) * scaleY + siViewport.top);
+  Offset toSICoordinate(final Offset c) => Offset(
+      (c.dx - translateX) / scaleX + siViewport.left,
+      (c.dy - translateY) / scaleY + siViewport.top);
 
   ///
   /// Transform a point from the coordinate system of the [ScalableImage] into
   /// the container's coordinate system.  This method adjusts for
   /// the origin of the SI's viewport.
   ///
-  Point<double> toContainerCoordinate(final Point<double> si) => Point(
-      (si.x - siViewport.left) / scaleX + translateX,
-      (si.y - siViewport.top) / scaleY + translateY);
+  Offset toContainerCoordinate(final Offset si) => Offset(
+      (si.dx - siViewport.left) * scaleX + translateX,
+      (si.dy - siViewport.top) * scaleY + translateY);
 }
