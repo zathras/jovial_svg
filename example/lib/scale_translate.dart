@@ -38,16 +38,17 @@ class Body extends StatefulWidget {
 }
 
 const _alignmentValues = [
-Alignment.topLeft,
-Alignment.topCenter,
-Alignment.topRight,
-Alignment.centerLeft,
-Alignment.center,
-Alignment.centerRight,
-Alignment.bottomLeft,
-Alignment.bottomCenter,
-Alignment.bottomRight,
+  Alignment.topLeft,
+  Alignment.topCenter,
+  Alignment.topRight,
+  Alignment.centerLeft,
+  Alignment.center,
+  Alignment.centerRight,
+  Alignment.bottomLeft,
+  Alignment.bottomCenter,
+  Alignment.bottomRight,
 ];
+
 class _BodyState extends State<Body> {
   var fitIndex = 0;
   BoxFit get fit => BoxFit.values[fitIndex];
@@ -134,15 +135,14 @@ class MyPainter extends CustomPainter {
     final p = Paint()..color = Colors.black;
 
     for (final c in state.clicks) {
-    // We store the clicks in the SVG's coordinate space, so we need to
-    // transform them back out to the container's.
-    final xform = ScalingTransform(
-        containerSize: size,
-        siViewport: state.widget.si.viewport,
-        fit: state.fit,
-        alignment: state.alignment
-    );
-    canvas.drawCircle(xform.toContainerCoordinate(c), 5, p);
+      // We store the clicks in the SVG's coordinate space, so we need to
+      // transform them back out to the container's.
+      final xform = ScalingTransform(
+          containerSize: size,
+          siViewport: state.widget.si.viewport,
+          fit: state.fit,
+          alignment: state.alignment);
+      canvas.drawCircle(xform.toContainerCoordinate(c), 5, p);
     }
   }
 
