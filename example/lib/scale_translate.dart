@@ -134,14 +134,14 @@ class MyPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final p = Paint()..color = Colors.black;
 
+    // We store the clicks in the SVG's coordinate space, so we need to
+    // transform them back out to the container's.
+    final xform = ScalingTransform(
+        containerSize: size,
+        siViewport: state.widget.si.viewport,
+        fit: state.fit,
+        alignment: state.alignment);
     for (final c in state.clicks) {
-      // We store the clicks in the SVG's coordinate space, so we need to
-      // transform them back out to the container's.
-      final xform = ScalingTransform(
-          containerSize: size,
-          siViewport: state.widget.si.viewport,
-          fit: state.fit,
-          alignment: state.alignment);
       canvas.drawCircle(xform.toContainerCoordinate(c), 5, p);
     }
   }
