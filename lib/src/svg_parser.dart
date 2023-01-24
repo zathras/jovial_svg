@@ -66,6 +66,13 @@ abstract class SvgParser extends GenericParser {
   final List<SvgGroup> _parentStack = [];
   final List<_TagEntry> _tagStack = [];
 
+  // Size of our viewbox, for measurements with percentage units.  This isn't
+  // adjusted for transforms -- Tiny doesn't mention anything about doing such
+  // transforms.  cf. Tiny s. 7.10.  100x100 is just a default to use if the
+  // SVG doesn't specify a viewport or a width/height.
+  double _widthForPercentages = 100;
+  double _heightForPercentages = 100;
+
   SvgText? _currentText;
   StringBuffer? _currentStyle; // Within a style tag
   SvgGradientNode? _currentGradient;
@@ -219,8 +226,12 @@ abstract class SvgParser extends GenericParser {
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
     final SvgRoot root;
     if (viewbox == null) {
+      _widthForPercentages = width ?? _widthForPercentages;
+      _heightForPercentages = height ?? _heightForPercentages;
       root = SvgRoot();
     } else {
+      _widthForPercentages = viewbox.width;
+      _heightForPercentages = viewbox.height;
       final transform = MutableAffine.identity();
       if (width != null && height != null) {
         final sx = width / viewbox.width;
@@ -274,8 +285,8 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processSymbol(Map<String, String> attrs) {
-    double? width = getFloat(attrs.remove('width'));
-    double? height = getFloat(attrs.remove('height'));
+    double? width = getFloat(attrs.remove('width'), percent: _widthPercent);
+    double? height = getFloat(attrs.remove('height'), percent: _heightPercent);
     final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
     _processDefs({}, 'symbol');
     _processGroup(attrs);
@@ -301,10 +312,10 @@ abstract class SvgParser extends GenericParser {
     final mask = SvgMask();
     _processId(mask, attrs);
     _processInheritable(mask, attrs);
-    final x = getFloat(attrs.remove('x'));
-    final y = getFloat(attrs.remove('y'));
-    final width = getFloat(attrs.remove('width'));
-    final height = getFloat(attrs.remove('height'));
+    final x = getFloat(attrs.remove('x'), percent: _widthPercent);
+    final y = getFloat(attrs.remove('y'), percent: _heightPercent);
+    final width = getFloat(attrs.remove('width'), percent: _widthPercent);
+    final height = getFloat(attrs.remove('height'), percent: _heightPercent);
     final bool userSpace = attrs.remove('maskunits') == 'userSpaceOnUse';
     // This defaults to 'objectBoundingBox'
     if (x != null && y != null && width != null && height != null) {
@@ -339,12 +350,14 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processRect(Map<String, String> attrs) {
-    final double x = getFloat(attrs.remove('x')) ?? 0;
-    final double y = getFloat(attrs.remove('y')) ?? 0;
-    final double width = getFloat(attrs.remove('width')) ?? 0;
-    final double height = getFloat(attrs.remove('height')) ?? 0;
-    double? rx = getFloat(attrs.remove('rx'));
-    double? ry = getFloat(attrs.remove('ry')) ?? rx;
+    final double x = getFloat(attrs.remove('x'), percent: _widthPercent) ?? 0;
+    final double y = getFloat(attrs.remove('y'), percent: _heightPercent) ?? 0;
+    final double width =
+        getFloat(attrs.remove('width'), percent: _widthPercent) ?? 0;
+    final double height =
+        getFloat(attrs.remove('height'), percent: _heightPercent) ?? 0;
+    double? rx = getFloat(attrs.remove('rx'), percent: _widthPercent);
+    double? ry = getFloat(attrs.remove('ry'), percent: _heightPercent) ?? rx;
     rx ??= ry;
     if (rx == null) {
       assert(ry == null);
@@ -366,9 +379,10 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processCircle(Map<String, String> attrs) {
-    final double cx = getFloat(attrs.remove('cx')) ?? 0;
-    final double cy = getFloat(attrs.remove('cy')) ?? 0;
-    final double r = getFloat(attrs.remove('r')) ?? 0;
+    final double cx = getFloat(attrs.remove('cx'), percent: _widthPercent) ?? 0;
+    final double cy =
+        getFloat(attrs.remove('cy'), percent: _heightPercent) ?? 0;
+    final double r = getFloat(attrs.remove('r'), percent: _minPercent) ?? 0;
     final e = SvgEllipse('circle', cx, cy, r, r);
     _processId(e, attrs);
     _processInheritable(e, attrs);
@@ -377,10 +391,12 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processEllipse(Map<String, String> attrs) {
-    final double cx = getFloat(attrs.remove('cx')) ?? 0;
-    final double cy = getFloat(attrs.remove('cy')) ?? 0;
-    final double rx = getFloat(attrs.remove('rx')) ?? 0;
-    final double ry = getFloat(attrs.remove('ry')) ?? 0;
+    final double cx = getFloat(attrs.remove('cx'), percent: _widthPercent) ?? 0;
+    final double cy =
+        getFloat(attrs.remove('cy'), percent: _heightPercent) ?? 0;
+    final double rx = getFloat(attrs.remove('rx'), percent: _widthPercent) ?? 0;
+    final double ry =
+        getFloat(attrs.remove('ry'), percent: _heightPercent) ?? 0;
     final e = SvgEllipse('ellipse', cx, cy, rx, ry);
     _processId(e, attrs);
     _processInheritable(e, attrs);
@@ -389,10 +405,12 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processLine(Map<String, String> attrs) {
-    final double x1 = getFloat(attrs.remove('x1')) ?? 0;
-    final double y1 = getFloat(attrs.remove('y1')) ?? 0;
-    final double x2 = getFloat(attrs.remove('x2')) ?? 0;
-    final double y2 = getFloat(attrs.remove('y2')) ?? 0;
+    final double x1 = getFloat(attrs.remove('x1'), percent: _widthPercent) ?? 0;
+    final double y1 =
+        getFloat(attrs.remove('y1'), percent: _heightPercent) ?? 0;
+    final double x2 = getFloat(attrs.remove('x2'), percent: _widthPercent) ?? 0;
+    final double y2 =
+        getFloat(attrs.remove('y2'), percent: _heightPercent) ?? 0;
     final line = SvgPoly('line', false, [Point(x1, y1), Point(x2, y2)]);
     _processId(line, attrs);
     _processInheritable(line, attrs);
@@ -404,6 +422,7 @@ abstract class SvgParser extends GenericParser {
     final str = attrs.remove('points') ?? '';
     final lex = BnfLexer(str);
     final pts = lex.getFloatList();
+    // Units aren't allowed here - cf. Tiny 9.7.1
     if (!lex.eof) {
       warn('Unexpected characters at end of points:  $str');
     }
@@ -425,10 +444,12 @@ abstract class SvgParser extends GenericParser {
 
   void _processImage(Map<String, String> attrs) {
     final image = SvgImage();
-    image.x = getFloat(attrs.remove('x')) ?? image.x;
-    image.y = getFloat(attrs.remove('y')) ?? image.y;
-    image.width = getFloat(attrs.remove('width')) ?? image.width;
-    image.height = getFloat(attrs.remove('height')) ?? image.height;
+    image.x = getFloat(attrs.remove('x'), percent: _widthPercent) ?? image.x;
+    image.y = getFloat(attrs.remove('y'), percent: _heightPercent) ?? image.y;
+    image.width =
+        getFloat(attrs.remove('width'), percent: _widthPercent) ?? image.width;
+    image.height = getFloat(attrs.remove('height'), percent: _heightPercent) ??
+        image.height;
     String? data = attrs.remove('href');
     if (data != null) {
       // Remove spaces, newlines, etc.
@@ -450,8 +471,8 @@ abstract class SvgParser extends GenericParser {
 
   SvgText _processText(Map<String, String> attrs) {
     final n = SvgText(warn);
-    n.x = getFloatList(attrs.remove('x')) ?? n.x;
-    n.y = getFloatList(attrs.remove('y')) ?? n.y;
+    n.x = getFloatList(attrs.remove('x'), percent: _widthPercent) ?? n.x;
+    n.y = getFloatList(attrs.remove('y'), percent: _heightPercent) ?? n.y;
     _processId(n, attrs);
     _processInheritable(n, attrs);
     _warnUnusedAttributes(attrs);
@@ -460,10 +481,10 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processTextSpan(SvgTextSpan span, Map<String, String> attrs) {
-    span.dx = getFloatList(attrs.remove('dx'));
-    span.dy = getFloatList(attrs.remove('dy'));
-    span.x = getFloatList(attrs.remove('x'));
-    span.y = getFloatList(attrs.remove('y'));
+    span.dx = getFloatList(attrs.remove('dx'), percent: _widthPercent);
+    span.dy = getFloatList(attrs.remove('dy'), percent: _heightPercent);
+    span.x = getFloatList(attrs.remove('x'), percent: _widthPercent);
+    span.y = getFloatList(attrs.remove('y'), percent: _heightPercent);
     _processInheritableText(span, attrs);
     _warnUnusedAttributes(attrs);
   }
@@ -586,8 +607,8 @@ abstract class SvgParser extends GenericParser {
     final use = SvgUse(href);
     _processId(use, attrs);
     _processInheritable(use, attrs);
-    final x = getFloat(attrs.remove('x'));
-    final y = getFloat(attrs.remove('y'));
+    final x = getFloat(attrs.remove('x'), percent: _widthPercent);
+    final y = getFloat(attrs.remove('y'), percent: _heightPercent);
     attrs.remove('width'); // Meaningless, but harmless
     attrs.remove('height'); // Meaningless, but harmless
     if (x != null || y != null) {
@@ -650,7 +671,8 @@ abstract class SvgParser extends GenericParser {
     }
     p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim());
     p.strokeAlpha = getAlpha(attrs.remove('stroke-opacity'));
-    p.strokeWidth = getFloat(attrs.remove('stroke-width'));
+    p.strokeWidth =
+        getFloat(attrs.remove('stroke-width'), percent: _minPercent);
     p.strokeCap = getStrokeCap(attrs.remove('stroke-linecap'));
     p.strokeJoin = getStrokeJoin(attrs.remove('stroke-linejoin'));
     p.strokeMiterLimit = getFloat(attrs.remove('stroke-miterlimit'));
@@ -1019,6 +1041,11 @@ abstract class SvgParser extends GenericParser {
       pos = (lastPos == pos) ? pos++ : pos; // Cowardice is good
     }
   }
+
+  double _widthPercent(double val) => (val / 100) * _widthForPercentages;
+  double _heightPercent(double val) => (val / 100) * _heightForPercentages;
+  double _minPercent(double val) =>
+      (val / 100) * (min(_heightForPercentages, _widthForPercentages));
 }
 
 class _TagEntry {

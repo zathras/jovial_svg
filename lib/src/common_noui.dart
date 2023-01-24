@@ -785,7 +785,7 @@ abstract class GenericParser {
     }
   }
 
-  List<double>? getFloatList(String? s) {
+  List<double>? getFloatList(String? s, {double Function(double)? percent}) {
     if (s == null) {
       return null;
     } else if (s.toLowerCase() == 'none') {
@@ -794,9 +794,12 @@ abstract class GenericParser {
     final lex = BnfLexer(s);
     final r = List<double>.empty(growable: true);
     for (;;) {
-      final d = lex.tryNextFloat();
+      var d = lex.tryNextFloat();
       if (d == null) {
         break;
+      }
+      if (percent != null && lex.tryNextMatch('%') != null) {
+        d = percent(d);
       }
       r.add(d);
     }
@@ -916,7 +919,7 @@ class BnfLexer {
   ///
   /// Return the next string that matches [matcher], or null if there is none.
   ///
-  String? tryNextMatch(RegExp matcher) {
+  String? tryNextMatch(Pattern matcher) {
     skipWhitespace();
     final Match? m = matcher.matchAsPrefix(source, _pos);
     if (m == null) {

@@ -2,6 +2,8 @@
 
 - Add `ScalableImageWidget.isComplex`
 - Fix bug in ScalableImageWidget resulting in excessive repaint (issue 37)
+- Expose scale/align logic via `ScalingTransform`
+- Allow percentage units
 
 ## [1.1.9] - January 2023
 
