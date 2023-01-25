@@ -4,6 +4,7 @@
 - Fix bug in ScalableImageWidget resulting in excessive repaint (issue 37)
 - Expose scale/align logic via `ScalingTransform`
 - Allow percentage units
+- Add `currentColor` parameter to `ScalableImageWidget`
 
 ## [1.1.9] - January 2023
 

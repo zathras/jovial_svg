@@ -17,20 +17,32 @@ void main() {
 ///
 /// A minimal application demonstrating SVG's currentColor feature.
 ///
-class MinimalSample extends StatefulWidget {
-  final ScalableImage initial;
+class MinimalSample extends StatelessWidget {
+  final ScalableImage si;
 
-  const MinimalSample(this.initial, {Key? key}) : super(key: key);
+  const MinimalSample(this.si, {Key? key}) : super(key: key);
 
   @override
-  State<MinimalSample> createState() => _MinimalSampleState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        title: 'SVG scale/translate sample', home: Scaffold(body: Body(si)));
+  }
 }
 
-class _MinimalSampleState extends State<MinimalSample> {
+class Body extends StatefulWidget {
+  final ScalableImage initial;
+
+  const Body(this.initial, {Key? key}) : super(key: key);
+
+  @override
+  State<Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<Body> {
   ScalableImage current = ScalableImage.blank();
   final rand = Random();
 
-  _MinimalSampleState();
+  _BodyState();
 
   @override
   initState() {
@@ -40,19 +52,16 @@ class _MinimalSampleState extends State<MinimalSample> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'SVG currentColor Sample',
-        home: Column(children: [
-          ScalableImageWidget(si: current),
-          ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  final currentColor =
-                      Color(rand.nextInt(0xffffff) | 0xff000000);
-                  current = widget.initial.modifyCurrentColor(currentColor);
-                });
-              },
-              child: const Text('Change currentColor')),
-        ]));
+    return Column(children: [
+      ScalableImageWidget(si: current),
+      ElevatedButton(
+          onPressed: () {
+            setState(() {
+              final currentColor = Color(rand.nextInt(0xffffff) | 0xff000000);
+              current = current.modifyCurrentColor(currentColor);
+            });
+          },
+          child: const Text('Change currentColor')),
+    ]);
   }
 }

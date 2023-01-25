@@ -134,6 +134,10 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [onError] is called to give a widget to show if the asset has failed
   /// loading.  It defaults to onLoading.
   ///
+  /// [currentColor], if provided, sets the [ScalableImage.currentColor] of
+  /// the displayed image, using [ScalableImage.modifyCurrentColor] to create
+  /// an appropriate [ScalableImage] instance.
+  ///
   /// [background], if provided, will be the background color for a layer under
   /// the SVG asset.  In relatively rare circumstances, this can be needed.
   /// For example, browsers generally render an SVG over a white background,
@@ -157,6 +161,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       Alignment alignment = Alignment.center,
       bool clip = true,
       double scale = 1,
+      Color? currentColor,
       Color? background,
       bool reload = false,
       bool isComplex = false,
@@ -170,7 +175,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       cache.forceReload(si);
     }
     return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache,
-        onLoading, onError, background, isComplex);
+        onLoading, onError, currentColor, background, isComplex);
   }
 }
 
@@ -302,6 +307,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Alignment _alignment;
   final bool _clip;
   final double _scale;
+  final Color? _currentColor;
   final Color? _background;
   final Widget Function(BuildContext) _onLoading;
   final Widget Function(BuildContext) _onError;
@@ -316,6 +322,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
       this._cache,
       this._onLoading,
       this._onError,
+      this._currentColor,
       this._background,
       bool isComplex)
       : super._p(key, isComplex);
@@ -371,12 +378,17 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final si = _si;
+    var si = _si;
     if (si == null) {
       return widget._onLoading(context);
     } else if (identical(si, _error)) {
       return widget._onError(context);
     } else {
+      final cc = widget._currentColor;
+      if (cc != null) {
+        si = si.modifyCurrentColor(cc);
+        // Very cheap, just one instance creation
+      }
       return _SyncSIWidget(null, si, widget._fit, widget._alignment,
           widget._clip, widget._scale, widget._background, widget.isComplex);
     }
@@ -498,6 +510,13 @@ abstract class ScalableImageSource {
   /// a production app, it's better to pre-compile the file -- see
   /// [ScalableImageSource.fromSI]
   ///
+  /// [currentColor], if set, will set the currentColor value of the
+  /// [ScalableImage] instance returned.  Note, however, that if the same
+  /// image is used with more than one `currentColor` value, it's best to
+  /// not set it here, and instead set it in the widget, e.g. with the
+  /// `currentColor` parameter of [ScalableImageWidget.fromSISource].
+  /// See also [ScalableImage.currentColor].
+  ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  It will
   /// occupy perhaps an order of magnitude less memory, but render perhaps
@@ -508,8 +527,6 @@ abstract class ScalableImageSource {
   /// If [warnF] is non-null, it will be called if the AVD asset contains
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
-  ///
-  /// See also [ScalableImage.currentColor].
   ///
   static ScalableImageSource fromSvg(AssetBundle bundle, String key,
           {Color? currentColor,
@@ -524,6 +541,13 @@ abstract class ScalableImageSource {
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
   /// a http:, https: or data: URL.
+  ///
+  /// [currentColor], if set, will set the currentColor value of the
+  /// [ScalableImage] instance returned.  Note, however, that if the same
+  /// image is used with more than one `currentColor` value, it's best to
+  /// not set it here, and instead set it in the widget, e.g. with the
+  /// `currentColor` parameter of [ScalableImageWidget.fromSISource].
+  /// See also [ScalableImage.currentColor].
   ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  It will
@@ -540,8 +564,6 @@ abstract class ScalableImageSource {
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
   /// to UTF8.
-  ///
-  /// See also [ScalableImage.currentColor].
   ///
   static ScalableImageSource fromSvgHttpUrl(Uri url,
           {Color? currentColor,
@@ -562,6 +584,13 @@ abstract class ScalableImageSource {
   /// Get a [ScalableImage] by parsing an AVD XML file from
   /// a http:, https: or data: URL.
   ///
+  /// [currentColor], if set, will set the currentColor value of the
+  /// [ScalableImage] instance returned.  Note, however, that if the same
+  /// image is used with more than one `currentColor` value, it's best to
+  /// not set it here, and instead set it in the widget, e.g. with the
+  /// `currentColor` parameter of [ScalableImageWidget.fromSISource].
+  /// See also [ScalableImage.currentColor].
+  ///
   /// If [compact] is true, the internal representation will occupy
   /// significantly less memory, at the expense of rendering time.  It will
   /// occupy perhaps an order of magnitude less memory, but render perhaps
@@ -577,8 +606,6 @@ abstract class ScalableImageSource {
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
   /// to UTF8.
-  ///
-  /// See also [ScalableImage.currentColor].
   ///
   static ScalableImageSource fromAvdHttpUrl(Uri url,
           {Color? currentColor,
@@ -601,6 +628,11 @@ abstract class ScalableImageSource {
   ///  `dart run jovial_svg:svg_to_si` or `dart run jovial_svg:avd_to_si`.
   ///  Pre-compiled files load about an order of magnitude faster.
   ///
+  /// [currentColor], if set, will set the currentColor value of the
+  /// [ScalableImage] instance returned.  Note, however, that if the same
+  /// image is used with more than one `currentColor` value, it's best to
+  /// not set it here, and instead set it in the widget, e.g. with the
+  /// `currentColor` parameter of [ScalableImageWidget.fromSISource].
   /// See also [ScalableImage.currentColor].
   ///
 
