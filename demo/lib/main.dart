@@ -150,7 +150,7 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 
   void _launch(String name) {
-    launch('$_imageBaseURL/$name', forceWebView: true);
+    launchUrl(Uri.parse('$_imageBaseURL/$name'));
   }
 
   void _pasteURL(BuildContext context) {

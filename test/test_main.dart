@@ -347,6 +347,13 @@ class CanvasRecorder implements Canvas {
   }
 
   @override
+  void restoreToCount(int count) {
+    while (_saveCount > 1 && _saveCount > count) {
+      restore();
+    }
+  }
+
+  @override
   void rotate(double radians) {
     record('rotate $radians');
   }

@@ -56,9 +56,9 @@ abstract class Affine {
 
   void _checkIndices(int row, int col) {
     if (row < 0 || row > 2) {
-      throw IndexError(row, this);
+      throw IndexError.withLength(row, 3, indexable: this);
     } else if (col < 0 || col > 2) {
-      throw IndexError(row, this);
+      throw IndexError.withLength(col, 3, indexable: this);
     }
   }
 
