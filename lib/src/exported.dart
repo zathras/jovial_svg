@@ -241,6 +241,9 @@ abstract class ScalableImage {
   /// throws a [StateError].  The compact representation is obtained
   /// by passing a `compact` flag when the image is created.
   ///
+  /// See also the top-level documentation at https://pub.dev/packages/jovial_svg,
+  /// under "Quick Loading Binary Format," and under "Goals and Package Evolution."
+  ///
   Uint8List toSIBytes();
 
   ///
