@@ -1,3 +1,7 @@
+## [1.1.11] - February 2023
+
+- Require Dart SDK 2.19 (issue 42)
+
 ## [1.1.10] - January 2023
 
 - Add `ScalableImageWidget.isComplex`
