@@ -1,3 +1,8 @@
+## [1.1.12] - February 2023
+
+- Made `ScalableImageWidget` from an `SISource` more robustly avoid flashing when SI is in cache.
+- Added `ifAvailableSync` parameter to `ScalableImageCache.addReference`
+
 ## [1.1.11] - February 2023
 
 - Require Dart SDK 2.19 (issue 42)

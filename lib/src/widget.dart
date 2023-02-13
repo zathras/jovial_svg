@@ -341,8 +341,14 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   @override
   void initState() {
     super.initState();
-    Future<ScalableImage> si = widget._cache.addReference(widget._siSource);
-    _registerWithFuture(widget._siSource, si);
+    ScalableImage? siSync;
+    Future<ScalableImage> si = widget._cache
+        .addReference(widget._siSource, ifAvailableSync: (s) => siSync = s);
+    if (siSync != null) {
+      _si = siSync;
+    } else {
+      _registerWithFuture(widget._siSource, si);
+    }
   }
 
   @override
@@ -884,6 +890,7 @@ class _SIBundleSource extends ScalableImageSource {
 class _CacheEntry {
   final ScalableImageSource? _siSrc;
   final Future<ScalableImage>? _si;
+  ScalableImage? _siSync; // If the future has completed, cache result
   int _refCount = 0;
   _CacheEntry? _moreRecent;
   _CacheEntry? _lessRecent;
@@ -971,7 +978,12 @@ class ScalableImageCache {
   /// Application code should use the returned future, and not use
   /// [ScalableImageSource.createSI] directly.
   ///
-  Future<ScalableImage> addReference(ScalableImageSource src) {
+  /// [src]  The source of the scalable image
+  /// [ifAvailableSync]  An optional function that is called synchronously if
+  /// the `ScalableImage` is available in the cache.  (Added in version
+  /// 1.1.12)
+  Future<ScalableImage> addReference(ScalableImageSource src,
+      {ScalableImage Function(ScalableImage)? ifAvailableSync}) async {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
       e = _CacheEntry(src, src.createSI());
@@ -989,7 +1001,19 @@ class ScalableImageCache {
       }
     }
     e._refCount++;
-    return e._si!;
+    final s = e._siSync;
+    if (s != null) {
+      if (ifAvailableSync != null) {
+        // It's annoying that Dart doesn't expose something like
+        // instantiatable FutureOr, or a synchronous Future.ifCompleted.
+        ifAvailableSync(s);
+      }
+      return e._si!;
+    } else {
+      final s = await e._si!;
+      e._siSync = s;
+      return s;
+    }
   }
 
   void _verifyCorrectHash(ScalableImageSource key, ScalableImageSource found) {
