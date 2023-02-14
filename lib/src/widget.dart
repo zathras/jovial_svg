@@ -971,12 +971,10 @@ class ScalableImageCache {
   ///
   /// Called when a [ScalableImageSource] is referenced,
   /// e.g. in a stateful widget's [State] object's `initState` method.
-  /// Returns a Future for the scalable image.  Always
-  /// returns the same Future as previously returned if the given source is
-  /// in the cache.
+  /// Returns a Future for the scalable image.
   ///
-  /// Application code should use the returned future, and not use
-  /// [ScalableImageSource.createSI] directly.
+  /// Application code where cache is present should use the returned
+  /// future, and not use [ScalableImageSource.createSI] directly.
   ///
   /// [src]  The source of the scalable image
   /// [ifAvailableSync]  An optional function that is called synchronously if
