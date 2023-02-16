@@ -1,3 +1,8 @@
+
+## [1.1.13] - Not yet scheduled
+
+- Make the slightly more elegant `ScalableImageCache.addReferenceV2()`
+
 ## [1.1.12] - February 2023
 
 - Made `ScalableImageWidget` from an `SISource` more robustly avoid flashing when SI is in cache.

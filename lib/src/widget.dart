@@ -341,11 +341,9 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   @override
   void initState() {
     super.initState();
-    ScalableImage? siSync;
-    Future<ScalableImage> si = widget._cache
-        .addReference(widget._siSource, ifAvailableSync: (s) => siSync = s);
-    if (siSync != null) {
-      _si = siSync;
+    FutureOr<ScalableImage> si = widget._cache.addReferenceV2(widget._siSource);
+    if (si is ScalableImage) {
+      _si = si;
     } else {
       _registerWithFuture(widget._siSource, si);
     }
@@ -361,10 +359,15 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   void didUpdateWidget(_AsyncSIWidget old) {
     super.didUpdateWidget(old);
     if (old._siSource != widget._siSource || old._cache != widget._cache) {
-      Future<ScalableImage> si = widget._cache.addReference(widget._siSource);
+      FutureOr<ScalableImage> si =
+          widget._cache.addReferenceV2(widget._siSource);
       old._cache.removeReference(old._siSource);
-      _si = null;
-      _registerWithFuture(widget._siSource, si);
+      if (si is ScalableImage) {
+        _si = si;
+      } else {
+        _si = null;
+        _registerWithFuture(widget._siSource, si);
+      }
     }
   }
 
@@ -889,8 +892,7 @@ class _SIBundleSource extends ScalableImageSource {
 // doubly-linked list is hard, anyway.
 class _CacheEntry {
   final ScalableImageSource? _siSrc;
-  final Future<ScalableImage>? _si;
-  ScalableImage? _siSync; // If the future has completed, cache result
+  FutureOr<ScalableImage>? _si;
   int _refCount = 0;
   _CacheEntry? _moreRecent;
   _CacheEntry? _lessRecent;
@@ -898,11 +900,22 @@ class _CacheEntry {
   // Invariant:  If _moreRecent is null, refCount > 0
   // Invariant:  If _lessRecent is null, refCount > 0
 
-  _CacheEntry(ScalableImageSource this._siSrc, Future<ScalableImage> this._si);
+  _CacheEntry(ScalableImageSource this._siSrc, Future<ScalableImage> this._si) {
+    unawaited(_replaceFuture());
+  }
 
   _CacheEntry._null()
       : _siSrc = null,
         _si = null;
+
+  Future<void> _replaceFuture() async {
+    try {
+      _si = await _si!;
+    } catch (e) {
+      // Ignore -- leave the Future instance in the cache; it has the
+      // error, ready and waiting for anyone who awaits.
+    }
+  }
 }
 
 ///
@@ -976,12 +989,36 @@ class ScalableImageCache {
   /// Application code where cache is present should use the returned
   /// future, and not use [ScalableImageSource.createSI] directly.
   ///
+  /// This method calls [addReferenceV2].
+  ///
   /// [src]  The source of the scalable image
   /// [ifAvailableSync]  An optional function that is called synchronously if
   /// the `ScalableImage` is available in the cache.  (Added in version
   /// 1.1.12)
+  @Deprecated('Use addReferenceV2 instead')
   Future<ScalableImage> addReference(ScalableImageSource src,
-      {ScalableImage Function(ScalableImage)? ifAvailableSync}) async {
+      {ScalableImage Function(ScalableImage)? ifAvailableSync}) {
+    final result = addReferenceV2(src);
+    if (result is Future<ScalableImage>) {
+      return result;
+    } else {
+      if (ifAvailableSync != null) {
+        ifAvailableSync(result);
+      }
+      return Future.value(result);
+    }
+  }
+
+  ///
+  /// Called when a [ScalableImageSource] is referenced,
+  /// e.g. in a stateful widget's [State] object's `initState` method.
+  /// Returns a Future for the scalable image.
+  ///
+  /// Application code where cache is present should use the returned
+  /// future, and not use [ScalableImageSource.createSI] directly.
+  ///
+  /// [src]  The source of the scalable image
+  FutureOr<ScalableImage> addReferenceV2(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
       e = _CacheEntry(src, src.createSI());
@@ -999,19 +1036,7 @@ class ScalableImageCache {
       }
     }
     e._refCount++;
-    final s = e._siSync;
-    if (s != null) {
-      if (ifAvailableSync != null) {
-        // It's annoying that Dart doesn't expose something like
-        // instantiatable FutureOr, or a synchronous Future.ifCompleted.
-        ifAvailableSync(s);
-      }
-      return e._si!;
-    } else {
-      final s = await e._si!;
-      e._siSync = s;
-      return s;
-    }
+    return e._si!;
   }
 
   void _verifyCorrectHash(ScalableImageSource key, ScalableImageSource found) {
@@ -1028,7 +1053,7 @@ class ScalableImageCache {
   ///
   /// Called when a source is dereferenced, e.g. by a stateful widget's
   /// [State] object being disposed.  Throws an exception if there had been
-  /// no matching call to [addReference] for this source.
+  /// no matching call to [addReferenceV2] for this source.
   ///
   void removeReference(ScalableImageSource src) {
     _CacheEntry? e = _canonicalized[src];

@@ -460,7 +460,7 @@ void _cacheTest() {
   for (int i = 0; i < 80; i++) {
     final s = TestSource();
     referenced.add(s);
-    cache.addReference(s);
+    cache.addReferenceV2(s);
   }
   for (int i = 0; i < 100000; i++) {
     final v = referenced[i % referenced.length];
@@ -470,7 +470,7 @@ void _cacheTest() {
     if (i % 3500 == 0) {
       cache.forceReload(s);
     }
-    cache.addReference(s);
+    cache.addReferenceV2(s);
     if (i % 2000 == 0) {
       cache.size = cache.size + 7;
       cache.forceReload(s);
