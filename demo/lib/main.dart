@@ -162,8 +162,9 @@ class _DemoScreenState extends State<DemoScreen> {
         if (url == null || url == '') {
           error = 'Empty clipboard';
         } else {
-          final newSI =
-              await ScalableImage.fromSvgHttpUrl(Uri.parse(url.trim()));
+          final newSI = await ScalableImage.fromSvgHttpUrl(
+              Uri.parse(url.trim()),
+              warnF: (s) => debugPrint('Warning:  $s'));
           await newSI.prepareImages();
           setState(() {
             assetType = AssetType.svg;
