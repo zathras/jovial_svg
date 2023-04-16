@@ -1,6 +1,7 @@
 
-## [1.1.13] - Not yet scheduled
+## [1.1.13] - Soon
 
+- Fix degree/radian confusion in path's arc (issue 51)
 - Make the slightly more elegant `ScalableImageCache.addReferenceV2()`
 
 ## [1.1.12] - February 2023

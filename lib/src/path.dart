@@ -33,6 +33,7 @@ library jovial_svg.path;
 import 'dart:ui';
 import 'path_noui.dart';
 import 'common_noui.dart';
+import 'dart:math' show pi;
 
 ///
 /// Buidler of a Flutter UI path.  See [PathBuilder] for usage.
@@ -55,7 +56,7 @@ class UIPathBuilder implements PathBuilder {
           required bool clockwise}) =>
       path.arcToPoint(newOffset(arcEnd),
           radius: newRadius(radius),
-          rotation: rotation,
+          rotation: rotation * 180 / pi,
           largeArc: largeArc,
           clockwise: clockwise);
 
