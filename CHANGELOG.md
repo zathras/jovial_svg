@@ -1,5 +1,5 @@
 
-## [1.1.13] - Soon
+## [1.1.13] - April 2023
 
 - Fix degree/radian confusion in path's arc (issue 51)
 - Make the slightly more elegant `ScalableImageCache.addReferenceV2()`
