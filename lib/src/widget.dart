@@ -581,13 +581,13 @@ abstract class ScalableImageSource {
           @Deprecated("[warn] has been superceded by [warnF].") bool warn =
               true,
           void Function(String)? warnF,
-          Encoding defaultEncoding = utf8}) =>
+          Encoding defaultEncoding = utf8, Map<String, String>? headers,}) =>
       _SvgHttpSource(url, currentColor,
           compact: compact,
           bigFloats: bigFloats,
           warn: warn,
           warnF: warnF,
-          defaultEncoding: defaultEncoding);
+          defaultEncoding: defaultEncoding, Map<String, String>? headers,);
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -757,13 +757,15 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   final void Function(String)? warnF;
   final Encoding defaultEncoding;
+  final Map<String, String>? headers;
 
   _SvgHttpSource(this.url, this.currentColor,
       {required this.compact,
       required this.bigFloats,
       required this.warn,
       required this.warnF,
-      this.defaultEncoding = utf8});
+      this.defaultEncoding = utf8,
+      Map<String, String>? headers,});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -774,7 +776,7 @@ class _SvgHttpSource extends ScalableImageSource {
       compact: compact,
       bigFloats: bigFloats,
       warnF: _warnArg,
-      defaultEncoding: defaultEncoding);
+      defaultEncoding: defaultEncoding, headers:headers);
 
   @override
   bool operator ==(final Object other) {
@@ -785,6 +787,7 @@ class _SvgHttpSource extends ScalableImageSource {
           bigFloats == other.bigFloats &&
           warn == other.warn &&
           warnF == other.warnF &&
+          headers == other.headers &&
           defaultEncoding == other.defaultEncoding;
     } else {
       return false;
