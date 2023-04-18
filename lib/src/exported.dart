@@ -405,7 +405,7 @@ abstract class ScalableImage {
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
       Color? currentColor,
-      Encoding defaultEncoding = utf8, Map<String, dynamic> headers,}) async {
+      Encoding defaultEncoding = utf8, Map<String, String>? headers,}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     return fromSvgString(await _getContent(url, defaultEncoding, headers),
         compact: compact,
@@ -550,13 +550,13 @@ abstract class ScalableImage {
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
       Encoding defaultEncoding = utf8,
-      Map<String, dynamic> headers = {},}) async {
+      Map<String, String>? headers = {},}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     return fromAvdString(await _getContent(url, defaultEncoding, headers),
         compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
 
-  static Future<String> _getContent(Uri url, Encoding defaultEncodingn, Map<String, dynamic> headers) async {
+  static Future<String> _getContent(Uri url, Encoding defaultEncodingn, Map<String, String>? headers) async {
     String? content = url.data?.contentAsString(encoding: defaultEncoding);
     if (content == null) {
       final client = http.Client();
