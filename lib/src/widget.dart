@@ -587,7 +587,9 @@ abstract class ScalableImageSource {
           bigFloats: bigFloats,
           warn: warn,
           warnF: warnF,
-          defaultEncoding: defaultEncoding, Map<String, String>? headers,);
+          defaultEncoding: defaultEncoding, 
+          headers: headers,
+          );
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -765,7 +767,7 @@ class _SvgHttpSource extends ScalableImageSource {
       required this.warn,
       required this.warnF,
       this.defaultEncoding = utf8,
-      Map<String, String>? headers,});
+      this.headers,});
 
   @override
   Future<ScalableImage> get si => createSI();
