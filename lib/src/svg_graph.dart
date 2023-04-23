@@ -921,6 +921,8 @@ class SvgMasked extends SvgNode {
 
 class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   String? childID;
+  double? width;
+  double? height;
 
   SvgUse(this.childID);
 
@@ -947,6 +949,48 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
     if (n == null || transform?.determinant() == 0.0) {
       return null;
     }
+    if (n is SvgSymbol && width != null && height != null) {
+      // We need to scale our child, as specified in
+      // https://www.w3.org/TR/2011/REC-SVG11-20110816/single-page.html#struct-UseElement
+      // section 5.6, and https://github.com/zathras/jovial_svg/issues/54
+      final double sx;
+      final double sy;
+      Rectangle<double>? symbolViewbox;
+      if (n.height == null || n.width == null) {
+        symbolViewbox =
+            n.viewbox ?? n._getUntransformedBounds(SvgTextAttributes.empty());
+      }
+      final w = width;
+      if (w == null) {
+        sx = 1;
+      } else {
+        final symbolWidth = n.width ?? symbolViewbox?.width;
+        if (symbolWidth == null) {
+          sx = 1;
+        } else {
+          sx = w / symbolWidth;
+        }
+      }
+      final h = height;
+      if (h == null) {
+        sy = 1;
+      } else {
+        final symbolHeight = n.height ?? symbolViewbox?.height;
+        if (symbolHeight == null) {
+          sy = 1;
+        } else {
+          sy = h / symbolHeight;
+        }
+      }
+      if (sx != 1 || sy != 1) {
+        final t = MutableAffine.scale(sx, sy);
+        if (transform == null) {
+          transform = t;
+        } else {
+          transform!.multiplyBy(t);
+        }
+      }
+    }
     final g = SvgGroup(paint: paint);
     g.groupAlpha = groupAlpha;
     g.transform = transform;
@@ -970,6 +1014,12 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   @override
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
       unreachable(true); // Called after resolve, so we can't get here
+}
+
+class SvgSymbol extends SvgGroup {
+  Rectangle<double>? viewbox;
+  double? width;
+  double? height;
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributesNode

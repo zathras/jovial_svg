@@ -266,8 +266,8 @@ abstract class SvgParser extends GenericParser {
     _parentStack.add(r.root);
   }
 
-  void _processGroup(Map<String, String> attrs) {
-    final group = SvgGroup();
+  void _processGroup(Map<String, String> attrs, [SvgGroup? group]) {
+    group ??= SvgGroup();
     _processId(group, attrs);
     _processInheritable(group, attrs);
     _warnUnusedAttributes(attrs);
@@ -285,12 +285,14 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processSymbol(Map<String, String> attrs) {
-    double? width = getFloat(attrs.remove('width'), percent: _widthPercent);
-    double? height = getFloat(attrs.remove('height'), percent: _heightPercent);
-    final Rectangle<double>? viewbox = getViewbox(attrs.remove('viewbox'));
+    final us = SvgSymbol();
+    final width =
+        us.width = getFloat(attrs.remove('width'), percent: _widthPercent);
+    final height =
+        us.height = getFloat(attrs.remove('height'), percent: _heightPercent);
+    final viewbox = us.viewbox = getViewbox(attrs.remove('viewbox'));
     _processDefs({}, 'symbol');
-    _processGroup(attrs);
-    SvgGroup us = _parentStack.last;
+    _processGroup(attrs, us);
     if (viewbox == null) {
       return;
     }
@@ -609,8 +611,8 @@ abstract class SvgParser extends GenericParser {
     _processInheritable(use, attrs);
     final x = getFloat(attrs.remove('x'), percent: _widthPercent);
     final y = getFloat(attrs.remove('y'), percent: _heightPercent);
-    attrs.remove('width'); // Meaningless, but harmless
-    attrs.remove('height'); // Meaningless, but harmless
+    use.width = getFloat(attrs.remove('width'), percent: _widthPercent);
+    use.height = getFloat(attrs.remove('height'), percent: _heightPercent);
     if (x != null || y != null) {
       final xform = use.transform;
       final translate = MutableAffine.translation(x ?? 0, y ?? 0);

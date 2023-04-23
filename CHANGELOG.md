@@ -1,4 +1,8 @@
 
+## [1.1.14] - April 2023
+
+- Implement `use` tag scaling a `symbol` (issue 54)
+
 ## [1.1.13] - April 2023
 
 - Fix degree/radian confusion in path's arc (issue 51)
