@@ -392,6 +392,8 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [httpHeaders] will be added to the HTTP GET request.
+  ///
   /// [defaultEncoding] specifies the character encoding to use if the
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
@@ -399,15 +401,18 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromSvgHttpUrl(Uri url,
-      {bool compact = false,
-      bool bigFloats = false,
-      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
-      void Function(String)? warnF,
-      Color? currentColor,
-      Encoding defaultEncoding = utf8, Map<String, String>? headers,}) async {
+  static Future<ScalableImage> fromSvgHttpUrl(
+    Uri url, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+    Color? currentColor,
+    Encoding defaultEncoding = utf8,
+    Map<String, String>? httpHeaders,
+  }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromSvgString(await _getContent(url, defaultEncoding, headers),
+    return fromSvgString(await _getContent(url, defaultEncoding, httpHeaders),
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
@@ -537,6 +542,8 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [httpHeaders] will be added to the HTTP GET request.
+  ///
   /// [defaultEncoding] specifies the character encoding to use if the
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
@@ -544,24 +551,27 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromAvdHttpUrl(Uri url,
-      {bool compact = false,
-      bool bigFloats = false,
-      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
-      void Function(String)? warnF,
-      Encoding defaultEncoding = utf8,
-      Map<String, String>? headers,}) async {
+  static Future<ScalableImage> fromAvdHttpUrl(
+    Uri url, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+    Encoding defaultEncoding = utf8,
+    Map<String, String>? httpHeaders,
+  }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromAvdString(await _getContent(url, defaultEncoding, headers),
+    return fromAvdString(await _getContent(url, defaultEncoding, httpHeaders),
         compact: compact, bigFloats: bigFloats, warnF: warnArg);
   }
 
-  static Future<String> _getContent(Uri url, Encoding defaultEncoding, Map<String, String>? headers) async {
+  static Future<String> _getContent(Uri url, Encoding defaultEncoding,
+      Map<String, String>? httpHeaders) async {
     String? content = url.data?.contentAsString(encoding: defaultEncoding);
     if (content == null) {
       final client = http.Client();
       try {
-        final response = await client.get(url, headers: headers);
+        final response = await client.get(url, headers: httpHeaders);
         final ct = response.headers['content-type'];
         if (ct == null || !ct.toLowerCase().contains('charset')) {
           //  Use default if not specified in content-type header

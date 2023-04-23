@@ -2,6 +2,7 @@
 ## [1.1.14] - April 2023
 
 - Implement `use` tag scaling a `symbol` (issue 54)
+- Allow specification of HTTP GET headers
 
 ## [1.1.13] - April 2023
 

@@ -574,6 +574,8 @@ abstract class ScalableImageSource {
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
   /// to UTF8.
   ///
+  /// [httpHeaders] will be added to the HTTP GET request.
+  ///
   static ScalableImageSource fromSvgHttpUrl(Uri url,
           {Color? currentColor,
           bool compact = false,
@@ -581,15 +583,18 @@ abstract class ScalableImageSource {
           @Deprecated("[warn] has been superceded by [warnF].") bool warn =
               true,
           void Function(String)? warnF,
-          Encoding defaultEncoding = utf8, Map<String, String>? headers,}) =>
-      _SvgHttpSource(url, currentColor,
-          compact: compact,
-          bigFloats: bigFloats,
-          warn: warn,
-          warnF: warnF,
-          defaultEncoding: defaultEncoding, 
-          headers: headers,
-          );
+          Map<String, String>? httpHeaders,
+          Encoding defaultEncoding = utf8}) =>
+      _SvgHttpSource(
+        url,
+        currentColor,
+        compact: compact,
+        bigFloats: bigFloats,
+        warn: warn,
+        warnF: warnF,
+        defaultEncoding: defaultEncoding,
+        httpHeaders: httpHeaders,
+      );
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -613,6 +618,8 @@ abstract class ScalableImageSource {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [httpHeaders] will be added to the HTTP GET request.
+  ///
   /// [defaultEncoding] specifies the character encoding to use if the
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
@@ -625,12 +632,14 @@ abstract class ScalableImageSource {
           @Deprecated("[warn] has been superceded by [warnF].") bool warn =
               true,
           void Function(String)? warnF,
+          Map<String, String>? httpHeaders,
           Encoding defaultEncoding = utf8}) =>
       _AvdHttpSource(url,
           compact: compact,
           bigFloats: bigFloats,
           warn: warn,
           warnF: warnF,
+          httpHeaders: httpHeaders,
           defaultEncoding: defaultEncoding);
 
   ///
@@ -759,15 +768,15 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   final void Function(String)? warnF;
   final Encoding defaultEncoding;
-  final Map<String, String>? headers;
+  final Map<String, String>? httpHeaders;
 
   _SvgHttpSource(this.url, this.currentColor,
       {required this.compact,
       required this.bigFloats,
       required this.warn,
       required this.warnF,
-      this.defaultEncoding = utf8,
-      this.headers,});
+      required this.httpHeaders,
+      this.defaultEncoding = utf8});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -778,7 +787,8 @@ class _SvgHttpSource extends ScalableImageSource {
       compact: compact,
       bigFloats: bigFloats,
       warnF: _warnArg,
-      defaultEncoding: defaultEncoding, headers:headers);
+      defaultEncoding: defaultEncoding,
+      httpHeaders: httpHeaders);
 
   @override
   bool operator ==(final Object other) {
@@ -789,7 +799,7 @@ class _SvgHttpSource extends ScalableImageSource {
           bigFloats == other.bigFloats &&
           warn == other.warn &&
           warnF == other.warnF &&
-          headers == other.headers &&
+          httpHeaders == other.httpHeaders &&
           defaultEncoding == other.defaultEncoding;
     } else {
       return false;
@@ -799,12 +809,12 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   int get hashCode =>
       0xf7972f9b ^
-      Object.hash(
-          url, currentColor, compact, bigFloats, warn, warnF, defaultEncoding);
+      Object.hash(url, currentColor, compact, bigFloats, warn, warnF,
+          defaultEncoding, httpHeaders);
 
   @override
-  String toString() =>
-      '_SVGHttpSource($url $compact $bigFloats $currentColor $defaultEncoding)';
+  String toString() => '_SVGHttpSource($url $compact $bigFloats '
+      '$currentColor $defaultEncoding $httpHeaders)';
 }
 
 class _AvdHttpSource extends ScalableImageSource {
@@ -816,12 +826,14 @@ class _AvdHttpSource extends ScalableImageSource {
   @override
   final void Function(String)? warnF;
   final Encoding defaultEncoding;
+  final Map<String, String>? httpHeaders;
 
   _AvdHttpSource(this.url,
       {required this.compact,
       required this.bigFloats,
       required this.warn,
       required this.warnF,
+      required this.httpHeaders,
       this.defaultEncoding = utf8});
 
   @override
@@ -832,7 +844,8 @@ class _AvdHttpSource extends ScalableImageSource {
       compact: compact,
       bigFloats: bigFloats,
       warnF: _warnArg,
-      defaultEncoding: defaultEncoding);
+      defaultEncoding: defaultEncoding,
+      httpHeaders: httpHeaders);
 
   @override
   bool operator ==(final Object other) {
@@ -842,7 +855,8 @@ class _AvdHttpSource extends ScalableImageSource {
           bigFloats == other.bigFloats &&
           warn == other.warn &&
           warnF == other.warnF &&
-          defaultEncoding == other.defaultEncoding;
+          defaultEncoding == other.defaultEncoding &&
+          httpHeaders == other.httpHeaders;
     } else {
       return false;
     }
@@ -851,11 +865,12 @@ class _AvdHttpSource extends ScalableImageSource {
   @override
   int get hashCode =>
       0x95ccea44 ^
-      Object.hash(url, compact, bigFloats, warn, warnF, defaultEncoding);
+      Object.hash(
+          url, compact, bigFloats, warn, warnF, defaultEncoding, httpHeaders);
 
   @override
   String toString() =>
-      '_AVDHttpSource($url $compact $bigFloats $defaultEncoding)';
+      '_AVDHttpSource($url $compact $bigFloats $defaultEncoding, $httpHeaders)';
 }
 
 class _SIBundleSource extends ScalableImageSource {
