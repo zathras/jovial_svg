@@ -21,5 +21,7 @@ Sorry if this comes off as slightly obnoxious, but as the library has become mor
 **Describe the bug**
 A clear and concise description of what the bug is.  If a rendering/parsing bug, be sure to include a copy of a reasonably small SVG that reproduces the issue.
 
+Of course, for non-rendering bugs, standard rules of politeness apply:  You must include code or enough information so that the problem can be easily reproduced.  Generally, this means including a short stand-alone program that shows the problem.
+
 **Additional context**
 Add any other context about the problem here.
