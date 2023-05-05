@@ -1034,8 +1034,8 @@ class ScalableImageCache {
   /// e.g. in a stateful widget's [State] object's `initState` method.
   /// Returns a Future for the scalable image.
   ///
-  /// Application code where cache is present should use the returned
-  /// future, and not use [ScalableImageSource.createSI] directly.
+  /// Application code where a cache is present should use the returned
+  /// value, and not use [ScalableImageSource.createSI] directly.
   ///
   /// [src]  The source of the scalable image
   FutureOr<ScalableImage> addReferenceV2(ScalableImageSource src) {
