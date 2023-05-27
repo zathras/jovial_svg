@@ -68,4 +68,5 @@
 </radialGradient>
 
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" x="60" y="275">Get a job, hippie!</text>
+  <rect x="60" y="175" height="150" width="500" fill="url(#groovy)" />
 </svg>

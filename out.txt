@@ -1,0 +1,37 @@
+[✓] Flutter (Channel beta, 2.13.0-0.3.pre, on Ubuntu 20.04.4 LTS 5.13.0-40-generic, locale en_US.UTF-8)
+    • Flutter version 2.13.0-0.3.pre at /home/billf/snap/flutter/common/flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 5293f3cd44 (5 days ago), 2022-04-27 12:37:50 -0700
+    • Engine revision 3096903c89
+    • Dart version 2.17.0 (build 2.17.0-266.7.beta)
+    • DevTools version 2.12.2
+
+[✗] Android toolchain - develop for Android devices
+    ✗ Unable to locate Android SDK.
+      Install Android Studio from: https://developer.android.com/studio/index.html
+      On first launch it will assist you in installing the Android SDK components.
+      (or visit https://flutter.dev/docs/get-started/install/linux#android-setup for detailed instructions).
+      If the Android SDK has been installed to a custom location, please use
+      `flutter config --android-sdk` to update to that location.
+
+
+[✗] Chrome - develop for the web (Cannot find Chrome executable at google-chrome)
+    ! Cannot find Chrome. Try setting CHROME_EXECUTABLE to a Chrome executable.
+
+[✓] Linux toolchain - develop for Linux desktop
+    • clang version 6.0.0-1ubuntu2 (tags/RELEASE_600/final)
+    • cmake version 3.10.2
+    • ninja version 1.8.2
+    • pkg-config version 0.29.1
+
+[!] Android Studio (not installed)
+    • Android Studio not found; download from https://developer.android.com/studio/index.html
+      (or visit https://flutter.dev/docs/get-started/install/linux#android-setup for detailed instructions).
+
+[✓] Connected device (1 available)
+    • Linux (desktop) • linux • linux-x64 • Ubuntu 20.04.4 LTS 5.13.0-40-generic
+
+[✓] HTTP Host Availability
+    • All required HTTP hosts are available
+
+! Doctor found issues in 3 categories.

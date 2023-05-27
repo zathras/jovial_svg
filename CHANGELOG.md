@@ -1,4 +1,8 @@
 
+## [1.1.15] - May 2023
+
+- Bump version number of http dependency (issue 59)
+
 ## [1.1.14] - April 2023
 
 - Implement `use` tag scaling a `symbol` (issue 54)
