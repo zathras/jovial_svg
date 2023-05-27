@@ -1068,7 +1068,7 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitEndElementEvent(XmlEndElementEvent e) => parser._endTag(e);
 
   @override
-  void visitCDATAEvent(XmlCDATAEvent event) => parser._textEvent(event.text);
+  void visitCDATAEvent(XmlCDATAEvent event) => parser._textEvent(event.value);
 
   @override
   void visitCommentEvent(XmlCommentEvent event) {}
@@ -1083,7 +1083,7 @@ class _SvgParserEventHandler with XmlEventVisitor {
   void visitProcessingEvent(XmlProcessingEvent event) {}
 
   @override
-  void visitTextEvent(XmlTextEvent event) => parser._textEvent(event.text);
+  void visitTextEvent(XmlTextEvent event) => parser._textEvent(event.value);
 }
 
 class StreamSvgParser extends SvgParser {

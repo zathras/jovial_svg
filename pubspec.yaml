@@ -1,10 +1,10 @@
 name: jovial_svg
 description: SVG - Robust rendering of Scalable Vector Graphic images, supporting a well-defined profile of SVG and a fast-loading binary storage format.
-version: 1.1.15-rc.1
+version: 1.1.15
 homepage:  https://bill.jovial.com/
 
 environment:
-  sdk: ">=2.19.0 <3.0.0"
+  sdk: ">=2.19.0 <4.0.0"
   flutter: ">=3.0.0"
     #  SDK 2.19 required for IndexError.withLength.
     #  
@@ -23,7 +23,7 @@ environment:
     #  "pedantic," since unawaited was moved to async.
 
 dependencies:
-  xml: ^6.0.1
+  xml: ^6.3.0
   collection: ^1.15.0
   args: ^2.0.0
   vector_math: ^2.1.0
