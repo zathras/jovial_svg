@@ -206,3 +206,8 @@ it detects a newer file version number.  `.si` files are intended to be bundled
 as application resources alongside the library, and not used as a 
 publication format.
 
+## Internal Documentation
+
+There's a high-level overview of the source code in the repo, in
+`doc/index.html`.  This complements a reasonably (though not extensive)
+level of comments in the source itself.
