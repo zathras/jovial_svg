@@ -131,6 +131,7 @@ attributes.
   * Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  (Not
      in Tiny).
   * The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
+  * The pattern element is not supported (Not in Tiny; cf. SVG 13.3).
   * The `style` tag for inline CSS and the `style=` attribute are
      supported to specify node attributes (not in Tiny - cf. s. 6.2).
   * CSS attributes that don't have a corresponding SVG attribute generally
