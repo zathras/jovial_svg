@@ -83,14 +83,15 @@ to be a tree, not a DAG.  Many AVD files are created by converting SVG files,
 and contain a large number of identical paths.
 <p>
 The alert reader might notice that three of the canonicalized types are
-passed to the <code>init(images, strings, floatLists></code> method on
+passed to the <code>init(images, strings, floatLists)</code> method on
 <code>SIVisitor</code>, whereas path objects are not.  That's partly for
 historical reasons, and partly for simplicity.  Since the AVD file format
-has no forwards references, an intermediate parse graph is not needed, and
+has no forward references, an intermediate parse graph is not needed, and
 is not created.  Because of this, the path objects need to be canonicalized
 "on the fly," as the file is parsed.  Images, strings, and float lists are
 only present in the SVG file format, which is parsed to an intermediate
-parse graph, in order to handle forward references (the SVG <code>use</code>
+parse graph, in order to handle forward references (e.g.
+the SVG <code>use</code>
 element).  With an in-memory parse graph, it's trivially easy to do the
 canonicalization up front, before traversing the structure, and doing so
 simplifies the traversal (and thus, the binary file format).

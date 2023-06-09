@@ -131,6 +131,7 @@ attributes.
   * Object/group opacity is supported -- cf. SVG 1.1 s. 14.5.  (Not
      in Tiny).
   * The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
+  * The pattern element is not supported (Not in Tiny; cf. SVG 13.3).
   * The `style` tag for inline CSS and the `style=` attribute are
      supported to specify node attributes (not in Tiny - cf. s. 6.2).
   * CSS attributes that don't have a corresponding SVG attribute generally
@@ -206,3 +207,8 @@ it detects a newer file version number.  `.si` files are intended to be bundled
 as application resources alongside the library, and not used as a 
 publication format.
 
+## Internal Documentation
+
+There's a high-level overview of the source code in the repo, in
+`doc/index.html`.  This complements a reasonably (though not extensive)
+level of comments in the source itself.
