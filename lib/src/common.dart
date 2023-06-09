@@ -881,15 +881,35 @@ class _ImageLoader {
 
   bool get _disposeBuf =>
       ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.silentlyIgnoreErrors ||
+      ScalableImage.imageDisposeBugWorkaround ==
           ImageDisposeBugWorkaround.disposeBoth ||
       ScalableImage.imageDisposeBugWorkaround ==
           ImageDisposeBugWorkaround.disposeImmutableBuffer;
 
   bool get _disposeDescriptor =>
       ScalableImage.imageDisposeBugWorkaround ==
+          ImageDisposeBugWorkaround.silentlyIgnoreErrors ||
+      ScalableImage.imageDisposeBugWorkaround ==
           ImageDisposeBugWorkaround.disposeBoth ||
       ScalableImage.imageDisposeBugWorkaround ==
           ImageDisposeBugWorkaround.disposeImageDescriptor;
+
+  // https://github.com/zathras/jovial_svg/issues/62
+  static void callDispose(void Function() f) {
+    try {
+      f();
+    } catch (e, st) {
+      if (ScalableImage.imageDisposeBugWorkaround !=
+          ImageDisposeBugWorkaround.silentlyIgnoreErrors) {
+        debugPrint(
+            'WARNING:  Bug detected in Flutter image-related dispose() call.');
+        debugPrint('    Ignoring $e');
+        debugPrint('    See  https://github.com/zathras/jovial_svg/issues/62');
+        debugPrint('    Stack trace: $st');
+      }
+    }
+  }
 
   Future<void> prepare() async {
     _timesPrepared++;
@@ -906,9 +926,9 @@ class _ImageLoader {
       codec = _codec = await des.instantiateCodec();
       decoded = (await codec.getNextFrame()).image;
     } catch (e) {
-      codec?.dispose();
-      decoded?.dispose();
-      buf.dispose();
+      callDispose(() => codec?.dispose());
+      callDispose(() => decoded?.dispose());
+      callDispose(() => buf.dispose());
       return;
     }
     if (_timesPrepared > 0) {
@@ -922,14 +942,18 @@ class _ImageLoader {
         _buf = buf;
       }
     } else {
-      decoded.dispose(); // Too late!
-      codec.dispose();
+      // It was too late when the image came in.
+      final decodedCopy = decoded; // Known to be not null
+      callDispose(() => decodedCopy.dispose());
+      final codecCopy = codec;
+      callDispose(() => codecCopy.dispose());
       // https://github.com/flutter/flutter/issues/83421:
+      final desCopy = des;
       if (_disposeDescriptor) {
-        des.dispose();
+        callDispose(() => desCopy.dispose());
       }
       if (_disposeBuf) {
-        buf.dispose();
+        callDispose(() => buf.dispose());
       }
     }
   }
@@ -941,10 +965,11 @@ class _ImageLoader {
     }
     _timesPrepared--;
     if (_timesPrepared == 0) {
-      _decoded?.dispose(); // Could be null if prepare() is still running
-      _codec?.dispose();
-      _descriptor?.dispose();
-      _buf?.dispose();
+      callDispose(() =>
+          _decoded?.dispose()); // Could be null if prepare() is still running
+      callDispose(() => _codec?.dispose());
+      callDispose(() => _descriptor?.dispose());
+      callDispose(() => _buf?.dispose());
       _decoded = null;
       _codec = null;
       _descriptor = null;

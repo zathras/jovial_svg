@@ -541,8 +541,8 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
-              true,
+          @Deprecated("[warn] has been superceded by [warnF].")
+          bool warn = true,
           void Function(String)? warnF}) =>
       _SvgBundleSource(bundle, key, currentColor,
           compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
@@ -580,8 +580,8 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
-              true,
+          @Deprecated("[warn] has been superceded by [warnF].")
+          bool warn = true,
           void Function(String)? warnF,
           Map<String, String>? httpHeaders,
           Encoding defaultEncoding = utf8}) =>
@@ -629,8 +629,8 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].") bool warn =
-              true,
+          @Deprecated("[warn] has been superceded by [warnF].")
+          bool warn = true,
           void Function(String)? warnF,
           Map<String, String>? httpHeaders,
           Encoding defaultEncoding = utf8}) =>

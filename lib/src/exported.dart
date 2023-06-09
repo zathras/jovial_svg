@@ -46,10 +46,13 @@ import 'dag.dart';
 import 'svg_parser.dart';
 
 ///
-/// As of Flutter 2.5, this enum is obsolete.  Because `jovial_svg` version
-/// 1.0.7 sets the minimum SDK to 2.14, and 2.14 includes Flutter 2.5, it
-/// should be OK to ignore this.  It is maintained for backwards compatibility
-/// with earlier versions.
+/// In Flutter version 3.10.4 (June 2023), a new Flutter bug related to
+/// `dispose()` and image handling was reported -- see
+/// https://github.com/zathras/jovial_svg/issues/62.  `silentlyIgnoreErrors`
+/// was added at this time.
+///
+/// As of Flutter 2.5, other usese of this enum became obsolete.
+/// It is maintained for backwards compatibility with earlier versions.
 ///
 /// As of the initial date of publication of this library, there were several
 /// bugs in the then-current shipped version of Flutter (2.2.2)
@@ -93,10 +96,25 @@ import 'svg_parser.dart';
 /// Flutter 2.5, it has been.
 ///
 enum ImageDisposeBugWorkaround {
+  /// Only dispose image descriptors.  This value is believed to be
+  /// obsolete.
   disposeImageDescriptor,
+
+  /// Only dispose the immutable image buffer.  This value is believed to be
+  /// obsolete.
   disposeImmutableBuffer,
+
+  /// Dispose neither the image buffer nor the immutable buffer.
+  /// This value is believed to be obsolete.
   disposeNeither,
-  disposeBoth
+
+  /// Dispose of everything normally.
+  disposeBoth,
+
+  /// Dispose of everything normally, but do not print a warning if a bug
+  /// in an image-related `dispose()` bug is detected (e.g. by catching
+  /// an exception).
+  silentlyIgnoreErrors
 }
 
 ///
@@ -666,11 +684,11 @@ abstract class ScalableImage {
   ///
   /// Set the global policy as regards the various bugs in the `dispose()`
   /// methods for parts of the Flutter image system.  As of Flutter 2.5.0,
-  /// these bugs appear to have been fixed, so the library default was changed
+  /// the worst of these bugs appear to have been fixed, so the library
+  /// default was changed
   /// from `disposeNeither` to `disposeBoth` in `jovial_svg` version 1.0.7.
-  /// Assuming there is no regression in Flutter, and that the Flutter bugs
-  /// were completely fixed, client code should not need to change this
-  /// default.
+  /// However, in June 2023 a new Flutter bug was reported, resulting in the
+  /// addition of the `silentlyIgnoreErrors` value.
   ///
   /// See [ImageDisposeBugWorkaround].
   ///
