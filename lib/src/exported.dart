@@ -46,10 +46,10 @@ import 'dag.dart';
 import 'svg_parser.dart';
 
 ///
-/// In Flutter version 3.10.4 (June 2023), a new Flutter bug related to
-/// `dispose()` and image handling was reported -- see
-/// https://github.com/zathras/jovial_svg/issues/62.  `silentlyIgnoreErrors`
-/// was added at this time.
+/// In Flutter version 3.10.4 (June 2023), an inconfirmed report of a
+/// new Flutter bug related to `dispose()` and image handling was
+/// reported -- see https://github.com/zathras/jovial_svg/issues/62.
+/// `silentlyIgnoreErrors`  was added at this time.
 ///
 /// As of Flutter 2.5, other usese of this enum became obsolete.
 /// It is maintained for backwards compatibility with earlier versions.
@@ -85,7 +85,7 @@ import 'svg_parser.dart';
 /// library can change the behavior.
 ///
 /// Relevant bugs on Flutter include:
-///   * https://github.com/flutter/flutter/issues/83421:
+///   * https://github.com/flutter/flutter/issues/83421
 ///   * https://github.com/flutter/flutter/issues/83764
 ///   * https://github.com/flutter/flutter/issues/83908
 ///   * https://github.com/flutter/flutter/issues/83910

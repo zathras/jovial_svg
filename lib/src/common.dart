@@ -905,6 +905,8 @@ class _ImageLoader {
         debugPrint(
             'WARNING:  Bug detected in Flutter image-related dispose() call.');
         debugPrint('    Ignoring $e');
+        debugPrint('    This warning can be silenced with '
+            'ScalableImage.imageDisposeBugWorkaround.');
         debugPrint('    See  https://github.com/zathras/jovial_svg/issues/62');
         debugPrint('    Stack trace: $st');
       }
