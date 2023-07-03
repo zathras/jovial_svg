@@ -1,6 +1,6 @@
 name: jovial_svg
 description: SVG - Robust rendering of Scalable Vector Graphic images, supporting a well-defined profile of SVG and a fast-loading binary storage format.
-version: 1.1.16-rc.1
+version: 1.1.16-rc.2
 homepage:  https://bill.jovial.com/
 
 environment:

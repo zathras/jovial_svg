@@ -1,6 +1,8 @@
 ## [1.1.16] - June 2023
 
-- Add robustness to Flutter bug(s) in image-related `dispose()` (Issue 62) 
+- Fix bug with AVD scaling (issue 66)
+- Add robustness to possible (unverified) Flutter bug(s) in 
+  image-related `dispose()` (Issue 62) 
 
 ## [1.1.15] - May 2023
 

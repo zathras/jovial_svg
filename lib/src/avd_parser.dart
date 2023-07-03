@@ -246,6 +246,8 @@ abstract class AvdParser extends GenericParser {
           // We should scale.  See issue 14.
           root.transform =
               MutableAffine.scale(scaledWidth / width, scaledHeight / height);
+          width = scaledWidth;
+          height = scaledHeight;
         }
       }
     }

@@ -712,8 +712,8 @@ void main() {
     Directory? getDir(Directory? d, String name) =>
         d == null ? null : Directory('${d.path}/$name');
     final referenceDir = Directory('test/reference_images');
-
     for (final inputDir in [
+      Directory('test/old_avd_tests'),
       Directory('test/more_test_images'),
       Directory('demo/assets')
     ]) {
