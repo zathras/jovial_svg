@@ -64,7 +64,7 @@ activate the conversion programs with `dart pub global activate jovial_svg`,
 or you can run them from your project directory like this:
 
 ```
-dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg -out output/dir
+dart run jovial_svg:svg_to_si path/to/SVG_Logo.svg --out output/dir
 ```
 
 ### Rendering Performance
