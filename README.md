@@ -207,6 +207,13 @@ it detects a newer file version number.  `.si` files are intended to be bundled
 as application resources alongside the library, and not used as a 
 publication format.
 
+## Related Work
+
+There's a good discussion of Flutter and vector graphics at
+https://flutter.dev/go/vector-graphics.  It includes a list of alternatives
+to SVG for various use-cases.  Especially if you're creating your own 
+assets, one of those alternatives might be worth considering.  
+
 ## Internal Documentation
 
 There's a high-level overview of the source code in the repo, in
