@@ -20,16 +20,15 @@ class JovialTestApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         body: Stack(children: [
-            Container(color: Colors.yellowAccent.shade100),
-            Row(children: [
-              ScalableImageWidget(si: image),
-              ScalableImageWidget(
-                  si: image.modifyTint(
-                      newTintMode: BlendMode.srcIn, newTintColor: Colors.red)),
-            ]),
+          Container(color: Colors.yellowAccent.shade100),
+          Row(children: [
+            ScalableImageWidget(si: image),
+            ScalableImageWidget(
+                si: image.modifyTint(
+                    newTintMode: BlendMode.srcIn, newTintColor: Colors.red)),
+          ]),
         ]),
       ),
     );
   }
 }
-
