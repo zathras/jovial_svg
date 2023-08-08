@@ -794,10 +794,19 @@ abstract class ScalableImageBase extends ScalableImage {
       Rect vp = viewport;
       c.translate(-vp.left, -vp.top);
       c.clipRect(vp);
-      paintChildren(c, currentColor);
       final tc = tintColor;
-      if (tc != null) {
-        c.drawColor(tc, tintMode);
+      if (tc == null) {
+        paintChildren(c, currentColor);
+      } else {
+        c.saveLayer(vp, Paint());
+        c.save();
+        try {
+          paintChildren(c, currentColor);
+        } finally {
+          c.restore();
+          c.drawColor(tc, tintMode);
+          c.restore();
+        }
       }
     } finally {
       c.restore();

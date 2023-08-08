@@ -1,6 +1,10 @@
+## [1.1.17] - August 2023
+
+- Fix tint rendering (Issue 68)
+
 ## [1.1.16] - June 2023
 
-- Fix bug with AVD scaling (issue 66)
+- Fix bug with AVD scaling (Issue 66)
 - Add robustness to possible (unverified) Flutter bug(s) in 
   image-related `dispose()` (Issue 62) 
 
