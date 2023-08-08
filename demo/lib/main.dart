@@ -108,7 +108,7 @@ class DemoScreen extends StatefulWidget {
   final AssetBundle bundle;
 
   @override
-  _DemoScreenState createState() => _DemoScreenState();
+  State<DemoScreen> createState() => _DemoScreenState();
 }
 
 class _DemoScreenState extends State<DemoScreen> {
@@ -140,6 +140,7 @@ class _DemoScreenState extends State<DemoScreen> {
   }
 
   void _pasteURL(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
     unawaited(() async {
       String? url = '';
       String? error;
@@ -166,8 +167,7 @@ class _DemoScreenState extends State<DemoScreen> {
         print(st);
       }
       if (error != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error)));
+        messenger.showSnackBar(SnackBar(content: Text(error)));
         return;
       }
     }());
