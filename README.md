@@ -86,7 +86,7 @@ ready, your `ScalableImage` can be used synchronously with
 Avoiding reloading is, of course, especially important if a
 `ScalableImage` is displayed as part of an animation, or if it is loaded
 over the network.  `ScalableImageWidget` does, however, have an option for 
-the widget to handle loading and the the asynchronous operations, for 
+the widget to handle loading and the asynchronous operations, for 
 convenience and/or quick prototyping.  Using a `ScalableImageCache` with
 `ScalableImageWidget` can be a good way to avoid reloading, without the need
 to directly manage `ScalableImage` instances as part of your application's
