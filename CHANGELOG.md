@@ -1,3 +1,7 @@
+## [1.1.18] - September 2023
+
+- Add switcher to widget for cross-fade effect (issue 70)
+
 ## [1.1.17] - August 2023
 
 - Fix tint rendering (Issue 68)
