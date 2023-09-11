@@ -134,6 +134,11 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [onError] is called to give a widget to show if the asset has failed
   /// loading.  It defaults to onLoading.
   ///
+  /// [switcher], if set, is called when switching to a new widget (either from
+  /// nothing to onLoading, or onLoading to either loaded or onError).  A
+  /// reasonable choice is to create an `AnimatedSwitcher`.  See, for example,
+  /// `example/lib/cache.dart`.
+  ///
   /// [currentColor], if provided, sets the [ScalableImage.currentColor] of
   /// the displayed image, using [ScalableImage.modifyCurrentColor] to create
   /// an appropriate [ScalableImage] instance.
@@ -167,7 +172,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
       bool isComplex = false,
       ScalableImageCache? cache,
       Widget Function(BuildContext)? onLoading,
-      Widget Function(BuildContext)? onError}) {
+      Widget Function(BuildContext)? onError,
+      Widget Function(BuildContext, Widget child)? switcher}) {
     onLoading ??= _AsyncSIWidget.defaultOnLoading;
     onError ??= onLoading;
     cache = cache ?? ScalableImageCache._defaultCache;
@@ -175,7 +181,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       cache.forceReload(si);
     }
     return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache,
-        onLoading, onError, currentColor, background, isComplex);
+        onLoading, onError, switcher, currentColor, background, isComplex);
   }
 }
 
@@ -311,6 +317,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Color? _background;
   final Widget Function(BuildContext) _onLoading;
   final Widget Function(BuildContext) _onError;
+  final Widget Function(BuildContext, Widget child)? _switcher;
 
   const _AsyncSIWidget(
       Key? key,
@@ -322,6 +329,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
       this._cache,
       this._onLoading,
       this._onError,
+      this._switcher,
       this._currentColor,
       this._background,
       bool isComplex)
@@ -388,18 +396,25 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   @override
   Widget build(BuildContext context) {
     var si = _si;
+    final Widget result;
     if (si == null) {
-      return widget._onLoading(context);
+      result = widget._onLoading(context);
     } else if (identical(si, _error)) {
-      return widget._onError(context);
+      result = widget._onError(context);
     } else {
       final cc = widget._currentColor;
       if (cc != null) {
         si = si.modifyCurrentColor(cc);
         // Very cheap, just one instance creation
       }
-      return _SyncSIWidget(null, si, widget._fit, widget._alignment,
+      result = _SyncSIWidget(null, si, widget._fit, widget._alignment,
           widget._clip, widget._scale, widget._background, widget.isComplex);
+    }
+    final switcher = widget._switcher;
+    if (switcher == null) {
+      return result;
+    } else {
+      return switcher(context, result);
     }
   }
 }

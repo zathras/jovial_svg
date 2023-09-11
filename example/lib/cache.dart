@@ -103,14 +103,20 @@ class _HomePageState extends State<HomePage> {
             return GridTile(
               child: ScalableImageWidget.fromSISource(
                   cache: _svgCache,
+                  scale: 1000,
                   si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index]),
                   onLoading: _onLoading,
-                  onError: _onError),
+                  onError: _onError,
+                  switcher: _switcher),
             );
           }),
     );
   }
 
-  Widget _onLoading(BuildContext context) => Container(color: Colors.green);
-  Widget _onError(BuildContext context) => Container(color: Colors.red);
+  Widget _onLoading(BuildContext context) => Container(
+      key: const ValueKey(1), color: Colors.green, width: 500, height: 500);
+  Widget _onError(BuildContext context) =>
+      Container(key: const ValueKey(2), color: Colors.red);
+  Widget _switcher(BuildContext context, Widget child) => AnimatedSwitcher(
+      child: child, duration: const Duration(milliseconds: 250));
 }
