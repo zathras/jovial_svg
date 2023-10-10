@@ -1,3 +1,7 @@
+## [1.1.18] - September 2023
+
+- Add switcher to widget for cross-fade effect (issue 70)
+
 ## [1.1.17] - August 2023
 
 - Fix tint rendering (Issue 68)
@@ -142,23 +146,27 @@
   [Jarle](https://github.com/jarlestabell)).
 - Add informative documentation about rendering performance.
 
-## [1.0.4] - Add github links for dart.dev listing, June 16, 2021
+## [1.0.4] - June 16, 2021
 
-## [1.0.3] - update homepage for dart.dev listing, June 16, 2021
+- Add github links for dart.dev listing
 
-## [1.0.2] - resolve dependency conflict, June 16, 2021
+## [1.0.3] - June 16, 2021
+
+- update homepage for dart.dev listing
+
+## [1.0.2] - June 16, 2021
 
 - Back off version of args to 2.0.0, to eliminate conflict with 
   `flutter_launcher_icons`
 
-## [1.0.1] - Cosmetic Issues, dart:io, June 15, 2021
+## [1.0.1] - June 15, 2021
 
 - Eliminated dependencies on `dart:io`, so that library will work on JS.
   - This did involve an API change, but the old version was on pub.dev
     for maybe an hour, so I'm not considering this a breaking change.
 - Ran dartfmt on bin directory
 
-## [1.0.0] - Initial Release, June 15, 2021
+## [1.0.0] - June 15, 2021
 
 Initial release, after testing on a reasonable sample of SVG images
 believed to be representative.
