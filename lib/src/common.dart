@@ -1390,20 +1390,29 @@ class PruningBoundary {
       PruningBoundary._p(_tp(a, x), _tp(b, x), _tp(c, x), _tp(d, x));
 }
 
-class RenderContext {
-  final ScalableImage root;
-  final RenderContext? parent;
-  final Color currentColor;
+class Transformer {
   final Affine? transform;
 
-  RenderContext(RenderContext this.parent,
-      {Color? currentColor, this.transform})
-      : root = parent.root,
-        currentColor = currentColor ?? parent.currentColor;
+  Transformer._p(this.transform);
 
-  RenderContext.root(this.root, this.currentColor)
-      : parent = null,
-        transform = null;
+  static final Transformer none = Transformer._p(null);
+
+  factory Transformer(Affine? transform) =>
+      transform == null ? none : Transformer._p(transform);
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! Transformer) {
+      return false;
+    } else {
+      return transform == other.transform;
+    }
+  }
+
+  @override
+  int get hashCode => transform.hashCode; // null.hashCode is valid in dart
 
   PruningBoundary? transformBoundaryFromChildren(PruningBoundary? b) {
     final t = transform;
@@ -1426,6 +1435,26 @@ class RenderContext {
       return b;
     }
   }
+}
+
+//
+// RenderContext is a little overly complicated.  It provides a value for
+// currentColor that's used for painting, and it is a Transformer used
+// for pruning.  SIVisitor carries a RenderContext, even when it's just
+// being used for pruning.
+//
+class RenderContext extends Transformer {
+  final RenderContext? parent;
+  final Color currentColor;
+
+  RenderContext(RenderContext this.parent,
+      {Color? currentColor, Affine? transform})
+      : currentColor = currentColor ?? parent.currentColor,
+        super._p(transform);
+
+  RenderContext.root(this.currentColor)
+      : parent = null,
+        super._p(null);
 
   @override
   bool operator ==(final Object other) {
@@ -1434,8 +1463,6 @@ class RenderContext {
     } else if (other is! RenderContext) {
       return false;
     } else {
-      //  Two render contexts are equivalent even if they are rooted at
-      //  different SI instances.
       return parent == other.parent &&
           currentColor == other.currentColor &&
           transform == other.transform;

@@ -174,7 +174,7 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
   @override
   void paintChildren(Canvas c, Color currentColor) {
-    final context = RenderContext.root(this, currentColor);
+    final context = RenderContext.root(currentColor);
     for (final r in _renderables) {
       r.paint(c, context);
     }
@@ -236,7 +236,7 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
 abstract class _SIParentBuilder {
   List<SIRenderable> get _renderables;
-  RenderContext get context;
+  Transformer get transformer;
 }
 
 abstract class _SIParentNode {
@@ -289,11 +289,11 @@ abstract class _SIParentNode {
 class SIMasked extends SIRenderable with SIMaskedHelper {
   final SIRenderable mask;
   final SIRenderable child;
-  final RenderContext context;
+  final Transformer transformer;
   final Rect? maskBounds;
   final bool usesLuma;
 
-  SIMasked(List<SIRenderable> renderables, this.context, RectT? maskBounds,
+  SIMasked(List<SIRenderable> renderables, this.transformer, RectT? maskBounds,
       this.usesLuma)
       : mask = renderables[0],
         child = renderables[1],
@@ -302,7 +302,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   }
 
   SIMasked._modified(
-      this.mask, this.child, this.context, this.maskBounds, this.usesLuma);
+      this.mask, this.child, this.transformer, this.maskBounds, this.usesLuma);
 
   @override
   void paint(Canvas c, RenderContext context) {
@@ -348,7 +348,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     if (cp == null) {
       return null;
     }
-    final m = SIMasked._modified(mp, cp, context, maskBounds, usesLuma);
+    final m = SIMasked._modified(mp, cp, transformer, maskBounds, usesLuma);
     final mg = dagger.lookup(m);
     if (mg != null) {
       assert(mg is SIMasked);
@@ -371,7 +371,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     if (identical(this, other)) {
       return;
     } else if (other is! SIMasked ||
-        context != other.context ||
+        transformer != other.transformer ||
         maskBounds != other.maskBounds) {
       throw StateError('$this  $other');
     } else {
@@ -387,7 +387,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     } else if (other is! SIMasked) {
       return false;
     } else {
-      return context == other.context &&
+      return transformer == other.transformer &&
           mask == other.mask &&
           child == other.child &&
           maskBounds == other.maskBounds;
@@ -396,7 +396,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
 
   @override
   late final int hashCode =
-      0xac33fb5e ^ Object.hash(context, mask, child, maskBounds);
+      0xac33fb5e ^ Object.hash(transformer, mask, child, maskBounds);
 }
 
 class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
@@ -404,34 +404,34 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   final List<SIRenderable> _renderables;
   final int? groupAlpha;
   final BlendMode? blendMode;
-  final RenderContext context;
+  final Transformer transformer;
 
-  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.context,
+  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.transformer,
       SIBlendMode blendMode)
       : _renderables = List.unmodifiable(renderables),
         blendMode = blendMode.asBlendMode;
 
   SIGroup._modified(SIGroup other, this._renderables)
-      : context = other.context,
+      : transformer = other.transformer,
         groupAlpha = other.groupAlpha,
         blendMode = other.blendMode;
 
   @override
   List<SIRenderable> _childrenPrunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
-    b = context.transformBoundaryFromParent(b)!;
+    b = transformer.transformBoundaryFromParent(b)!;
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
   @override
   PruningBoundary? getBoundary() =>
-      context.transformBoundaryFromChildren(super.getBoundary());
+      transformer.transformBoundaryFromChildren(super.getBoundary());
 
   @override
   void paint(Canvas c, RenderContext context) {
-    startPaintGroup(c, this.context.transform, groupAlpha, blendMode);
+    startPaintGroup(c, transformer.transform, groupAlpha, blendMode);
     for (final r in _renderables) {
-      r.paint(c, this.context);
+      r.paint(c, context);
     }
     endPaintGroup(c);
   }
@@ -468,7 +468,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     if (identical(this, other)) {
       return;
     } else if (other is! SIGroup ||
-        context != other.context ||
+        transformer != other.transformer ||
         groupAlpha != other.groupAlpha ||
         _renderables.length != other._renderables.length) {
       throw StateError('$this $other'); // coverage:ignore-line
@@ -486,7 +486,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     } else if (other is! SIGroup) {
       return false;
     } else {
-      return context == other.context &&
+      return transformer == other.transformer &&
           groupAlpha == other.groupAlpha &&
           _renderables.equals(other._renderables);
     }
@@ -494,11 +494,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   late final int hashCode = 0xfddf5e28 ^
-      Object.hash(
-        Object.hashAll(_renderables),
-        groupAlpha,
-        context,
-      );
+      Object.hash(Object.hashAll(_renderables), groupAlpha, transformer);
 }
 
 class _GroupBuilder implements _SIParentBuilder {
@@ -507,32 +503,30 @@ class _GroupBuilder implements _SIParentBuilder {
   final int? groupAlpha;
   final SIBlendMode blendMode;
   @override
-  final RenderContext context;
+  final Transformer transformer;
 
-  _GroupBuilder(this.context, this.groupAlpha, this.blendMode)
+  _GroupBuilder(this.transformer, this.groupAlpha, this.blendMode)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
-  SIGroup get group => SIGroup(_renderables, groupAlpha, context, blendMode);
+  SIGroup get group =>
+      SIGroup(_renderables, groupAlpha, transformer, blendMode);
 }
 
 class _MaskedBuilder implements _SIParentBuilder {
   @override
   final List<SIRenderable> _renderables;
   @override
-  final RenderContext context;
+  final Transformer transformer;
   final RectT? maskBounds;
   final bool usesLuma;
 
-  _MaskedBuilder(this.context, this.maskBounds, this.usesLuma)
+  _MaskedBuilder(this.transformer, this.maskBounds, this.usesLuma)
       : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIRenderable get masked =>
-      SIMasked(_renderables, context, maskBounds, usesLuma);
+      SIMasked(_renderables, transformer, maskBounds, usesLuma);
 }
 
-///
-/// See [PathBuilder] for usage.
-///
 abstract class SIGenericDagBuilder<PathDataT, IM>
     extends SIBuilder<PathDataT, IM>
     with SITextHelper<void>
@@ -562,7 +556,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   final Set<Object> _dagger = <Object>{};
   final Color? currentColor;
   @override
-  late final RenderContext context;
+  final Transformer transformer = Transformer.none;
 
   SIGenericDagBuilder(this._givenViewport, this.warn, this.currentColor);
 
@@ -633,7 +627,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     this.floatLists = floatLists;
     this.floatValues = floatValues;
     assert(_si == null);
-    final a = _si = ScalableImageDag._withoutRenderables(
+    _si = ScalableImageDag._withoutRenderables(
         width: _width,
         height: _height,
         viewport: _givenViewport,
@@ -641,7 +635,6 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
         tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
         currentColor: currentColor,
         images: images);
-    context = RenderContext.root(a, a.currentColor);
     _parentStack.add(this);
   }
 
@@ -690,10 +683,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     if (transform != null) {
       transform = _daggerize(transform);
     }
-    final g = _GroupBuilder(
-        RenderContext(_parentStack.last.context, transform: transform),
-        groupAlpha,
-        blend);
+    final g = _GroupBuilder(Transformer(transform), groupAlpha, blend);
     _parentStack.add(g);
   }
 
@@ -706,8 +696,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   void masked(void collector, RectT? maskBounds, bool usesLuma) {
-    final mb = _MaskedBuilder(
-        RenderContext(_parentStack.last.context), maskBounds, usesLuma);
+    final mb = _MaskedBuilder(Transformer.none, maskBounds, usesLuma);
     _parentStack.add(mb);
   }
 

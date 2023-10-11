@@ -176,7 +176,7 @@ class ScalableImageCompact extends ScalableImageBase
 
   @override
   void paintChildren(Canvas c, Color currentColor) {
-    final v = _PaintingVisitor(c, RenderContext.root(this, currentColor));
+    final v = _PaintingVisitor(c, RenderContext.root(currentColor));
     final CompactTraverser<void, SIImage> t = makeTraverser<void>(v);
     v.traverser = t;
     t.traverse(v.initial);
@@ -637,7 +637,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary?>
             givenViewport,
             currentColor: si.currentColor,
             warn: _noWarn),
-        super(RenderContext.root(si, Colors.black)) {
+        super(RenderContext.root(Colors.black)) {
     builder.initFloatValueMap(_theCanon.floatValues);
     builder.vector(
         width: width,
@@ -948,7 +948,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
   final _boundaryStack = List<PruningBoundary?>.empty(growable: true);
 
   _BoundaryVisitor(ScalableImageCompact si)
-      : super(RenderContext.root(si, Colors.black));
+      : super(RenderContext.root(Colors.black));
 
   @override
   PruningBoundary? get initial => null;
