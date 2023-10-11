@@ -1440,7 +1440,7 @@ class Transformer {
 //
 // RenderContext is a little overly complicated.  It provides a value for
 // currentColor that's used for painting, and it is a Transformer used
-// for pruning.  SIVisitor carries a RenderContext, even when it's just
+// for pruning.  _CompactVisitor carries a RenderContext, even when it's just
 // being used for pruning.
 //
 class RenderContext extends Transformer {
