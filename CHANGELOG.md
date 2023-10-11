@@ -1,6 +1,7 @@
 ## [1.1.18] - September 2023
 
 - Add switcher to widget for cross-fade effect (issue 70)
+- Fix currentColor with transformations (issue 71)
 
 ## [1.1.17] - August 2023
 
