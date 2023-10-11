@@ -101,8 +101,8 @@ abstract class SIRenderable {
         Offset(g.fx, g.fy));
   }
 
-  void _setSweepGradient(Paint p, SISweepGradientColor g, Float64List? xform,
-      Color currentColor) {
+  void _setSweepGradient(
+      Paint p, SISweepGradientColor g, Float64List? xform, Color currentColor) {
     p.shader = ui.Gradient.sweep(
         Offset(g.cx, g.cy),
         _gradientColors(currentColor, g),
@@ -1127,18 +1127,18 @@ class SITextSpan extends SITextChunk {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          parent._setLinearGradient(
-              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
+          parent._setLinearGradient(p, c,
+              parent._gradientXform(c, boundsF, currentColor), currentColor);
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          parent._setRadialGradient(
-              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
+          parent._setRadialGradient(p, c,
+              parent._gradientXform(c, boundsF, currentColor), currentColor);
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
-          parent._setSweepGradient(
-              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
+          parent._setSweepGradient(p, c,
+              parent._gradientXform(c, boundsF, currentColor), currentColor);
         }));
     return r;
   }
@@ -1391,45 +1391,22 @@ class PruningBoundary {
 }
 
 class Transformer {
-  final Affine? transform;
-
-  Transformer.p(this.transform);
-
-  static final Transformer none = Transformer.p(null);
-
-  factory Transformer(Affine? transform) =>
-      transform == null ? none : Transformer.p(transform);
-
-  @override
-  bool operator ==(final Object other) {
-    if (identical(this, other)) {
-      return true;
-    } else if (other is! Transformer) {
-      return false;
-    } else {
-      return transform == other.transform;
-    }
-  }
-
-  @override
-  int get hashCode => transform.hashCode; // null.hashCode is valid in dart
-
-  PruningBoundary? transformBoundaryFromChildren(PruningBoundary? b) {
-    final t = transform;
-    if (b != null && t != null) {
-      return b.transformed(t);
+  static PruningBoundary? transformBoundaryFromChildren(
+      Affine? transform, PruningBoundary? b) {
+    if (b != null && transform != null) {
+      return b.transformed(transform);
     } else {
       return b;
     }
   }
 
-  PruningBoundary? transformBoundaryFromParent(PruningBoundary? b) {
+  static PruningBoundary? transformBoundaryFromParent(
+      Affine? transform, PruningBoundary? b) {
     if (b == null) {
       return b;
     }
-    final t = transform;
-    if (t != null) {
-      final reverseXform = t.mutableCopy()..invert();
+    if (transform != null) {
+      final reverseXform = transform.mutableCopy()..invert();
       return b.transformed(reverseXform);
     } else {
       return b;

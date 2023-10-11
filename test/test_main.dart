@@ -555,9 +555,8 @@ Future<void> _miscCoverage() async {
       SvgPoly('', true, [const Point(0, 0)]) ==
           SvgPoly('', true, [const Point(0, 1)]));
   {
-    final t = Transformer(null);
-    final g = SIGroup(const [], 0, t, SIBlendMode.darken);
-    final m = SIMasked([g, g], t, null, true);
+    final g = SIGroup(const [], 0, null, SIBlendMode.darken);
+    final m = SIMasked([g, g], null, true);
     expectException(() => m.privateAssertIsEquivalent(g));
     expectException(() => g.privateAssertIsEquivalent(m));
   }

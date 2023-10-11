@@ -402,18 +402,24 @@ class ScalableImageCompact extends ScalableImageBase
   }
 }
 
-class _RenderContext extends Transformer {
+class _RenderContext {
   final _RenderContext? parent;
   final Color currentColor;
+  final Affine? transform;
 
   _RenderContext(_RenderContext this.parent,
-      {Color? currentColor, Affine? transform})
-      : currentColor = currentColor ?? parent.currentColor,
-        super.p(transform);
+      {Color? currentColor, this.transform})
+      : currentColor = currentColor ?? parent.currentColor;
 
   _RenderContext.root(this.currentColor)
       : parent = null,
-        super.p(null);
+        transform = null;
+
+  PruningBoundary? transformBoundaryFromChildren(PruningBoundary? b) =>
+      Transformer.transformBoundaryFromChildren(transform, b);
+
+  PruningBoundary? transformBoundaryFromParent(PruningBoundary? b) =>
+      Transformer.transformBoundaryFromParent(transform, b);
 }
 
 ///
@@ -526,7 +532,8 @@ class _PaintingVisitor extends _CompactVisitor<void>
   }
 
   @override
-  void siPath(void collector, SIPath path) => path.paint(canvas, context.currentColor);
+  void siPath(void collector, SIPath path) =>
+      path.paint(canvas, context.currentColor);
 
   @override
   void siClipPath(void collector, SIClipPath path) =>
@@ -537,7 +544,8 @@ class _PaintingVisitor extends _CompactVisitor<void>
       images[imageIndex].paint(canvas, context.currentColor);
 
   @override
-  void acceptText(void collector, SIText text) => text.paint(canvas, context.currentColor);
+  void acceptText(void collector, SIText text) =>
+      text.paint(canvas, context.currentColor);
 
   @override
   void masked(void collector, RectT? maskBounds, bool usesLuma) {
