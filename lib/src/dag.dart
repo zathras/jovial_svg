@@ -174,9 +174,8 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
   @override
   void paintChildren(Canvas c, Color currentColor) {
-    final context = RenderContext.root(currentColor);
     for (final r in _renderables) {
-      r.paint(c, context);
+      r.paint(c, currentColor);
     }
   }
 
@@ -305,17 +304,17 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
       this.mask, this.child, this.transformer, this.maskBounds, this.usesLuma);
 
   @override
-  void paint(Canvas c, RenderContext context) {
+  void paint(Canvas c, Color currentColor) {
     Rect? bounds = maskBounds;
     startMask(c, bounds);
-    mask.paint(c, context);
+    mask.paint(c, currentColor);
     if (usesLuma) {
       startLumaMask(c, bounds);
-      mask.paint(c, context);
+      mask.paint(c, currentColor);
       finishLumaMask(c);
     }
     startChild(c, bounds);
-    child.paint(c, context);
+    child.paint(c, currentColor);
     finishMasked(c);
   }
 
@@ -428,10 +427,10 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       transformer.transformBoundaryFromChildren(super.getBoundary());
 
   @override
-  void paint(Canvas c, RenderContext context) {
+  void paint(Canvas c, Color currentColor) {
     startPaintGroup(c, transformer.transform, groupAlpha, blendMode);
     for (final r in _renderables) {
-      r.paint(c, context);
+      r.paint(c, currentColor);
     }
     endPaintGroup(c);
   }

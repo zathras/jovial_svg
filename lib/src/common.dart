@@ -69,7 +69,7 @@ RectT? convertRectToRectT(Rect? r) {
 ///
 @immutable
 abstract class SIRenderable {
-  void paint(Canvas c, RenderContext context);
+  void paint(Canvas c, Color currentColor);
 
   bool _wouldPaint(SIColor c) => c is! SINoneColor;
 
@@ -79,22 +79,22 @@ abstract class SIRenderable {
   PruningBoundary? getBoundary();
 
   void _setLinearGradient(Paint p, SILinearGradientColor g, Float64List? xform,
-      RenderContext context) {
+      Color currentColor) {
     p.shader = ui.Gradient.linear(
         Offset(g.x1, g.y1),
         Offset(g.x2, g.y2),
-        _gradientColors(context.currentColor, g),
+        _gradientColors(currentColor, g),
         g.stops,
         g.spreadMethod.toTileMode,
         xform);
   }
 
   void _setRadialGradient(Paint p, SIRadialGradientColor g, Float64List? xform,
-      RenderContext context) {
+      Color currentColor) {
     p.shader = ui.Gradient.radial(
         Offset(g.cx, g.cy),
         g.r,
-        _gradientColors(context.currentColor, g),
+        _gradientColors(currentColor, g),
         g.stops,
         g.spreadMethod.toTileMode,
         xform,
@@ -102,10 +102,10 @@ abstract class SIRenderable {
   }
 
   void _setSweepGradient(Paint p, SISweepGradientColor g, Float64List? xform,
-      RenderContext context) {
+      Color currentColor) {
     p.shader = ui.Gradient.sweep(
         Offset(g.cx, g.cy),
-        _gradientColors(context.currentColor, g),
+        _gradientColors(currentColor, g),
         g.stops,
         g.spreadMethod.toTileMode,
         g.startAngle,
@@ -127,7 +127,7 @@ abstract class SIRenderable {
   }
 
   Float64List? _gradientXform(
-      SIGradientColor c, Rect Function() boundsF, RenderContext context) {
+      SIGradientColor c, Rect Function() boundsF, Color currentColor) {
     final transform = c.transform;
     if (c.objectBoundingBox) {
       final bounds = boundsF();
@@ -630,7 +630,7 @@ class SIClipPath extends SIRenderable {
   SIClipPath(this.path);
 
   @override
-  void paint(Canvas c, RenderContext context) {
+  void paint(Canvas c, Color currentColor) {
     c.clipPath(path);
   }
 
@@ -666,33 +666,33 @@ class SIPath extends SIRenderable {
 
   SIPath(this.path, this.siPaint);
 
-  bool _setPaint(Paint paint, SIColor si, RenderContext context) {
+  bool _setPaint(Paint paint, SIColor si, Color currentColor) {
     bool hasWork = true;
     paint.shader = null;
     late final bounds = getBounds();
     Rect boundsF() => bounds;
     si.accept(SIColorVisitor(
         value: (SIValueColor c) => paint.color = Color(c.argb),
-        current: () => paint.color = context.currentColor,
+        current: () => paint.color = currentColor,
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) => _setLinearGradient(
-            paint, c, _gradientXform(c, boundsF, context), context),
+            paint, c, _gradientXform(c, boundsF, currentColor), currentColor),
         radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
-            paint, c, _gradientXform(c, boundsF, context), context),
+            paint, c, _gradientXform(c, boundsF, currentColor), currentColor),
         sweepGradient: (SISweepGradientColor c) => _setSweepGradient(
-            paint, c, _gradientXform(c, boundsF, context), context)));
+            paint, c, _gradientXform(c, boundsF, currentColor), currentColor)));
     return hasWork;
   }
 
   @override
-  void paint(Canvas c, RenderContext context) {
+  void paint(Canvas c, Color currentColor) {
     final paint = Paint();
-    if (_setPaint(paint, siPaint.fillColor, context)) {
+    if (_setPaint(paint, siPaint.fillColor, currentColor)) {
       paint.style = PaintingStyle.fill;
       path.fillType = siPaint.fillType.asPathFillType;
       c.drawPath(path, paint);
     }
-    if (_setPaint(paint, siPaint.strokeColor, context)) {
+    if (_setPaint(paint, siPaint.strokeColor, currentColor)) {
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = siPaint.strokeWidth;
       paint.strokeCap = siPaint.strokeCap.asStrokeCap;
@@ -844,7 +844,7 @@ class SIImage extends SIRenderable {
   void unprepare() => loader.unprepare();
 
   @override
-  void paint(Canvas c, RenderContext context) => loader.paint(c, context);
+  void paint(Canvas c, Color currentColor) => loader.paint(c);
 
   @override
   void addChildren(Set<SIRenderable> dagger) {}
@@ -979,7 +979,7 @@ class _ImageLoader {
     }
   }
 
-  void paint(Canvas c, RenderContext context) {
+  void paint(Canvas c) {
     final im = _decoded;
     if (im != null) {
       final src =
@@ -1043,9 +1043,9 @@ class SIText extends SIRenderable {
   }();
 
   @override
-  void paint(ui.Canvas c, RenderContext context) {
+  void paint(ui.Canvas c, Color currentColor) {
     for (final chunk in chunks) {
-      chunk.paint(this, c, context);
+      chunk.paint(this, c, currentColor);
     }
   }
 
@@ -1073,7 +1073,7 @@ abstract class SITextChunk {
 
   SITextChunk(this.dx, this.dy);
 
-  void paint(SIText parent, ui.Canvas c, RenderContext context);
+  void paint(SIText parent, ui.Canvas c, Color currentColor);
 
   Rect get _bounds;
 
@@ -1115,7 +1115,7 @@ class SITextSpan extends SITextChunk {
         fontFamilyIndex, fontSizeIndex, siPaint);
   }
 
-  Paint? _getPaint(SIText parent, SIColor c, RenderContext context) {
+  Paint? _getPaint(SIText parent, SIColor c, Color currentColor) {
     Rect boundsF() => parent._bounds;
     Paint? r;
     c.accept(SIColorVisitor(
@@ -1123,37 +1123,37 @@ class SITextSpan extends SITextChunk {
           final p = r = Paint();
           p.color = Color(c.argb);
         },
-        current: () => r = Paint()..color = context.currentColor,
+        current: () => r = Paint()..color = currentColor,
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
           parent._setLinearGradient(
-              p, c, parent._gradientXform(c, boundsF, context), context);
+              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
           parent._setRadialGradient(
-              p, c, parent._gradientXform(c, boundsF, context), context);
+              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
           parent._setSweepGradient(
-              p, c, parent._gradientXform(c, boundsF, context), context);
+              p, c, parent._gradientXform(c, boundsF, currentColor), currentColor);
         }));
     return r;
   }
 
   @override
-  void paint(SIText parent, ui.Canvas c, RenderContext context) {
+  void paint(SIText parent, ui.Canvas c, Color currentColor) {
     final TextDecoration decoration =
         attributes.textDecoration.asTextDecoration;
     final decorated = decoration != TextDecoration.none;
-    Paint? foreground = _getPaint(parent, siPaint.fillColor, context);
+    Paint? foreground = _getPaint(parent, siPaint.fillColor, currentColor);
     if (foreground != null) {
       if (decorated && siPaint.fillColor is! SIValueColor) {
         c.saveLayer(_bounds, Paint());
         final white = Paint()..color = Colors.white;
-        _doWithPainter(context.currentColor, white, decoration,
+        _doWithPainter(currentColor, white, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -1162,13 +1162,13 @@ class SITextSpan extends SITextChunk {
         c.restore();
         c.restore();
       } else {
-        _doWithPainter(context.currentColor, foreground, decoration,
+        _doWithPainter(currentColor, foreground, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
       }
     }
-    Paint? strokeP = _getPaint(parent, siPaint.strokeColor, context);
+    Paint? strokeP = _getPaint(parent, siPaint.strokeColor, currentColor);
     if (strokeP != null) {
       if (decorated &&
           foreground == null &&
@@ -1178,7 +1178,7 @@ class SITextSpan extends SITextChunk {
           ..color = Colors.white
           ..strokeWidth = siPaint.strokeWidth
           ..style = PaintingStyle.stroke;
-        _doWithPainter(context.currentColor, white, decoration,
+        _doWithPainter(currentColor, white, decoration,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -1191,7 +1191,7 @@ class SITextSpan extends SITextChunk {
         strokeP.style = PaintingStyle.stroke;
         final decoration2 =
             foreground == null ? decoration : TextDecoration.none;
-        _doWithPainter(context.currentColor, strokeP, decoration2,
+        _doWithPainter(currentColor, strokeP, decoration2,
             (double left, double top, TextPainter tp) {
           tp.paint(c, Offset(left, top));
         });
@@ -1325,7 +1325,7 @@ class SIMultiSpanChunk extends SITextChunk {
   }
 
   @override
-  void paint(SIText parent, ui.Canvas c, RenderContext context) {
+  void paint(SIText parent, ui.Canvas c, Color currentColor) {
     c.save();
     switch (textAnchor) {
       case SITextAnchor.start:
@@ -1339,7 +1339,7 @@ class SIMultiSpanChunk extends SITextChunk {
         break;
     }
     for (final span in spans) {
-      span.paint(parent, c, context);
+      span.paint(parent, c, currentColor);
       c.translate(span._bounds.width, 0);
     }
     c.restore();
@@ -1393,12 +1393,12 @@ class PruningBoundary {
 class Transformer {
   final Affine? transform;
 
-  Transformer._p(this.transform);
+  Transformer.p(this.transform);
 
-  static final Transformer none = Transformer._p(null);
+  static final Transformer none = Transformer.p(null);
 
   factory Transformer(Affine? transform) =>
-      transform == null ? none : Transformer._p(transform);
+      transform == null ? none : Transformer.p(transform);
 
   @override
   bool operator ==(final Object other) {
@@ -1435,42 +1435,6 @@ class Transformer {
       return b;
     }
   }
-}
-
-//
-// RenderContext is a little overly complicated.  It provides a value for
-// currentColor that's used for painting, and it is a Transformer used
-// for pruning.  _CompactVisitor carries a RenderContext, even when it's just
-// being used for pruning.
-//
-class RenderContext extends Transformer {
-  final RenderContext? parent;
-  final Color currentColor;
-
-  RenderContext(RenderContext this.parent,
-      {Color? currentColor, Affine? transform})
-      : currentColor = currentColor ?? parent.currentColor,
-        super._p(transform);
-
-  RenderContext.root(this.currentColor)
-      : parent = null,
-        super._p(null);
-
-  @override
-  bool operator ==(final Object other) {
-    if (identical(this, other)) {
-      return true;
-    } else if (other is! RenderContext) {
-      return false;
-    } else {
-      return parent == other.parent &&
-          currentColor == other.currentColor &&
-          transform == other.transform;
-    }
-  }
-
-  @override
-  int get hashCode => Object.hash(parent, currentColor, transform);
 }
 
 void defaultWarn(String s) => print(s); // coverage:ignore-line
