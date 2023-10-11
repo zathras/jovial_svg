@@ -83,7 +83,7 @@ class _BodyState extends State<Body> {
                                   fit: fit,
                                   alignment: alignment)
                               .toSICoordinate(d.localPosition);
-                          print('Saw tap down at $pos within SVG');
+                          debugPrint('Saw tap down at $pos within SVG');
                           setState(() {
                             clicks.add(pos);
                           });
