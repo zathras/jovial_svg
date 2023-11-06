@@ -615,12 +615,10 @@ class _LumaTraverser
   int assertEndPosition = -1;
 
   _LumaTraverser(
-      CompactTraverserBase<void, SIImage,
-              SIVisitor<CompactChildData, SIImage, void>>
-          parent,
-      _PaintingVisitor visitor)
+      super.parent,
+      super.visitor)
       : _startGroupDepth = parent.groupDepth,
-        super.clone(parent, visitor);
+        super.clone();
 
   void traverseLuma() {
     active = true;

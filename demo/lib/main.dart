@@ -37,7 +37,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jovial_svg/jovial_svg.dart';
-import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _imageBaseURL =
@@ -72,7 +71,7 @@ class Demo extends StatelessWidget {
   final List<Asset> assets;
   final ScalableImage firstSI;
 
-  const Demo(this.assets, this.firstSI, {Key? key}) : super(key: key);
+  const Demo(this.assets, this.firstSI, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +94,11 @@ class Demo extends StatelessWidget {
 
 class DemoScreen extends StatefulWidget {
   const DemoScreen(
-      {Key? key,
+      {super.key,
       required this.title,
       required this.bundle,
       required this.assets,
-      required this.firstSI})
-      : super(key: key);
+      required this.firstSI});
 
   final String title;
   final List<Asset> assets;
@@ -385,7 +383,7 @@ class _DemoScreenState extends State<DemoScreen> {
       return Container(
           padding: const EdgeInsets.all(5),
           child: InteractiveViewer(
-              key: ValueKey(Tuple2(_scale, si)),
+              key: ValueKey((_scale, si)),
               constrained: false,
               scaleEnabled: false,
               panEnabled: true,

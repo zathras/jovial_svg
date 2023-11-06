@@ -67,7 +67,7 @@ class TestSource extends ScalableImageSource {
 }
 
 class TestApp extends StatelessWidget {
-  TestApp({Key? key}) : super(key: key);
+  TestApp({super.key});
   static const simpleSVG = '<svg><text>foo</text></svg>';
   static const simpleAVD = '<vector></vector>';
   final si = ScalableImage.fromSvgString(simpleSVG, compact: true)

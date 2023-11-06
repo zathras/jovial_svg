@@ -1272,8 +1272,7 @@ class SIMultiSpanChunk extends SITextChunk {
   final SITextAnchor textAnchor;
   final List<SITextSpan> spans;
 
-  SIMultiSpanChunk(double dx, double dy, this.textAnchor, this.spans)
-      : super(dx, dy) {
+  SIMultiSpanChunk(super.dx, super.dy, this.textAnchor, this.spans) {
     assert(spans.isNotEmpty);
     for (final s in spans) {
       assert(s.attributes.textAnchor == SITextAnchor.start);

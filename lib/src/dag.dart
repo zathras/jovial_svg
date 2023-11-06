@@ -91,18 +91,13 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
       : _renderables = [],
         super(null, null, null, BlendMode.srcIn, null, const [], null);
 
-  ScalableImageDag._modified(ScalableImageDag other, this._renderables,
-      {required Rect? viewport,
-      required List<SIImage> images,
-      required Color currentColor,
-      required Color? tintColor,
-      required BlendMode tintMode})
-      : super.modifiedFrom(other,
-            viewport: viewport,
-            currentColor: currentColor,
-            tintColor: tintColor,
-            tintMode: tintMode,
-            images: images);
+  ScalableImageDag._modified(ScalableImageDag super.other, this._renderables,
+      {required super.viewport,
+      required super.images,
+      required super.currentColor,
+      required super.tintColor,
+      required super.tintMode})
+      : super.modifiedFrom();
 
   ///
   /// Create a copy of [other], potentially with a new viewport.  The copy
@@ -237,7 +232,7 @@ abstract class _SIParentBuilder {
   List<SIRenderable> get _renderables;
 }
 
-abstract class _SIParentNode {
+abstract mixin class _SIParentNode {
   List<SIRenderable> get _renderables;
 
   List<SIRenderable> _childrenPrunedBy(
