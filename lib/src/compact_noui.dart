@@ -573,31 +573,18 @@ abstract class CompactTraverserBase<R, IM,
 class CompactTraverser<R, IM>
     extends CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> {
   CompactTraverser(
-      {required int fileVersion,
-      required bool bigFloats,
-      required Uint8List visiteeChildren,
-      required List<double> visiteeArgs,
-      required List<double> visiteeTransforms,
-      required int visiteeNumPaths,
-      required int visiteeNumPaints,
-      required SIVisitor<CompactChildData, IM, R> visitor,
-      required List<String> strings,
-      required List<List<double>> floatLists,
-      required List<double> floatValues,
-      required List<IM> images})
-      : super(
-            fileVersion: fileVersion,
-            bigFloats: bigFloats,
-            visiteeChildren: visiteeChildren,
-            visiteeArgs: visiteeArgs,
-            visiteeTransforms: visiteeTransforms,
-            visiteeNumPaths: visiteeNumPaths,
-            visiteeNumPaints: visiteeNumPaints,
-            visitor: visitor,
-            strings: strings,
-            floatLists: floatLists,
-            floatValues: floatValues,
-            images: images);
+      {required super.fileVersion,
+      required super.bigFloats,
+      required super.visiteeChildren,
+      required super.visiteeArgs,
+      required super.visiteeTransforms,
+      required super.visiteeNumPaths,
+      required super.visiteeNumPaints,
+      required super.visitor,
+      required super.strings,
+      required super.floatLists,
+      required super.floatValues,
+      required super.images});
 }
 
 ///
@@ -910,10 +897,9 @@ class CompactPathParser extends AbstractPathParser {
   final FloatBufferInputStream args;
   bool _nextNybble = false;
 
-  CompactPathParser(CompactChildData data, PathBuilder builder)
+  CompactPathParser(CompactChildData data, super.builder)
       : children = data.children,
-        args = data.args,
-        super(builder);
+        args = data.args;
 
   void parse() {
     for (;;) {
