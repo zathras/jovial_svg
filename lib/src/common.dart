@@ -708,6 +708,12 @@ class SIPath extends SIRenderable {
         c.drawPath(path, paint);
         return;
       }
+      // We should only have one contour.  A contour is made up of connected
+      // curves and segments; a new contour is started with a moveTo.  SIPath
+      // only has a moveTo at the start.  We still iterate through the list,
+      // for a bit of robustness in case this ever changes.  If it does, the
+      // penUp/penDown logic should arguably re-start for each contour, since
+      // contours are not connected.
       for (final contour in path.computeMetrics()) {
         double offset = (siPaint.strokeDashOffset ?? 0.0) % len;
         int sdaI = 0;

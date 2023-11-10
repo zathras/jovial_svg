@@ -1,3 +1,7 @@
+## [1.1.19] - November 2023
+
+- Fix bug with stroke-dashoffset (issue 76)
+
 ## [1.1.18] - September 2023
 
 - Add switcher to widget for cross-fade effect (issue 70)

@@ -48,7 +48,7 @@ import 'test_widget.dart';
 
 void _noWarn(String s) {}
 
-const rewriteAllFailedTests = true;
+const rewriteAllFailedTests = false;
 // DANGEROUS - for every failed test, rewrite the reference file.  When flutter
 // changes the underlying renderer by enough, this is useful, but it should
 // obviously only be done if the library is in a known good state.
