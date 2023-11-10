@@ -20,7 +20,7 @@ final _demoSvgs = List.generate(100,
 /// about the default cache at [ScalableImageWidget.fromSISource].
 ///
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatefulWidget {
   final List<Uri> svgs;
 
-  const HomePage(this.svgs, {Key? key}) : super(key: key);
+  const HomePage(this.svgs, {super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();

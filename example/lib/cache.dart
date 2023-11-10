@@ -42,7 +42,7 @@ Future<List<Uri>> getSvgs() async {
 class MyApp extends StatelessWidget {
   final List<Uri> svgs;
 
-  const MyApp(this.svgs, {Key? key}) : super(key: key);
+  const MyApp(this.svgs, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatefulWidget {
   final List<Uri> svgs;
 
-  const HomePage(this.svgs, {Key? key}) : super(key: key);
+  const HomePage(this.svgs, {super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -118,5 +118,5 @@ class _HomePageState extends State<HomePage> {
   Widget _onError(BuildContext context) =>
       Container(key: const ValueKey(2), color: Colors.red);
   Widget _switcher(BuildContext context, Widget child) => AnimatedSwitcher(
-      child: child, duration: const Duration(milliseconds: 250));
+      duration: const Duration(milliseconds: 250), child: child);
 }
