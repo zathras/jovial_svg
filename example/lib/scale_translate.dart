@@ -16,7 +16,7 @@ void main() {
 class MinimalSample extends StatelessWidget {
   final ScalableImage si;
 
-  const MinimalSample(this.si, {Key? key}) : super(key: key);
+  const MinimalSample(this.si, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class MinimalSample extends StatelessWidget {
 class Body extends StatefulWidget {
   final ScalableImage si;
 
-  const Body(this.si, {Key? key}) : super(key: key);
+  const Body(this.si, {super.key});
 
   @override
   State<Body> createState() => _BodyState();
@@ -95,7 +95,7 @@ class _BodyState extends State<Body> {
                           fit: fit,
                           alignment: alignment,
                         ),
-                        CustomPaint(painter: MyPainter(this))
+                        CustomPaint(painter: _MyPainter(this))
                       ]))))),
       Row(children: [
         const Spacer(),
@@ -125,10 +125,10 @@ class _BodyState extends State<Body> {
   }
 }
 
-class MyPainter extends CustomPainter {
-  final _BodyState state;
+class _MyPainter extends CustomPainter {
+  final _BodyState _state;
 
-  MyPainter(this.state);
+  _MyPainter(this._state);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -138,16 +138,16 @@ class MyPainter extends CustomPainter {
     // transform them back out to the container's.
     final xform = ScalingTransform(
         containerSize: size,
-        siViewport: state.widget.si.viewport,
-        fit: state.fit,
-        alignment: state.alignment);
-    for (final c in state.clicks) {
+        siViewport: _state.widget.si.viewport,
+        fit: _state.fit,
+        alignment: _state.alignment);
+    for (final c in _state.clicks) {
       canvas.drawCircle(xform.toContainerCoordinate(c), 5, p);
     }
   }
 
   @override
-  bool shouldRepaint(MyPainter oldDelegate) {
+  bool shouldRepaint(_MyPainter oldDelegate) {
     return true;
   }
 }

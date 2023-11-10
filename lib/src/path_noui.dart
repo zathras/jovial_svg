@@ -197,8 +197,7 @@ class PathParser extends AbstractPathParser {
   // Is the current command relative?
   bool _relative = false;
 
-  PathParser(super.builder, String source)
-      : _lexer = BnfLexer(source);
+  PathParser(super.builder, String source) : _lexer = BnfLexer(source);
 
   static final Map<String, void Function(PathParser)> _action = {
     'M': (PathParser p) {

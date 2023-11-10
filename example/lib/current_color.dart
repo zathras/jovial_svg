@@ -20,7 +20,7 @@ void main() {
 class MinimalSample extends StatelessWidget {
   final ScalableImage si;
 
-  const MinimalSample(this.si, {Key? key}) : super(key: key);
+  const MinimalSample(this.si, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class MinimalSample extends StatelessWidget {
 class Body extends StatefulWidget {
   final ScalableImage initial;
 
-  const Body(this.initial, {Key? key}) : super(key: key);
+  const Body(this.initial, {super.key});
 
   @override
   State<Body> createState() => _BodyState();

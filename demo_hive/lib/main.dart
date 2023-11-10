@@ -98,7 +98,7 @@ Future<List<String>> getSvgs() async {
 class MyApp extends StatelessWidget {
   final List<String> svgs;
 
-  const MyApp(this.svgs, {Key? key}) : super(key: key);
+  const MyApp(this.svgs, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,7 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatefulWidget {
   final List<String> svgs;
 
-  const HomePage(this.svgs, {Key? key}) : super(key: key);
+  const HomePage(this.svgs, {super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -141,8 +141,8 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(title: const Text('Persistent Cache'), actions: [
         ElevatedButton(
             onPressed: _clearStorage,
-            child: const Text('Clear Storage'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple))
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+            child: const Text('Clear Storage'))
       ]),
       body: GridView.builder(
           itemCount: widget.svgs.length,

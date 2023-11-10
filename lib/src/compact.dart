@@ -614,9 +614,7 @@ class _LumaTraverser
   bool active = false;
   int assertEndPosition = -1;
 
-  _LumaTraverser(
-      super.parent,
-      super.visitor)
+  _LumaTraverser(super.parent, super.visitor)
       : _startGroupDepth = parent.groupDepth,
         super.clone();
 

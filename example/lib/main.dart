@@ -11,7 +11,7 @@ void main() {
 /// for a prototype.
 ///
 class MinimalSample extends StatelessWidget {
-  const MinimalSample({Key? key}) : super(key: key);
+  const MinimalSample({super.key});
 
   @override
   Widget build(BuildContext context) {

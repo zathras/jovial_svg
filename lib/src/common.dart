@@ -720,6 +720,7 @@ class SIPath extends SIRenderable {
             sdaI %= sda.length;
             penDown = !penDown;
           } else if (start + thisDash >= contour.length) {
+            offset = 0;
             // done w/ contour
             final p = contour.extractPath(start, contour.length);
             if (penDown) {
@@ -727,6 +728,7 @@ class SIPath extends SIRenderable {
             }
             break; // out of for(;;) loop
           } else {
+            offset = 0;
             final end = start + thisDash;
             final p = contour.extractPath(start, end);
             if (penDown) {

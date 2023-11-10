@@ -48,6 +48,11 @@ import 'test_widget.dart';
 
 void _noWarn(String s) {}
 
+const rewriteAllFailedTests = true;
+// DANGEROUS - for every failed test, rewrite the reference file.  When flutter
+// changes the underlying renderer by enough, this is useful, but it should
+// obviously only be done if the library is in a known good state.
+
 ///
 /// Test that reading the SVG and the SI results in the same root group,
 /// and that they render the same.
@@ -190,14 +195,20 @@ Future<void> checkRendered(
     codec.dispose();
     im.dispose();
   } catch (failed) {
-    if (outputDir != null) {
-      final outName = File('${outputDir.path}/$outNoExt.png');
-      print('Writing rendered result to $outName');
-      outputDir.createSync(recursive: true);
-      outName.writeAsBytesSync(await renderToBytes(si,
+    if (rewriteAllFailedTests) {
+      print('Overwriting reference file $refName !!!');
+      refName.writeAsBytesSync(await renderToBytes(si,
           scaleTo: scaleTo, format: ImageByteFormat.png));
+    } else {
+      if (outputDir != null) {
+        final outName = File('${outputDir.path}/$outNoExt.png');
+        print('Writing rendered result to $outName');
+        outputDir.createSync(recursive: true);
+        outName.writeAsBytesSync(await renderToBytes(si,
+            scaleTo: scaleTo, format: ImageByteFormat.png));
+      }
+      rethrow;
     }
-    rethrow;
   }
 }
 
@@ -478,15 +489,13 @@ void _cacheTest() {
   }
 }
 
-Future<void> _tint() async {
+Future<void> _tint(Directory? outputDir) async {
   for (final compact in [true, false]) {
     final orig = ScalableImage.fromSIBytes(
             File('demo/assets/si/tiny_07_12_bbox01.si').readAsBytesSync(),
             compact: compact,
             currentColor: const Color(0x12345642))
         .withNewViewport(const Rect.fromLTWH(50, 0, 100, 120));
-    const String dirName = String.fromEnvironment('jovial_svg.output');
-    final outputDir = (dirName == '') ? null : Directory(dirName);
     for (final mode in BlendMode.values) {
       final t = orig.modifyTint(
           newTintMode: mode, newTintColor: const Color(0x7f7f7f00));
@@ -677,8 +686,10 @@ void _checkDrawingSame(ScalableImage a, ScalableImage b, String reason) {
 }
 
 void main() {
+  const dirName = String.fromEnvironment('jovial_svg.output');
+  final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
-  test('tint', _tint);
+  test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);
   test('compact drawing order', () async {
     final inputDir = Directory('demo/assets/si');
@@ -705,8 +716,6 @@ void main() {
   });
 
   test('Reference Images', () async {
-    const String dirName = String.fromEnvironment('jovial_svg.output');
-    final outputDir = (dirName == '') ? null : Directory(dirName);
     Directory? getDir(Directory? d, String name) =>
         d == null ? null : Directory('${d.path}/$name');
     final referenceDir = Directory('test/reference_images');
