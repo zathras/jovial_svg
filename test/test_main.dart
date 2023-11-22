@@ -417,7 +417,7 @@ class CanvasRecorder implements Canvas {
   }
 }
 
-void _createSI() {
+void _createSI(Directory tmp) {
   List<String> listFiles(String type, String extension) {
     final List<String> r = [];
     for (final f in Directory('demo/assets/$type').listSync()) {
@@ -429,15 +429,10 @@ void _createSI() {
     return r;
   }
 
-  Directory tmp = Directory.systemTemp.createTempSync();
-  try {
-    final svgFiles = listFiles('svg', 'svg');
-    svg_to_si.SvgToSI().main(['-q', '-o', tmp.absolute.path, ...svgFiles]);
-    final avdFiles = listFiles('avd', 'xml');
-    avd_to_si.AvdToSI().main(['-q', '-o', tmp.absolute.path, ...avdFiles]);
-  } finally {
-    tmp.deleteSync(recursive: true);
-  }
+  final svgFiles = listFiles('svg', 'svg');
+  svg_to_si.SvgToSI().main(['-q', '-o', tmp.absolute.path, ...svgFiles]);
+  final avdFiles = listFiles('avd', 'xml');
+  avd_to_si.AvdToSI().main(['-q', '-o', tmp.absolute.path, ...avdFiles]);
 }
 
 class TestSource extends ScalableImageSource {
@@ -843,6 +838,10 @@ void main() {
     }
   });
   test('cache test', _cacheTest);
-  test('create SI smoke test', _createSI);
+
+  Directory tmp = Directory.systemTemp.createTempSync();
+  test('create SI smoke test', () => _createSI(tmp));
+  tmp.deleteSync(recursive: true);
+
   testSIWidget();
 }
