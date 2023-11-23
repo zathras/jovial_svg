@@ -429,7 +429,7 @@ void _createSI() {
     return r;
   }
 
-  Directory tmp = Directory('/tmp').createTempSync();
+  Directory tmp = Directory.systemTemp.createTempSync();
   try {
     final svgFiles = listFiles('svg', 'svg');
     svg_to_si.SvgToSI().main(['-q', '-o', tmp.absolute.path, ...svgFiles]);
