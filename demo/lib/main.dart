@@ -193,7 +193,7 @@ class _DemoScreenState extends State<DemoScreen> {
                 children: [
                   const SizedBox(width: 0),
                   SizedBox(
-                      width: 130,
+                      width: 150,
                       child: Row(children: [
                         ElevatedButton(
                           onPressed: (assetIndex > 0)
@@ -217,7 +217,7 @@ class _DemoScreenState extends State<DemoScreen> {
                       ])),
                   const SizedBox(width: 15),
                   SizedBox(
-                      width: 260,
+                      width: 265,
                       child: Row(children: [
                         Text('SI',
                             style: (asset.si == null)
