@@ -24,7 +24,10 @@ linter:
       # statements to show what's going on internally is appropriate.
 
 analyzer:
-  strong-mode:
+    language:
+        strict-casts: true
+        strict-inference: true
+        strict-raw-types: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

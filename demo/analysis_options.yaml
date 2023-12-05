@@ -20,8 +20,10 @@ linter:
 #     - camel_case_types
 
 analyzer:
-  strong-mode:
-
+    language:
+        strict-casts: true
+        strict-inference: true
+        strict-raw-types: true
 
 #  errors:
 #        prefer_single_quotes: ignore
