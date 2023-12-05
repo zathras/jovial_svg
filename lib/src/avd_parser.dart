@@ -68,7 +68,7 @@ abstract class AvdParser extends GenericParser {
   bool _done = false;
 
   @override
-  Function(String) get warn => _avdBuilder.warn;
+  void Function(String) get warn => _avdBuilder.warn;
 
   void _startTag(XmlStartElementEvent evt) {
     if (_done) {

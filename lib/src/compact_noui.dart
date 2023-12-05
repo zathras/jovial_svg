@@ -1561,13 +1561,13 @@ enum _PathCommand {
   arcToPointEllipseLargeCW
 }
 
-class CompactPathBuilder extends PathBuilder {
+class CompactPathBuilder<PathDataT, IM> extends PathBuilder {
   final DataOutputSink _children;
   final FloatSink _args;
 
   int _currByte = 0;
 
-  CompactPathBuilder(SIGenericCompactBuilder b)
+  CompactPathBuilder(SIGenericCompactBuilder<PathDataT, IM> b)
       : _children = b.children,
         _args = b.args {
     assert(_PathCommand.end.index == 0);

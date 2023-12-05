@@ -1085,7 +1085,8 @@ abstract class SITextChunk {
 
   Rect get _bounds;
 
-  void build(CanonicalizedData<SIImage> canon, SIBuilder builder);
+  void build<PathDataT>(
+      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder);
 }
 
 class SITextSpan extends SITextChunk {
@@ -1108,7 +1109,8 @@ class SITextSpan extends SITextChunk {
   }();
 
   @override
-  void build(CanonicalizedData<SIImage> canon, SIBuilder builder) {
+  void build<PathDataT>(
+      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder) {
     final int? fontFamilyIndex;
     if (attributes.fontFamily == '') {
       fontFamilyIndex = null;
@@ -1320,7 +1322,8 @@ class SIMultiSpanChunk extends SITextChunk {
   }
 
   @override
-  void build(CanonicalizedData<SIImage> canon, SIBuilder builder) {
+  void build<PathDataT>(
+      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder) {
     final xIndex = canon.floatValues[dx];
     final yIndex = canon.floatValues[dy];
     builder.textMultiSpanChunk(null, xIndex, yIndex, textAnchor);

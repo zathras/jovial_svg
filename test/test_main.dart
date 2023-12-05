@@ -541,7 +541,7 @@ Future<void> _miscCoverage() async {
     }
   }
 
-  Future<void> expectExceptionAsync(Future Function() f) async {
+  Future<void> expectExceptionAsync(Future<void> Function() f) async {
     try {
       await f();
       expect(true, false);

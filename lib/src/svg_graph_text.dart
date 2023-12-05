@@ -161,8 +161,12 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     assert(stack.length == 1);
     if (!display) {
@@ -401,8 +405,12 @@ class SvgTextChunk {
     return r;
   }
 
-  void build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint paint, SvgTextAttributes ta) {
+  void build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint paint,
+      SvgTextAttributes ta) {
     assert(spans.isNotEmpty);
     if (spans.length == 1) {
       spans.first.build(x, y, builder, canon, idLookup, paint, ta);
@@ -463,7 +471,7 @@ class SvgFlatSpan {
       double x,
       double y,
       SIBuilder<String, SIImageData> builder,
-      CanonicalizedData canon,
+      CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
       SvgTextAttributes ta) {

@@ -109,7 +109,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
 }
 
 abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
-  Function(String) get warn;
+  void Function(String) get warn;
 
   ///
   /// Called once, at the beginning of reading a file.
@@ -498,7 +498,7 @@ mixin SIStringPathMaker {
 }
 
 abstract class GenericParser {
-  Function(String) get warn;
+  void Function(String) get warn;
 
   /// Tiny s. 11.13.1 only requires the sixteen colors from HTML 4, but this
   /// is a more complete list from CSS, since it's easy to do.  Note that

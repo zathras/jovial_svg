@@ -141,7 +141,7 @@ class SvgParseGraph {
 }
 
 class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
-  final CanonicalizedData canon;
+  final CanonicalizedData<SIImageData> canon;
   ColorWriter? _colorWriter;
   ColorWriter get colorWriter =>
       _colorWriter ??
@@ -815,8 +815,12 @@ class SvgDefs extends SvgGroup {
   }
 
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     return unreachable(false);
   }
@@ -1004,7 +1008,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   @override
   bool build(
           SIBuilder<String, SIImageData> builder,
-          CanonicalizedData canon,
+          CanonicalizedData<SIImageData> canon,
           Map<String, SvgNode> idLookup,
           SvgPaint ancestor,
           SvgTextAttributes ta,
@@ -1025,8 +1029,12 @@ class SvgSymbol extends SvgGroup {
 abstract class SvgPathMaker extends SvgInheritableAttributesNode
     with SvgTextFields {
   @override
-  bool build(SIBuilder<String, SIImageData> builder, CanonicalizedData canon,
-      Map<String, SvgNode> idLookup, SvgPaint ancestor, SvgTextAttributes ta,
+  bool build(
+      SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon,
+      Map<String, SvgNode> idLookup,
+      SvgPaint ancestor,
+      SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
@@ -1405,7 +1413,7 @@ class SvgGradientNode implements SvgNode {
   @override
   bool build(
           SIBuilder<String, SIImageData> builder,
-          CanonicalizedData canon,
+          CanonicalizedData<SIImageData> canon,
           Map<String, SvgNode> idLookup,
           SvgPaint ancestor,
           SvgTextAttributes ta,
@@ -2177,7 +2185,7 @@ class _SvgBoundary {
 /// work, we do this to avoid wasting time with false positives on the coverage
 /// report.  Obviously, this gets optimized away as part of Dart's tree shaking.
 final svgGraphUnreachablePrivate = [
-  () => _CollectCanonBuilder(CanonicalizedData<void>()).legacyText(
+  () => _CollectCanonBuilder(CanonicalizedData<SIImageData>()).legacyText(
       null,
       0,
       0,
@@ -2215,7 +2223,7 @@ final svgGraphUnreachablePrivate = [
   () => _SvgPathBoundsBuilder().addOval(const RectT(0, 0, 0, 0)),
 ];
 void _testCallBuild(SvgNode n) => n.build(
-    _CollectCanonBuilder(CanonicalizedData<void>()),
+    _CollectCanonBuilder(CanonicalizedData<SIImageData>()),
     CanonicalizedData<SIImageData>(),
     const {},
     SvgPaint.empty(),
