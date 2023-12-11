@@ -24,6 +24,7 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
+    if: github.repository == 'zathras/jovial_svg'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
