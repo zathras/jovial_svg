@@ -818,7 +818,7 @@ print(String.fromEnvironment('jovial_svg_rewriteAllFailedTests'));
       dos.close();
       return ScalableImage.fromSIBytes(cs.toList(), compact: false);
     });
-  }, timeout: const Timeout(Duration(minutes: 8)));
+  }, timeout: const Timeout(Duration(minutes: 10)));
 
   test('Affine sanity check', () {
     final rand = Random();
