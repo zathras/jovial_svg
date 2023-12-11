@@ -15,7 +15,7 @@ jobs:
                   channel: 'stable'
                   # flutter:version: '3.0.0'
             - run: flutter pub upgrade
-            - run: -
+            - run: |
                 export jovial_svg_rewriteAllFailedTests=true
                 flutter test test/test_main.dart
             - uses: actions/upload-artifact@v3
