@@ -49,7 +49,7 @@ import 'test_widget.dart';
 void _noWarn(String s) {}
 
 const rewriteAllFailedTests =
-    String.fromEnvironment('jovial_svg.rewriteAllFailedTests') == 'true';
+    String.fromEnvironment('jovial_svg_rewriteAllFailedTests') == 'true';
 // DANGEROUS - for every failed test, rewrite the reference file.  When flutter
 // changes the underlying renderer by enough, this is useful, but it should
 // obviously only be done if the library is in a known good state.

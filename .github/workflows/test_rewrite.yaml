@@ -1,0 +1,24 @@
+# See https://github.com/subosito/flutter-action
+
+name:  jovial_svg Regenerate Test Images
+run-name: ${{ github.actor }} jovial_svg test_rewrite
+on:
+    workflow_dispatch:          # Manually
+
+jobs:
+    test:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: subosito/flutter-action@v2
+              with:
+                  channel: 'stable'
+                  # flutter:version: '3.0.0'
+            - run: flutter pub upgrade
+            - run: -
+                export jovial_svg_rewriteAllFailedTests=true
+                flutter test test/test_main.dart
+            - uses: actions/upload-artifact@v3
+              with:
+                name:  reference_images
+                path:  test/reference_iages
