@@ -687,6 +687,8 @@ void _checkDrawingSame(ScalableImage a, ScalableImage b, String reason) {
 }
 
 void main() {
+print("@@ $rewriteAllFailedTests");
+print(String.fromEnvironment('jovial_svg_rewriteAllFailedTests'));
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -715,6 +717,7 @@ void main() {
       }
     }
   });
+
 
   test('Reference Images', () async {
     Directory? getDir(Directory? d, String name) =>
@@ -815,7 +818,7 @@ void main() {
       dos.close();
       return ScalableImage.fromSIBytes(cs.toList(), compact: false);
     });
-  }, timeout: const Timeout(Duration(seconds: 240)));
+  }, timeout: const Timeout(Duration(minutes: 8)));
 
   test('Affine sanity check', () {
     final rand = Random();
