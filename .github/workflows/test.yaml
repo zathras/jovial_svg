@@ -1,0 +1,22 @@
+
+# See https://github.com/subosito/flutter-action
+
+name:  jovial_svg Test
+run-name: ${{ github.actor }} jovial_svg Test
+on:
+    workflow_dispatch:          # Manually
+    push:
+        branches: [master]
+        paths-ignore:
+            - '**/README.md'
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: subosito/flutter-action@v2
+              with:
+                  channel: 'stable'
+                  # flutter:version: '3.0.0'
+            - run: flutter pub upgrade
+            - run: flutter test test/test_main.dart
