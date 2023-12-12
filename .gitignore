@@ -1,5 +1,6 @@
 coverage
 avd_to_si/bin/avd_to_si.exe
+tmp
 
 # Miscellaneous
 *.class
