@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2023, William Foote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -177,6 +177,8 @@ Future<void> _testReference(
     }
   }
 }
+      
+final _testPattern = RegExp('^test');
 
 Future<void> checkRendered(
     {required ScalableImage si,
@@ -197,8 +199,10 @@ Future<void> checkRendered(
     im.dispose();
   } catch (failed) {
     if (rewriteAllFailedTests) {
-      print('Overwriting reference file $refName !!!');
-      refName.writeAsBytesSync(await renderToBytes(si,
+      final outName = File(refName.path.replaceFirst(_testPattern, 'tmp'));
+      print('Generating reference file $outName !!!');
+      outName.parent.createSync(recursive: true);
+      outName.writeAsBytesSync(await renderToBytes(si,
           scaleTo: scaleTo, format: ImageByteFormat.png));
     } else {
       if (outputDir != null) {
@@ -687,8 +691,6 @@ void _checkDrawingSame(ScalableImage a, ScalableImage b, String reason) {
 }
 
 void main() {
-print("@@ $rewriteAllFailedTests");
-print(String.fromEnvironment('jovial_svg_rewriteAllFailedTests'));
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
