@@ -11,13 +11,12 @@ on:
 
 jobs:
     test:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         steps:
             - uses: actions/checkout@v4
             - uses: subosito/flutter-action@v2
               with:
                   channel: 'stable'
                   flutter:version: '3.16.3'
-            - run: lsb_release -a
             - run: flutter pub upgrade
             - run: flutter test test/test_main.dart

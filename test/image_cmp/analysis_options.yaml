@@ -1,0 +1,23 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+    rules:
+        unawaited_futures: true
+        omit_local_variable_types: false
+        avoid_types_on_closure_parameters: false
+        camel_case_types: true
+        cancel_subscriptions: true
+        comment_references: true
+        await_only_futures: true
+        exhaustive_cases: true
+        avoid_print: false
+        # avoid_print is a new lint as of 1.14.  This library uses print to send warnings
+        # to the developer, but of course we expect them to be turned off in production
+        # code.
+
+
+analyzer:
+    language:
+        strict-casts: true
+        strict-inference: true
+        strict-raw-types: true

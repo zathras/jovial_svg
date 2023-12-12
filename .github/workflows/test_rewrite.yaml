@@ -17,6 +17,7 @@ jobs:
             - run: flutter pub upgrade
             - run: flutter test --dart-define=jovial_svg_rewriteAllFailedTests=true test/test_main.dart
             - run: uptime
+            - run: lsb_release -a
             - run: flutter --version
             - uses: actions/upload-artifact@v3
               with:
