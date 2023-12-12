@@ -16,6 +16,7 @@ jobs:
                   # flutter:version: '3.0.0'
             - run: flutter pub upgrade
             - run: flutter test --dart-define=jovial_svg_rewriteAllFailedTests=true test/test_main.dart
+            - run: uptime
             - run: flutter --version
             - uses: actions/upload-artifact@v3
               with:
