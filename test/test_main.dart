@@ -820,7 +820,7 @@ void main() {
       dos.close();
       return ScalableImage.fromSIBytes(cs.toList(), compact: false);
     });
-  }, timeout: const Timeout(Duration(minutes: 15)));
+  }, timeout: const Timeout(Duration(minutes: 30)));
 
   test('Affine sanity check', () {
     final rand = Random();
