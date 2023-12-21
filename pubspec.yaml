@@ -30,7 +30,6 @@ dependencies:
   jovial_misc: ^0.8.0
   http: ^1.0.0
   meta: ^1.7.0
-  url_launcher: ^6.0.0
   flutter:
     sdk: flutter
 
