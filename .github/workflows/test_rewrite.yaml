@@ -15,6 +15,11 @@ jobs:
                   channel: 'stable'
                   # flutter:version: '3.0.0'
             - run: flutter pub upgrade
+            - run: cd demo; flutter pub upgrade
+            - run: cd test/image_cmp ; flutter pub upgrade
+            - run: cd example ; flutter pub upgrade
+            - run: cd demo_hive; flutter pub upgrade
+            - run: flutter analyze
             - run: flutter test --dart-define=jovial_svg_rewriteAllFailedTests=true test/test_main.dart
             - run: uptime
             - run: lsb_release -a
