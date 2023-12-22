@@ -1,3 +1,7 @@
+## [1.1.20] - December 2023
+
+- Remove unneded url_launcher dependency
+
 ## [1.1.19] - November 2023
 
 - Fix bug with stroke-dashoffset (issue 76)
