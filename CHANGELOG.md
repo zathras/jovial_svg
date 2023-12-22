@@ -1,6 +1,6 @@
 ## [1.1.20] - December 2023
 
-- Remove unneded url_launcher dependency
+- Remove unneded url_launcher dependency (Issue 87)
 
 ## [1.1.19] - November 2023
 
