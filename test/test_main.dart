@@ -177,7 +177,7 @@ Future<void> _testReference(
     }
   }
 }
-      
+
 final _testPattern = RegExp('^test');
 
 Future<void> checkRendered(
@@ -719,7 +719,6 @@ void main() {
       }
     }
   });
-
 
   test('Reference Images', () async {
     Directory? getDir(Directory? d, String name) =>

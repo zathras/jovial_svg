@@ -76,6 +76,10 @@ abstract class SIRenderable {
   SIRenderable? prunedBy(
       Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b);
 
+  ///
+  /// Get the pruning boundary, if this renderable renders something.  A text
+  /// node with no text is an example that doesn't render anything.
+  ///
   PruningBoundary? getBoundary();
 
   void _setLinearGradient(Paint p, SILinearGradientColor g, Float64List? xform,

@@ -48,25 +48,29 @@ class _CompareImagesState extends State<CompareImages> {
       () async {
         await Future<void>.delayed(const Duration(milliseconds: 10));
         while (newImages == null) {
-          final s = await FilesystemPicker.open(
-              context: context,
-              rootDirectory: Directory('../..'),
-              directory: Directory('../../tmp'),
-              title: 'New images directory',
-              fsType: FilesystemType.folder);
-          if (s != null) {
-            newImages = Directory(path.normalize(path.relative(s)));
+          if (context.mounted) {
+            final s = await FilesystemPicker.open(
+                context: context,
+                rootDirectory: Directory('../..'),
+                directory: Directory('../../tmp'),
+                title: 'New images directory',
+                fsType: FilesystemType.folder);
+            if (s != null) {
+              newImages = Directory(path.normalize(path.relative(s)));
+            }
           }
         }
         while (oldImages == null) {
-          final s = await FilesystemPicker.open(
-              context: context,
-              rootDirectory: Directory('../..'),
-              directory: Directory('../../test/reference_images'),
-              title: 'Old images directory',
-              fsType: FilesystemType.folder);
-          if (s != null) {
-            oldImages = Directory(path.normalize(path.relative(s)));
+          if (context.mounted) {
+            final s = await FilesystemPicker.open(
+                context: context,
+                rootDirectory: Directory('../..'),
+                directory: Directory('../../test/reference_images'),
+                title: 'Old images directory',
+                fsType: FilesystemType.folder);
+            if (s != null) {
+              oldImages = Directory(path.normalize(path.relative(s)));
+            }
           }
         }
         final files = <File>[];
@@ -83,7 +87,7 @@ class _CompareImagesState extends State<CompareImages> {
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(files == null
               ? ''
-              : '${pos+1} / ${files!.length} : ${files![pos].path}'),
+              : '${pos + 1} / ${files!.length} : ${files![pos].path}'),
           actions: [
             IconButton(
               onPressed: (files == null) ? null : _last,
