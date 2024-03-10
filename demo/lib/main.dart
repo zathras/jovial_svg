@@ -179,10 +179,9 @@ class _DemoScreenState extends State<DemoScreen> {
             leading: RepaintBoundary(
                 child: ScalableImageWidget.fromSISource(
                     si: ScalableImageSource.fromSI(
-              DefaultAssetBundle.of(context),
-              'assets/other/jupiter.si',
-              currentColor: Colors.yellow.shade300,
-            ))),
+                        DefaultAssetBundle.of(context),
+                        'assets/other/jupiter.si',
+                        currentColor: Colors.blue.shade700))),
             title: Text('${widget.title} - $assetName')),
         body: Column(children: [
           const SizedBox(height: 5),

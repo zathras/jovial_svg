@@ -478,10 +478,13 @@ class SvgFlatSpan {
     ta = attributes.cascade(ta);
     final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     final int? fontFamilyIndex;
-    if (ta.fontFamily == '') {
+    if (ta.fontFamily == null) {
       fontFamilyIndex = null;
     } else {
-      fontFamilyIndex = canon.strings.getIfNotNull(ta.fontFamily);
+      for (final String s in ta.fontFamily!) {
+        canon.strings[s];
+      }
+      fontFamilyIndex = canon.stringLists.getIfNotNull(CList(ta.fontFamily!));
     }
     final textIndex = canon.strings[text.toString()];
     final dxIndex = canon.floatValues[x + dx];

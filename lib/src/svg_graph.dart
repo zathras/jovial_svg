@@ -119,12 +119,12 @@ class SvgParseGraph {
     builder.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
 
-    // Collect canonicalized data by doing a build dry run.  We skip of the
+    // Collect canonicalized data by doing a build dry run.  We skip the
     // paths and other stuff that doesn't generate canonicalized data, so
     // this is quite fast.
     final theCanon = CanonicalizedData<SIImageData>();
     final cb = _CollectCanonBuilder(theCanon);
-    cb.init(cb.initial, const [], const [], const [], const [], null);
+    cb.init(cb.initial, const [], const [], const [], const [], const [], null);
     cb.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
     newRoot?.build(cb, theCanon, idLookup, rootPaint, rootTA);
@@ -132,8 +132,14 @@ class SvgParseGraph {
     cb.traversalDone();
 
     // Now we can do the real building run.
-    builder.init(null, theCanon.images.toList(), theCanon.strings.toList(),
-        const [], theCanon.floatValues.toList(), theCanon.floatValues);
+    builder.init(
+        null,
+        theCanon.images.toList(),
+        theCanon.strings.toList(),
+        const [], // float lists aren't canonicalized; they're marginal
+        theCanon.getStringLists(),
+        theCanon.floatValues.toList(),
+        theCanon.floatValues);
     newRoot?.build(builder, theCanon, idLookup, rootPaint, rootTA);
     builder.endVector();
     builder.traversalDone();
@@ -163,6 +169,7 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
       List<SIImageData> im,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap) {}
 
@@ -1502,7 +1509,7 @@ abstract class SvgTextNodeAttributes extends SvgInheritableTextAttributes {
 }
 
 class SvgTextAttributes {
-  String? fontFamily;
+  List<String>? fontFamily; // Null is not the same as [] due to cascading
   SIFontStyle? fontStyle;
   SITextAnchor? textAnchor;
   SITextDecoration? textDecoration;
@@ -1510,6 +1517,7 @@ class SvgTextAttributes {
   SvgFontSize fontSize = SvgFontSize.inherit;
 
   SvgTextAttributes.empty();
+
   SvgTextAttributes(
       {required this.fontFamily,
       required this.fontStyle,
@@ -1519,7 +1527,7 @@ class SvgTextAttributes {
       required this.textDecoration});
 
   SvgTextAttributes.initial()
-      : fontFamily = '',
+      : fontFamily = null,
         textAnchor = SITextAnchor.start,
         fontStyle = SIFontStyle.normal,
         fontWeight = SvgFontWeight.w400,
@@ -1546,7 +1554,7 @@ class SvgTextAttributes {
   }
 
   SITextAttributes toSITextAttributes() => SITextAttributes(
-      fontFamily: fontFamily!,
+      fontFamily: fontFamily,
       textAnchor: textAnchor!,
       textDecoration: textDecoration!,
       fontStyle: fontStyle!,
@@ -1556,14 +1564,16 @@ class SvgTextAttributes {
   @override
   int get hashCode =>
       0x0ba469d9 ^
-      Object.hash(fontFamily, fontStyle, textAnchor, textDecoration, fontWeight,
-          fontSize);
+      Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, textAnchor,
+          textDecoration, fontWeight, fontSize);
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     } else if (other is SvgTextAttributes) {
-      return fontFamily == other.fontFamily &&
+      return (const ListEquality<String>())
+              .equals(fontFamily, other.fontFamily) &&
           fontStyle == other.fontStyle &&
           textAnchor == other.textAnchor &&
           textDecoration == other.textDecoration &&

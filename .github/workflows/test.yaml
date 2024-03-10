@@ -3,14 +3,10 @@
 name:  jovial_svg Test
 run-name: ${{ github.actor }} jovial_svg Test
 on:
-    workflow_dispatch:          # Manually
     push:
-        tags:
-            - '*'
-#    push:
-#        branches: [master]
-#        paths-ignore:
-#            - '**/README.md'
+        paths-ignore:
+          - '**/README.md'
+    workflow_dispatch:          # Manually
 
 jobs:
     test:

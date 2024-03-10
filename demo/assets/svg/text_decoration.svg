@@ -14,9 +14,10 @@
     <stop offset="0.9" stop-color="green"/>
 </radialGradient>
 
-  <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
+  <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975"
       x="60" y="50">No decoration</text>
-  <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 
+  <text fill="url(#groovy)" font-size="55" 
+      font-family="Not a font, nor this , ROLLERBALL 1975, also bad" 
       text-decoration="underline"
       x="60" y="110">Underline</text>
   <text fill="url(#groovy)" font-size="55" font-family="ROLLERBALL 1975" 

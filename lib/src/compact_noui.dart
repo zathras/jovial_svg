@@ -31,6 +31,7 @@ SOFTWARE.
 ///
 library jovial_svg.compact_noui;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -46,12 +47,13 @@ import 'path_noui.dart';
 ///
 abstract class CompactTraverserBase<R, IM,
     VT extends SIVisitor<CompactChildData, IM, R>> {
-  final int fileVersion; // See [ScalableImageCompactGeneric.fileVersionNumber]
+  final int fileVersion; // See [ScalableImageCompactGeneric.latestFileVersion]
   final bool bigFloats;
   @protected
   final VT visitor;
   final List<String> _strings;
   final List<List<double>> _floatLists;
+  final List<List<String>> _stringLists;
   final List<double> _floatValues;
   final List<IM> _images;
   final ByteBufferDataInputStream _children;
@@ -77,6 +79,7 @@ abstract class CompactTraverserBase<R, IM,
       : fileVersion = other.fileVersion,
         bigFloats = other.bigFloats,
         _strings = other._strings,
+        _stringLists = other._stringLists,
         _floatLists = other._floatLists,
         _floatValues = other._floatValues,
         _images = other._images,
@@ -104,10 +107,13 @@ abstract class CompactTraverserBase<R, IM,
       required int visiteeNumPaints,
       required this.visitor,
       required List<String> strings,
+      required List<List<String>> stringLists,
       required List<List<double>> floatLists,
       required List<double> floatValues,
       required List<IM> images})
       : _strings = strings,
+        _stringLists =
+            (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
         _floatLists = floatLists,
         _floatValues = floatValues,
         _images = images,
@@ -127,8 +133,8 @@ abstract class CompactTraverserBase<R, IM,
         groupDepth = 0;
 
   R traverse(R collector) {
-    collector = visitor.init(
-        collector, _images, _strings, _floatLists, _floatValues, null);
+    collector = visitor.init(collector, _images, _strings, _floatLists,
+        _stringLists, _floatValues, null);
     final r = traverseGroup(collector);
     visitor.traversalDone();
     closeStreams();
@@ -320,7 +326,7 @@ abstract class CompactTraverserBase<R, IM,
 
     final fontSize = _args.get();
     final ta = SITextAttributes(
-        fontFamily: (ffi == null) ? '' : _strings[ffi],
+        fontFamily: (ffi == null) ? null : _stringLists[ffi],
         fontStyle: style,
         textAnchor: anchor,
         fontSize: fontSize,
@@ -351,8 +357,14 @@ abstract class CompactTraverserBase<R, IM,
         hasPaintNumber: _flag(byte, 0),
         fillColorType: (byte >> 4) & 0x03,
         strokeColorType: (byte >> 6) & 0x03);
+    final List<String>? fontFamily;
+    if (ffi == null) {
+      fontFamily = null;
+    } else {
+      fontFamily = _stringLists[ffi];
+    }
     final ta = SITextAttributes(
-        fontFamily: (ffi == null) ? '' : _strings[ffi],
+        fontFamily: fontFamily,
         fontStyle: style,
         textAnchor: anchor,
         fontSize: _floatValues[fontSizeIndex],
@@ -570,6 +582,38 @@ abstract class CompactTraverserBase<R, IM,
   static bool _flag(int v, int bitNumber) => ((v >> bitNumber) & 1) == 1;
 }
 
+class LegacyStringLists extends ListBase<List<String>> {
+  final List<String> _strings;
+  final List<List<String>?> _stringLists;
+
+  LegacyStringLists(List<String> strings)
+      : _strings = strings,
+        _stringLists =
+            List<List<String>?>.filled(strings.length, null, growable: false);
+
+  @override
+  int get length => _strings.length;
+  @override
+  set length(int v) => throw Exception('Immutable list');
+
+  @override
+  List<String> operator [](int i) {
+    List<String>? result = _stringLists[i];
+    if (result != null) {
+      return result;
+    }
+    return _stringLists[i] = List.unmodifiable([_strings[i]]);
+  }
+
+  @override
+  void operator []=(int index, List<String> value) {
+    throw Exception('Immutable list');
+  }
+
+  @override
+  String toString() => 'LegacyStringLists($_strings)';
+}
+
 class CompactTraverser<R, IM>
     extends CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> {
   CompactTraverser(
@@ -582,6 +626,7 @@ class CompactTraverser<R, IM>
       required super.visiteeNumPaints,
       required super.visitor,
       required super.strings,
+      required super.stringLists,
       required super.floatLists,
       required super.floatValues,
       required super.images});
@@ -604,6 +649,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   List<String> get strings;
   @protected
   List<List<double>> get floatLists;
+  @protected
+  List<List<String>> get stringLists;
   @protected
   List<double> get floatValues;
   @protected
@@ -639,7 +686,8 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    7 - jovial_svg version 1.1.3, April 2022 (tspan)
   ///    8 - jovial_svg version 1.1.4, April 2022 (expanded tint mode)
   ///    9 - jovial_svg version 1.1.4, April 2022 (givenViewport, currentColor)
-  static const int latestFileVersion = 9;
+  ///    10 - jovial_svg version 1.1.21, March 2024 (font-family as list)
+  static const int latestFileVersion = 10;
 
   ///
   /// Write the compact representation out.
@@ -713,6 +761,19 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       numWritten += _writeSmallishInt(out, x.length);
       out.writeBytes(x);
       numWritten += x.length;
+    }
+
+    numWritten += _writeSmallishInt(out, stringLists.length);
+    if (stringLists.isNotEmpty) {
+      final Map<String, int> stringIndex = {
+        for (final item in strings.indexed) item.$2: item.$1
+      };
+      for (final sl in stringLists) {
+        numWritten += _writeSmallishInt(out, sl.length);
+        for (final s in sl) {
+          numWritten += _writeSmallishInt(out, stringIndex[s]!);
+        }
+      }
     }
 
     numWritten += _writeSmallishInt(out, floatLists.length);
@@ -791,6 +852,9 @@ class ScalableImageCompactNoUI
   final List<List<double>> floatLists;
 
   @override
+  final List<List<String>> stringLists;
+
+  @override
   final List<double> floatValues;
 
   @override
@@ -836,6 +900,7 @@ class ScalableImageCompactNoUI
 
   ScalableImageCompactNoUI(
       this.strings,
+      this.stringLists,
       this.floatLists,
       this.floatValues,
       this.images,
@@ -1138,7 +1203,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   SITintMode _tintMode;
   final _pathShare = <Object?, int>{};
   // We share path objects.  This is a significant memory savings.  For example,
-  // on the "anglo" card deck, it shrinks the number of floats saved by about
+  // on the "anglo" card deck, it shrinks the number of floats by about
   // a factor of 2.4 (from 116802 to 47944; if storing float64's, that's
   // a savings of over 500K).  We *don't* share intermediate nodes, like
   // the in-memory [ScalableImageDag] does.  That would add significant
@@ -1150,6 +1215,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   final _paintShare = <SIPaint, int>{};
   late final List<String> strings;
   late final List<List<double>> floatLists;
+  late final List<List<String>> stringLists;
   late final List<double> floatValues;
   late final CMap<double> _floatValueMap;
   late final List<IM> images;
@@ -1242,11 +1308,13 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
       List<IM> im,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap) {
     images = im;
     this.strings = strings;
     this.floatLists = floatLists;
+    this.stringLists = stringLists;
     this.floatValues = floatValues;
     if (floatValueMap != null) {
       _floatValueMap = floatValueMap;
@@ -1522,6 +1590,7 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
     }
     return _si = ScalableImageCompactNoUI(
         strings,
+        stringLists,
         floatLists,
         floatValues,
         images,

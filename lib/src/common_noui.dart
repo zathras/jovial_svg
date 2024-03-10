@@ -65,6 +65,7 @@ abstract class SIVisitor<PathDataT, IM, R> {
       List<IM> im,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap);
 
@@ -806,6 +807,15 @@ abstract class GenericParser {
     return r;
   }
 
+  static final _commaSeparation = RegExp(r'\s*,\s*');
+  List<String>? getStringList(String? s) {
+    if (s == null) {
+      return null;
+    } else {
+      return s.split(_commaSeparation);
+    }
+  }
+
   int? getAlpha(String? s) {
     double? opacity = getFloat(s);
     if (opacity == null) {
@@ -1161,7 +1171,7 @@ enum SITextAnchor { start, middle, end }
 enum SITextDecoration { none, lineThrough, overline, underline }
 
 class SITextAttributes {
-  final String fontFamily;
+  final List<String>? fontFamily;
   final SITextAnchor textAnchor;
   final SIFontStyle fontStyle;
   final SIFontWeight fontWeight;
@@ -1181,7 +1191,8 @@ class SITextAttributes {
     if (identical(this, other)) {
       return true;
     } else if (other is SITextAttributes) {
-      return fontFamily == other.fontFamily &&
+      return (const ListEquality<String>())
+              .equals(fontFamily, other.fontFamily) &&
           textAnchor == other.textAnchor &&
           fontStyle == other.fontStyle &&
           fontWeight == other.fontWeight &&
@@ -1195,8 +1206,8 @@ class SITextAttributes {
   @override
   int get hashCode =>
       0xa7cb9e84 ^
-      Object.hash(fontFamily, fontStyle, fontWeight, fontSize, textAnchor,
-          textDecoration);
+      Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, fontWeight,
+          fontSize, textAnchor, textDecoration);
 }
 
 ///
@@ -1205,9 +1216,13 @@ class SITextAttributes {
 class CanonicalizedData<IM> {
   final images = CMap<IM>();
   final strings = CMap<String>();
+  final stringLists = CMap<CList<String>>();
 
   // Float values, notably used in text nodes
   final floatValues = CMap<double>();
+
+  List<List<String>> getStringLists() =>
+      List.unmodifiable(stringLists.toList().map((CList<String> e) => e.list));
 }
 
 class CMap<K> {
@@ -1250,6 +1265,27 @@ class CMap<K> {
       r[e.value] = e.key;
     }
     return r;
+  }
+}
+
+///
+/// A canonicalizing list, where == tests equivalence of elements.
+///
+class CList<T> {
+  final List<T> list;
+
+  CList(this.list);
+
+  @override
+  int get hashCode => Object.hashAll(list);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is CList<T>) {
+      return (const ListEquality<dynamic>()).equals(list, other.list);
+    } else {
+      return false;
+    }
   }
 }
 

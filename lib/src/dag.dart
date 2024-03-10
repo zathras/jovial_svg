@@ -532,6 +532,9 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   late final List<List<double>> floatLists;
   @protected
   @override
+  late final List<List<String>> stringLists;
+  @protected
+  @override
   late final List<double> floatValues;
   final _paths = <Object?, Path>{};
   final Set<Object> _dagger = <Object>{};
@@ -599,11 +602,13 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
       List<IM> im,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap) {
     images = convertImages(im);
     this.strings = strings;
     this.floatLists = floatLists;
+    this.stringLists = stringLists;
     this.floatValues = floatValues;
     assert(_si == null);
     _si = ScalableImageDag._withoutRenderables(

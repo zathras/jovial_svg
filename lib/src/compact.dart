@@ -69,6 +69,8 @@ class ScalableImageCompact extends ScalableImageBase
   @override
   final List<List<double>> floatLists;
   @override
+  final List<List<String>> stringLists;
+  @override
   final List<double> floatValues;
   @override
   final Uint8List children;
@@ -90,6 +92,7 @@ class ScalableImageCompact extends ScalableImageBase
       required List<SIImage> images,
       required this.strings,
       required this.floatLists,
+      required this.stringLists,
       required this.floatValues,
       required this.children,
       required this.args,
@@ -120,6 +123,7 @@ class ScalableImageCompact extends ScalableImageBase
           numPaints: numPaints,
           strings: strings,
           floatLists: floatLists,
+          stringLists: stringLists,
           floatValues: floatValues,
           images: images,
           children: children,
@@ -143,6 +147,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        stringLists: stringLists,
         floatValues: floatValues,
         images: images,
         children: children,
@@ -166,6 +171,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        stringLists: stringLists,
         floatValues: floatValues,
         images: images,
         children: children,
@@ -204,6 +210,8 @@ class ScalableImageCompact extends ScalableImageBase
           bigFloats: bigFloats,
           strings: strings,
           floatLists: floatLists,
+          stringLists:
+              (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
           floatValues: floatValues,
           images: images,
           visiteeChildren: children,
@@ -304,6 +312,17 @@ class ScalableImageCompact extends ScalableImageBase
         (_) => (const Utf8Decoder(allowMalformed: true))
             .convert(dis.readBytesImmutable(_readSmallishInt(dis))),
         growable: false);
+    final List<List<String>> stringLists;
+    if (version <= 9) {
+      stringLists = const [];
+    } else {
+      stringLists = List<List<String>>.generate(
+          _readSmallishInt(dis),
+          (_) => List<String>.generate(
+              _readSmallishInt(dis), (_) => strings[_readSmallishInt(dis)],
+              growable: false),
+          growable: false);
+    }
     final floatLists = List<List<double>>.generate(_readSmallishInt(dis),
         (_) => _floatList(dis, bigFloats, _readSmallishInt(dis), Endian.big),
         growable: false);
@@ -331,6 +350,7 @@ class ScalableImageCompact extends ScalableImageBase
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        stringLists: stringLists,
         floatValues: floatValues,
         images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
             growable: false),
@@ -433,6 +453,8 @@ abstract class _CompactVisitor<R>
   @protected
   late final List<List<double>> floatLists;
   @protected
+  late final List<List<String>> stringLists;
+  @protected
   late final List<double> floatValues;
   @protected
   late final List<SIImage> images;
@@ -447,11 +469,13 @@ abstract class _CompactVisitor<R>
       List<SIImage> images,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap) {
     this.images = images;
     this.strings = strings;
     this.floatLists = floatLists;
+    this.stringLists = stringLists;
     this.floatValues = floatValues;
     return collector;
   }
@@ -818,6 +842,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
       List<SIImage> images,
       List<String> strings,
       List<List<double>> floatLists,
+      List<List<String>> stringLists,
       List<double> floatValues,
       CMap<double>? floatValueMap) {
     // This is a little tricky.  When pruning, we collect the canonicalized
@@ -833,7 +858,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
   ///
   void setCanon(CanonicalizedData<SIImage> canon) {
     super.init(null, canon.images.toList(), canon.strings.toList(), const [],
-        canon.floatValues.toList(), null);
+        canon.getStringLists(), canon.floatValues.toList(), null);
     // Note that floatValueMap gets set before the traversal, by a call to
     // initFloatValueMap() in the _PruningVisitor constructor.
   }
@@ -852,6 +877,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        stringLists: stringLists,
         floatValues: floatValues,
         images: images,
         children: childrenSink.toList(),
@@ -1121,6 +1147,7 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
         numPaints: numPaints,
         strings: strings,
         floatLists: floatLists,
+        stringLists: stringLists,
         floatValues: floatValues,
         images: List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
             growable: false),

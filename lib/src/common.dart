@@ -582,6 +582,7 @@ mixin SITextHelper<R> {
 
   List<double> get floatValues;
   List<String> get strings;
+  List<List<String>> get stringLists;
 
   R text(R collector) {
     assert(_textBuilder == null);
@@ -607,8 +608,10 @@ mixin SITextHelper<R> {
       int fontSizeIndex,
       SIPaint paint) {
     assert(_textBuilder != null);
-    assert((fontFamilyIndex == null ? '' : strings[fontFamilyIndex]) ==
-        attributes.fontFamily);
+    assert((fontFamilyIndex == null && attributes.fontFamily == null) ||
+        (fontFamilyIndex != null) &&
+            (const ListEquality<String>())
+                .equals(stringLists[fontFamilyIndex], attributes.fontFamily));
     assert(floatValues[fontSizeIndex] == attributes.fontSize);
     _textBuilder = _textBuilder?.span(floatValues[dxIndex],
         floatValues[dyIndex], strings[textIndex], attributes, paint);
@@ -1116,10 +1119,14 @@ class SITextSpan extends SITextChunk {
   void build<PathDataT>(
       CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder) {
     final int? fontFamilyIndex;
-    if (attributes.fontFamily == '') {
+    if (attributes.fontFamily == null) {
       fontFamilyIndex = null;
     } else {
-      fontFamilyIndex = canon.strings.getIfNotNull(attributes.fontFamily);
+      for (final String s in attributes.fontFamily!) {
+        canon.strings[s];
+      }
+      fontFamilyIndex =
+          canon.stringLists.getIfNotNull(CList(attributes.fontFamily!));
     }
     final textIndex = canon.strings[text];
     final dxIndex = canon.floatValues[dx];
@@ -1222,14 +1229,15 @@ class SITextSpan extends SITextChunk {
     // but we need currColor for the text style.  This node can be reused,
     // so we can't guarantee that's a constant.  Fortunately, text performance
     // isn't a big part of SVG rendering performance most of the time.
-    final fam = (attributes.fontFamily == '') ? null : attributes.fontFamily;
     final sz = attributes.fontSize;
     final FontStyle style = attributes.fontStyle.asFontStyle;
     final FontWeight weight = attributes.fontWeight.asFontWeight;
+    List<String>? ff = attributes.fontFamily;
     final span = TextSpan(
         style: TextStyle(
             foreground: foreground,
-            fontFamily: fam,
+            fontFamily: null,
+            fontFamilyFallback: ff,
             fontSize: sz,
             fontStyle: style,
             fontWeight: weight,

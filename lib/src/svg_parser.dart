@@ -681,7 +681,7 @@ abstract class SvgParser extends GenericParser {
     p.strokeDashArray = getFloatList(attrs.remove('stroke-dasharray'));
     p.strokeDashOffset = getFloat(attrs.remove('stroke-dashoffset'));
     final SvgTextAttributes t = node.textAttributes;
-    t.fontFamily = attrs.remove('font-family');
+    t.fontFamily = getStringList(attrs.remove('font-family'));
 
     String? attr = attrs.remove('font-style')?.toLowerCase();
     if (attr == null || attr == 'inherit') {
