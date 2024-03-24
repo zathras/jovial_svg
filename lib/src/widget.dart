@@ -521,7 +521,7 @@ abstract class ScalableImageSource {
     String key, {
     bool compact = false,
     bool bigFloats = false,
-    @Deprecated("[warn] has been superceded by [warnF].") bool warn = true,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
   }) {
     return _AvdBundleSource(bundle, key,
@@ -556,7 +556,7 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].")
+          @Deprecated("[warn] has been superseded by [warnF].")
           bool warn = true,
           void Function(String)? warnF}) =>
       _SvgBundleSource(bundle, key, currentColor,
@@ -595,7 +595,7 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].")
+          @Deprecated("[warn] has been superseded by [warnF].")
           bool warn = true,
           void Function(String)? warnF,
           Map<String, String>? httpHeaders,
@@ -610,6 +610,55 @@ abstract class ScalableImageSource {
         defaultEncoding: defaultEncoding,
         httpHeaders: httpHeaders,
       );
+
+  ///
+  /// Get a [ScalableImage] by parsing an SVG XML file from
+  /// a `File`, from the dart:io library.  `File` isn't available
+  /// on Dart Web, so the `File` argument is passed as an object, along
+  /// with a a function to read a string from it.
+  ///
+  /// [file] is an object that can be tested for equivalence against
+  /// other arguments passed to this method throughout the lifetime of this
+  /// program.
+  ///
+  /// [fileReader] is a function that delivers the contents of the file as
+  /// a string.
+  ///
+  /// [currentColor], if set, will set the currentColor value of the
+  /// [ScalableImage] instance returned.  Note, however, that if the same
+  /// image is used with more than one `currentColor` value, it's best to
+  /// not set it here, and instead set it in the widget, e.g. with the
+  /// `currentColor` parameter of [ScalableImageWidget.fromSISource].
+  /// See also [ScalableImage.currentColor].
+  ///
+  /// If [compact] is true, the internal representation will occupy
+  /// significantly less memory, at the expense of rendering time.  It will
+  /// occupy perhaps an order of magnitude less memory, but render perhaps
+  /// around 3x slower.  If [bigFloats] is true, the compact representation
+  /// will use 8 byte double-precision float values, rather than 4 byte
+  /// single-precision values.
+  ///
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
+  /// unrecognized tags and/or tag attributes.  If it is null, the default
+  /// behavior is to print warnings.
+  ///
+  /// Usage:
+  /// ```
+  ///     final file = File(...);
+  ///     final source = ScalableImageSource.fromSvgFile(
+  ///         file, () => file.readAsString());
+  /// ```
+  static ScalableImageSource fromSvgFile(
+          Object file, FutureOr<String> Function() fileReader,
+          {Color? currentColor,
+          bool compact = false,
+          bool bigFloats = false,
+          void Function(String)? warnF}) =>
+      _SvgFileSource(file, fileReader,
+          currentColor: currentColor,
+          compact: compact,
+          bigFloats: bigFloats,
+          warnF: warnF);
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -644,7 +693,7 @@ abstract class ScalableImageSource {
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
-          @Deprecated("[warn] has been superceded by [warnF].")
+          @Deprecated("[warn] has been superseded by [warnF].")
           bool warn = true,
           void Function(String)? warnF,
           Map<String, String>? httpHeaders,
@@ -830,6 +879,56 @@ class _SvgHttpSource extends ScalableImageSource {
   @override
   String toString() => '_SVGHttpSource($url $compact $bigFloats '
       '$currentColor $defaultEncoding $httpHeaders)';
+}
+
+class _SvgFileSource extends ScalableImageSource {
+  final Object file;
+  final FutureOr<String> Function() fileReader;
+  final Color? currentColor;
+  final bool compact;
+  final bool bigFloats;
+  @override
+  final void Function(String)? warnF;
+
+  _SvgFileSource(this.file, this.fileReader,
+      {required this.currentColor,
+      required this.compact,
+      required this.bigFloats,
+      required this.warnF});
+
+  @override
+  Future<ScalableImage> get si => createSI();
+
+  @override
+  Future<ScalableImage> createSI() async {
+    final String src = await fileReader();
+    return ScalableImage.fromSvgString(src,
+        currentColor: currentColor,
+        compact: compact,
+        bigFloats: bigFloats,
+        warnF: warnF);
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (other is _SvgFileSource) {
+      return file == other.file &&
+          currentColor == other.currentColor &&
+          compact == other.compact &&
+          bigFloats == other.bigFloats &&
+          warnF == other.warnF;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode =>
+      0xd111d574 ^ Object.hash(file, currentColor, compact, bigFloats, warnF);
+
+  @override
+  String toString() =>
+      '_SVGFileSource($file $compact $bigFloats $currentColor ';
 }
 
 class _AvdHttpSource extends ScalableImageSource {

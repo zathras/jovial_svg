@@ -1,3 +1,8 @@
+## [1.1.21] - Upcoming
+
+- Allow a list of fonts for SVG text (Issue 91)
+- Add a `ScalableImageWidget` method to read from a file (Issue 88)
+
 ## [1.1.20] - December 2023
 
 - Remove unneded url_launcher dependency (Issue 87)
