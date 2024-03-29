@@ -342,7 +342,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
       }
     }
     return mb; // @@ TODO undo this revert
-    return PruningBoundary(ibb);
+    // return PruningBoundary(ibb);
   }
 
   @override
