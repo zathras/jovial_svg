@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -255,10 +255,11 @@ abstract mixin class _SIParentNode {
     }
   }
 
-  PruningBoundary? getBoundary() {
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
     PruningBoundary? result;
     for (final r in _renderables) {
-      final b = r.getBoundary();
+      final b = r.getBoundary(exportedIDs, exportedIDXform);
       if (result == null) {
         result = b;
       } else if (b != null) {
@@ -310,21 +311,37 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   }
 
   @override
-  PruningBoundary? getBoundary() {
-    final mb = mask.getBoundary();
-    final cb = child.getBoundary();
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    final mb = mask.getBoundary(exportedIDs, exportedIDXform);
+    final cb = child.getBoundary(exportedIDs, exportedIDXform);
     if (mb == null || cb == null) {
       return null;
     }
     final mbb = mb.getBounds();
     final cbb = cb.getBounds();
-    // Intersecting the two is hard, but conservatively returning
-    // the one with less area is a reasonable heuristic.
-    if (mbb.height * mbb.width > cbb.height * cbb.width) {
-      return cb;
-    } else {
-      return mb;
+    final ibb = mbb.intersect(cbb);
+    if (ibb.width < 0.0 || ibb.height <= 0.0) {
+      return null;
     }
+    final mbba = mbb.height * mbb.width;
+    final cbba = cbb.height * cbb.width;
+    final ibba = ibb.height * ibb.width;
+
+    // Truly intersecting two boundaries is hard.  If the intersection's
+    // bounding box is smaller than either of the two bounding boxes, we
+    // go with that.  Otherwise, we go with the boundary that has the smaller
+    // bounding box.
+    if (mbba > cbba) {
+      if (cbba <= ibba) {
+        return cb;
+      }
+    } else {
+      if (mbba <= ibba) {
+        return mb;
+      }
+    }
+    return PruningBoundary(ibb);
   }
 
   @override
@@ -410,8 +427,19 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   }
 
   @override
-  PruningBoundary? getBoundary() =>
-      Transformer.transformBoundaryFromChildren(transform, super.getBoundary());
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    if (exportedIDXform != null) {
+      final t = transform;
+      if (t != null) {
+        final nt = exportedIDXform.mutableCopy();
+        nt.multiply(t.toMutable);
+        exportedIDXform = nt;
+      }
+    }
+    return Transformer.transformBoundaryFromChildren(
+        transform, super.getBoundary(exportedIDs, exportedIDXform));
+  }
 
   @override
   void paint(Canvas c, Color currentColor) {
@@ -494,6 +522,105 @@ class _GroupBuilder implements _SIParentBuilder {
       : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIGroup get group => SIGroup(_renderables, groupAlpha, transform, blendMode);
+}
+
+class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
+  @override
+  final List<SIRenderable> _renderables;
+  final String id;
+
+  SIExportedID(SIRenderable renderable, this.id)
+      : _renderables = List.unmodifiable([renderable]);
+
+  @override
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    final result = _renderables[0].getBoundary(exportedIDs, exportedIDXform);
+    if (exportedIDs != null) {
+      final b =
+          Transformer.transformBoundaryFromChildren(exportedIDXform, result);
+      if (b != null) {
+        exportedIDs.add(ExportedIDBoundary(id, b));
+      }
+    }
+    return result;
+  }
+
+  @override
+  void paint(Canvas c, Color currentColor) {
+    _renderables[0].paint(c, currentColor);
+  }
+
+  @override
+  SIExportedID? prunedBy(
+      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    final rr = _childrenPrunedBy(dagger, imageSet, b);
+    if (rr.isEmpty) {
+      return null;
+    }
+    if (identical(rr, _renderables)) {
+      return this;
+    }
+    assert(rr.length == 1);
+    final result = SIExportedID(rr[0], id);
+    final dr = dagger.lookup(result);
+    if (dr != null) {
+      return dr as SIExportedID;
+    }
+    dagger.add(result);
+    return result;
+  }
+
+  @override
+  void addChildren(Set<SIRenderable> dagger) {
+    final r = _renderables[0];
+    dagger.add(r);
+    r.addChildren(dagger);
+  }
+
+  @override
+  void privateAssertIsEquivalent(SIRenderable other) {
+    if (identical(this, other)) {
+      return;
+    } else if (other is! SIExportedID ||
+        id != other.id ||
+        _renderables.length != other._renderables.length) {
+      throw StateError('$this $other'); // coverage:ignore-line
+    } else {
+      _renderables[0].privateAssertIsEquivalent(other._renderables[0]);
+    }
+  }
+
+  @override
+  bool operator ==(final Object other) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is! SIExportedID) {
+      return false;
+    } else {
+      return id == other.id && _renderables.equals(other._renderables);
+    }
+  }
+
+  @override
+  late final int hashCode = 0x34686816 ^ Object.hash(_renderables[0], id);
+}
+
+class _ExportedIdBuilder implements _SIParentBuilder {
+  @override
+  final List<SIRenderable> _renderables;
+  final String id;
+
+  _ExportedIdBuilder(this.id)
+      : _renderables = List<SIRenderable>.empty(growable: true);
+
+  SIExportedID? get exportedIdNode {
+    if (_renderables.isEmpty) {
+      return null;
+    }
+    assert(_renderables.length == 1);
+    return SIExportedID(_renderables[0], id);
+  }
 }
 
 class _MaskedBuilder implements _SIParentBuilder {
@@ -676,6 +803,23 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     final gb = _parentStack.last as _GroupBuilder;
     _parentStack.length = _parentStack.length - 1;
     addRenderable(_daggerize(gb.group));
+  }
+
+  @override
+  void exportedID(void collector, int idIndex) {
+    final id = strings[idIndex];
+    final b = _ExportedIdBuilder(id);
+    _parentStack.add(b);
+  }
+
+  @override
+  void endExportedID(void collector) {
+    final b = _parentStack.last as _ExportedIdBuilder;
+    _parentStack.length = _parentStack.length - 1;
+    final node = b.exportedIdNode;
+    if (node != null) {
+      addRenderable(_daggerize(node));
+    }
   }
 
   @override

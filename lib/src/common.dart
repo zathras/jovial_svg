@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@ import 'package:flutter/material.dart';
 import '../jovial_svg.dart';
 import 'affine.dart';
 import 'common_noui.dart';
+import 'exported.dart' show ExportedIDBoundary;
 
 Rect? convertRectTtoRect(RectT? r) {
   if (r == null) {
@@ -80,7 +81,11 @@ abstract class SIRenderable {
   /// Get the pruning boundary, if this renderable renders something.  A text
   /// node with no text is an example that doesn't render anything.
   ///
-  PruningBoundary? getBoundary();
+  /// If the arguments are non-null, also collect the exported IDs and their
+  /// boundaries.
+  ///
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform);
 
   void _setLinearGradient(Paint p, SILinearGradientColor g, Float64List? xform,
       Color currentColor) {
@@ -647,7 +652,9 @@ class SIClipPath extends SIRenderable {
       this;
 
   @override
-  PruningBoundary? getBoundary() => PruningBoundary(path.getBounds());
+  PruningBoundary? getBoundary(
+          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
+      PruningBoundary(path.getBounds());
 
   @override
   void addChildren(Set<SIRenderable> dagger) {}
@@ -783,7 +790,8 @@ class SIPath extends SIRenderable {
   }
 
   @override
-  PruningBoundary? getBoundary() {
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
     return PruningBoundary(getBounds());
   }
 
@@ -833,7 +841,8 @@ class SIImage extends SIRenderable {
   SIImageData get data => _data;
 
   @override
-  PruningBoundary? getBoundary() =>
+  PruningBoundary? getBoundary(
+          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
       PruningBoundary(Rect.fromLTWH(x, y, width.toDouble(), height.toDouble()));
 
   @override
@@ -1028,7 +1037,8 @@ class SIText extends SIRenderable {
   }
 
   @override
-  PruningBoundary? getBoundary() =>
+  PruningBoundary? getBoundary(
+          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
       chunks.isEmpty ? null : PruningBoundary(_bounds);
 
   @override

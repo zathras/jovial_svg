@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -57,6 +57,7 @@ import 'svg_graph.dart';
 abstract class SvgParser extends GenericParser {
   @override
   final void Function(String) warn;
+  final List<Pattern> exportedIds;
   final SIBuilder<String, SIImageData> _builder;
   String? _currTag;
 
@@ -87,7 +88,7 @@ abstract class SvgParser extends GenericParser {
   /// Stylesheet.  Key is element type - see style.uml in doc/uml.
   final Stylesheet _stylesheet = {};
 
-  SvgParser(this.warn, this._builder);
+  SvgParser(this.warn, this.exportedIds, this._builder);
 
   void buildResult() {
     if (!_svgTagSeen) {
@@ -642,6 +643,15 @@ abstract class SvgParser extends GenericParser {
     final id = attrs.remove('id');
     if (id != null) {
       svg.idLookup[id] = n;
+      pattern:
+      for (final Pattern e in exportedIds) {
+        for (final Match m in e.allMatches(id)) {
+          if (id == m[0]) {
+            n.exportedId = id;
+            break pattern;
+          }
+        }
+      }
     }
   }
 
@@ -1089,9 +1099,10 @@ class _SvgParserEventHandler with XmlEventVisitor {
 class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
-  StreamSvgParser(this._input, SIBuilder<String, SIImageData> builder,
+  StreamSvgParser(this._input, List<Pattern> exportedIds,
+      SIBuilder<String, SIImageData> builder,
       {required void Function(String) warn})
-      : super(warn, builder);
+      : super(warn, exportedIds, builder);
 
   Future<void> parse() async {
     final handler = _SvgParserEventHandler(this);
@@ -1107,9 +1118,10 @@ class StreamSvgParser extends SvgParser {
 class StringSvgParser extends SvgParser {
   final String _input;
 
-  StringSvgParser(this._input, SIBuilder<String, SIImageData> builder,
+  StringSvgParser(this._input, List<Pattern> exportedIds,
+      SIBuilder<String, SIImageData> builder,
       {required void Function(String) warn})
-      : super(warn, builder);
+      : super(warn, exportedIds, builder);
 
   void parse() {
     final handler = _SvgParserEventHandler(this);

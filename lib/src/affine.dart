@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -293,6 +293,9 @@ class MutableAffine extends Affine {
       }
     }
   }
+
+  /// Multiply this by [arg].
+  void multiply(MutableAffine arg) => _storage.multiply(arg._storage);
 
   @override
   Affine get toKey {

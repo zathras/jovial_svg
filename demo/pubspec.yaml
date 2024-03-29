@@ -35,6 +35,7 @@ flutter:
     - assets/svg/bellot.svg
     - assets/svg/bonded.svg
     - assets/svg/dondorf.svg
+    - assets/svg/exported_ids.svg
     - assets/svg/gnomangelo.svg
     - assets/svg/gnomangelo_bitmap.svg
     - assets/svg/guyenne-classic.svg
@@ -87,6 +88,7 @@ flutter:
     - assets/si/bellot.si
     - assets/si/bonded.si
     - assets/si/dondorf.si
+    - assets/si/exported_ids.si
     - assets/si/gnomangelo.si
     - assets/si/gnomangelo_bitmap.si
     - assets/si/layers.si
@@ -122,3 +124,44 @@ flutter:
     - assets/si/rainbow.si
     - assets/si/gradient_user_translate.si
     - assets/si/tspan.si
+    - assets/si_ids/anglo.si
+    - assets/si_ids/anglo_bitmap.si
+    - assets/si_ids/bellot.si
+    - assets/si_ids/bonded.si
+    - assets/si_ids/dondorf.si
+    - assets/si_ids/exported_ids.si
+    - assets/si_ids/gnomangelo.si
+    - assets/si_ids/gnomangelo_bitmap.si
+    - assets/si_ids/layers.si
+    - assets/si_ids/nafo.si
+    - assets/si_ids/text_decoration.si
+    - assets/si_ids/guyenne-classic.si
+    - assets/si_ids/ornamental.si
+    - assets/si_ids/paris-text.si
+    - assets/si_ids/paris.si
+    - assets/si_ids/svg11_gradient_1.si
+    - assets/si_ids/swiss-xvii.si
+    - assets/si_ids/stylesheet.si
+    - assets/si_ids/tango.si
+    - assets/si_ids/tiger.si
+    - assets/si_ids/tiny_07_12.si
+    - assets/si_ids/tiny_07_12_bbox01.si
+    - assets/si_ids/tiny_08_03.si
+    - assets/si_ids/tiny_08_03_cubic02.si
+    - assets/si_ids/tiny_09_02.si
+    - assets/si_ids/tiny_09_06.si
+    - assets/si_ids/tiny_11_01.si
+    - assets/si_ids/tiny_13_01.si
+    - assets/si_ids/tiny_13_02.si
+    - assets/si_ids/tiny_stroke_dasharray_1.si
+    - assets/si_ids/tiny_stroke_dasharray_2.si
+    - assets/si_ids/tiny_stroke_dasharray_3.si
+    - assets/si_ids/SVG_Logo.si
+    - assets/si_ids/mask1.si
+    - assets/si_ids/mask1luma.si
+    - assets/si_ids/mask2.si
+    - assets/si_ids/mask3.si
+    - assets/si_ids/mask4.si
+    - assets/si_ids/rainbow.si
+    - assets/si_ids/gradient_user_translate.si
+    - assets/si_ids/tspan.si

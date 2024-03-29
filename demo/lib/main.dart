@@ -52,6 +52,7 @@ Future<void> main() async {
     final svg = 'assets/svg/$name.svg';
     String? avd = 'assets/avd/$name.xml';
     String si = 'assets/si/$name.si';
+    String siIDs = 'assets/si_ids/$name.si';
     // Disable avd and si if they're not in the asset bundle:
     try {
       await rootBundle.load(avd);
@@ -60,9 +61,10 @@ Future<void> main() async {
     }
     await rootBundle.load(si);
     // SI is required to always be there.
-    assets.add(Asset(svg: svg, avd: avd, si: si));
+    assets.add(Asset(svg: svg, avd: avd, si: si, siIDs: siIDs));
   }
-  final firstSI = await assets[0].forType(assets[0].defaultType, rootBundle);
+  final firstSI =
+      await assets[0].forType(assets[0].defaultType, rootBundle, false);
   await (firstSI.prepareImages());
   runApp(Demo(assets, firstSI));
 }
@@ -118,7 +120,9 @@ class _DemoScreenState extends State<DemoScreen> {
   double _scale = 0;
   bool _fitToScreen = true;
   Rect? _originalViewport;
+  bool demoIDs = false;
   double get _multiplier => pow(2.0, _scale).toDouble();
+  final ExportedIDLookup _idLookup = ExportedIDLookup();
   final _siWidgetKey = GlobalKey<State<DemoScreen>>();
 
   _DemoScreenState();
@@ -149,14 +153,23 @@ class _DemoScreenState extends State<DemoScreen> {
         } else {
           final newSI = await ScalableImage.fromSvgHttpUrl(
               Uri.parse(url.trim()),
-              warnF: (s) => debugPrint('Warning:  $s'));
+              warnF: (s) => debugPrint('Warning:  $s'),
+              exportedIds: [RegExp(r'.*')]);
           await newSI.prepareImages();
           setState(() {
+            demoIDs = true;
             assetType = AssetType.svg;
             assetName = url;
             si?.unprepareImages();
             si = newSI;
             _originalViewport = null;
+            if (demoIDs) {
+              if (newSI.exportedIDs.length > 10) {
+                print('    Exported IDs:  ${newSI.exportedIDs.length}');
+              } else {
+                print('    Exported IDs:  ${newSI.exportedIDs}');
+              }
+            }
           });
         }
       } catch (e, st) {
@@ -218,26 +231,20 @@ class _DemoScreenState extends State<DemoScreen> {
                   SizedBox(
                       width: 265,
                       child: Row(children: [
-                        Text('SI',
-                            style: (asset.si == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
+                        const Text('SI', style: TextStyle()),
                         Radio(
                             value: AssetType.si,
                             groupValue: assetType,
-                            onChanged: asset.si == null ? null : _setType),
+                            onChanged: _setType),
                         const Spacer(),
-                        Text('Compact',
-                            style: (asset.si == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
+                        const Text('Compact', style: TextStyle()),
                         Radio(
                             value: AssetType.compact,
                             groupValue: assetType,
-                            onChanged: asset.si == null ? null : _setType),
+                            onChanged: _setType),
                         const Spacer(),
                         Text('SVG',
-                            style: (asset.si == null)
+                            style: (asset.svg == null)
                                 ? const TextStyle(color: Colors.grey)
                                 : const TextStyle()),
                         Radio(
@@ -294,6 +301,15 @@ class _DemoScreenState extends State<DemoScreen> {
                             value: _originalViewport != null,
                             onChanged: (_) => _changeZoomPrune())
                       ])),
+                  SizedBox(
+                      width: 120,
+                      child: Row(children: [
+                        const Text('IDs'),
+                        Checkbox(
+                            value: demoIDs,
+                            onChanged: (_) =>
+                                _setType(assetType, newDemoIDs: !demoIDs))
+                      ])),
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: assets[assetIndex].svg == null
@@ -317,17 +333,32 @@ class _DemoScreenState extends State<DemoScreen> {
               child: _maybeScrolling(si == null
                   ? Text(errorMessage ?? '???')
                   : RepaintBoundary(
-                      child: ScalableImageWidget(
-                          si: si!,
-                          key: _siWidgetKey,
-                          alignment: Alignment.center,
-                          scale: _fitToScreen ? double.infinity : _multiplier,
-                          background: Colors.white))))
+                      child: GestureDetector(
+                          onTapDown: _handleTapDown,
+                          child: ScalableImageWidget(
+                              si: si!,
+                              key: _siWidgetKey,
+                              lookup: _idLookup,
+                              alignment: Alignment.center,
+                              scale:
+                                  _fitToScreen ? double.infinity : _multiplier,
+                              background: Colors.white)))))
         ]));
   }
 
-  void _setType(AssetType? v) {
+  void _handleTapDown(TapDownDetails event) {
+    final Set<String> hits = _idLookup.hits(event.localPosition);
+    print('Tap down at ${event.localPosition}:  $hits');
+  }
+
+  void _setType(AssetType? v, {bool? newDemoIDs}) {
+    final newIDs = newDemoIDs ?? demoIDs;
     if (v == null) {
+      if (newIDs != demoIDs) {
+        setState(() {
+          demoIDs = newIDs;
+        });
+      }
       return;
     }
     unawaited(() async {
@@ -335,7 +366,7 @@ class _DemoScreenState extends State<DemoScreen> {
       ScalableImage? newSI;
       try {
         final sw = Stopwatch()..start();
-        newSI = await assets[assetIndex].forType(v, widget.bundle);
+        newSI = await assets[assetIndex].forType(v, widget.bundle, newIDs);
         final time = sw.elapsedMilliseconds;
         sw.stop();
         print('Loaded ${assets[assetIndex].fileName(v)} in $time ms.');
@@ -345,6 +376,13 @@ class _DemoScreenState extends State<DemoScreen> {
         print(st);
       }
       await newSI?.prepareImages();
+      if (newIDs && newSI != null) {
+        if (newSI.exportedIDs.length > 10) {
+          print('    Exported IDs:  ${newSI.exportedIDs.length}');
+        } else {
+          print('    Exported IDs:  ${newSI.exportedIDs}');
+        }
+      }
       setState(() {
         assetType = v;
         si?.unprepareImages();
@@ -352,6 +390,7 @@ class _DemoScreenState extends State<DemoScreen> {
         _originalViewport = null;
         errorMessage = err;
         assetName = assets[assetIndex].fileName(assetType)?.substring(7);
+        demoIDs = newIDs;
       });
     }());
   }
@@ -426,20 +465,30 @@ enum AssetType { si, compact, svg, avd }
 class Asset {
   final String? svg;
   final String? avd;
-  final String? si;
+  final String si;
+  final String siIDs;
 
-  Asset({this.svg, this.avd, this.si});
+  Asset({this.svg, this.avd, required this.si, required this.siIDs});
 
-  Future<ScalableImage> forType(AssetType t, AssetBundle b) {
+  Future<ScalableImage> forType(AssetType t, AssetBundle b, bool exportIDs) {
+    final List<Pattern> exported;
+    final String siAsset;
+    if (exportIDs) {
+      exported = [RegExp(r'.*')];
+      siAsset = siIDs;
+    } else {
+      exported = const [];
+      siAsset = si;
+    }
     switch (t) {
       case AssetType.svg:
-        return ScalableImage.fromSvgAsset(b, svg!);
+        return ScalableImage.fromSvgAsset(b, svg!, exportedIds: exported);
       case AssetType.compact:
-        return ScalableImage.fromSIAsset(b, si!, compact: true);
+        return ScalableImage.fromSIAsset(b, siAsset, compact: true);
       case AssetType.avd:
         return ScalableImage.fromAvdAsset(b, avd!);
       case AssetType.si:
-        return ScalableImage.fromSIAsset(b, si!);
+        return ScalableImage.fromSIAsset(b, siAsset);
     }
   }
 
@@ -455,14 +504,5 @@ class Asset {
     }
   }
 
-  AssetType get defaultType {
-    if (si != null) {
-      return AssetType.si;
-    } else if (svg != null) {
-      return AssetType.svg;
-    } else {
-      assert(avd != null);
-      return AssetType.avd;
-    }
-  }
+  AssetType get defaultType => AssetType.si;
 }

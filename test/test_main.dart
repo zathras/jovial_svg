@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2021-2023, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,8 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
       final fromSvgC = ScalableImage.fromSvgString(await ent.readAsString(),
           warnF: _noWarn, compact: true, bigFloats: true);
       final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
-      StringSvgParser(await ent.readAsString(), b, warn: _noWarn).parse();
+      StringSvgParser(await ent.readAsString(), const [], b, warn: _noWarn)
+          .parse();
       final cs = ByteSink();
       final dos = DataOutputSink(cs);
       b.si.writeToFile(dos);
@@ -494,6 +495,103 @@ void _cacheTest() {
   }
 }
 
+Future<void> _exportedRectangles() async {
+  const hasText = {'text'};
+  for (final compact in [true, false]) {
+    final sis = [
+      ScalableImage.fromSIBytes(
+          File('demo/assets/si_ids/exported_ids.si').readAsBytesSync(),
+          compact: compact),
+      ScalableImage.fromSvgString(
+          File('demo/assets/svg/exported_ids.svg').readAsStringSync(),
+          exportedIds: [RegExp(r'.*')],
+          compact: compact)
+    ];
+    for (final si in sis) {
+      final expected = {
+        'rect': [
+          const Rect.fromLTRB(33.6, 40.8, 340.8, 181.6),
+          const Rect.fromLTRB(88.0, 328.0, 344.0, 456.0)
+        ],
+        'circle': [
+          const Rect.fromLTRB(127.2, 98.0, 247.2, 208.0),
+          const Rect.fromLTRB(166.0, 380.0, 266.0, 480.0)
+        ],
+        'group': [const Rect.fromLTRB(33.6, 40.8, 340.8, 208.0)],
+        'diamond': [const Rect.fromLTRB(5.9, 195.9, 34.1, 224.1)],
+        'text': [const Rect.fromLTRB(10.0, 236.5, 874.0, 254.5)],
+        'mask': [const Rect.fromLTRB(166.0, 380.0, 266.0, 480.0)],
+        'group2': [const Rect.fromLTRB(166.0, 380.0, 266.0, 456.0)]
+      };
+      for (final ex in si.exportedIDs) {
+        final extra = hasText.contains(ex.id);
+        final List<Rect>? rects = expected[ex.id];
+        expect(rects == null, false);
+        bool found = false;
+        for (int i = 0; i < rects!.length; i++) {
+          final r = rects[i];
+          found = (r.left - ex.boundingRect.left).abs() < 0.2 &&
+              (r.right - ex.boundingRect.right).abs() < 0.2 &&
+              (r.width - ex.boundingRect.width).abs() < (extra ? 5.0 : 0.2) &&
+              (r.height - ex.boundingRect.height).abs() < (extra ? 1.0 : 0.2);
+          if (found) {
+            rects.removeAt(i);
+            break;
+          }
+        }
+        expect(found, true, reason: '$ex $rects');
+      }
+      for (final rects in expected.values) {
+        expect(rects, const <Rect>[]);
+      }
+    }
+  }
+}
+
+Future<void> _exportedRendersSame() async {
+  for (final compact in [true, false]) {
+    var dir = Directory('demo/assets/si_ids');
+    for (final ent in dir.listSync()) {
+      final name = ent.uri.pathSegments.last;
+      if ({
+        'swiss-xvii.si',
+        'anglo.si',
+        'mask4.si',
+        'bellot.si',
+        'anglo_bitmap.si'
+      }.contains(name)) {
+        // Oops!  I fixed something to do with masks a while back,
+        // but failed to update these five .si files.
+        // TODO:  Fix this
+        continue;
+      }
+      if (ent is File && name.endsWith('.si')) {
+        final si1 =
+            ScalableImage.fromSIBytes(ent.readAsBytesSync(), compact: compact);
+        final si2 = ScalableImage.fromSIBytes(
+            File('demo/assets/si/$name').readAsBytesSync(),
+            compact: compact);
+        final b1 = await renderToBytes(si1, format: ImageByteFormat.png);
+        final b2 = await renderToBytes(si2, format: ImageByteFormat.png);
+        expect(b1, b2, reason: '$ent');
+      }
+    }
+    dir = Directory('demo/assets/svg');
+    for (final ent in dir.listSync()) {
+      final name = ent.uri.pathSegments.last;
+      if (ent is File && name.endsWith('.svg')) {
+        final si1 = ScalableImage.fromSvgString(ent.readAsStringSync(),
+            exportedIds: [RegExp(r'.*')], compact: compact, warnF: (_) {});
+        final si2 = ScalableImage.fromSvgString(ent.readAsStringSync(),
+            exportedIds: [], compact: compact, warnF: (_) {});
+        final b1 = await renderToBytes(si1, format: ImageByteFormat.png);
+        final b2 = await renderToBytes(si2, format: ImageByteFormat.png);
+        expect(b1, b2, reason: '$ent');
+      }
+    }
+  }
+}
+
 Future<void> _tint(Directory? outputDir) async {
   for (final compact in [true, false]) {
     final orig = ScalableImage.fromSIBytes(
@@ -694,6 +792,8 @@ void main() {
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('Exported renders same', _exportedRendersSame);
+  test('Exported rectangles', _exportedRectangles);
   test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);
   test('compact drawing order', () async {
@@ -755,7 +855,8 @@ void main() {
             getDir(referenceDir, 'svg')!,
             getDir(outputDir, 'svg'), (File f) async {
           final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
-          StringSvgParser(await f.readAsString(), b, warn: _noWarn).parse();
+          StringSvgParser(await f.readAsString(), const [], b, warn: _noWarn)
+              .parse();
           final cs = ByteSink();
           final dos = DataOutputSink(cs);
           b.si.writeToFile(dos);

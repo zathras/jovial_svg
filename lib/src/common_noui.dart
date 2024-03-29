@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -104,6 +104,13 @@ abstract class SIVisitor<PathDataT, IM, R> {
       R collector, int dxIndex, int dyIndex, SITextAnchor anchor);
 
   R textEnd(R collector);
+
+  /// Called with the id of a node, right before the call for the
+  /// node's body
+  R exportedID(R collector, int idIndex);
+
+  /// Called after the child of the exportedId node
+  R endExportedID(R collector);
 
   /// Check any invariants that should be true at the end of a traversal
   void traversalDone() {}

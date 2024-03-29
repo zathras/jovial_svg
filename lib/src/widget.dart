@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,10 @@ abstract class ScalableImageWidget extends StatefulWidget {
   ///
   final bool isComplex;
 
-  const ScalableImageWidget._p(Key? key, this.isComplex) : super(key: key);
+  final ExportedIDLookup? _lookup;
+
+  const ScalableImageWidget._p(Key? key, this.isComplex, this._lookup)
+      : super(key: key);
 
   ///
   /// Create a widget to display a pre-loaded [ScalableImage].
@@ -87,6 +90,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   ///
   /// [isComplex] see [ScalableImageWidget.isComplex]
   ///
+  /// [lookup] is used to look up node IDs that were exported in an SVG
+  /// asset.  See [ExportedIDLookup].
+  ///
   factory ScalableImageWidget(
           {Key? key,
           required ScalableImage si,
@@ -95,9 +101,10 @@ abstract class ScalableImageWidget extends StatefulWidget {
           bool clip = true,
           double scale = 1,
           Color? background,
-          bool isComplex = false}) =>
+          bool isComplex = false,
+          ExportedIDLookup? lookup}) =>
       _SyncSIWidget(
-          key, si, fit, alignment, clip, scale, background, isComplex);
+          key, si, fit, alignment, clip, scale, background, isComplex, lookup);
 
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
@@ -127,6 +134,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// error might have been resolved, or if the asset might have changed.
   ///
   /// [isComplex] see [ScalableImageWidget.isComplex]
+  ///
+  /// [lookup] is used to look up node IDs that were exported in an SVG
+  /// asset.  See [ExportedIDLookup].
   ///
   /// [onLoading] is called to give a widget to show while the asset is being
   /// loaded.  It defaults to a 1x1 SizedBox.
@@ -170,6 +180,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       Color? background,
       bool reload = false,
       bool isComplex = false,
+      ExportedIDLookup? lookup,
       ScalableImageCache? cache,
       Widget Function(BuildContext)? onLoading,
       Widget Function(BuildContext)? onError,
@@ -180,8 +191,21 @@ abstract class ScalableImageWidget extends StatefulWidget {
     if (reload) {
       cache.forceReload(si);
     }
-    return _AsyncSIWidget(key, si, fit, alignment, clip, scale, cache,
-        onLoading, onError, switcher, currentColor, background, isComplex);
+    return _AsyncSIWidget(
+        key,
+        si,
+        fit,
+        alignment,
+        clip,
+        scale,
+        cache,
+        onLoading,
+        onError,
+        switcher,
+        currentColor,
+        background,
+        isComplex,
+        lookup);
   }
 }
 
@@ -193,9 +217,17 @@ class _SyncSIWidget extends ScalableImageWidget {
   final double _scale;
   final Color? _background;
 
-  const _SyncSIWidget(Key? key, this._si, this._fit, this._alignment,
-      this._clip, this._scale, this._background, bool isComplex)
-      : super._p(key, isComplex);
+  const _SyncSIWidget(
+      Key? key,
+      this._si,
+      this._fit,
+      this._alignment,
+      this._clip,
+      this._scale,
+      this._background,
+      bool isComplex,
+      ExportedIDLookup? lookup)
+      : super._p(key, isComplex, lookup);
 
   @override
   State<StatefulWidget> createState() => _SyncSIWidgetState();
@@ -203,10 +235,16 @@ class _SyncSIWidget extends ScalableImageWidget {
 
 class _SyncSIWidgetState extends State<_SyncSIWidget> {
   late _SIPainter _painter;
-  late Size _size;
+  late Size _preferredSize;
 
   static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) => _SIPainter(
-      w._si, w._fit, w._alignment, w._clip, preparing, w._background);
+      w._si,
+      w._fit,
+      w._alignment,
+      w._clip,
+      preparing,
+      w._background,
+      w._lookup);
 
   static Size _newSize(_SyncSIWidget w) =>
       Size(w._si.viewport.width * w._scale, w._si.viewport.height * w._scale);
@@ -215,7 +253,7 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   void initState() {
     super.initState();
     _painter = _newPainter(widget, true);
-    _size = _newSize(widget);
+    _preferredSize = _newSize(widget);
     _registerWithFuture(widget._si.prepareImages());
   }
 
@@ -223,7 +261,7 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   void didUpdateWidget(_SyncSIWidget old) {
     super.didUpdateWidget(old);
     _painter = _newPainter(widget, _painter._preparing);
-    _size = _newSize(widget);
+    _preferredSize = _newSize(widget);
     if (_painter._preparing) {
       // If images are still loading, we need the callback when it's done.
       _registerWithFuture(widget._si.prepareImages());
@@ -248,8 +286,8 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _painter, size: _size, isComplex: widget.isComplex);
+  Widget build(BuildContext context) => CustomPaint(
+      painter: _painter, size: _preferredSize, isComplex: widget.isComplex);
 }
 
 class _SIPainter extends CustomPainter {
@@ -259,9 +297,10 @@ class _SIPainter extends CustomPainter {
   final bool _clip;
   final bool _preparing;
   final Color? _background;
+  final ExportedIDLookup? _lookup;
 
   _SIPainter(this._si, this._fit, this._alignment, this._clip, this._preparing,
-      this._background);
+      this._background, this._lookup);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -276,19 +315,23 @@ class _SIPainter extends CustomPainter {
       canvas.drawColor(const Color(0x00ffffff), BlendMode.src);
     }
     try {
-      if (_fit == BoxFit.none &&
-          _alignment.x == Alignment.topLeft.x &&
-          _alignment.y == Alignment.topLeft.y) {
-        _si.paint(canvas);
-        return;
+      final xform = ScalingTransform(
+          containerSize: size,
+          siViewport: _si.viewport,
+          fit: _fit,
+          alignment: _alignment);
+      final lookup = _lookup;
+      if (lookup != null) {
+        lookup._lastTransform = xform;
+        lookup._si = _si;
       }
-      ScalingTransform(
-              containerSize: size,
-              siViewport: _si.viewport,
-              fit: _fit,
-              alignment: _alignment)
-          .applyToCanvas(canvas);
-      _si.paint(canvas);
+      canvas.save();
+      try {
+        xform.applyToCanvas(canvas);
+        _si.paint(canvas);
+      } finally {
+        canvas.restore();
+      }
     } finally {
       if (background != null) {
         canvas.restore();
@@ -332,8 +375,9 @@ class _AsyncSIWidget extends ScalableImageWidget {
       this._switcher,
       this._currentColor,
       this._background,
-      bool isComplex)
-      : super._p(key, isComplex);
+      bool isComplex,
+      ExportedIDLookup? lookup)
+      : super._p(key, isComplex, lookup);
 
   @override
   State<StatefulWidget> createState() => _AsyncSIWidgetState();
@@ -397,6 +441,10 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
   Widget build(BuildContext context) {
     var si = _si;
     final Widget result;
+    final lookup = widget._lookup;
+    if (lookup != null) {
+      lookup._si = si; // Null it out if the SI isn't loaded yet
+    }
     if (si == null) {
       result = widget._onLoading(context);
     } else if (identical(si, _error)) {
@@ -407,8 +455,16 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         si = si.modifyCurrentColor(cc);
         // Very cheap, just one instance creation
       }
-      result = _SyncSIWidget(null, si, widget._fit, widget._alignment,
-          widget._clip, widget._scale, widget._background, widget.isComplex);
+      result = _SyncSIWidget(
+          null,
+          si,
+          widget._fit,
+          widget._alignment,
+          widget._clip,
+          widget._scale,
+          widget._background,
+          widget.isComplex,
+          widget._lookup);
     }
     final switcher = widget._switcher;
     if (switcher == null) {
@@ -1301,8 +1357,11 @@ class ScalingTransform {
   ///
   final Rect siViewport;
 
-  ScalingTransform._p(this.scaleX, this.scaleY, this.translateX,
+  const ScalingTransform._p(this.scaleX, this.scaleY, this.translateX,
       this.translateY, this.siViewport);
+
+  static const _identity =
+      ScalingTransform._p(1, 1, 0, 0, Rect.fromLTRB(0, 0, 1, 1));
 
   factory ScalingTransform(
       {required Size containerSize,
@@ -1374,4 +1433,76 @@ class ScalingTransform {
   Offset toContainerCoordinate(final Offset si) => Offset(
       (si.dx - siViewport.left) * scaleX + translateX,
       (si.dy - siViewport.top) * scaleY + translateY);
+}
+
+///
+/// Used to look up what part of a [ScalableImage] is
+/// clicked on within a [ScalableImageWidget].
+///
+/// An SVG node can have name, in its `id` attribute.  When an SVG is read,
+/// or converted to an SI, these ID values can be marked as exported.  This can
+/// be done by listing the IDs, or by using a regular expression.  For example,
+/// to build an SI where all ID values are exported, you can specify
+/// `-x '.*'` to `svg_to_si`.  (Each exported ID does add some overhead, so
+/// in production, it's best to only export the ones you need.)
+///
+/// A [ScalableImageWidget] can have an [ExportedIDLookup] instance associated
+/// with it.  This can be used, for example, to determine which node(s) are
+/// under a mouse click (or other tap event).
+///
+/// Usage:
+/// ```
+/// class _GlorpState extends State<GlorpWidget> {
+///     final ExportedIDLookup _idLookup = ExportedIDLookup();
+///     ...
+///     @override
+///     Widget build() => ...
+///         GestureDetector(
+///           onTapDown: _handleTapDown,
+///           child: ScalableImageWidget(
+///             ...
+///             lookup: _idLookup))
+///       ...;
+///
+///   void _handleTapDown(TapDownDetails event) {
+///     final Set<String> hits = _idLookup.hits(event.localPosition);
+///     print('Tap down at ${event.localPosition}:  $hits');
+///   }
+/// }
+/// ```
+///
+/// See `demo/lib/main.dart` for a more complete example.
+///
+class ExportedIDLookup {
+  ScalableImage? _si;
+  ScalingTransform? _lastTransform;
+
+  ///
+  /// Get the exported IDs from the underlying [ScalableImage] instance, if
+  /// it has been loaded.  The [ExportedID]s will be in the coordinate system
+  /// of the [ScalableImage].  See also [scalingTransform].
+  ///
+  Set<ExportedID> get exportedIds => _si?.exportedIDs ?? const {};
+
+  ///
+  /// Get the [ScalingTransform] needed to convert coordinates between the
+  /// coordinate system of the [ScalableImage]'s [exportedIds] and the
+  /// containing [ScalableImageWidget].
+  ///
+  ScalingTransform get scalingTransform =>
+      _lastTransform ?? ScalingTransform._identity;
+
+  ///
+  /// Return the set of node IDs whose bounding rectangles contain [p].
+  ///
+  Set<String> hits(Offset p) {
+    final Set<String> result = {};
+    p = scalingTransform.toSICoordinate(p);
+    for (final e in exportedIds) {
+      if (e.boundingRect.contains(p)) {
+        result.add(e.id);
+      }
+    }
+    return result;
+  }
 }

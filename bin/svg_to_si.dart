@@ -8,6 +8,7 @@ import 'package:jovial_svg/src/compact_noui.dart';
 import 'package:jovial_svg/src/svg_parser.dart';
 
 abstract class ToSI {
+  List<Pattern> exportedIds = List.empty(growable: true);
   String get programName;
   void parse(String src, SIBuilder<String, SIImageData> builder,
       void Function(String) warn);
@@ -33,9 +34,26 @@ abstract class ToSI {
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
+    argp.addMultiOption('export',
+        abbr: 'e',
+        splitCommas: false,
+        help:
+            'Export:  Export the given ID.  Multiple values may be specified.');
+    argp.addMultiOption('exportx',
+        abbr: 'x',
+        splitCommas: false,
+        help:
+            'Export:  Export the IDs matched by the given regular expression.  '
+            'Multiple values may be specified.');
     final ArgResults results = argp.parse(arguments);
     bool big = results['big'] == true;
     bool warn = results['quiet'] != true;
+    for (final String e in (results['export'] as List<String>)) {
+      exportedIds.add(e);
+    }
+    for (final String ex in (results['exportx'] as List<String>)) {
+      exportedIds.add(RegExp(ex));
+    }
     if (results.rest.isEmpty) {
       usage(argp);
     }
@@ -101,7 +119,7 @@ class SvgToSI extends ToSI {
   @override
   void parse(String src, SIBuilder<String, SIImageData> builder,
           void Function(String) warn) =>
-      StringSvgParser(src, builder, warn: warn).parse();
+      StringSvgParser(src, exportedIds, builder, warn: warn).parse();
 }
 
 Future<void> main(List<String> arguments) => SvgToSI().main(arguments);

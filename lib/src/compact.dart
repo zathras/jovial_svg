@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -198,7 +198,14 @@ class ScalableImageCompact extends ScalableImageBase
   RectT? get givenViewportNoUI => convertRectToRectT(givenViewport);
 
   @override
-  PruningBoundary? getBoundary() => accept(_BoundaryVisitor(this));
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    if (exportedIDs == null) {
+      return accept(_BoundaryVisitor());
+    } else {
+      return accept(_ExportedIDVisitor(exportedIDs, exportedIDXform!));
+    }
+  }
 
   R accept<R>(SIVisitor<CompactChildData, SIImage, R> visitor) =>
       makeTraverser(visitor).traverse(visitor.initial);
@@ -619,6 +626,12 @@ class _PaintingVisitor extends _CompactVisitor<void>
   void endMasked(void collector) {
     finishMasked(canvas);
   }
+
+  @override
+  void endExportedID(void collector) {}
+
+  @override
+  void exportedID(void collector, int idIndex) {}
 }
 
 class _MaskStackEntry {
@@ -716,9 +729,25 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary?>
   @override
   PruningBoundary? endGroup(PruningBoundary? boundary) {
     final us = _parentStack.last as _GroupPruningEntry;
-    _parentStack.length = _parentStack.length - 1;
+    _parentStack.length--;
     us.endGroupIfNeeded();
     popContext();
+    return us.boundary;
+  }
+
+  @override
+  PruningBoundary? exportedID(PruningBoundary? boundary, int idIndex) {
+    final parent = _parentStack.isEmpty ? null : _parentStack.last;
+    _parentStack
+        .add(_ExportedIdPruningEntry(boundary, parent, this, strings[idIndex]));
+    return boundary;
+  }
+
+  @override
+  PruningBoundary? endExportedID(PruningBoundary? boundary) {
+    final us = _parentStack.last as _ExportedIdPruningEntry;
+    _parentStack.length--;
+    us.endExportedIdIfNeeded();
     return us.boundary;
   }
 
@@ -747,7 +776,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary?>
   @override
   PruningBoundary? endMasked(PruningBoundary? collector) {
     final us = _parentStack.last as _MaskedPruningEntry;
-    _parentStack.length = _parentStack.length - 1;
+    _parentStack.length--;
     us.endMaskedIfNeeded();
     popContext();
     return us.boundary;
@@ -929,6 +958,27 @@ class _GroupPruningEntry extends _PruningEntry {
   }
 }
 
+class _ExportedIdPruningEntry extends _PruningEntry {
+  final PruningBoundary? boundary;
+  final _PruningVisitor visitor;
+  final String id;
+
+  _ExportedIdPruningEntry(
+      this.boundary, _PruningEntry? parent, this.visitor, this.id)
+      : super(parent);
+
+  @override
+  void generateParent() {
+    visitor.builder.exportedID(null, visitor._theCanon.strings[id]);
+  }
+
+  void endExportedIdIfNeeded() {
+    if (generated) {
+      visitor.builder.endExportedID(null);
+    }
+  }
+}
+
 class _MaskedPruningEntry extends _PruningEntry {
   final PruningBoundary? boundary;
   final _PruningVisitor visitor;
@@ -991,8 +1041,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
     with SITextHelper<PruningBoundary?> {
   final _boundaryStack = List<PruningBoundary?>.empty(growable: true);
 
-  _BoundaryVisitor(ScalableImageCompact si)
-      : super(_RenderContext.root(Colors.black));
+  _BoundaryVisitor() : super(_RenderContext.root(Colors.black));
 
   @override
   PruningBoundary? get initial => null;
@@ -1008,10 +1057,23 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
   @override
   PruningBoundary? endGroup(PruningBoundary? children) {
     PruningBoundary? us = _boundaryStack.last;
-    _boundaryStack.length = _boundaryStack.length - 1;
+    _boundaryStack.length--;
     _RenderContext ctx = context;
     popContext();
     return combine(us, ctx.transformBoundaryFromChildren(children));
+  }
+
+  @override
+  PruningBoundary? exportedID(PruningBoundary? start, int idIndex) {
+    _boundaryStack.add(start);
+    return null;
+  }
+
+  @override
+  PruningBoundary? endExportedID(PruningBoundary? children) {
+    PruningBoundary? us = _boundaryStack.last;
+    _boundaryStack.length--;
+    return combine(us, children);
   }
 
   @override
@@ -1036,7 +1098,7 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
     PruningBoundary? mask = _boundaryStack.last;
     _boundaryStack.length--;
     PruningBoundary? us = _boundaryStack.last;
-    _boundaryStack.length = _boundaryStack.length - 1;
+    _boundaryStack.length--;
 
     if (mask == null || child == null) {
       return us;
@@ -1044,25 +1106,40 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
 
     final mbb = mask.getBounds();
     final cbb = child.getBounds();
-    final PruningBoundary other;
-    // Intersecting the two is hard, but conservatively returning
-    // the one with less area is a reasonable heuristic.
-    if (mbb.height * mbb.width > cbb.height * cbb.width) {
-      other = child;
-    } else {
-      other = mask;
+    final ibb = mbb.intersect(cbb);
+    if (ibb.width < 0.0 || ibb.height <= 0.0) {
+      return us;
     }
+    final mbba = mbb.height * mbb.width;
+    final cbba = cbb.height * cbb.width;
+    final ibba = ibb.height * ibb.width;
+
+    PruningBoundary? other;
+    // Truly intersecting two boundaries is hard.  If the intersection's
+    // bounding box is smaller than either of the two bounding boxes, we
+    // go with that.  Otherwise, we go with the boundary that has the smaller
+    // bounding box.
+    if (mbba > cbba) {
+      if (cbba <= ibba) {
+        other = child;
+      }
+    } else {
+      if (mbba <= ibba) {
+        other = mask;
+      }
+    }
+    other ??= PruningBoundary(ibb);
     return combine(us, other);
   }
 
   @override
   PruningBoundary? siPath(PruningBoundary? initial, SIPath path) {
-    return combine(initial, path.getBoundary());
+    return combine(initial, path.getBoundary(null, null));
   }
 
   @override
   PruningBoundary? siClipPath(PruningBoundary? initial, SIClipPath cp) {
-    return combine(initial, cp.getBoundary());
+    return combine(initial, cp.getBoundary(null, null));
   }
 
   PruningBoundary? combine(PruningBoundary? a, PruningBoundary? b) {
@@ -1078,12 +1155,73 @@ class _BoundaryVisitor extends _CompactVisitor<PruningBoundary?>
 
   @override
   PruningBoundary? image(PruningBoundary? collector, int imageIndex) {
-    return combine(collector, images[imageIndex].getBoundary());
+    return combine(collector, images[imageIndex].getBoundary(null, null));
   }
 
   @override
   PruningBoundary? acceptText(PruningBoundary? boundary, SIText text) =>
-      combine(boundary, text.getBoundary());
+      combine(boundary, text.getBoundary(null, null));
+}
+
+class _ExportedIDVisitor extends _BoundaryVisitor {
+  final List<ExportedIDBoundary> result;
+  _ExportedIDContext eContext;
+
+  _ExportedIDVisitor(this.result, Affine xform)
+      : eContext = _ExportedIDContext(null, null, xform);
+
+  @override
+  PruningBoundary? exportedID(PruningBoundary? start, int idIndex) {
+    eContext = _ExportedIDContext(eContext, strings[idIndex], eContext.xform);
+    return super.exportedID(start, idIndex);
+  }
+
+  @override
+  PruningBoundary? endExportedID(PruningBoundary? children) {
+    final String id = eContext.id!;
+    eContext = eContext.parent!;
+    final b =
+        Transformer.transformBoundaryFromChildren(eContext.xform, children);
+    if (b != null) {
+      result.add(ExportedIDBoundary(id, b));
+    }
+    return super.endExportedID(children);
+  }
+
+  @override
+  PruningBoundary? group(PruningBoundary? start, Affine? transform,
+      int? groupAlpha, SIBlendMode blend) {
+    final Affine xform;
+    if (transform == null) {
+      xform = eContext.xform;
+    } else {
+      final nt = eContext.xform.mutableCopy();
+      nt.multiply(transform.toMutable);
+      xform = nt;
+    }
+    eContext = _ExportedIDContext(eContext, null, xform);
+    return super.group(start, transform, groupAlpha, blend);
+  }
+
+  @override
+  PruningBoundary? endGroup(PruningBoundary? children) {
+    eContext = eContext.parent!;
+    return super.endGroup(children);
+  }
+
+  @override
+  void traversalDone() {
+    super.traversalDone();
+    assert(eContext.parent == null);
+  }
+}
+
+class _ExportedIDContext {
+  final _ExportedIDContext? parent;
+  final String? id;
+  final Affine xform;
+
+  _ExportedIDContext(this.parent, this.id, this.xform);
 }
 
 mixin _SICompactPathBuilder {

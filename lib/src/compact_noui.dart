@@ -3,7 +3,7 @@
 /*
 MIT License
 
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -235,6 +235,10 @@ abstract class CompactTraverserBase<R, IM,
         collector = textMulti(collector);
       } else if (code == SIGenericCompactBuilder.TEXT_END_CODE) {
         collector = textEnd(collector);
+      } else if (code == SIGenericCompactBuilder.EXPORTED_ID_CODE) {
+        collector = exportedId(collector);
+      } else if (code == SIGenericCompactBuilder.END_EXPORTED_ID_CODE) {
+        collector = endExportedId(collector);
       } else {
         throw ParseError('Bad code $code');
       }
@@ -383,6 +387,15 @@ abstract class CompactTraverserBase<R, IM,
 
   R textEnd(R collector) {
     return visitor.textEnd(collector);
+  }
+
+  R exportedId(R collector) {
+    final idIndex = _readSmallishInt(_children);
+    return visitor.exportedID(collector, idIndex);
+  }
+
+  R endExportedId(R collector) {
+    return visitor.endExportedID(collector);
   }
 
   R image(R collector) {
@@ -686,8 +699,9 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    7 - jovial_svg version 1.1.3, April 2022 (tspan)
   ///    8 - jovial_svg version 1.1.4, April 2022 (expanded tint mode)
   ///    9 - jovial_svg version 1.1.4, April 2022 (givenViewport, currentColor)
-  ///    10 - jovial_svg version 1.1.21, March 2024 (font-family as list)
-  static const int latestFileVersion = 10;
+  ///    10 - jovial_svg version 1.1.21, March 2024 (font-family as list,
+  ///         exported node IDs)
+  static const int latestFileVersion = 11;
 
   ///
   /// Write the compact representation out.
@@ -1240,6 +1254,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   static const TEXT_SPAN_CODE = 148;
   static const TEXT_MULTI_CODE = 149;
   static const TEXT_END_CODE = 150;
+  static const EXPORTED_ID_CODE = 151;
+  static const END_EXPORTED_ID_CODE = 152;
 
   bool get done => _done;
 
@@ -1462,6 +1478,17 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   @override
   void textEnd(void collector) {
     children.writeByte(TEXT_END_CODE);
+  }
+
+  @override
+  void exportedID(void collector, int idIndex) {
+    children.writeByte(EXPORTED_ID_CODE);
+    _writeSmallishInt(children, idIndex);
+  }
+
+  @override
+  void endExportedID(void collector) {
+    children.writeByte(END_EXPORTED_ID_CODE);
   }
 
   void _writePaint(SIPaint p) {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -62,10 +62,12 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library jovial_svg;
 
-export 'src/exported.dart' show ScalableImage, ImageDisposeBugWorkaround;
+export 'src/exported.dart'
+    show ScalableImage, ExportedID, ImageDisposeBugWorkaround;
 export 'src/widget.dart'
     show
         ScalableImageWidget,
         ScalableImageSource,
         ScalableImageCache,
-        ScalingTransform;
+        ScalingTransform,
+        ExportedIDLookup;

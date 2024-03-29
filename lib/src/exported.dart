@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -36,9 +36,11 @@ library jovial_svg.exported;
 
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'affine.dart';
 import 'avd_parser.dart';
 import 'common.dart';
 import 'compact.dart';
@@ -234,6 +236,14 @@ abstract class ScalableImage {
   ScalableImage modifyCurrentColor(Color newCurrentColor);
 
   ///
+  /// Return a list of the ids of the nodes whose ids were exported, along with
+  /// the bounding rectangle of that node.  An id might occur in the list
+  /// multiple times, e.g. if the given node is `use`d more than once in
+  /// the underlying SVG.
+  ///
+  Set<ExportedID> get exportedIDs;
+
+  ///
   /// Returns this SI as an in-memory directed acyclic graph of nodes.
   /// As compared to a compact scalable image, the DAG representation can
   /// be expected to render somewhat faster, at a significant cost in
@@ -335,6 +345,9 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [exportedIds] specifies a list of node IDs that are to be exported.
+  /// See [ScalableImage.exportedIDs].
+  ///
   /// See also [ScalableImage.currentColor].
   ///
   static ScalableImage fromSvgString(String src,
@@ -342,16 +355,17 @@ abstract class ScalableImage {
       bool bigFloats = false,
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
+      List<Pattern> exportedIds = const [],
       Color? currentColor}) {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(
           warn: warnArg, currentColor: currentColor, bigFloats: bigFloats);
-      StringSvgParser(src, b, warn: warnArg).parse();
+      StringSvgParser(src, exportedIds, b, warn: warnArg).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warnArg, currentColor: currentColor);
-      StringSvgParser(src, b, warn: warnArg).parse();
+      StringSvgParser(src, exportedIds, b, warn: warnArg).parse();
       return b.si;
     }
   }
@@ -379,6 +393,7 @@ abstract class ScalableImage {
       bool bigFloats = false,
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
+      List<Pattern> exportedIds = const [],
       Color? currentColor}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String src = await b.loadString(key, cache: false);
@@ -386,6 +401,7 @@ abstract class ScalableImage {
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
+        exportedIds: exportedIds,
         currentColor: currentColor);
   }
 
@@ -425,6 +441,7 @@ abstract class ScalableImage {
     bool bigFloats = false,
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
+    List<Pattern> exportedIds = const [],
     Color? currentColor,
     Encoding defaultEncoding = utf8,
     Map<String, String>? httpHeaders,
@@ -434,6 +451,7 @@ abstract class ScalableImage {
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
+        exportedIds: exportedIds,
         currentColor: currentColor);
   }
 
@@ -453,6 +471,9 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [exportedIds] specifies a list of node IDs that are to be exported.
+  /// See [ScalableImage.exportedIDs].
+  ///
   /// See also [ScalableImage.currentColor].
   ///
   static Future<ScalableImage> fromSvgStream(
@@ -461,15 +482,16 @@ abstract class ScalableImage {
     bool bigFloats = false,
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
+    List<Pattern> exportedIds = const [],
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(warn: warnArg, bigFloats: bigFloats);
-      await StreamSvgParser(stream, b, warn: warnArg).parse();
+      await StreamSvgParser(stream, exportedIds, b, warn: warnArg).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warnArg);
-      await StreamSvgParser(stream, b, warn: warnArg).parse();
+      await StreamSvgParser(stream, exportedIds, b, warn: warnArg).parse();
       return b.si;
     }
   }
@@ -759,7 +781,7 @@ abstract class ScalableImageBase extends ScalableImage {
     if (w != null && h != null) {
       return Rect.fromLTWH(0, 0, w, h);
     }
-    return (getBoundary()?.getBounds() ?? Rect.zero);
+    return (getBoundary(null, null)?.getBounds() ?? Rect.zero);
   }
 
   ///
@@ -767,7 +789,8 @@ abstract class ScalableImageBase extends ScalableImage {
   /// by doing a full tree traversal.
   ///
   @protected
-  PruningBoundary? getBoundary();
+  PruningBoundary? getBoundary(
+      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform);
 
   @override
   Future<void> prepareImages() async {
@@ -818,4 +841,58 @@ abstract class ScalableImageBase extends ScalableImage {
   ///
   @protected
   void paintChildren(Canvas c, Color currentColor);
+
+  @override
+  Set<ExportedID> get exportedIDs {
+    final result = List<ExportedIDBoundary>.empty(growable: true);
+    final MutableAffine xform = MutableAffine.identity();
+    final Rect vp = viewport;
+    xform.transformed(Point(-vp.left, -vp.right));
+    getBoundary(result, xform);
+    return Set.unmodifiable(
+        result.map((e) => ExportedID(e.id, e.boundary.getBounds())));
+  }
+}
+
+///
+/// A record of a node whose id was exported.  An ExportedID record gives the
+/// bounding rectangle of one instance of the node with the given ID.  Multiple
+/// bounding rectangles may be created for the same node, e.g. if that node
+/// is `use`d multiple times in the SVG from which the [ScalableImage] was
+/// created.
+///
+/// See also `ExportedIDLookup` in the `widgets` package.
+///
+class ExportedID {
+  final String id;
+
+  ///
+  /// The bounding rectangle of the node, translated into the coordinate system
+  /// of the top-level [ScalableImage].
+  ///
+  final Rect boundingRect;
+
+  ExportedID(this.id, this.boundingRect);
+
+  @override
+  String toString() => 'EID($id, $boundingRect)';
+
+  @override
+  int get hashCode => Object.hash(id, boundingRect);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is ExportedID) {
+      return id == other.id && boundingRect == other.boundingRect;
+    } else {
+      return false;
+    }
+  }
+}
+
+class ExportedIDBoundary {
+  final String id;
+  final PruningBoundary boundary;
+
+  ExportedIDBoundary(this.id, this.boundary);
 }

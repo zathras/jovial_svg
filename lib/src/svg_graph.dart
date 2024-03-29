@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -246,6 +246,12 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
   @override
   void textEnd(void collector) {}
 
+  @override
+  void exportedID(void collector, int idIndex) {}
+
+  @override
+  void endExportedID(void collector) {}
+
   @mustCallSuper
   @override
   void traversalDone() {
@@ -256,7 +262,7 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
   void get initial {} // coverage:ignore-line
 
   @override
-  void Function(String) get warn => (_) {}; // coverage:ignore-line
+  void Function(String) get warn => (_) {};
 }
 
 /// An entry in the list of styles for a given element type in the
@@ -332,6 +338,8 @@ abstract class SvgNode {
   SIBlendMode? get blendMode;
 
   _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta);
+
+  String? exportedId;
 }
 
 class _NullSink<T> implements Sink<T> {
@@ -499,6 +507,9 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     }
     return this;
   }
+
+  @override
+  String? exportedId;
 }
 
 class SvgPaint {
@@ -772,18 +783,25 @@ class SvgGroup extends SvgInheritableAttributesNode {
     if (transform == null &&
         groupAlpha == null &&
         blend == SIBlendMode.normal &&
-        (children.length == 1 || multipleNodesOK)) {
+        (children.length == 1 || multipleNodesOK) &&
+        exportedId == null) {
       bool r = false;
       for (final c in children) {
         r = c.build(builder, canon, idLookup, cascaded, currTA) || r;
       }
       return r;
     } else {
+      if (exportedId != null) {
+        builder.exportedID(null, canon.strings[exportedId!]);
+      }
       builder.group(null, transform, groupAlpha, blend);
       for (final c in children) {
         c.build(builder, canon, idLookup, cascaded, currTA);
       }
       builder.endGroup(null);
+      if (exportedId != null) {
+        builder.endExportedID(null);
+      }
       return true;
     }
   }
@@ -857,7 +875,10 @@ class SvgMasked extends SvgNode {
   final SvgNode child;
   SvgMask mask;
 
-  SvgMasked(this.child, this.mask);
+  SvgMasked(this.child, this.mask) {
+    exportedId = child.exportedId;
+    child.exportedId = null;
+  }
 
   @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
@@ -897,6 +918,9 @@ class SvgMasked extends SvgNode {
     assert(blend == SIBlendMode.normal);
     // Blend is handled by a parent group inserted above us in resolveMask().
     bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
     if (!built) {
@@ -911,6 +935,9 @@ class SvgMasked extends SvgNode {
       builder.endGroup(null);
     }
     builder.endMasked(null);
+    if (exportedId != null) {
+      builder.endExportedID(null);
+    }
     return true;
   }
 
@@ -1052,20 +1079,22 @@ abstract class SvgPathMaker extends SvgInheritableAttributesNode
     final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     if (cascaded.hidden == true) {
       return false;
-    } else if (transform != null ||
+    }
+    if (transform != null ||
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
-      makePath(builder, cascaded);
+      makePath(builder, canon, cascaded);
       builder.endGroup(null);
       return true;
     } else {
-      return makePath(builder, cascaded);
+      return makePath(builder, canon, cascaded);
     }
   }
 
   /// Returns true if a path node is emitted
-  bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded);
+  bool makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded);
 
   @override
   bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
@@ -1104,13 +1133,19 @@ class SvgPath extends SvgPathMaker {
   }
 
   @override
-  bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
+  bool makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
-    } else {
-      builder.path(null, pathData, cascaded.toSIPaint());
-      return true;
     }
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
+    builder.path(null, pathData, cascaded.toSIPaint());
+    if (exportedId != null) {
+      builder.endExportedID(null);
+    }
+    return true;
   }
 }
 
@@ -1186,39 +1221,45 @@ class SvgRect extends SvgPathMaker {
       Rectangle(x, y, width, height);
 
   @override
-  bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
+  bool makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
     PathBuilder? pb = builder.startPath(curr, this);
-    if (pb == null) {
-      return true;
+    if (pb != null) {
+      if (rx <= 0 || ry <= 0) {
+        pb.moveTo(PointT(x, y));
+        pb.lineTo(PointT(x + width, y));
+        pb.lineTo(PointT(x + width, y + height));
+        pb.lineTo(PointT(x, y + height));
+        pb.close();
+      } else {
+        final r = RadiusT(rx, ry);
+        pb.moveTo(PointT(x + rx, y));
+        pb.lineTo(PointT(x + width - rx, y));
+        pb.arcToPoint(PointT(x + width, y + ry),
+            radius: r, rotation: 0, largeArc: false, clockwise: true);
+        pb.lineTo(PointT(x + width, y + height - ry));
+        pb.arcToPoint(PointT(x + width - rx, y + height),
+            radius: r, rotation: 0, largeArc: false, clockwise: true);
+        pb.lineTo(PointT(x + rx, y + height));
+        pb.arcToPoint(PointT(x, y + height - ry),
+            radius: r, rotation: 0, largeArc: false, clockwise: true);
+        pb.lineTo(PointT(x, y + ry));
+        pb.arcToPoint(PointT(x + rx, y),
+            radius: r, rotation: 0, largeArc: false, clockwise: true);
+        pb.close();
+      }
+      pb.end();
     }
-    if (rx <= 0 || ry <= 0) {
-      pb.moveTo(PointT(x, y));
-      pb.lineTo(PointT(x + width, y));
-      pb.lineTo(PointT(x + width, y + height));
-      pb.lineTo(PointT(x, y + height));
-      pb.close();
-    } else {
-      final r = RadiusT(rx, ry);
-      pb.moveTo(PointT(x + rx, y));
-      pb.lineTo(PointT(x + width - rx, y));
-      pb.arcToPoint(PointT(x + width, y + ry),
-          radius: r, rotation: 0, largeArc: false, clockwise: true);
-      pb.lineTo(PointT(x + width, y + height - ry));
-      pb.arcToPoint(PointT(x + width - rx, y + height),
-          radius: r, rotation: 0, largeArc: false, clockwise: true);
-      pb.lineTo(PointT(x + rx, y + height));
-      pb.arcToPoint(PointT(x, y + height - ry),
-          radius: r, rotation: 0, largeArc: false, clockwise: true);
-      pb.lineTo(PointT(x, y + ry));
-      pb.arcToPoint(PointT(x + rx, y),
-          radius: r, rotation: 0, largeArc: false, clockwise: true);
-      pb.close();
+    if (exportedId != null) {
+      builder.endExportedID(null);
     }
-    pb.end();
     return true;
   }
 
@@ -1269,17 +1310,23 @@ class SvgEllipse extends SvgPathMaker {
       Rectangle(cx - rx, cy - ry, 2 * rx, 2 * ry);
 
   @override
-  bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
+  bool makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
-    PathBuilder? pb = builder.startPath(curr, this);
-    if (pb == null) {
-      return true;
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
     }
-    pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
-    pb.end();
+    PathBuilder? pb = builder.startPath(curr, this);
+    if (pb != null) {
+      pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
+      pb.end();
+    }
+    if (exportedId != null) {
+      builder.endExportedID(null);
+    }
     return true;
   }
 
@@ -1334,23 +1381,29 @@ class SvgPoly extends SvgPathMaker {
   }
 
   @override
-  bool makePath(SIBuilder<String, SIImageData> builder, SvgPaint cascaded) {
+  bool makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded) {
     if (_isInvisible(cascaded)) {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
     PathBuilder? pb = builder.startPath(curr, this);
-    if (pb == null) {
-      return true;
+    if (pb != null) {
+      pb.moveTo(points[0]);
+      for (int i = 1; i < points.length; i++) {
+        pb.lineTo(points[i]);
+      }
+      if (close) {
+        pb.close();
+      }
+      pb.end();
     }
-    pb.moveTo(points[0]);
-    for (int i = 1; i < points.length; i++) {
-      pb.lineTo(points[i]);
+    if (exportedId != null) {
+      builder.endExportedID(null);
     }
-    if (close) {
-      pb.close();
-    }
-    pb.end();
     return true;
   }
 
@@ -1434,6 +1487,9 @@ class SvgGradientNode implements SvgNode {
   /// Meaningless for us
   @override
   SIBlendMode get blendMode => unreachable(SIBlendMode.normal);
+
+  @override
+  String? exportedId;
 }
 
 class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
@@ -1483,7 +1539,11 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
     final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     if (cascaded.hidden == true) {
       return false;
-    } else if (transform != null ||
+    }
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
+    if (transform != null ||
         groupAlpha != null ||
         blend != SIBlendMode.normal) {
       builder.group(null, transform, groupAlpha, blend);
@@ -1491,6 +1551,9 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
       builder.endGroup(null);
     } else {
       builder.image(null, imageNumber);
+    }
+    if (exportedId != null) {
+      builder.endExportedID(null);
     }
     return true;
   }

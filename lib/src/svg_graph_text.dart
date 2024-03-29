@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2024, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -177,6 +177,9 @@ class SvgText extends SvgInheritableAttributesNode {
         : (blendMode ?? SIBlendMode.normal);
     final needGroup =
         transform != null || groupAlpha != null || blend != SIBlendMode.normal;
+    if (exportedId != null) {
+      builder.exportedID(null, canon.strings[exportedId!]);
+    }
     if (needGroup) {
       builder.group(null, transform, groupAlpha, blend);
     }
@@ -189,6 +192,9 @@ class SvgText extends SvgInheritableAttributesNode {
     builder.textEnd(null);
     if (needGroup) {
       builder.endGroup(null);
+    }
+    if (exportedId != null) {
+      builder.endExportedID(null);
     }
     return true;
   }
