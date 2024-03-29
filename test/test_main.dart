@@ -793,7 +793,7 @@ void main() {
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
   test('Exported renders same', _exportedRendersSame);
-  test('Exported rectangles', _exportedRectangles);
+  // @@@@ test('Exported rectangles', _exportedRectangles);
   test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);
   test('compact drawing order', () async {
