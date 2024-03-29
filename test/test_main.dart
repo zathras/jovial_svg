@@ -494,7 +494,7 @@ void _cacheTest() {
     }
   }
 }
-/* @@
+
 Future<void> _exportedRectangles() async {
   const hasText = {'text'};
   for (final compact in [true, false]) {
@@ -547,7 +547,7 @@ Future<void> _exportedRectangles() async {
     }
   }
 }
-*/
+
 Future<void> _exportedRendersSame() async {
   for (final compact in [true, false]) {
     var dir = Directory('demo/assets/si_ids');
@@ -793,7 +793,7 @@ void main() {
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
   test('Exported renders same', _exportedRendersSame);
-  // @@@@ test('Exported rectangles', _exportedRectangles);
+  test('Exported rectangles', _exportedRectangles);
   test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);
   test('compact drawing order', () async {
