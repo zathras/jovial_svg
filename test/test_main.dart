@@ -204,16 +204,11 @@ Future<void> checkRendered(
     if (rewriteAllFailedTests) {
       print('$failed, rewriteTrue');
       final outName = File(refName.path.replaceFirst(_testPattern, 'tmp'));
-      print(' @@ b');
       print('Generating reference file $outName !!!');
-      print(' @@ c');
       outName.parent.createSync(recursive: true);
-      print(' @@ d');
       outName.writeAsBytesSync(await renderToBytes(si,
           scaleTo: scaleTo, format: ImageByteFormat.png));
-      print(' @@ e');
     } else {
-      print(' @@ f');
       if (outputDir != null) {
         final outName = File('${outputDir.path}/$outNoExt.png');
         print('Writing rendered result to $outName');
@@ -221,7 +216,6 @@ Future<void> checkRendered(
         outName.writeAsBytesSync(await renderToBytes(si,
             scaleTo: scaleTo, format: ImageByteFormat.png));
       }
-      print(' @@ g');
       rethrow;
     }
   }
