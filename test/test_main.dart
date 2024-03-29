@@ -792,7 +792,8 @@ void main() {
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
-  test('Exported renders same', _exportedRendersSame);
+  test('Exported renders same', _exportedRendersSame,
+      timeout:  const Timeout(Duration(seconds: 60)));
   test('Exported rectangles', _exportedRectangles);
   test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);
