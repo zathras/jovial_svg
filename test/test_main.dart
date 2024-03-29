@@ -194,10 +194,8 @@ Future<void> checkRendered(
     final codec = await instantiateImageCodec(refName.readAsBytesSync());
     final Image im = (await codec.getNextFrame()).image;
     final reference = await im.toByteData(format: ImageByteFormat.rawRgba);
-    print('Calling expect for $description');
     expect(renderedBytes, reference!.buffer.asUint8List(),
         reason: '$description $refName differ');
-    print('Back from expect');
     codec.dispose();
     im.dispose();
   } catch (failed) {
@@ -556,18 +554,6 @@ Future<void> _exportedRendersSame() async {
     var dir = Directory('demo/assets/si_ids');
     for (final ent in dir.listSync()) {
       final name = ent.uri.pathSegments.last;
-      if ({
-        'swiss-xvii.si',
-        'anglo.si',
-        'mask4.si',
-        'bellot.si',
-        'anglo_bitmap.si'
-      }.contains(name)) {
-        // Oops!  I fixed something to do with masks a while back,
-        // but failed to update these five .si files.
-        // TODO:  Fix this
-        continue;
-      }
       if (ent is File && name.endsWith('.si')) {
         final si1 =
             ScalableImage.fromSIBytes(ent.readAsBytesSync(), compact: compact);
