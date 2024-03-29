@@ -154,7 +154,7 @@ class _DemoScreenState extends State<DemoScreen> {
           final newSI = await ScalableImage.fromSvgHttpUrl(
               Uri.parse(url.trim()),
               warnF: (s) => debugPrint('Warning:  $s'),
-              exportedIds: [RegExp(r'.*')]);
+              exportedIDs: [RegExp(r'.*')]);
           await newSI.prepareImages();
           setState(() {
             demoIDs = true;
@@ -482,7 +482,7 @@ class Asset {
     }
     switch (t) {
       case AssetType.svg:
-        return ScalableImage.fromSvgAsset(b, svg!, exportedIds: exported);
+        return ScalableImage.fromSvgAsset(b, svg!, exportedIDs: exported);
       case AssetType.compact:
         return ScalableImage.fromSIAsset(b, siAsset, compact: true);
       case AssetType.avd:

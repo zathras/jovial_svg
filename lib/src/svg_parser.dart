@@ -57,7 +57,7 @@ import 'svg_graph.dart';
 abstract class SvgParser extends GenericParser {
   @override
   final void Function(String) warn;
-  final List<Pattern> exportedIds;
+  final List<Pattern> exportedIDs;
   final SIBuilder<String, SIImageData> _builder;
   String? _currTag;
 
@@ -88,7 +88,7 @@ abstract class SvgParser extends GenericParser {
   /// Stylesheet.  Key is element type - see style.uml in doc/uml.
   final Stylesheet _stylesheet = {};
 
-  SvgParser(this.warn, this.exportedIds, this._builder);
+  SvgParser(this.warn, this.exportedIDs, this._builder);
 
   void buildResult() {
     if (!_svgTagSeen) {
@@ -644,7 +644,7 @@ abstract class SvgParser extends GenericParser {
     if (id != null) {
       svg.idLookup[id] = n;
       pattern:
-      for (final Pattern e in exportedIds) {
+      for (final Pattern e in exportedIDs) {
         for (final Match m in e.allMatches(id)) {
           if (id == m[0]) {
             n.exportedId = id;
@@ -1099,10 +1099,10 @@ class _SvgParserEventHandler with XmlEventVisitor {
 class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
-  StreamSvgParser(this._input, List<Pattern> exportedIds,
+  StreamSvgParser(this._input, List<Pattern> exportedIDs,
       SIBuilder<String, SIImageData> builder,
       {required void Function(String) warn})
-      : super(warn, exportedIds, builder);
+      : super(warn, exportedIDs, builder);
 
   Future<void> parse() async {
     final handler = _SvgParserEventHandler(this);
@@ -1118,10 +1118,10 @@ class StreamSvgParser extends SvgParser {
 class StringSvgParser extends SvgParser {
   final String _input;
 
-  StringSvgParser(this._input, List<Pattern> exportedIds,
+  StringSvgParser(this._input, List<Pattern> exportedIDs,
       SIBuilder<String, SIImageData> builder,
       {required void Function(String) warn})
-      : super(warn, exportedIds, builder);
+      : super(warn, exportedIDs, builder);
 
   void parse() {
     final handler = _SvgParserEventHandler(this);

@@ -505,7 +505,7 @@ Future<void> _exportedRectangles() async {
           compact: compact),
       ScalableImage.fromSvgString(
           File('demo/assets/svg/exported_ids.svg').readAsStringSync(),
-          exportedIds: [RegExp(r'.*')],
+          exportedIDs: [RegExp(r'.*')],
           compact: compact)
     ];
     for (final si in sis) {
@@ -570,9 +570,9 @@ Future<void> _exportedRendersSame() async {
       final name = ent.uri.pathSegments.last;
       if (ent is File && name.endsWith('.svg')) {
         final si1 = ScalableImage.fromSvgString(ent.readAsStringSync(),
-            exportedIds: [RegExp(r'.*')], compact: compact, warnF: (_) {});
+            exportedIDs: [RegExp(r'.*')], compact: compact, warnF: (_) {});
         final si2 = ScalableImage.fromSvgString(ent.readAsStringSync(),
-            exportedIds: [], compact: compact, warnF: (_) {});
+            exportedIDs: [], compact: compact, warnF: (_) {});
         final b1 = await renderToBytes(si1, format: ImageByteFormat.png);
         final b2 = await renderToBytes(si2, format: ImageByteFormat.png);
         expect(b1, b2, reason: '$ent');
@@ -782,7 +782,7 @@ void main() {
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
   test('Exported renders same', _exportedRendersSame,
-      timeout:  const Timeout(Duration(seconds: 60)));
+      timeout: const Timeout(Duration(seconds: 60)));
   test('Exported rectangles', _exportedRectangles);
   test('tint', () => _tint(outputDir));
   test('Misc. coverage tests', _miscCoverage);

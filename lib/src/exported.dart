@@ -156,13 +156,13 @@ enum ImageDisposeBugWorkaround {
 @immutable
 abstract class ScalableImage {
   /// Width of the image, in pixels, if it was specified.  This corresponds
-  /// to the SVG tag's "width" attribute, and the AVD vector element's
-  /// "android:width", if specified, or by "android:viewportWidth" if not.
+  /// to the SVG tag's `width` attribute, and the AVD vector element's
+  /// `android:width`, if specified, or by `android:viewportWidth` if not.
   final double? width;
 
   /// Height of the image, in pixels, if it was specified.  This corresponds
-  /// to the SVG tag's "height" attribute, and the AVD vector element's
-  /// "android"height", if specified, or "android:viewportHeight" if not.
+  /// to the SVG tag's `height` attribute, and the AVD vector element's
+  /// `android:height`, if specified, or `android:viewportHeight` if not.
   final double? height;
 
   /// [BlendMode] for applying the [tintColor].
@@ -238,8 +238,8 @@ abstract class ScalableImage {
   ///
   /// Return a list of the ids of the nodes whose ids were exported, along with
   /// the bounding rectangle of that node.  An id might occur in the list
-  /// multiple times, e.g. if the given node is `use`d more than once in
-  /// the underlying SVG.
+  /// multiple times, e.g. if the given node is referenced by `use` nodes
+  /// in the underlying SVG.
   ///
   Set<ExportedID> get exportedIDs;
 
@@ -345,7 +345,7 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
-  /// [exportedIds] specifies a list of node IDs that are to be exported.
+  /// [exportedIDs] specifies a list of node IDs that are to be exported.
   /// See [ScalableImage.exportedIDs].
   ///
   /// See also [ScalableImage.currentColor].
@@ -355,17 +355,17 @@ abstract class ScalableImage {
       bool bigFloats = false,
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
-      List<Pattern> exportedIds = const [],
+      List<Pattern> exportedIDs = const [],
       Color? currentColor}) {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(
           warn: warnArg, currentColor: currentColor, bigFloats: bigFloats);
-      StringSvgParser(src, exportedIds, b, warn: warnArg).parse();
+      StringSvgParser(src, exportedIDs, b, warn: warnArg).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warnArg, currentColor: currentColor);
-      StringSvgParser(src, exportedIds, b, warn: warnArg).parse();
+      StringSvgParser(src, exportedIDs, b, warn: warnArg).parse();
       return b.si;
     }
   }
@@ -393,7 +393,7 @@ abstract class ScalableImage {
       bool bigFloats = false,
       @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
       void Function(String)? warnF,
-      List<Pattern> exportedIds = const [],
+      List<Pattern> exportedIDs = const [],
       Color? currentColor}) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String src = await b.loadString(key, cache: false);
@@ -401,7 +401,7 @@ abstract class ScalableImage {
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
-        exportedIds: exportedIds,
+        exportedIDs: exportedIDs,
         currentColor: currentColor);
   }
 
@@ -441,7 +441,7 @@ abstract class ScalableImage {
     bool bigFloats = false,
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
-    List<Pattern> exportedIds = const [],
+    List<Pattern> exportedIDs = const [],
     Color? currentColor,
     Encoding defaultEncoding = utf8,
     Map<String, String>? httpHeaders,
@@ -451,7 +451,7 @@ abstract class ScalableImage {
         compact: compact,
         bigFloats: bigFloats,
         warnF: warnArg,
-        exportedIds: exportedIds,
+        exportedIDs: exportedIDs,
         currentColor: currentColor);
   }
 
@@ -471,7 +471,7 @@ abstract class ScalableImage {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
-  /// [exportedIds] specifies a list of node IDs that are to be exported.
+  /// [exportedIDs] specifies a list of node IDs that are to be exported.
   /// See [ScalableImage.exportedIDs].
   ///
   /// See also [ScalableImage.currentColor].
@@ -482,16 +482,16 @@ abstract class ScalableImage {
     bool bigFloats = false,
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
-    List<Pattern> exportedIds = const [],
+    List<Pattern> exportedIDs = const [],
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(warn: warnArg, bigFloats: bigFloats);
-      await StreamSvgParser(stream, exportedIds, b, warn: warnArg).parse();
+      await StreamSvgParser(stream, exportedIDs, b, warn: warnArg).parse();
       return b.si;
     } else {
       final b = SIDagBuilder(warn: warnArg);
-      await StreamSvgParser(stream, exportedIds, b, warn: warnArg).parse();
+      await StreamSvgParser(stream, exportedIDs, b, warn: warnArg).parse();
       return b.si;
     }
   }

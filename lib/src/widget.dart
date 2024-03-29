@@ -608,15 +608,23 @@ abstract class ScalableImageSource {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [exportedIDs] specifies a list of node IDs that are to be exported.
+  /// See [ScalableImage.exportedIDs].
+  ///
   static ScalableImageSource fromSvg(AssetBundle bundle, String key,
           {Color? currentColor,
           bool compact = false,
           bool bigFloats = false,
           @Deprecated("[warn] has been superseded by [warnF].")
           bool warn = true,
-          void Function(String)? warnF}) =>
+          void Function(String)? warnF,
+          List<Pattern> exportedIDs = const []}) =>
       _SvgBundleSource(bundle, key, currentColor,
-          compact: compact, bigFloats: bigFloats, warn: warn, warnF: warnF);
+          compact: compact,
+          bigFloats: bigFloats,
+          warn: warn,
+          warnF: warnF,
+          exportedIDs: exportedIDs);
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -640,6 +648,9 @@ abstract class ScalableImageSource {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [exportedIDs] specifies a list of node IDs that are to be exported.
+  /// See [ScalableImage.exportedIDs].
+  ///
   /// [defaultEncoding] specifies the character encoding to use if the
   /// content-type header of the HTTP response does not indicate an encoding.
   /// RVC 2916 specifies latin1 for HTTP, but current browser practice defaults
@@ -654,6 +665,7 @@ abstract class ScalableImageSource {
           @Deprecated("[warn] has been superseded by [warnF].")
           bool warn = true,
           void Function(String)? warnF,
+          List<Pattern> exportedIDs = const [],
           Map<String, String>? httpHeaders,
           Encoding defaultEncoding = utf8}) =>
       _SvgHttpSource(
@@ -663,6 +675,7 @@ abstract class ScalableImageSource {
         bigFloats: bigFloats,
         warn: warn,
         warnF: warnF,
+        exportedIDs: exportedIDs,
         defaultEncoding: defaultEncoding,
         httpHeaders: httpHeaders,
       );
@@ -698,6 +711,9 @@ abstract class ScalableImageSource {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print warnings.
   ///
+  /// [exportedIDs] specifies a list of node IDs that are to be exported.
+  /// See [ScalableImage.exportedIDs].
+  ///
   /// Usage:
   /// ```
   ///     final file = File(...);
@@ -705,16 +721,20 @@ abstract class ScalableImageSource {
   ///         file, () => file.readAsString());
   /// ```
   static ScalableImageSource fromSvgFile(
-          Object file, FutureOr<String> Function() fileReader,
-          {Color? currentColor,
-          bool compact = false,
-          bool bigFloats = false,
-          void Function(String)? warnF}) =>
+    Object file,
+    FutureOr<String> Function() fileReader, {
+    Color? currentColor,
+    bool compact = false,
+    bool bigFloats = false,
+    void Function(String)? warnF,
+    List<Pattern> exportedIDs = const [],
+  }) =>
       _SvgFileSource(file, fileReader,
           currentColor: currentColor,
           compact: compact,
           bigFloats: bigFloats,
-          warnF: warnF);
+          warnF: warnF,
+          exportedIDs: exportedIDs);
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -832,6 +852,7 @@ class _SvgBundleSource extends ScalableImageSource {
   final Color? currentColor;
   final bool compact;
   final bool bigFloats;
+  final List<Pattern> exportedIDs;
   @override
   final bool warn;
   @override
@@ -841,7 +862,8 @@ class _SvgBundleSource extends ScalableImageSource {
       {required this.compact,
       required this.bigFloats,
       required this.warn,
-      required this.warnF});
+      required this.warnF,
+      required this.exportedIDs});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -887,6 +909,7 @@ class _SvgHttpSource extends ScalableImageSource {
   final bool warn;
   @override
   final void Function(String)? warnF;
+  final List<Pattern> exportedIDs;
   final Encoding defaultEncoding;
   final Map<String, String>? httpHeaders;
 
@@ -895,6 +918,7 @@ class _SvgHttpSource extends ScalableImageSource {
       required this.bigFloats,
       required this.warn,
       required this.warnF,
+      required this.exportedIDs,
       required this.httpHeaders,
       this.defaultEncoding = utf8});
 
@@ -945,12 +969,14 @@ class _SvgFileSource extends ScalableImageSource {
   final bool bigFloats;
   @override
   final void Function(String)? warnF;
+  final List<Pattern> exportedIDs;
 
   _SvgFileSource(this.file, this.fileReader,
       {required this.currentColor,
       required this.compact,
       required this.bigFloats,
-      required this.warnF});
+      required this.warnF,
+      required this.exportedIDs});
 
   @override
   Future<ScalableImage> get si => createSI();
@@ -1439,12 +1465,12 @@ class ScalingTransform {
 /// Used to look up what part of a [ScalableImage] is
 /// clicked on within a [ScalableImageWidget].
 ///
-/// An SVG node can have name, in its `id` attribute.  When an SVG is read,
+/// An SVG node can have a name in its `id` attribute.  When an SVG is read,
 /// or converted to an SI, these ID values can be marked as exported.  This can
 /// be done by listing the IDs, or by using a regular expression.  For example,
 /// to build an SI where all ID values are exported, you can specify
-/// `-x '.*'` to `svg_to_si`.  (Each exported ID does add some overhead, so
-/// in production, it's best to only export the ones you need.)
+/// `-x '.*'` to `svg_to_si`.  Each exported ID does add some overhead, so
+/// in production, it's best to only export the ones you need.
 ///
 /// A [ScalableImageWidget] can have an [ExportedIDLookup] instance associated
 /// with it.  This can be used, for example, to determine which node(s) are
@@ -1482,11 +1508,11 @@ class ExportedIDLookup {
   /// it has been loaded.  The [ExportedID]s will be in the coordinate system
   /// of the [ScalableImage].  See also [scalingTransform].
   ///
-  Set<ExportedID> get exportedIds => _si?.exportedIDs ?? const {};
+  Set<ExportedID> get exportedIDs => _si?.exportedIDs ?? const {};
 
   ///
   /// Get the [ScalingTransform] needed to convert coordinates between the
-  /// coordinate system of the [ScalableImage]'s [exportedIds] and the
+  /// coordinate system of the [ScalableImage]'s [exportedIDs] and the
   /// containing [ScalableImageWidget].
   ///
   ScalingTransform get scalingTransform =>
@@ -1498,7 +1524,7 @@ class ExportedIDLookup {
   Set<String> hits(Offset p) {
     final Set<String> result = {};
     p = scalingTransform.toSICoordinate(p);
-    for (final e in exportedIds) {
+    for (final e in exportedIDs) {
       if (e.boundingRect.contains(p)) {
         result.add(e.id);
       }
