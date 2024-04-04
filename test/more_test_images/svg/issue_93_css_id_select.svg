@@ -1,0 +1,15 @@
+<svg class="definition-scale" color="black" 
+      viewBox="2200 3550 300 300"
+      version="1.1" xmlns="http://www.w3.org/2000/svg" 
+      xmlns:xlink="http://www.w3.org/1999/xlink" overflow="visible"> 
+  <defs>
+    <symbol id="E0A4-5oknge" viewBox="0 0 1000 1000" overflow="inherit">
+      <path transform="scale(1,-1)" 
+          d="M0 -39c0 68 73 172 200 172c66 0 114 -37 114 -95c0 -84 -106 -171 -218 -171c-64 0 -96 30 -96 94z" /> 
+    </symbol> 
+  </defs> 
+  <style type="text/css">#d1e116 {fill: blue; color: blue;}</style> 
+  <g id="d1e116" class="note"> 
+    <use xlink:href="#E0A4-5oknge" x="2242" y="3693" height="720px" width="720px" /> 
+  </g> 
+</svg>
