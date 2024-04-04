@@ -282,6 +282,9 @@ class Style extends SvgInheritableAttributes {
     // called 'class,' so we ignore any such attempts.
   }
 
+  @override
+  String? get id => null;
+
   Style(this.styleClass);
 
   void applyText(
@@ -339,7 +342,10 @@ abstract class SvgNode {
 
   _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta);
 
-  String? exportedId;
+  String? id;
+  bool idIsExported = false;
+
+  String? get exportedID => idIsExported ? id : null;
 }
 
 class _NullSink<T> implements Sink<T> {
@@ -390,6 +396,8 @@ abstract class SvgInheritableTextAttributes implements SvgTextFields {
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
 
+  String? get id;
+
   bool _isInvisible(SvgPaint cascaded) {
     return cascaded.hidden == true ||
         ((cascaded.strokeAlpha == 0 || cascaded.strokeColor == SvgColor.none) &&
@@ -414,14 +422,21 @@ abstract class SvgInheritableTextAttributes implements SvgTextFields {
         }
       }
     }
-    final List<Style>? styles = stylesheet[tagName];
-    if (styles != null) {
-      for (int i = styles.length - 1; i >= 0; i--) {
-        final s = styles[i];
-        if (s.styleClass == '') {
-          _takeFrom(s, warn);
+    void applyStyles(List<Style>? styles) {
+      if (styles != null) {
+        for (int i = styles.length - 1; i >= 0; i--) {
+          final s = styles[i];
+          if (s.styleClass == '') {
+            _takeFrom(s, warn);
+          }
         }
       }
+    }
+
+    applyStyles(stylesheet[tagName]);
+    //
+    if (id != null) {
+      applyStyles(stylesheet['#$id']);
     }
   }
 
@@ -509,7 +524,13 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   }
 
   @override
-  String? exportedId;
+  String? id;
+
+  @override
+  bool idIsExported = false;
+
+  @override
+  String? get exportedID => idIsExported ? id : null;
 }
 
 class SvgPaint {
@@ -784,22 +805,22 @@ class SvgGroup extends SvgInheritableAttributesNode {
         groupAlpha == null &&
         blend == SIBlendMode.normal &&
         (children.length == 1 || multipleNodesOK) &&
-        exportedId == null) {
+        exportedID == null) {
       bool r = false;
       for (final c in children) {
         r = c.build(builder, canon, idLookup, cascaded, currTA) || r;
       }
       return r;
     } else {
-      if (exportedId != null) {
-        builder.exportedID(null, canon.strings[exportedId!]);
+      if (exportedID != null) {
+        builder.exportedID(null, canon.strings[exportedID!]);
       }
       builder.group(null, transform, groupAlpha, blend);
       for (final c in children) {
         c.build(builder, canon, idLookup, cascaded, currTA);
       }
       builder.endGroup(null);
-      if (exportedId != null) {
+      if (exportedID != null) {
         builder.endExportedID(null);
       }
       return true;
@@ -876,8 +897,10 @@ class SvgMasked extends SvgNode {
   SvgMask mask;
 
   SvgMasked(this.child, this.mask) {
-    exportedId = child.exportedId;
-    child.exportedId = null;
+    id = child.id;
+    idIsExported = child.idIsExported;
+    child.id = null;
+    child.idIsExported = false;
   }
 
   @override
@@ -918,8 +941,8 @@ class SvgMasked extends SvgNode {
     assert(blend == SIBlendMode.normal);
     // Blend is handled by a parent group inserted above us in resolveMask().
     bool canUseLuma = mask.canUseLuma(idLookup, ancestor);
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     builder.masked(null, mask.bufferBounds, canUseLuma);
     bool built = mask.build(builder, canon, idLookup, ancestor, ta);
@@ -935,7 +958,7 @@ class SvgMasked extends SvgNode {
       builder.endGroup(null);
     }
     builder.endMasked(null);
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -1138,11 +1161,11 @@ class SvgPath extends SvgPathMaker {
     if (_isInvisible(cascaded)) {
       return false;
     }
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     builder.path(null, pathData, cascaded.toSIPaint());
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -1227,8 +1250,8 @@ class SvgRect extends SvgPathMaker {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb != null) {
@@ -1257,7 +1280,7 @@ class SvgRect extends SvgPathMaker {
       }
       pb.end();
     }
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -1316,15 +1339,15 @@ class SvgEllipse extends SvgPathMaker {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb != null) {
       pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
       pb.end();
     }
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -1387,8 +1410,8 @@ class SvgPoly extends SvgPathMaker {
       return false;
     }
     SIPaint curr = cascaded.toSIPaint();
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     PathBuilder? pb = builder.startPath(curr, this);
     if (pb != null) {
@@ -1401,7 +1424,7 @@ class SvgPoly extends SvgPathMaker {
       }
       pb.end();
     }
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -1489,7 +1512,13 @@ class SvgGradientNode implements SvgNode {
   SIBlendMode get blendMode => unreachable(SIBlendMode.normal);
 
   @override
-  String? exportedId;
+  String? id;
+
+  @override
+  bool idIsExported = false;
+
+  @override
+  String? get exportedID => idIsExported ? id : null;
 }
 
 class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
@@ -1540,8 +1569,8 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
     if (cascaded.hidden == true) {
       return false;
     }
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     if (transform != null ||
         groupAlpha != null ||
@@ -1552,7 +1581,7 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
     } else {
       builder.image(null, imageNumber);
     }
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;

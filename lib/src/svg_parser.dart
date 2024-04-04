@@ -85,7 +85,8 @@ abstract class SvgParser extends GenericParser {
   late final SvgParseGraph svg;
   bool _svgTagSeen = false;
 
-  /// Stylesheet.  Key is element type - see style.uml in doc/uml.
+  /// Stylesheet.  Key is element type, or ID.  ID starts with '#'.
+  /// See style.uml in doc/uml.
   final Stylesheet _stylesheet = {};
 
   SvgParser(this.warn, this.exportedIDs, this._builder);
@@ -640,14 +641,14 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processId(SvgNode n, Map<String, String> attrs) {
-    final id = attrs.remove('id');
+    final id = n.id = attrs.remove('id');
     if (id != null) {
       svg.idLookup[id] = n;
       pattern:
       for (final Pattern e in exportedIDs) {
         for (final Match m in e.allMatches(id)) {
           if (id == m[0]) {
-            n.exportedId = id;
+            n.idIsExported = true;
             break pattern;
           }
         }

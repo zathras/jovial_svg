@@ -177,8 +177,8 @@ class SvgText extends SvgInheritableAttributesNode {
         : (blendMode ?? SIBlendMode.normal);
     final needGroup =
         transform != null || groupAlpha != null || blend != SIBlendMode.normal;
-    if (exportedId != null) {
-      builder.exportedID(null, canon.strings[exportedId!]);
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
     }
     if (needGroup) {
       builder.group(null, transform, groupAlpha, blend);
@@ -193,7 +193,7 @@ class SvgText extends SvgInheritableAttributesNode {
     if (needGroup) {
       builder.endGroup(null);
     }
-    if (exportedId != null) {
+    if (exportedID != null) {
       builder.endExportedID(null);
     }
     return true;
@@ -210,6 +210,8 @@ class SvgTextSpan extends SvgTextNodeAttributes
   List<SvgTextSpanComponent> parts = [];
   @override
   final String tagName;
+  @override
+  String? get id => null;
 
   SvgTextSpan(this.tagName);
 
