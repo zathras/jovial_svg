@@ -100,7 +100,7 @@ class SvgParseGraph {
         return RectT(0, 0, w, h);
       }
     }
-    final b = root._getUserSpaceBoundary(SvgTextAttributes.initial());
+    final b = root._getUserSpaceBoundary(SvgTextStyle.initial());
     if (b == null) {
       // e.g. because this SVG is just an empty group
       return const Rectangle(0.0, 0.0, 100.0, 100.0);
@@ -112,7 +112,7 @@ class SvgParseGraph {
   void build(SIBuilder<String, SIImageData> builder) {
     RectT userSpace() => userSpaceBounds;
     final rootPaint = SvgPaint.root(userSpace);
-    final rootTA = SvgTextAttributes.initial();
+    final rootTA = SvgTextStyle.initial();
     SvgNode? newRoot =
         root.resolve(idLookup, rootPaint, builder.warn, SvgNodeReferrers(this));
     _resolved = true;
@@ -271,7 +271,7 @@ class Style extends SvgInheritableAttributes {
   @override
   final SvgPaint paint = SvgPaint.empty();
   @override
-  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  SvgTextStyle textStyle = SvgTextStyle.empty();
 
   @override
   final String styleClass;
@@ -290,7 +290,7 @@ class Style extends SvgInheritableAttributes {
   void applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
     node.paint.takeFrom(this, warn);
-    node.textAttributes.takeFrom(this);
+    node.textStyle.takeFrom(this);
   }
 
   void apply(SvgInheritableAttributes node, void Function(String) warn) {
@@ -312,7 +312,8 @@ class Style extends SvgInheritableAttributes {
 }
 
 ///
-/// A stylesheet is a map from a tagName, like "tspan" or "", to a list
+/// A stylesheet is a map from a tagName or a node ID.  A tagName
+/// is like "tspan" or "", and an ID starts with "#".  It maps to a list
 /// of [Style] instances, in the order they were encountered in the
 /// SVG source file.
 ///
@@ -329,7 +330,7 @@ abstract class SvgNode {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false});
 
   ///
@@ -340,7 +341,7 @@ abstract class SvgNode {
 
   SIBlendMode? get blendMode;
 
-  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta);
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta);
 
   String? id;
   bool idIsExported = false;
@@ -382,16 +383,16 @@ class SvgNodeReferrers {
 /// The fields of SvgInheritableTextAttributes, suitable for most node
 /// types (but not SvgGroup or SvgText).
 ///
-mixin SvgTextFields {
+mixin SvgTextAttributeFields {
   final SvgPaint paint = SvgPaint.empty();
-  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  SvgTextStyle textStyle = SvgTextStyle.empty();
   String styleClass = ''; // Doesn't inherit.
 }
 
 /// Just the inheritable attributes that are applicable to text.  The
 /// fields are split out as SvgTextFields, since the actual text node
 /// forwards those to its child.
-abstract class SvgInheritableTextAttributes implements SvgTextFields {
+abstract class SvgInheritableTextAttributes implements SvgTextAttributeFields {
   String get tagName;
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
@@ -468,12 +469,12 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   bool _hasNonMaskAttributes() =>
       transform != null ||
       paint != (SvgPaint.empty()..mask = paint.mask) ||
-      textAttributes != SvgTextAttributes.empty() ||
+      textStyle != SvgTextStyle.empty() ||
       groupAlpha != null ||
       (blendMode ?? SIBlendMode.normal) != SIBlendMode.normal;
 
   @override
-  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta) {
     RectT? bounds = _getUntransformedBounds(ta);
     if (bounds == null) {
       return null;
@@ -489,7 +490,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   }
 
   @protected
-  RectT? _getUntransformedBounds(SvgTextAttributes ta);
+  RectT? _getUntransformedBounds(SvgTextStyle ta);
 
   SvgNode resolveMask(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn, SvgNodeReferrers referrers) {
@@ -504,8 +505,8 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
             final g = SvgGroup();
             g.transform = transform;
             transform = null;
-            g.textAttributes = textAttributes;
-            textAttributes = SvgTextAttributes.empty();
+            g.textStyle = textStyle;
+            textStyle = SvgTextStyle.empty();
             g.groupAlpha = groupAlpha;
             groupAlpha = null;
             g.blendMode = blendMode;
@@ -725,7 +726,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
   @override
   final SvgPaint paint;
   @override
-  SvgTextAttributes textAttributes = SvgTextAttributes.empty();
+  SvgTextStyle textStyle = SvgTextStyle.empty();
   @override
   String styleClass = '';
   var children = List<SvgNode>.empty(growable: true);
@@ -768,8 +769,8 @@ class SvgGroup extends SvgInheritableAttributesNode {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
-    final currTA = textAttributes.cascade(ta);
+  RectT? _getUntransformedBounds(SvgTextStyle ta) {
+    final currTA = textStyle.cascade(ta);
     RectT? curr;
     for (final ch in children) {
       final boundary = ch._getUserSpaceBoundary(currTA);
@@ -791,7 +792,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
@@ -799,7 +800,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
     final blend = blendHandledByParent
         ? SIBlendMode.normal
         : (blendMode ?? SIBlendMode.normal);
-    final currTA = textAttributes.cascade(ta);
+    final currTA = textStyle.cascade(ta);
     final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     if (transform == null &&
         groupAlpha == null &&
@@ -866,13 +867,13 @@ class SvgDefs extends SvgGroup {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     return unreachable(false);
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) => unreachable(null);
+  RectT? _getUntransformedBounds(SvgTextStyle ta) => unreachable(null);
 }
 
 ///
@@ -910,7 +911,7 @@ class SvgMasked extends SvgNode {
   }
 
   @override
-  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) {
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta) {
     final m = mask._getUserSpaceBoundary(ta);
     if (m == null) {
       return m;
@@ -933,7 +934,7 @@ class SvgMasked extends SvgNode {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     final blend = blendHandledByParent
         ? SIBlendMode.normal
@@ -980,7 +981,7 @@ class SvgMasked extends SvgNode {
   SIBlendMode? get blendMode => child.blendMode;
 }
 
-class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
+class SvgUse extends SvgInheritableAttributesNode with SvgTextAttributeFields {
   String? childID;
   double? width;
   double? height;
@@ -1019,7 +1020,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
       Rectangle<double>? symbolViewbox;
       if (n.height == null || n.width == null) {
         symbolViewbox =
-            n.viewbox ?? n._getUntransformedBounds(SvgTextAttributes.empty());
+            n.viewbox ?? n._getUntransformedBounds(SvgTextStyle.empty());
       }
       final w = width;
       if (w == null) {
@@ -1060,7 +1061,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) => unreachable(null);
+  RectT? _getUntransformedBounds(SvgTextStyle ta) => unreachable(null);
 
   @override
   bool build(
@@ -1068,7 +1069,7 @@ class SvgUse extends SvgInheritableAttributesNode with SvgTextFields {
           CanonicalizedData<SIImageData> canon,
           Map<String, SvgNode> idLookup,
           SvgPaint ancestor,
-          SvgTextAttributes ta,
+          SvgTextStyle ta,
           {bool blendHandledByParent = false}) =>
       unreachable(false);
 
@@ -1084,14 +1085,14 @@ class SvgSymbol extends SvgGroup {
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributesNode
-    with SvgTextFields {
+    with SvgTextAttributeFields {
   @override
   bool build(
       SIBuilder<String, SIImageData> builder,
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
@@ -1146,7 +1147,7 @@ class SvgPath extends SvgPathMaker {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+  RectT? _getUntransformedBounds(SvgTextStyle ta) {
     if (pathData == '') {
       return null;
     }
@@ -1240,7 +1241,7 @@ class SvgRect extends SvgPathMaker {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+  RectT? _getUntransformedBounds(SvgTextStyle ta) =>
       Rectangle(x, y, width, height);
 
   @override
@@ -1329,7 +1330,7 @@ class SvgEllipse extends SvgPathMaker {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+  RectT? _getUntransformedBounds(SvgTextStyle ta) =>
       Rectangle(cx - rx, cy - ry, 2 * rx, 2 * ry);
 
   @override
@@ -1391,7 +1392,7 @@ class SvgPoly extends SvgPathMaker {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+  RectT? _getUntransformedBounds(SvgTextStyle ta) {
     RectT? curr;
     for (final p in points) {
       if (curr == null) {
@@ -1490,8 +1491,7 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  _SvgBoundary? _getUserSpaceBoundary(SvgTextAttributes ta) =>
-      unreachable(null);
+  _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta) => unreachable(null);
 
   @override
   bool build(
@@ -1499,7 +1499,7 @@ class SvgGradientNode implements SvgNode {
           CanonicalizedData<SIImageData> canon,
           Map<String, SvgNode> idLookup,
           SvgPaint ancestor,
-          SvgTextAttributes ta,
+          SvgTextStyle ta,
           {bool blendHandledByParent = false}) =>
       unreachable(false);
 
@@ -1521,7 +1521,8 @@ class SvgGradientNode implements SvgNode {
   String? get exportedID => idIsExported ? id : null;
 }
 
-class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
+class SvgImage extends SvgInheritableAttributesNode
+    with SvgTextAttributeFields {
   Uint8List imageData = _emptyData;
   double x = 0;
   double y = 0;
@@ -1545,7 +1546,7 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) =>
+  RectT? _getUntransformedBounds(SvgTextStyle ta) =>
       Rectangle(x, y, width, height);
 
   @override
@@ -1554,7 +1555,7 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
@@ -1593,7 +1594,7 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
   }
 }
 
-class SvgTextAttributes {
+class SvgTextStyle {
   List<String>? fontFamily; // Null is not the same as [] due to cascading
   SIFontStyle? fontStyle;
   SITextAnchor? textAnchor;
@@ -1601,9 +1602,9 @@ class SvgTextAttributes {
   SvgFontWeight fontWeight = SvgFontWeight.inherit;
   SvgFontSize fontSize = SvgFontSize.inherit;
 
-  SvgTextAttributes.empty();
+  SvgTextStyle.empty();
 
-  SvgTextAttributes(
+  SvgTextStyle(
       {required this.fontFamily,
       required this.fontStyle,
       required this.textAnchor,
@@ -1611,7 +1612,7 @@ class SvgTextAttributes {
       required this.fontSize,
       required this.textDecoration});
 
-  SvgTextAttributes.initial()
+  SvgTextStyle.initial()
       : fontFamily = null,
         textAnchor = SITextAnchor.start,
         fontStyle = SIFontStyle.normal,
@@ -1619,8 +1620,8 @@ class SvgTextAttributes {
         fontSize = SvgFontSize.medium,
         textDecoration = SITextDecoration.none;
 
-  SvgTextAttributes cascade(SvgTextAttributes ancestor) {
-    return SvgTextAttributes(
+  SvgTextStyle cascade(SvgTextStyle ancestor) {
+    return SvgTextStyle(
         fontSize: fontSize.orInherit(ancestor.fontSize),
         fontFamily: fontFamily ?? ancestor.fontFamily,
         textAnchor: textAnchor ?? ancestor.textAnchor,
@@ -1630,12 +1631,12 @@ class SvgTextAttributes {
   }
 
   void takeFrom(Style style) {
-    fontSize = fontSize.orInherit(style.textAttributes.fontSize);
-    fontFamily = fontFamily ?? style.textAttributes.fontFamily;
-    textAnchor = textAnchor ?? style.textAttributes.textAnchor;
-    textDecoration = textDecoration ?? style.textAttributes.textDecoration;
-    fontWeight = fontWeight.orInherit(style.textAttributes.fontWeight);
-    fontStyle = fontStyle ?? style.textAttributes.fontStyle;
+    fontSize = fontSize.orInherit(style.textStyle.fontSize);
+    fontFamily = fontFamily ?? style.textStyle.fontFamily;
+    textAnchor = textAnchor ?? style.textStyle.textAnchor;
+    textDecoration = textDecoration ?? style.textStyle.textDecoration;
+    fontWeight = fontWeight.orInherit(style.textStyle.fontWeight);
+    fontStyle = fontStyle ?? style.textStyle.fontStyle;
   }
 
   SITextAttributes toSITextAttributes() => SITextAttributes(
@@ -1656,7 +1657,7 @@ class SvgTextAttributes {
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
-    } else if (other is SvgTextAttributes) {
+    } else if (other is SvgTextStyle) {
       return (const ListEquality<String>())
               .equals(fontFamily, other.fontFamily) &&
           fontStyle == other.fontStyle &&
@@ -2285,7 +2286,7 @@ final svgGraphUnreachablePrivate = [
       0,
       0,
       0,
-      SvgTextAttributes.initial().toSITextAttributes(),
+      SvgTextStyle.initial().toSITextAttributes(),
       null,
       SvgPaint.root(SvgPaint._dummy).toSIPaint()),
   () => _SvgBoundary(const RectT(0, 0, 0, 0)).toString(),
@@ -2297,12 +2298,12 @@ final svgGraphUnreachablePrivate = [
   () => SvgColor.white.toString(),
   () => _SvgFontSizeRelativeDeferred(1, SvgFontSize.absolute(0)).toSI(),
   () => const _SvgFontSizeRelative(1).toSI(),
-  () => SvgUse(null)._getUntransformedBounds(SvgTextAttributes.initial()),
+  () => SvgUse(null)._getUntransformedBounds(SvgTextStyle.initial()),
   () => _testCallBuild(SvgUse(null)),
-  () => SvgUse(null)._getUntransformedBounds(SvgTextAttributes.initial()),
+  () => SvgUse(null)._getUntransformedBounds(SvgTextStyle.initial()),
   () => SvgUse(null).canUseLuma({}, SvgPaint.empty()),
   () => _testCallBuild(SvgDefs('')),
-  () => SvgDefs('')._getUntransformedBounds(SvgTextAttributes.initial()),
+  () => SvgDefs('')._getUntransformedBounds(SvgTextStyle.initial()),
   () => SvgMasked(SvgDefs(''), SvgMask()).applyStylesheet({}, (_) {}),
   () => SvgMasked(SvgDefs(''), SvgMask())
       .resolve(const {}, SvgPaint.empty(), (_) {}, SvgNodeReferrers(null)),
@@ -2310,7 +2311,7 @@ final svgGraphUnreachablePrivate = [
   () => const _SvgFontSizeRelative(1).toSI(),
   () => const _SvgFontSizeInherit().toSI(),
   () => SvgGradientNode('', _testGradientColor)
-      ._getUserSpaceBoundary(SvgTextAttributes.initial()),
+      ._getUserSpaceBoundary(SvgTextStyle.initial()),
   () => _testCallBuild(SvgGradientNode('', _testGradientColor)),
   () => SvgGradientNode('', _testGradientColor)
       .canUseLuma(const {}, SvgPaint.empty()),
@@ -2322,7 +2323,7 @@ void _testCallBuild(SvgNode n) => n.build(
     CanonicalizedData<SIImageData>(),
     const {},
     SvgPaint.empty(),
-    SvgTextAttributes.initial());
+    SvgTextStyle.initial());
 final _testGradientColor = SvgRadialGradientColor(
     cx: null,
     cy: null,

@@ -625,7 +625,7 @@ class AvdClipPath extends SvgNode {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     builder.clipPath(null, pathData);
     return true;

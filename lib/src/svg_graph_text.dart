@@ -67,9 +67,9 @@ class SvgText extends SvgInheritableAttributesNode {
   @override
   SvgPaint get paint => root.paint;
   @override
-  SvgTextAttributes get textAttributes => root.textAttributes;
+  SvgTextStyle get textStyle => root.textStyle;
   @override
-  set textAttributes(SvgTextAttributes v) => root.textAttributes = v;
+  set textStyle(SvgTextStyle v) => root.textStyle = v;
   @override
   String get styleClass => root.styleClass;
   @override
@@ -115,7 +115,7 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  RectT? _getUntransformedBounds(SvgTextAttributes ta) {
+  RectT? _getUntransformedBounds(SvgTextStyle ta) {
     RectT? result;
     for (final chunk in flattened) {
       final RectT r = chunk.getBounds(ta);
@@ -134,7 +134,7 @@ class SvgText extends SvgInheritableAttributesNode {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta,
+      SvgTextStyle ta,
       {bool blendHandledByParent = false}) {
     if (!display) {
       return false;
@@ -168,7 +168,7 @@ class SvgText extends SvgInheritableAttributesNode {
 }
 
 class SvgTextSpan extends SvgInheritableTextAttributes
-    with SvgTextFields
+    with SvgTextAttributeFields
     implements SvgTextSpanComponent {
   List<double>? x;
   List<double>? y;
@@ -228,7 +228,7 @@ class _FlattenContext {
   final _FCNumberSource y;
   final _FCNumberSource dx;
   final _FCNumberSource dy;
-  final SvgTextAttributes ta;
+  final SvgTextStyle ta;
   final SvgPaint paint;
 
   _FlattenContext(
@@ -237,7 +237,7 @@ class _FlattenContext {
         y = _FCNumberSource.createOr(span.y, ancestor.y),
         dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
         dy = _FCNumberSource.createOr(span.dy, ancestor.dy),
-        ta = span.textAttributes.cascade(ancestor.ta),
+        ta = span.textStyle.cascade(ancestor.ta),
         paint = span.paint.cascade(ancestor.paint, null, warn);
 
   _FlattenContext.empty()
@@ -245,7 +245,7 @@ class _FlattenContext {
         y = _FCNumberSource.root(),
         dx = _FCNumberSource.root(),
         dy = _FCNumberSource.root(),
-        ta = SvgTextAttributes.empty(),
+        ta = SvgTextStyle.empty(),
         paint = SvgPaint.empty();
 
   double? pull(_FCNumberSource s) {
@@ -367,7 +367,7 @@ class SvgTextChunk {
 
   SvgTextChunk(this.x, this.y);
 
-  SITextAnchor getAnchor(SvgTextAttributes ancestor) {
+  SITextAnchor getAnchor(SvgTextStyle ancestor) {
     assert(spans.length > 1);
     final a = _anchor;
     if (a != null) {
@@ -385,7 +385,7 @@ class SvgTextChunk {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint paint,
-      SvgTextAttributes ta) {
+      SvgTextStyle ta) {
     assert(spans.isNotEmpty);
     if (spans.length == 1) {
       spans.first.build(x, y, builder, canon, idLookup, paint, ta);
@@ -402,7 +402,7 @@ class SvgTextChunk {
     }
   }
 
-  RectT getBounds(SvgTextAttributes ancestor) {
+  RectT getBounds(SvgTextStyle ancestor) {
     if (spans.length == 1) {
       return spans.first.getBounds(x, y, ancestor);
     }
@@ -435,7 +435,7 @@ class SvgTextChunk {
 class SvgFlatSpan {
   final double dx;
   final double dy;
-  final SvgTextAttributes attributes;
+  final SvgTextStyle attributes;
   final SvgPaint paint;
   final StringBuffer text;
 
@@ -449,7 +449,7 @@ class SvgFlatSpan {
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
-      SvgTextAttributes ta) {
+      SvgTextStyle ta) {
     ta = attributes.cascade(ta);
     final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
     final int? fontFamilyIndex;
@@ -469,7 +469,7 @@ class SvgFlatSpan {
         fontFamilyIndex, fontSizeIndex, cascaded.toSIPaint());
   }
 
-  RectT getBounds(double x, double y, SvgTextAttributes ancestor) {
+  RectT getBounds(double x, double y, SvgTextStyle ancestor) {
     // We make a rough approximation, since font metrics aren't available
     // to us here.  This is good enough in the rare case of user space
     // gradients withing an SVG asset with unspecified width/height

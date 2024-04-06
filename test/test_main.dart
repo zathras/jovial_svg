@@ -662,9 +662,8 @@ Future<void> _miscCoverage() async {
     expectException(() => g.privateAssertIsEquivalent(m));
   }
   Style('').tagName;
-  SvgText((_) {}).textAttributes = SvgTextAttributes.empty();
-  expect(true,
-      SvgTextAttributes.empty().hashCode == SvgTextAttributes.empty().hashCode);
+  SvgText((_) {}).textStyle = SvgTextStyle.empty();
+  expect(true, SvgTextStyle.empty().hashCode == SvgTextStyle.empty().hashCode);
   ScalableImage.blank().toDag().modifyCurrentColor(const Color(0xff000000));
   final something = ScalableImage.fromSvgString(
       '<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>',
