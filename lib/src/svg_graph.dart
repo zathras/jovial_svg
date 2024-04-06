@@ -1593,13 +1593,6 @@ class SvgImage extends SvgInheritableAttributesNode with SvgTextFields {
   }
 }
 
-abstract class SvgTextNodeAttributes extends SvgInheritableTextAttributes {
-  List<double>? get x;
-  List<double>? get y;
-  List<double>? dx;
-  List<double>? dy;
-}
-
 class SvgTextAttributes {
   List<String>? fontFamily; // Null is not the same as [] due to cascading
   SIFontStyle? fontStyle;

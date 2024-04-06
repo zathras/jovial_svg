@@ -35,79 +35,49 @@ part of 'svg_graph.dart';
 // file, because it's freakin' big.  Be sure to look at `text.uml` or
 // `text.svg` for a picture of the structure.  In short:
 //
-//  *  SvgParser creates an SvgText, which consists of nodes of
-//     SvgTextSpanComponent / SvgTextSpan / SvtTextSpanStringComponent
-//  *  This is "flattened" into a list of SvgTextChunk / SvgMultiSpanChunk
-//     / SvgSingleSpanChunk instances
+//  *  SvgParser creates an SvgText, which consists of a SvgTextSpan
+//     instance, with a tree of nodes of
+//     SvgTextSpanComponent (SvgTextSpan / SvtTextSpanStringComponent)
+//  *  This is "flattened" into a list of SvgTextChunk instances, each
+//     of which has a list of SvgFlatSpan instances
 //  *  This is used to build an SIText, which consists of SITextChunk /
-//  *  SIMultiSpanChunk / SITextSpan.
+//     SIMultiSpanChunk / SITextSpan.
 //
 // A lot of the complexity comes from SVG's rather unique notion of having a
 // coordinate be either a single value or a list.
 
 class SvgText extends SvgInheritableAttributesNode {
-  List<SvgTextSpan> stack = [SvgTextSpan('text')];
-  bool _trimLeft = true;
+  SvgTextSpan root = SvgTextSpan('text');
   final void Function(String) warn;
 
   late final List<SvgTextChunk> flattened = _flatten();
 
-  static final _whitespace = RegExp(r'\s+');
-
   SvgText(this.warn) {
-    final root = stack.first;
     root.x = root.y = const [0.0];
   }
 
   @override
-  String get tagName => stack[0].tagName; // which is 'text'
+  String get tagName => root.tagName; // which is 'text'
 
-  List<double>? get x => stack.first.x;
-  set x(List<double>? v) => stack.first.x = v;
-  List<double>? get y => stack.first.y;
-  set y(List<double>? v) => stack.first.y = v;
+  List<double>? get x => root.x;
+  set x(List<double>? v) => root.x = v;
+  List<double>? get y => root.y;
+  set y(List<double>? v) => root.y = v;
 
   @override
-  SvgPaint get paint => stack.first.paint;
+  SvgPaint get paint => root.paint;
   @override
-  SvgTextAttributes get textAttributes => stack.first.textAttributes;
+  SvgTextAttributes get textAttributes => root.textAttributes;
   @override
-  set textAttributes(SvgTextAttributes v) => stack.first.textAttributes = v;
+  set textAttributes(SvgTextAttributes v) => root.textAttributes = v;
   @override
-  String get styleClass => stack.first.styleClass;
+  String get styleClass => root.styleClass;
   @override
-  set styleClass(String v) => stack.first.styleClass = v;
-
-  void appendText(String added) {
-    added = added.replaceAll(_whitespace, ' ');
-    if (_trimLeft) {
-      added = added.trimLeft();
-    }
-    if (added == '') {
-      return;
-    }
-    _trimLeft = added.endsWith(' ');
-    stack.last.appendToPart(added);
-  }
-
-  SvgTextSpan startSpan() {
-    final s = SvgTextSpan('tspan');
-    stack.last.appendPart(s);
-    stack.add(s);
-    return s;
-  }
-
-  void endSpan() {
-    if (stack.length > 1) {
-      stack.removeLast();
-    }
-  }
+  set styleClass(String v) => root.styleClass = v;
 
   @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
     super.applyStylesheet(stylesheet, warn);
-    assert(stack.length == 1);
-    final SvgTextSpan root = stack.first;
     root.applyStylesheetToChildren(stylesheet, warn);
   }
 
@@ -124,10 +94,8 @@ class SvgText extends SvgInheritableAttributesNode {
   /// the text attributes or the paints.  That happens later, in build().
   ///
   List<SvgTextChunk> _flatten() {
-    assert(stack.length == 1);
-    stack.first.trimRight();
+    root.trimRight();
     List<SvgTextChunk> children = [];
-    final SvgTextSpan root = stack.first;
     root._flattenInto(children, _FlattenContext.empty(), warn);
     return children;
   }
@@ -168,7 +136,6 @@ class SvgText extends SvgInheritableAttributesNode {
       SvgPaint ancestor,
       SvgTextAttributes ta,
       {bool blendHandledByParent = false}) {
-    assert(stack.length == 1);
     if (!display) {
       return false;
     }
@@ -200,13 +167,13 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 }
 
-class SvgTextSpan extends SvgTextNodeAttributes
+class SvgTextSpan extends SvgInheritableTextAttributes
     with SvgTextFields
     implements SvgTextSpanComponent {
-  @override
   List<double>? x;
-  @override
   List<double>? y;
+  List<double>? dx;
+  List<double>? dy;
   List<SvgTextSpanComponent> parts = [];
   @override
   final String tagName;

@@ -74,7 +74,7 @@ abstract class SvgParser extends GenericParser {
   double _widthForPercentages = 100;
   double _heightForPercentages = 100;
 
-  SvgText? _currentText;
+  _TextBuilder? _currentText;
   StringBuffer? _currentStyle; // Within a style tag
   SvgGradientNode? _currentGradient;
 
@@ -473,7 +473,7 @@ abstract class SvgParser extends GenericParser {
     _parentStack.last.children.add(image);
   }
 
-  SvgText _processText(Map<String, String> attrs) {
+  _TextBuilder _processText(Map<String, String> attrs) {
     final n = SvgText(warn);
     n.x = getFloatList(attrs.remove('x'), percent: _widthPercent) ?? n.x;
     n.y = getFloatList(attrs.remove('y'), percent: _heightPercent) ?? n.y;
@@ -481,7 +481,7 @@ abstract class SvgParser extends GenericParser {
     _processInheritable(n, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(n);
-    return n;
+    return _TextBuilder(n);
   }
 
   void _processTextSpan(SvgTextSpan span, Map<String, String> attrs) {
@@ -1059,6 +1059,41 @@ abstract class SvgParser extends GenericParser {
   double _heightPercent(double val) => (val / 100) * _heightForPercentages;
   double _minPercent(double val) =>
       (val / 100) * (min(_heightForPercentages, _widthForPercentages));
+}
+
+class _TextBuilder {
+  final SvgText node;
+  final List<SvgTextSpan> stack;
+  bool _trimLeft = true;
+
+  static final _whitespace = RegExp(r'\s+');
+
+  _TextBuilder(this.node) : stack = [node.root];
+
+  void appendText(String added) {
+    added = added.replaceAll(_whitespace, ' ');
+    if (_trimLeft) {
+      added = added.trimLeft();
+    }
+    if (added == '') {
+      return;
+    }
+    _trimLeft = added.endsWith(' ');
+    stack.last.appendToPart(added);
+  }
+
+  SvgTextSpan startSpan() {
+    final s = SvgTextSpan('tspan');
+    stack.last.appendPart(s);
+    stack.add(s);
+    return s;
+  }
+
+  void endSpan() {
+    if (stack.length > 1) {
+      stack.removeLast();
+    }
+  }
 }
 
 class _TagEntry {
