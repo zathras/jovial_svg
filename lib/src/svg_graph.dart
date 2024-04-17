@@ -59,6 +59,7 @@ part 'svg_graph_text.dart';
 class SvgParseGraph {
   final idLookup = <String, SvgNode>{};
   final SvgRoot root;
+  final Stylesheet stylesheet;
   final double? width;
   final double? height;
   final int? tintColor; // For AVD
@@ -66,12 +67,12 @@ class SvgParseGraph {
 
   bool _resolved = false;
 
-  SvgParseGraph(
-      this.root, this.width, this.height, this.tintColor, this.tintMode);
+  SvgParseGraph(this.root, this.stylesheet, this.width, this.height,
+      this.tintColor, this.tintMode);
 
   ///
   /// Determine the bounds, for use in user space calculations (e.g.
-  /// potentially for gradiants).  This must not be accessed before
+  /// potentially for gradients).  This must not be accessed before
   /// `build`, but it may be called during the build process.
   ///
   /// If a viewbox or a width/height are
@@ -82,7 +83,7 @@ class SvgParseGraph {
   /// Most SVG assets should at least provide a width/height; for those that
   /// don't, our bounding box gives a reasonable estimate.
   ///
-  late final RectT userSpaceBounds = _calculateBounds();
+  late final RectT _userSpaceBounds = _calculateBounds();
 
   RectT _calculateBounds() {
     assert(_resolved);
@@ -110,7 +111,10 @@ class SvgParseGraph {
   }
 
   void build(SIBuilder<String, SIImageData> builder) {
-    RectT userSpace() => userSpaceBounds;
+    if (stylesheet.isNotEmpty) {
+      root.applyStylesheet(stylesheet, builder.warn);
+    }
+    RectT userSpace() => _userSpaceBounds;
     final rootPaint = SvgPaint.root(userSpace);
     final rootTA = SvgTextStyle.initial();
     SvgNode? newRoot =
@@ -383,7 +387,7 @@ class SvgNodeReferrers {
 /// The fields of SvgInheritableTextAttributes, suitable for most node
 /// types (but not SvgGroup or SvgText).
 ///
-mixin SvgTextAttributeFields {
+mixin _SvgTextAttributeFields {
   final SvgPaint paint = SvgPaint.empty();
   SvgTextStyle textStyle = SvgTextStyle.empty();
   String styleClass = ''; // Doesn't inherit.
@@ -392,7 +396,7 @@ mixin SvgTextAttributeFields {
 /// Just the inheritable attributes that are applicable to text.  The
 /// fields are split out as SvgTextFields, since the actual text node
 /// forwards those to its child.
-abstract class SvgInheritableTextAttributes implements SvgTextAttributeFields {
+abstract class SvgInheritableTextAttributes implements _SvgTextAttributeFields {
   String get tagName;
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
@@ -981,7 +985,7 @@ class SvgMasked extends SvgNode {
   SIBlendMode? get blendMode => child.blendMode;
 }
 
-class SvgUse extends SvgInheritableAttributesNode with SvgTextAttributeFields {
+class SvgUse extends SvgInheritableAttributesNode with _SvgTextAttributeFields {
   String? childID;
   double? width;
   double? height;
@@ -1085,7 +1089,7 @@ class SvgSymbol extends SvgGroup {
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributesNode
-    with SvgTextAttributeFields {
+    with _SvgTextAttributeFields {
   @override
   bool build(
       SIBuilder<String, SIImageData> builder,
@@ -1522,7 +1526,7 @@ class SvgGradientNode implements SvgNode {
 }
 
 class SvgImage extends SvgInheritableAttributesNode
-    with SvgTextAttributeFields {
+    with _SvgTextAttributeFields {
   Uint8List imageData = _emptyData;
   double x = 0;
   double y = 0;

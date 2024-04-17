@@ -4,8 +4,21 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
+      <x>130</x>
+      <y>140</y>
+      <w>120</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>AvdClipPath
+--
+String pathData</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
       <x>350</x>
-      <y>760</y>
+      <y>740</y>
       <w>150</w>
       <h>80</h>
     </coordinates>
@@ -20,7 +33,7 @@ double rx, ry</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>360</x>
-      <y>510</y>
+      <y>490</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -31,7 +44,7 @@ double rx, ry</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>390</x>
-      <y>530</y>
+      <y>510</y>
       <w>110</w>
       <h>250</h>
     </coordinates>
@@ -41,8 +54,8 @@ double rx, ry</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>360</x>
-      <y>390</y>
+      <x>330</x>
+      <y>370</y>
       <w>210</w>
       <h>30</h>
     </coordinates>
@@ -54,29 +67,29 @@ double rx, ry</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>410</x>
-      <y>410</y>
-      <w>70</w>
+      <y>390</y>
+      <w>40</w>
       <h>120</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>50.0;10.0;50.0;40.0;10.0;40.0;10.0;100.0</additional_attributes>
+    <additional_attributes>20.0;10.0;20.0;40.0;10.0;40.0;10.0;100.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>210</x>
-      <y>310</y>
-      <w>200</w>
-      <h>100</h>
+      <x>350</x>
+      <y>80</y>
+      <w>30</w>
+      <h>310</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0;180.0;50.0;180.0;80.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;290.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>410</x>
-      <y>170</y>
+      <x>380</x>
+      <y>250</y>
       <w>190</w>
       <h>80</h>
     </coordinates>
@@ -90,19 +103,19 @@ int? groupAlpha</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>490</x>
-      <y>240</y>
+      <x>460</x>
+      <y>320</y>
       <w>30</w>
-      <h>170</h>
+      <h>70</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;150.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>490</x>
-      <y>670</y>
+      <y>650</y>
       <w>140</w>
       <h>60</h>
     </coordinates>
@@ -116,7 +129,7 @@ List&lt;Point&gt; points</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>390</x>
-      <y>530</y>
+      <y>510</y>
       <w>170</w>
       <h>160</h>
     </coordinates>
@@ -127,7 +140,7 @@ List&lt;Point&gt; points</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>330</x>
-      <y>680</y>
+      <y>660</y>
       <w>140</w>
       <h>50</h>
     </coordinates>
@@ -140,7 +153,7 @@ String pathData</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>390</x>
-      <y>530</y>
+      <y>510</y>
       <w>30</w>
       <h>170</h>
     </coordinates>
@@ -151,7 +164,7 @@ String pathData</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>160</x>
-      <y>470</y>
+      <y>450</y>
       <w>180</w>
       <h>50</h>
     </coordinates>
@@ -164,18 +177,43 @@ List&lt;SvgNode&gt; children</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>280</x>
-      <y>410</y>
-      <w>200</w>
+      <y>390</y>
+      <w>170</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>180.0;10.0;180.0;40.0;10.0;40.0;10.0;60.0</additional_attributes>
+    <additional_attributes>150.0;10.0;150.0;40.0;10.0;40.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>140</x>
+      <y>260</y>
+      <w>110</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>SvgMasked
+--
+SvgNode child
+SvgMask mask</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>80</y>
+      <w>110</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;90.0;140.0;10.0;140.0;10.0;180.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>220</x>
-      <y>570</y>
+      <y>550</y>
       <w>150</w>
       <h>50</h>
     </coordinates>
@@ -188,7 +226,7 @@ RectT? bufferBounds</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>240</x>
-      <y>510</y>
+      <y>490</y>
       <w>50</w>
       <h>80</h>
     </coordinates>
@@ -199,7 +237,7 @@ RectT? bufferBounds</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>420</x>
-      <y>590</y>
+      <y>570</y>
       <w>110</w>
       <h>60</h>
     </coordinates>
@@ -214,7 +252,7 @@ double rx, ry
     <id>UMLClass</id>
     <coordinates>
       <x>560</x>
-      <y>490</y>
+      <y>470</y>
       <w>160</w>
       <h>80</h>
     </coordinates>
@@ -228,19 +266,33 @@ Uint8List imageData</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>450</x>
-      <y>410</y>
-      <w>150</w>
+      <x>420</x>
+      <y>390</y>
+      <w>180</w>
       <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;130.0;40.0;130.0;80.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;160.0;40.0;160.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>510</x>
+      <y>30</y>
+      <w>250</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;mixin&gt;&gt;
+/_SVGTextAttributeFields/
+--
+String styleClass</panel_attributes>
+    <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>90</x>
-      <y>380</y>
+      <y>360</y>
       <w>200</w>
       <h>60</h>
     </coordinates>
@@ -254,7 +306,7 @@ String? parentID</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>770</x>
-      <y>500</y>
+      <y>480</y>
       <w>160</w>
       <h>60</h>
     </coordinates>
@@ -267,19 +319,19 @@ double? width, height</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>450</x>
-      <y>410</y>
-      <w>450</w>
+      <x>420</x>
+      <y>390</y>
+      <w>480</w>
       <h>110</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;430.0;40.0;430.0;90.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;460.0;40.0;460.0;90.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>100</x>
-      <y>570</y>
+      <y>550</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -290,7 +342,7 @@ double? width, height</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>140</x>
-      <y>510</y>
+      <y>490</y>
       <w>130</w>
       <h>80</h>
     </coordinates>
@@ -301,7 +353,7 @@ double? width, height</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>150</x>
-      <y>720</y>
+      <y>700</y>
       <w>160</w>
       <h>60</h>
     </coordinates>
@@ -315,7 +367,7 @@ double? width, height</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>200</x>
-      <y>510</y>
+      <y>490</y>
       <w>70</w>
       <h>230</h>
     </coordinates>
@@ -325,8 +377,8 @@ double? width, height</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>120</x>
-      <y>260</y>
+      <x>260</x>
+      <y>30</y>
       <w>190</w>
       <h>60</h>
     </coordinates>
@@ -337,16 +389,27 @@ SIBlendMode? blendMode</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>180</x>
+      <y>80</y>
+      <w>120</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;100.0;40.0;10.0;40.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>490</x>
-      <y>40</y>
+      <x>460</x>
+      <y>140</y>
       <w>210</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>/SVGInheritableTextAttributes/
 --
-String styleClass
+
 --
 /String get tagName/
 /String get id/
@@ -356,19 +419,30 @@ String styleClass
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>500</x>
-      <y>110</y>
+      <x>470</x>
+      <y>210</y>
       <w>30</w>
-      <h>80</h>
+      <h>60</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>580</x>
+      <y>90</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>690</x>
-      <y>590</y>
+      <y>570</y>
       <w>100</w>
       <h>40</h>
     </coordinates>
@@ -380,19 +454,19 @@ String styleClass
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>450</x>
-      <y>410</y>
-      <w>310</w>
+      <x>420</x>
+      <y>390</y>
+      <w>340</w>
       <h>200</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;290.0;40.0;290.0;180.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;320.0;40.0;320.0;180.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>390</x>
-      <y>530</y>
+      <y>510</y>
       <w>90</w>
       <h>80</h>
     </coordinates>
@@ -402,8 +476,8 @@ String styleClass
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>370</x>
-      <y>300</y>
+      <x>600</x>
+      <y>380</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -411,10 +485,21 @@ String styleClass
     <additional_attributes/>
   </element>
   <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>460</x>
+      <y>320</y>
+      <w>200</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;30.0;180.0;30.0;180.0;60.0</additional_attributes>
+  </element>
+  <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>190</x>
-      <y>140</y>
+      <x>600</x>
+      <y>270</y>
       <w>190</w>
       <h>50</h>
     </coordinates>
@@ -426,20 +511,20 @@ Map&lt;String, List&lt;Style&gt; &gt;</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>280</x>
-      <y>180</y>
-      <w>150</w>
-      <h>140</h>
+      <x>660</x>
+      <y>310</y>
+      <w>50</w>
+      <h>90</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-&gt;
 m2=0..n</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0;110.0;50.0;110.0;120.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>920</x>
-      <y>150</y>
+      <y>130</y>
       <w>130</w>
       <h>270</h>
     </coordinates>
@@ -466,34 +551,34 @@ mask
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>690</x>
-      <y>70</y>
-      <w>250</w>
+      <x>750</x>
+      <y>50</y>
+      <w>190</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m2=1
 r2=textAttributes</panel_attributes>
-    <additional_attributes>10.0;10.0;140.0;10.0;140.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0;80.0;60.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>690</x>
-      <y>50</y>
-      <w>340</w>
+      <x>750</x>
+      <y>30</y>
+      <w>280</w>
       <h>120</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 r2=paint
 m2=1</panel_attributes>
-    <additional_attributes>10.0;10.0;290.0;10.0;290.0;100.0</additional_attributes>
+    <additional_attributes>10.0;10.0;230.0;10.0;230.0;100.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>740</x>
-      <y>130</y>
+      <y>110</y>
       <w>150</w>
       <h>130</h>
     </coordinates>
@@ -511,7 +596,7 @@ fontSize</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>820</x>
-      <y>760</y>
+      <y>740</y>
       <w>170</w>
       <h>80</h>
     </coordinates>
@@ -527,7 +612,7 @@ SITextAnchor? anchor
     <id>Relation</id>
     <coordinates>
       <x>780</x>
-      <y>600</y>
+      <y>580</y>
       <w>180</w>
       <h>180</h>
     </coordinates>
@@ -538,19 +623,19 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>650</x>
-      <y>110</y>
-      <w>340</w>
-      <h>670</h>
+      <x>620</x>
+      <y>210</y>
+      <w>370</w>
+      <h>550</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;160.0;200.0;160.0;200.0;320.0;320.0;320.0;320.0;650.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;230.0;40.0;230.0;200.0;350.0;200.0;350.0;530.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>660</x>
-      <y>670</y>
+      <y>650</y>
       <w>180</w>
       <h>30</h>
     </coordinates>
@@ -562,7 +647,7 @@ m2=1</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>770</x>
-      <y>690</y>
+      <y>670</y>
       <w>90</w>
       <h>90</h>
     </coordinates>
@@ -573,7 +658,7 @@ m2=1</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>540</x>
-      <y>770</y>
+      <y>750</y>
       <w>230</w>
       <h>50</h>
     </coordinates>
@@ -587,7 +672,7 @@ String text
     <id>Relation</id>
     <coordinates>
       <x>710</x>
-      <y>690</y>
+      <y>670</y>
       <w>30</w>
       <h>100</h>
     </coordinates>
@@ -598,30 +683,30 @@ String text
     <id>Relation</id>
     <coordinates>
       <x>830</x>
-      <y>680</y>
-      <w>100</w>
+      <y>660</y>
+      <w>70</w>
       <h>100</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m2=0..n</panel_attributes>
-    <additional_attributes>80.0;80.0;80.0;10.0;10.0;10.0</additional_attributes>
+    <additional_attributes>40.0;80.0;40.0;10.0;10.0;10.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>210</x>
-      <y>310</y>
-      <w>30</w>
-      <h>90</h>
+      <y>80</y>
+      <w>170</w>
+      <h>300</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0;10.0;70.0</additional_attributes>
+    <additional_attributes>150.0;10.0;150.0;260.0;10.0;260.0;10.0;280.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
       <x>50</x>
-      <y>660</y>
+      <y>640</y>
       <w>100</w>
       <h>30</h>
     </coordinates>
@@ -632,7 +717,7 @@ m2=0..n</panel_attributes>
     <id>Relation</id>
     <coordinates>
       <x>110</x>
-      <y>510</y>
+      <y>490</y>
       <w>160</w>
       <h>170</h>
     </coordinates>
@@ -643,52 +728,23 @@ m2=0..n</panel_attributes>
     <id>UMLClass</id>
     <coordinates>
       <x>30</x>
-      <y>50</y>
+      <y>30</y>
       <w>120</w>
-      <h>80</h>
+      <h>30</h>
     </coordinates>
-    <panel_attributes>SvgParseGraph
---
-
---
-clone()
-build(...)
-</panel_attributes>
+    <panel_attributes>SvgParseGraph</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
       <x>60</x>
-      <y>120</y>
+      <y>50</y>
       <w>60</w>
-      <h>560</h>
+      <h>610</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;&lt;&lt;-&gt;
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m2=root</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;540.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>430</x>
-      <y>240</y>
-      <w>90</w>
-      <h>80</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>70.0;10.0;70.0;40.0;10.0;40.0;10.0;60.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>140</x>
-      <y>80</y>
-      <w>230</w>
-      <h>80</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;&lt;&lt;-&gt;
-m2=stylesheet</panel_attributes>
-    <additional_attributes>10.0;10.0;140.0;10.0;140.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;590.0</additional_attributes>
   </element>
 </diagram>

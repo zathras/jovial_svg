@@ -168,7 +168,7 @@ class SvgText extends SvgInheritableAttributesNode {
 }
 
 class SvgTextSpan extends SvgInheritableTextAttributes
-    with SvgTextAttributeFields
+    with _SvgTextAttributeFields
     implements SvgTextSpanComponent {
   List<double>? x;
   List<double>? y;

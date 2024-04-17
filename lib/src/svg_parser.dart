@@ -95,7 +95,6 @@ abstract class SvgParser extends GenericParser {
     if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
-    svg.root.applyStylesheet(_stylesheet, warn);
     svg.build(_builder);
   }
 
@@ -263,7 +262,7 @@ abstract class SvgParser extends GenericParser {
     }
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
-    final r = svg = SvgParseGraph(root, width, height, null, null);
+    final r = svg = SvgParseGraph(root, _stylesheet, width, height, null, null);
     _svgTagSeen = true;
     _parentStack.add(r.root);
   }
