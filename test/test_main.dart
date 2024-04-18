@@ -661,7 +661,7 @@ Future<void> _miscCoverage() async {
     expectException(() => m.privateAssertIsEquivalent(g));
     expectException(() => g.privateAssertIsEquivalent(m));
   }
-  Style('').tagName;
+  Style().tagName;
   SvgText((_) {}).textStyle = SvgTextStyle.empty();
   expect(true, SvgTextStyle.empty().hashCode == SvgTextStyle.empty().hashCode);
   ScalableImage.blank().toDag().modifyCurrentColor(const Color(0xff000000));

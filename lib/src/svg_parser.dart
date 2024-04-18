@@ -1043,11 +1043,15 @@ abstract class SvgParser extends GenericParser {
             element = id.substring(0, dp);
             styleClass = id.substring(dp + 1);
           }
-          final s = Style(styleClass);
+          final s = Style();
           _stylesheet.putIfAbsent(element, () => []).add(s);
           Map<String, String> attrs = {};
           _parseStyle(content, attrs);
           _processInheritable(s, attrs);
+          s.styleClass = styleClass;
+          // Unlike a node, our styleClass doesn't come from the
+          // parser.  A badly formed CSS entry could try to set an attribute
+          // called 'class,' so we set styleClass last.
         }
       }
       assert(lastPos != pos);

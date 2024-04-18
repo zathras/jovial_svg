@@ -293,16 +293,9 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// stylesheet.
 class Style extends SvgInheritableAttributes {
   @override
-  set styleClass(String v) {
-    // Do nothing:  Unlike a node, our styleClass doesn't come from the
-    // parser.  A badly formed CSS entry could try to set an attribute
-    // called 'class,' so we ignore any such attempts.
-  }
-
-  @override
   String? get id => null;
 
-  Style(String styleClass) : super(null, styleClass);
+  Style() : super(null);
 
   void applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
@@ -407,11 +400,13 @@ class SvgNodeReferrers {
 /// forwards those to its child.
 abstract class SvgInheritableTextAttributes {
   final SvgPaint paint;
-  SvgTextStyle textStyle = SvgTextStyle.empty();
+  SvgTextStyle textStyle;
   String styleClass;
 
-  SvgInheritableTextAttributes(SvgPaint? paint, this.styleClass)
-      : paint = paint ?? SvgPaint.empty();
+  SvgInheritableTextAttributes(SvgPaint? paint)
+      : paint = paint ?? SvgPaint.empty(),
+        textStyle = SvgTextStyle.empty(),
+        styleClass = '';
 
   SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
       : paint = other.paint,
@@ -473,7 +468,7 @@ abstract class SvgInheritableTextAttributes {
 }
 
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
-  SvgInheritableAttributes(super.paint, super.styleClass);
+  SvgInheritableAttributes(super.paint);
 
   SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
       : transform = other.transform,
@@ -496,7 +491,7 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
-  SvgInheritableAttributesNode(SvgPaint? paint) : super(paint, '');
+  SvgInheritableAttributesNode(super.paint);
 
   SvgInheritableAttributesNode._cloned(SvgInheritableAttributesNode super.other)
       : super._cloned();
