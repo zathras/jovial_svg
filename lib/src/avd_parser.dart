@@ -251,7 +251,7 @@ abstract class AvdParser extends GenericParser {
         }
       }
     }
-    avd = SvgParseGraph(root, const {}, width, height, tintColor, tintMode);
+    avd = SvgParseGraph(root, const {}, width, height, tintColor, tintMode, {});
     _parentStack.add(avd.root);
   }
 

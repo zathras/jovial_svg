@@ -52,9 +52,17 @@ class SvgText extends SvgInheritableAttributesNode {
 
   late final List<SvgTextChunk> flattened = _flatten();
 
-  SvgText(this.warn) {
+  SvgText(this.warn) : super(null) {
     root.x = root.y = const [0.0];
   }
+
+  SvgText._cloned(SvgText super.other)
+      : root = other.root._clone(null),
+        warn = other.warn,
+        super._cloned();
+
+  @override
+  SvgText _clone() => SvgText._cloned(this);
 
   @override
   String get tagName => root.tagName; // which is 'text'
@@ -168,7 +176,6 @@ class SvgText extends SvgInheritableAttributesNode {
 }
 
 class SvgTextSpan extends SvgInheritableTextAttributes
-    with _SvgTextAttributeFields
     implements SvgTextSpanComponent {
   List<double>? x;
   List<double>? y;
@@ -180,7 +187,20 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   @override
   String? get id => null;
 
-  SvgTextSpan(this.tagName);
+  SvgTextSpan(this.tagName) : super(null);
+
+  SvgTextSpan._cloned(SvgTextSpan super.other)
+      : x = other.x,
+        y = other.y,
+        dx = other.dx,
+        dy = other.dy,
+        tagName = other.tagName,
+        super._cloned() {
+    parts.addAll(other.parts.map((p) => p._clone(this)));
+  }
+
+  @override
+  SvgTextSpan _clone(SvgTextSpan? parent) => SvgTextSpan._cloned(this);
 
   void appendToPart(String added) {
     parts.add(SvgTextSpanStringComponent(this, added));
@@ -300,6 +320,8 @@ class _FCLastValue {
 }
 
 abstract class SvgTextSpanComponent {
+  SvgTextSpanComponent _clone(SvgTextSpan? parent);
+
   bool trimRight();
 
   void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
@@ -315,6 +337,10 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   SvgTextSpanStringComponent(this.parent, this.text) {
     assert(text != '');
   }
+
+  @override
+  SvgTextSpanStringComponent _clone(SvgTextSpan? parent) =>
+      SvgTextSpanStringComponent(parent!, text);
 
   @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}

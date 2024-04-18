@@ -57,7 +57,7 @@ part 'svg_graph_text.dart';
 /// parse tree.
 ///
 class SvgParseGraph {
-  final idLookup = <String, SvgNode>{};
+  final Map<String, SvgNode> idLookup;
   final SvgRoot root;
   final Stylesheet stylesheet;
   final double? width;
@@ -68,7 +68,7 @@ class SvgParseGraph {
   bool _resolved = false;
 
   SvgParseGraph(this.root, this.stylesheet, this.width, this.height,
-      this.tintColor, this.tintMode);
+      this.tintColor, this.tintMode, this.idLookup);
 
   ///
   /// Determine the bounds, for use in user space calculations (e.g.
@@ -147,6 +147,23 @@ class SvgParseGraph {
     newRoot?.build(builder, theCanon, idLookup, rootPaint, rootTA);
     builder.endVector();
     builder.traversalDone();
+  }
+
+  ///
+  /// Make a clone of this parrse graph.  This is useful if you want to
+  /// build (and display) a ScalableImage from th is parse graph, then
+  /// make some changes, and display the result.  Building a ScalableImage
+  /// from a parse graph is a destructive operation - it can only be done
+  /// once per `SvgParseGraph` instance.  By cloning the parse graph each time,
+  /// you keep an un-built version around.
+  ///
+  /// Throws [StateError] if this [SvgParseGraph] has been built.
+  SvgParseGraph _clone() {
+    if (_resolved) {
+      throw StateError('Parse graph has already been built');
+    }
+    return SvgParseGraph(root._clone(), stylesheet, width, height, tintColor,
+        tintMode, Map.from(idLookup));
   }
 }
 
@@ -273,13 +290,6 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// stylesheet.
 class Style extends SvgInheritableAttributes {
   @override
-  final SvgPaint paint = SvgPaint.empty();
-  @override
-  SvgTextStyle textStyle = SvgTextStyle.empty();
-
-  @override
-  final String styleClass;
-  @override
   set styleClass(String v) {
     // Do nothing:  Unlike a node, our styleClass doesn't come from the
     // parser.  A badly formed CSS entry could try to set an attribute
@@ -289,7 +299,9 @@ class Style extends SvgInheritableAttributes {
   @override
   String? get id => null;
 
-  Style(this.styleClass);
+  Style(String styleClass) : super(null) {
+    this.styleClass = styleClass;
+  }
 
   void applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
@@ -351,6 +363,12 @@ abstract class SvgNode {
   bool idIsExported = false;
 
   String? get exportedID => idIsExported ? id : null;
+
+  ///
+  /// Make a copy of this node, if it has state that changes
+  /// during the build process.
+  ///
+  SvgNode _clone();
 }
 
 class _NullSink<T> implements Sink<T> {
@@ -383,20 +401,22 @@ class SvgNodeReferrers {
   }
 }
 
-///
-/// The fields of SvgInheritableTextAttributes, suitable for most node
-/// types (but not SvgGroup or SvgText).
-///
-mixin _SvgTextAttributeFields {
-  final SvgPaint paint = SvgPaint.empty();
-  SvgTextStyle textStyle = SvgTextStyle.empty();
-  String styleClass = ''; // Doesn't inherit.
-}
-
 /// Just the inheritable attributes that are applicable to text.  The
 /// fields are split out as SvgTextFields, since the actual text node
 /// forwards those to its child.
-abstract class SvgInheritableTextAttributes implements _SvgTextAttributeFields {
+abstract class SvgInheritableTextAttributes {
+  final SvgPaint paint;
+  SvgTextStyle textStyle = SvgTextStyle.empty();
+  String styleClass = '';
+
+  SvgInheritableTextAttributes(SvgPaint? paint)
+      : paint = paint ?? SvgPaint.empty();
+
+  SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
+      : paint = other.paint,
+        textStyle = other.textStyle,
+        styleClass = other.styleClass;
+
   String get tagName;
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
@@ -452,6 +472,15 @@ abstract class SvgInheritableTextAttributes implements _SvgTextAttributeFields {
 }
 
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
+  SvgInheritableAttributes(super.paint);
+
+  SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
+      : transform = other.transform,
+        display = other.display,
+        groupAlpha = other.groupAlpha,
+        blendMode = other.blendMode,
+        super._cloned();
+
   MutableAffine? transform;
   bool display = true;
   int? groupAlpha; // Doesn't inherit; instead, a group is created
@@ -466,6 +495,11 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
+  SvgInheritableAttributesNode(super.paint);
+
+  SvgInheritableAttributesNode._cloned(SvgInheritableAttributesNode super.other)
+      : super._cloned();
+
   @override
   bool _isInvisible(SvgPaint cascaded) =>
       !display || super._isInvisible(cascaded);
@@ -504,7 +538,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
         if (referrers.contains(n)) {
           warn('    Ignoring mask that refers to itself.');
         } else {
-          final masked = SvgMasked(this, n);
+          final masked = _SvgMasked(this, n);
           if (_hasNonMaskAttributes()) {
             final g = SvgGroup();
             g.transform = transform;
@@ -727,17 +761,18 @@ class SvgPaint {
 }
 
 class SvgGroup extends SvgInheritableAttributesNode {
-  @override
-  final SvgPaint paint;
-  @override
-  SvgTextStyle textStyle = SvgTextStyle.empty();
-  @override
-  String styleClass = '';
   var children = List<SvgNode>.empty(growable: true);
   @protected
   bool get multipleNodesOK => false;
 
-  SvgGroup({SvgPaint? paint}) : paint = paint ?? SvgPaint.empty();
+  SvgGroup({SvgPaint? paint}) : super(paint);
+
+  SvgGroup._cloned(SvgGroup super.other)
+      : children = List.from(other.children.map((n) => n._clone())),
+        super._cloned();
+
+  @override
+  SvgGroup _clone() => SvgGroup._cloned(this);
 
   @override
   String get tagName => 'g';
@@ -845,11 +880,18 @@ class SvgGroup extends SvgInheritableAttributesNode {
 }
 
 class SvgRoot extends SvgGroup {
+  SvgRoot();
+
+  SvgRoot._cloned(SvgRoot super.other) : super._cloned();
+
   @override
   bool get multipleNodesOK => true;
 
   @override
   String get tagName => 'svg';
+
+  @override
+  SvgRoot _clone() => SvgRoot._cloned(this);
 }
 
 class SvgDefs extends SvgGroup {
@@ -857,6 +899,13 @@ class SvgDefs extends SvgGroup {
   final String tagName;
 
   SvgDefs(this.tagName) : super();
+
+  SvgDefs._cloned(SvgDefs super.other)
+      : tagName = other.tagName,
+        super._cloned();
+
+  @override
+  SvgDefs _clone() => SvgDefs._cloned(this);
 
   @override
   SvgGroup? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
@@ -884,6 +933,15 @@ class SvgDefs extends SvgGroup {
 /// The mask itself, from a <mask> tag in the source file
 ///
 class SvgMask extends SvgGroup {
+  SvgMask();
+
+  SvgMask._cloned(SvgMask super.other)
+      : bufferBounds = other.bufferBounds,
+        super._cloned();
+
+  @override
+  SvgMask _clone() => SvgMask._cloned(this);
+
   RectT? bufferBounds;
 
   @override
@@ -897,16 +955,21 @@ class SvgMask extends SvgGroup {
 ///
 /// A parent node for a node with a mask attribute.
 ///
-class SvgMasked extends SvgNode {
+class _SvgMasked extends SvgNode {
   final SvgNode child;
   SvgMask mask;
 
-  SvgMasked(this.child, this.mask) {
+  _SvgMasked(this.child, this.mask) {
     id = child.id;
     idIsExported = child.idIsExported;
     child.id = null;
     child.idIsExported = false;
   }
+
+  @override
+  _SvgMasked _clone() => unreachable(this);
+  // Clone can only happen before resolve, so there can't be any masked
+  // nodes.
 
   @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
@@ -985,12 +1048,21 @@ class SvgMasked extends SvgNode {
   SIBlendMode? get blendMode => child.blendMode;
 }
 
-class SvgUse extends SvgInheritableAttributesNode with _SvgTextAttributeFields {
+class SvgUse extends SvgInheritableAttributesNode {
   String? childID;
   double? width;
   double? height;
 
-  SvgUse(this.childID);
+  SvgUse(this.childID) : super(null);
+
+  SvgUse._cloned(SvgUse super.other)
+      : childID = other.childID,
+        width = other.width,
+        height = other.height,
+        super._cloned();
+
+  @override
+  SvgUse _clone() => SvgUse._cloned(this);
 
   @override
   String get tagName => 'use';
@@ -1083,13 +1155,27 @@ class SvgUse extends SvgInheritableAttributesNode with _SvgTextAttributeFields {
 }
 
 class SvgSymbol extends SvgGroup {
+  SvgSymbol();
+
+  SvgSymbol._cloned(SvgSymbol super.other)
+      : viewbox = other.viewbox,
+        width = other.width,
+        height = other.height,
+        super._cloned();
+
+  @override
+  SvgSymbol _clone() => SvgSymbol._cloned(this);
+
   Rectangle<double>? viewbox;
   double? width;
   double? height;
 }
 
-abstract class SvgPathMaker extends SvgInheritableAttributesNode
-    with _SvgTextAttributeFields {
+abstract class SvgPathMaker extends SvgInheritableAttributesNode {
+  SvgPathMaker() : super(null);
+
+  SvgPathMaker._cloned(SvgPathMaker super.other) : super._cloned();
+
   @override
   bool build(
       SIBuilder<String, SIImageData> builder,
@@ -1136,6 +1222,13 @@ class SvgPath extends SvgPathMaker {
   final String pathData;
 
   SvgPath(this.pathData);
+
+  SvgPath._cloned(SvgPath super.other)
+      : pathData = other.pathData,
+        super._cloned();
+
+  @override
+  SvgPath _clone() => SvgPath._cloned(this);
 
   @override
   String get tagName => 'path';
@@ -1231,6 +1324,18 @@ class SvgRect extends SvgPathMaker {
 
   SvgRect(this.x, this.y, this.width, this.height, this.rx, this.ry);
 
+  SvgRect._cloned(SvgRect super.other)
+      : x = other.x,
+        y = other.y,
+        width = other.width,
+        height = other.height,
+        rx = other.rx,
+        ry = other.ry,
+        super._cloned();
+
+  @override
+  SvgRect _clone() => SvgRect._cloned(this);
+
   @override
   String get tagName => 'rect';
 
@@ -1323,6 +1428,17 @@ class SvgEllipse extends SvgPathMaker {
 
   SvgEllipse(this.tagName, this.cx, this.cy, this.rx, this.ry);
 
+  SvgEllipse._cloned(SvgEllipse super.other)
+      : cx = other.cx,
+        cy = other.cy,
+        rx = other.rx,
+        ry = other.ry,
+        tagName = other.tagName,
+        super._cloned();
+
+  @override
+  SvgEllipse _clone() => SvgEllipse._cloned(this);
+
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
       void Function(String) warn, SvgNodeReferrers referrers) {
@@ -1384,6 +1500,15 @@ class SvgPoly extends SvgPathMaker {
   final String tagName;
 
   SvgPoly(this.tagName, this.close, this.points);
+
+  SvgPoly._cloned(SvgPoly super.other)
+      : close = other.close,
+        points = other.points,
+        tagName = other.tagName,
+        super._cloned();
+
+  @override
+  SvgPoly _clone() => SvgPoly._cloned(this);
 
   @override
   SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
@@ -1460,6 +1585,9 @@ class SvgGradientNode implements SvgNode {
   SvgGradientNode(this.parentID, this.gradient);
 
   @override
+  SvgGradientNode _clone() => SvgGradientNode(parentID, gradient);
+
+  @override
   void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
 
   @override
@@ -1525,15 +1653,25 @@ class SvgGradientNode implements SvgNode {
   String? get exportedID => idIsExported ? id : null;
 }
 
-class SvgImage extends SvgInheritableAttributesNode
-    with _SvgTextAttributeFields {
+class SvgImage extends SvgInheritableAttributesNode {
   Uint8List imageData = _emptyData;
   double x = 0;
   double y = 0;
   double width = 0;
   double height = 0;
 
-  SvgImage();
+  SvgImage() : super(null);
+
+  SvgImage._cloned(SvgImage super.other)
+      : imageData = other.imageData,
+        x = other.x,
+        y = other.y,
+        width = other.width,
+        height = other.height,
+        super._cloned();
+
+  @override
+  SvgImage _clone() => SvgImage._cloned(this);
 
   @override
   String get tagName => 'image';
@@ -2308,8 +2446,8 @@ final svgGraphUnreachablePrivate = [
   () => SvgUse(null).canUseLuma({}, SvgPaint.empty()),
   () => _testCallBuild(SvgDefs('')),
   () => SvgDefs('')._getUntransformedBounds(SvgTextStyle.initial()),
-  () => SvgMasked(SvgDefs(''), SvgMask()).applyStylesheet({}, (_) {}),
-  () => SvgMasked(SvgDefs(''), SvgMask())
+  () => _SvgMasked(SvgDefs(''), SvgMask()).applyStylesheet({}, (_) {}),
+  () => _SvgMasked(SvgDefs(''), SvgMask())
       .resolve(const {}, SvgPaint.empty(), (_) {}, SvgNodeReferrers(null)),
   () => (SvgPaint.empty()..hidden = true).toSIPaint(),
   () => const _SvgFontSizeRelative(1).toSI(),

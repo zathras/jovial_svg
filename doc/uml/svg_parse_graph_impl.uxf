@@ -277,20 +277,6 @@ Uint8List imageData</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>510</x>
-      <y>30</y>
-      <w>250</w>
-      <h>70</h>
-    </coordinates>
-    <panel_attributes>&lt;&lt;mixin&gt;&gt;
-/_SVGTextAttributeFields/
---
-String styleClass</panel_attributes>
-    <additional_attributes/>
-  </element>
-  <element>
-    <id>UMLClass</id>
-    <coordinates>
       <x>90</x>
       <y>360</y>
       <w>200</w>
@@ -402,8 +388,8 @@ SIBlendMode? blendMode</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>460</x>
-      <y>140</y>
+      <x>490</x>
+      <y>20</y>
       <w>210</w>
       <h>80</h>
     </coordinates>
@@ -419,24 +405,13 @@ SIBlendMode? blendMode</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>470</x>
-      <y>210</y>
-      <w>30</w>
-      <h>60</h>
-    </coordinates>
-    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>580</x>
+      <x>500</x>
       <y>90</y>
       <w>30</w>
-      <h>70</h>
+      <h>180</h>
     </coordinates>
-    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -551,28 +526,28 @@ mask
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>750</x>
+      <x>690</x>
       <y>50</y>
-      <w>190</w>
+      <w>250</w>
       <h>80</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m2=1
 r2=textAttributes</panel_attributes>
-    <additional_attributes>10.0;10.0;80.0;10.0;80.0;60.0</additional_attributes>
+    <additional_attributes>10.0;10.0;140.0;10.0;140.0;60.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>750</x>
+      <x>690</x>
       <y>30</y>
-      <w>280</w>
+      <w>340</w>
       <h>120</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 r2=paint
 m2=1</panel_attributes>
-    <additional_attributes>10.0;10.0;230.0;10.0;230.0;100.0</additional_attributes>
+    <additional_attributes>10.0;10.0;290.0;10.0;290.0;100.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
@@ -623,13 +598,13 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>620</x>
-      <y>210</y>
-      <w>370</w>
-      <h>550</h>
+      <x>650</x>
+      <y>90</y>
+      <w>340</w>
+      <h>670</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;40.0;230.0;40.0;230.0;200.0;350.0;200.0;350.0;530.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0;200.0;160.0;200.0;320.0;320.0;320.0;320.0;650.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
