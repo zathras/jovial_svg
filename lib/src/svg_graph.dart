@@ -158,6 +158,8 @@ class SvgParseGraph {
   /// you keep an un-built version around.
   ///
   /// Throws [StateError] if this [SvgParseGraph] has been built.
+  /*
+  @@ TODO
   SvgParseGraph _clone() {
     if (_resolved) {
       throw StateError('Parse graph has already been built');
@@ -165,6 +167,7 @@ class SvgParseGraph {
     return SvgParseGraph(root._clone(), stylesheet, width, height, tintColor,
         tintMode, Map.from(idLookup));
   }
+   */
 }
 
 class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
