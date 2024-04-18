@@ -295,7 +295,7 @@ class Style extends SvgInheritableAttributes {
   @override
   String? get id => null;
 
-  Style() : super(null);
+  Style();
 
   void applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
@@ -403,9 +403,13 @@ abstract class SvgInheritableTextAttributes {
   SvgTextStyle textStyle;
   String styleClass;
 
-  SvgInheritableTextAttributes(SvgPaint? paint)
-      : paint = paint ?? SvgPaint.empty(),
+  SvgInheritableTextAttributes()
+      : paint = SvgPaint.empty(),
         textStyle = SvgTextStyle.empty(),
+        styleClass = '';
+
+  SvgInheritableTextAttributes._withPaint(this.paint)
+      : textStyle = SvgTextStyle.empty(),
         styleClass = '';
 
   SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
@@ -468,7 +472,9 @@ abstract class SvgInheritableTextAttributes {
 }
 
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
-  SvgInheritableAttributes(super.paint);
+  SvgInheritableAttributes();
+
+  SvgInheritableAttributes._withPaint(super.paint) : super._withPaint();
 
   SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
       : transform = other.transform,
@@ -491,7 +497,9 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
-  SvgInheritableAttributesNode(super.paint);
+  SvgInheritableAttributesNode();
+
+  SvgInheritableAttributesNode._withPaint(super.paint) : super._withPaint();
 
   SvgInheritableAttributesNode._cloned(SvgInheritableAttributesNode super.other)
       : super._cloned();
@@ -761,7 +769,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
   @protected
   bool get multipleNodesOK => false;
 
-  SvgGroup({SvgPaint? paint}) : super(paint);
+  SvgGroup({SvgPaint? paint}) : super._withPaint(paint ?? SvgPaint.empty());
 
   SvgGroup._cloned(SvgGroup super.other)
       : children = List.from(other.children.map((n) => n._clone())),
@@ -1049,7 +1057,7 @@ class SvgUse extends SvgInheritableAttributesNode {
   double? width;
   double? height;
 
-  SvgUse(this.childID) : super(null);
+  SvgUse(this.childID);
 
   SvgUse._cloned(SvgUse super.other)
       : childID = other.childID,
@@ -1168,7 +1176,7 @@ class SvgSymbol extends SvgGroup {
 }
 
 abstract class SvgPathMaker extends SvgInheritableAttributesNode {
-  SvgPathMaker() : super(null);
+  SvgPathMaker();
 
   SvgPathMaker._cloned(SvgPathMaker super.other) : super._cloned();
 
@@ -1656,7 +1664,7 @@ class SvgImage extends SvgInheritableAttributesNode {
   double width = 0;
   double height = 0;
 
-  SvgImage() : super(null);
+  SvgImage();
 
   SvgImage._cloned(SvgImage super.other)
       : imageData = other.imageData,

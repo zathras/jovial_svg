@@ -52,7 +52,7 @@ class SvgText extends SvgInheritableAttributesNode {
 
   late final List<SvgTextChunk> flattened = _flatten();
 
-  SvgText(this.warn) : super(null) {
+  SvgText(this.warn) {
     root.x = root.y = const [0.0];
   }
 
@@ -187,7 +187,7 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   @override
   String? get id => null;
 
-  SvgTextSpan(this.tagName) : super(null);
+  SvgTextSpan(this.tagName);
 
   SvgTextSpan._cloned(SvgTextSpan other)
       : x = other.x,
