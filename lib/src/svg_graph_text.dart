@@ -189,13 +189,13 @@ class SvgTextSpan extends SvgInheritableTextAttributes
 
   SvgTextSpan(this.tagName) : super(null);
 
-  SvgTextSpan._cloned(SvgTextSpan super.other)
+  SvgTextSpan._cloned(SvgTextSpan other)
       : x = other.x,
         y = other.y,
         dx = other.dx,
         dy = other.dy,
         tagName = other.tagName,
-        super._cloned() {
+        super._cloned(other) {
     parts.addAll(other.parts.map((p) => p._clone(this)));
   }
 
