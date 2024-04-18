@@ -187,7 +187,7 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   @override
   String? get id => null;
 
-  SvgTextSpan(this.tagName) : super(null);
+  SvgTextSpan(this.tagName) : super(null, '');
 
   SvgTextSpan._cloned(SvgTextSpan other)
       : x = other.x,

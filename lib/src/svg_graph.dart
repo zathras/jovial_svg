@@ -302,9 +302,7 @@ class Style extends SvgInheritableAttributes {
   @override
   String? get id => null;
 
-  Style(String styleClass) : super(null) {
-    this.styleClass = styleClass;
-  }
+  Style(String styleClass) : super(null, styleClass);
 
   void applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
@@ -410,9 +408,9 @@ class SvgNodeReferrers {
 abstract class SvgInheritableTextAttributes {
   final SvgPaint paint;
   SvgTextStyle textStyle = SvgTextStyle.empty();
-  String styleClass = '';
+  String styleClass;
 
-  SvgInheritableTextAttributes(SvgPaint? paint)
+  SvgInheritableTextAttributes(SvgPaint? paint, this.styleClass)
       : paint = paint ?? SvgPaint.empty();
 
   SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
@@ -475,7 +473,7 @@ abstract class SvgInheritableTextAttributes {
 }
 
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
-  SvgInheritableAttributes(super.paint);
+  SvgInheritableAttributes(super.paint, super.styleClass);
 
   SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
       : transform = other.transform,
@@ -498,7 +496,7 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
-  SvgInheritableAttributesNode(super.paint);
+  SvgInheritableAttributesNode(SvgPaint? paint) : super(paint, '');
 
   SvgInheritableAttributesNode._cloned(SvgInheritableAttributesNode super.other)
       : super._cloned();
