@@ -75,7 +75,7 @@ abstract class SIRenderable {
   bool _wouldPaint(SIColor c) => c is! SINoneColor;
 
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b);
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b);
 
   ///
   /// Get the pruning boundary, if this renderable renders something.  A text
@@ -153,7 +153,7 @@ abstract class SIRenderable {
     }
   }
 
-  void addChildren(Set<SIRenderable> dagger);
+  void addChildren(Set<Object> dagger);
 
   void privateAssertIsEquivalent(SIRenderable other) {
     if (this != other) {
@@ -647,8 +647,8 @@ class SIClipPath extends SIRenderable {
   }
 
   @override
-  SIRenderable? prunedBy(Set<SIRenderable> dagger, Set<SIImage> imageSet,
-          PruningBoundary? b) =>
+  SIRenderable? prunedBy(
+          Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) =>
       this;
 
   @override
@@ -657,7 +657,7 @@ class SIClipPath extends SIRenderable {
       PruningBoundary(path.getBounds());
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {}
+  void addChildren(Set<Object> dagger) {}
 
   @override
   bool operator ==(final Object other) {
@@ -766,7 +766,7 @@ class SIPath extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
     if (b == null) {
       return this;
     }
@@ -796,7 +796,7 @@ class SIPath extends SIRenderable {
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {}
+  void addChildren(Set<Object> dagger) {}
 
   @override
   void privateAssertIsEquivalent(SIRenderable other) {
@@ -847,7 +847,7 @@ class SIImage extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
     if (b == null) {
       imageSet.add(this);
       return this;
@@ -871,7 +871,7 @@ class SIImage extends SIRenderable {
   void paint(Canvas c, Color currentColor) => loader.paint(c);
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {}
+  void addChildren(Set<Object> dagger) {}
 
   @override
   bool operator ==(final Object other) {
@@ -1043,7 +1043,7 @@ class SIText extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
     if (chunks.isEmpty) {
       return null;
     }
@@ -1075,7 +1075,7 @@ class SIText extends SIRenderable {
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {}
+  void addChildren(Set<Object> dagger) {}
 
   @override
   bool operator ==(final Object other) {
@@ -1445,7 +1445,3 @@ class Transformer {
     }
   }
 }
-
-void defaultWarn(String s) => print(s); // coverage:ignore-line
-
-void nullWarn(String s) {} // coverage:ignore-line

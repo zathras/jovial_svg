@@ -43,18 +43,11 @@ import 'package:http/http.dart' as http;
 import 'affine.dart';
 import 'avd_parser.dart';
 import 'common.dart';
+import 'common_noui.dart';
 import 'compact.dart';
 import 'dag.dart';
 import 'svg_parser.dart';
 
-///
-/// In Flutter version 3.10.4 (June 2023), an inconfirmed report of a
-/// new Flutter bug related to `dispose()` and image handling was
-/// reported -- see https://github.com/zathras/jovial_svg/issues/62.
-/// `silentlyIgnoreErrors`  was added at this time.
-///
-/// As of Flutter 2.5, other usese of this enum became obsolete.
-/// It is maintained for backwards compatibility with earlier versions.
 ///
 /// As of the initial date of publication of this library, there were several
 /// bugs in the then-current shipped version of Flutter (2.2.2)
@@ -83,6 +76,14 @@ import 'svg_parser.dart';
 /// specification going either way would have been risky.  For this reason,
 /// we separate out the two `dispose()` calls in the global setting.
 ///
+/// In Flutter version 3.10.4 (June 2023), an unconfirmed report of a
+/// new Flutter bug related to `dispose()` and image handling was
+/// reported -- see https://github.com/zathras/jovial_svg/issues/62.
+/// `silentlyIgnoreErrors`  was added at this time.
+///
+/// As of Flutter 2.5, other uses of this enum became obsolete.
+/// It is maintained for backwards compatibility with earlier versions.
+///
 /// See also [ScalableImage.imageDisposeBugWorkaround], where clients of this
 /// library can change the behavior.
 ///
@@ -97,6 +98,7 @@ import 'svg_parser.dart';
 /// library's initial publication, that had not yet been released.  As of
 /// Flutter 2.5, it has been.
 ///
+///  {@category Core}
 enum ImageDisposeBugWorkaround {
   /// Only dispose image descriptors.  This value is believed to be
   /// obsolete.
@@ -152,6 +154,8 @@ enum ImageDisposeBugWorkaround {
 /// reachable objects being unmodifiable.  A buggy application could
 /// corrupt the internal state by calling [unprepareImages] excessively, for
 /// example, which could cause embedded images to not render.
+///
+///  {@category Core}
 ///
 @immutable
 abstract class ScalableImage {
@@ -863,7 +867,12 @@ abstract class ScalableImageBase extends ScalableImage {
 ///
 /// See also `ExportedIDLookup` in the `widgets` package.
 ///
+///  {@category Core}
+///
 class ExportedID {
+  ///
+  /// The ID of the node that produced this bounding rectangle.
+  ///
   final String id;
 
   ///

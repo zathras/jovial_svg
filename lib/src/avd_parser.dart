@@ -49,7 +49,7 @@ import 'svg_graph.dart';
 ///
 abstract class AvdParser extends GenericParser {
   final SIBuilder<String, SIImageData> _avdBuilder;
-  late final SvgParseGraph avd;
+  late final SvgDOM avd;
 
   SvgPath? _currPath;
   // Initially, we didn't produce an intermediate graph for AVD files.
@@ -83,7 +83,7 @@ abstract class AvdParser extends GenericParser {
       }
       _parseVector(evt.attributes);
       if (_done) {
-        avd.build(_avdBuilder);
+        SvgDOMNotExported.build(avd, _avdBuilder);
       }
     } else if (!_vectorStarted) {
       throw ParseError('Expected <vector>, got $evt');
@@ -158,7 +158,7 @@ abstract class AvdParser extends GenericParser {
         throw ParseError('Expected </vector>, got </${evt.name}');
       }
       _done = true;
-      avd.build(_avdBuilder);
+      SvgDOMNotExported.build(avd, _avdBuilder);
     } else if (_tagStack.isEmpty) {
       throw ParseError('Unexpected end tag $evt');
     } else if (_tagStack.last != evt.name) {
@@ -251,7 +251,7 @@ abstract class AvdParser extends GenericParser {
         }
       }
     }
-    avd = SvgParseGraph(root, const {}, width, height, tintColor, tintMode, {});
+    avd = SvgDOM(root, const {}, width, height, tintColor, tintMode, {});
     _parentStack.add(avd.root);
   }
 
@@ -605,40 +605,6 @@ abstract class AvdParser extends GenericParser {
     }
     _defaultGradientStops = null;
   }
-}
-
-class AvdClipPath extends SvgNode {
-  final String pathData;
-
-  AvdClipPath(this.pathData);
-
-  @override
-  SIBlendMode get blendMode => SIBlendMode.normal; // coverage:ignore-line
-
-  @override
-  void applyStylesheet(Stylesheet stylesheet,
-      void Function(String) warn) {} // coverage:ignore-line
-
-  @override
-  bool build(
-      SIBuilder<String, SIImageData> builder,
-      CanonicalizedData<SIImageData> canon,
-      Map<String, SvgNode> idLookup,
-      SvgPaint ancestor,
-      SvgTextStyle ta,
-      {bool blendHandledByParent = false}) {
-    builder.clipPath(null, pathData);
-    return true;
-  }
-
-  @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) =>
-      false; // coverage:ignore-line
-
-  @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-          void Function(String) warn, referrers) =>
-      this;
 }
 
 class _AvdParserEventHandler with XmlEventVisitor {

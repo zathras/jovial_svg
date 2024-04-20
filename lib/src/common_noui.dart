@@ -302,6 +302,12 @@ class SIValueColor extends SIColor {
       'SIValueColor(#${argb.toRadixString(16).padLeft(6, "0")})';
 }
 
+///
+/// Possible spread methods for a color gradient. See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
+///
+/// {@category SVG DOM}
+///
 enum SIGradientSpreadMethod { pad, reflect, repeat }
 
 abstract class SIGradientColor extends SIColor {
@@ -1104,15 +1110,41 @@ class ParseError {
   String toString() => 'ParseError($message)';
 }
 
+///
+/// Possible stroke join values for a paint object.  This is analagous
+/// to `StrokeJoin` in `dart:ui`.
+///
+/// {@category SVG DOM}
+///
 // Note:  The numerical values of this enum are externalized.
 enum SIStrokeJoin { miter, round, bevel }
 
+///
+/// Possible stroke cap values for a paint object.  This is analagous
+/// to `StrokeCap` in `dart:ui`.
+///
+/// {@category SVG DOM}
+///
 // Note:  The numerical values of this enum are externalized.
 enum SIStrokeCap { butt, round, square }
 
+///
+/// Possible fill type values for a paint object.  This is analagous
+/// to `PathFillType` in `dart:ui`.
+///
+/// {@category SVG DOM}
+///
 // Note:  The numerical values of this enum are externalized.
 enum SIFillType { evenOdd, nonZero }
 
+///
+/// Possible tint mode values for an asset.  This is a top-level
+/// property for an asset that is not present in an SVG; it comes
+/// from Android Vector Drawables.  It determines the `dart:ui`
+/// `BlendMode` used to apply a tint,
+///
+/// {@category SVG DOM}
+///
 // NOTE:  The numerical values of this enum are externalized.
 //        The default tint mode is srcIn.  The moded after "add"
 //        aren't supported by AVDs, but they can be set on a
@@ -1150,6 +1182,12 @@ enum SITintMode {
   xor
 }
 
+///
+/// Possible blend mode values used when painting a node.  This
+/// is analagous to `BlendMode` in `dart:ui`.
+///
+/// {@category SVG DOM}
+///
 enum SIBlendMode {
   normal,
   multiply,
@@ -1169,12 +1207,29 @@ enum SIBlendMode {
   luminosity
 }
 
+///
+/// Possible font styles.
+///
+/// {@category SVG DOM}
+///
 enum SIFontStyle { normal, italic }
 
 enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
 
+///
+/// Text anchor values.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
 enum SITextAnchor { start, middle, end }
 
+///
+/// Text decoration values.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
 enum SITextDecoration { none, lineThrough, overline, underline }
 
 class SITextAttributes {
@@ -1309,3 +1364,7 @@ T unreachable<T>(T result) {
   return result;
 }
 // coverate:itnore-end
+
+void defaultWarn(String s) => print(s); // coverage:ignore-line
+
+void nullWarn(String s) {} // coverage:ignore-line

@@ -58,7 +58,7 @@ abstract class SvgParser extends GenericParser {
   @override
   final void Function(String) warn;
   final List<Pattern> exportedIDs;
-  final SIBuilder<String, SIImageData> _builder;
+  final SIBuilder<String, SIImageData>? _builder;
   String? _currTag;
 
   final tagsIgnored = <String>{};
@@ -80,9 +80,9 @@ abstract class SvgParser extends GenericParser {
 
   ///
   /// The result of parsing.  For SVG files we need to generate an intermediate
-  /// parse graph so that references can be resolved. See [SvgParseGraph.build].
+  /// parse graph so that references can be resolved. See `SvgParseGraph._build`.
   ///
-  late final SvgParseGraph svg;
+  late final SvgDOM svg;
   bool _svgTagSeen = false;
 
   /// Stylesheet.  Key is element type, or ID.  ID starts with '#'.
@@ -95,7 +95,10 @@ abstract class SvgParser extends GenericParser {
     if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
-    svg.build(_builder);
+    final b = _builder;
+    if (b != null) {
+      SvgDOMNotExported.build(svg, b);
+    }
   }
 
   void _startTag(XmlStartElementEvent evt) {
@@ -262,8 +265,7 @@ abstract class SvgParser extends GenericParser {
     }
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
-    final r =
-        svg = SvgParseGraph(root, _stylesheet, width, height, null, null, {});
+    final r = svg = SvgDOM(root, _stylesheet, width, height, null, null, {});
     _svgTagSeen = true;
     _parentStack.add(r.root);
   }
@@ -474,7 +476,7 @@ abstract class SvgParser extends GenericParser {
   }
 
   _TextBuilder _processText(Map<String, String> attrs) {
-    final n = SvgText(warn);
+    final n = SvgText(warn: warn);
     n.x = getFloatList(attrs.remove('x'), percent: _widthPercent) ?? n.x;
     n.y = getFloatList(attrs.remove('y'), percent: _heightPercent) ?? n.y;
     _processId(n, attrs);
@@ -1140,7 +1142,7 @@ class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
   StreamSvgParser(this._input, List<Pattern> exportedIDs,
-      SIBuilder<String, SIImageData> builder,
+      SIBuilder<String, SIImageData>? builder,
       {required void Function(String) warn})
       : super(warn, exportedIDs, builder);
 
@@ -1159,7 +1161,7 @@ class StringSvgParser extends SvgParser {
   final String _input;
 
   StringSvgParser(this._input, List<Pattern> exportedIDs,
-      SIBuilder<String, SIImageData> builder,
+      SIBuilder<String, SIImageData>? builder,
       {required void Function(String) warn})
       : super(warn, exportedIDs, builder);
 

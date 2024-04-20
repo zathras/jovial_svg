@@ -39,6 +39,14 @@ import 'dart:typed_data';
 
 import 'package:vector_math/vector_math_64.dart';
 
+///
+/// Affine matrix, used to represent scale, translate and other
+/// transformations to applied to e.g. an SVG node.  Attaching an
+/// affine matrix to a node is equivalent to calling `dart:ui`'s
+/// `Canvas.transform` method.
+///
+/// {@category SVG DOM}
+///
 abstract class Affine {
   Affine._p();
 
@@ -52,6 +60,10 @@ abstract class Affine {
   factory Affine.fromCompact(List<double> storage, int offset) =>
       _CompactAffine(storage, offset);
 
+  ///
+  /// Copy this affine into the compact format, as described in
+  /// [Affine.fromCompact].
+  ///
   void copyIntoCompact(List<double> storage, [int offset = 0]);
 
   void _checkIndices(int row, int col) {
@@ -62,6 +74,9 @@ abstract class Affine {
     }
   }
 
+  ///
+  /// Get the element at [row], [col]
+  ///
   double get(int row, int col) {
     _checkIndices(row, col);
     return _get(row, col);
@@ -91,8 +106,20 @@ abstract class Affine {
     return r;
   }
 
+  ///
+  /// Give a mutable version of this matrix, by making a copy if necessary.
+  ///
   MutableAffine get toMutable;
+
+  ///
+  /// Give a copy of this matrix that is mutable.
+  ///
   MutableAffine mutableCopy();
+
+  ///
+  /// Give an immutable key that can be used to find equivalent
+  /// transformation matrices using ==.
+  ///
   Affine get toKey;
 
   @override
@@ -108,6 +135,9 @@ abstract class Affine {
     return sb.toString();
   }
 
+  ///
+  /// Return a point transformed by this matrix.
+  ///
   Point<double> transformed(Point<double> p) => Point(
       p.x * _get(0, 0) + p.y * _get(0, 1) + _get(0, 2),
       p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2));
@@ -190,7 +220,7 @@ class _CompactAffine extends Affine {
         storage.setEntry(r, c, get(r, c));
       }
     }
-    return MutableAffine(storage);
+    return MutableAffine._p(storage);
   }
 
   @override
@@ -200,10 +230,15 @@ class _CompactAffine extends Affine {
   Affine get toKey => this;
 }
 
+///
+/// An mutable version of an [Affine] matrix.
+///
+/// {@category SVG DOM}
+///
 class MutableAffine extends Affine {
   final Matrix3 _storage;
 
-  MutableAffine([Matrix3? storage])
+  MutableAffine._p([Matrix3? storage])
       : _storage = storage ?? Matrix3.zero(),
         super._p();
 
@@ -226,6 +261,9 @@ class MutableAffine extends Affine {
     set(1, 2, ty);
   }
 
+  ///
+  /// Represent a rotation transform, for the angle [a] in radians.
+  ///
   MutableAffine.rotation(double a)
       : _storage = Matrix3.zero(),
         super._p() {
@@ -250,10 +288,18 @@ class MutableAffine extends Affine {
     set(1, 0, tan(a));
   }
 
-  MutableAffine.copy(MutableAffine other)
+  MutableAffine._copy(MutableAffine other)
       : _storage = Matrix3.copy(other._storage),
         super._p();
 
+  ///
+  /// Create an affine matrix representing a transformation matrix as described
+  /// in CSS's format, which consists of six float values.  See the matrix
+  /// transform in s. 7.6.1 of
+  /// https://www.w3.org/TR/SVGTiny12/coords.html#TransformAttribute .
+  ///
+  /// {@category SVG DOM}
+  ///
   MutableAffine.cssTransform(List<double> css)
       : _storage = Matrix3.zero(),
         super._p() {
@@ -304,9 +350,15 @@ class MutableAffine extends Affine {
     return _CompactAffine(storage, 0);
   }
 
+  ///
+  /// Return this instance.
+  ///
   @override
   MutableAffine get toMutable => this;
 
+  ///
+  /// Make a copy of this affine matrix.
+  ///
   @override
-  MutableAffine mutableCopy() => MutableAffine.copy(this);
+  MutableAffine mutableCopy() => MutableAffine._copy(this);
 }

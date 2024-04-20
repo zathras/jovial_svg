@@ -28,9 +28,9 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-///
 // ignore: comment_references
-/// This library offers a static [ScalableImage] that can be loaded from:
+///
+/// This library offers a `ScalableImage` that can be loaded from:
 ///
 ///   *  An SVG file.
 ///   *  An Android Vector Drawable file

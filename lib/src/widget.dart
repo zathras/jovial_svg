@@ -34,7 +34,7 @@ import 'dart:math' show min, max;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'common.dart';
+import 'common_noui.dart';
 import 'exported.dart';
 
 ///
@@ -48,6 +48,8 @@ import 'exported.dart';
 /// wrapping the
 /// [ScalableImageWidget] in Flutter's `RepaintBoundary`
 /// might result in significantly better performance.
+///
+/// {@category Widget}
 ///
 abstract class ScalableImageWidget extends StatefulWidget {
   ///
@@ -483,6 +485,8 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 ///
 /// If new subclasses are written, attention is drawn to the need to implement
 /// `operator ==` and `hashCode`.
+///
+/// {@category Widget}
 ///
 abstract class ScalableImageSource {
   ///
@@ -1150,6 +1154,8 @@ class _CacheEntry {
 /// private members.  See also the `demo_hive` application to see how
 /// [ScalableImageSource] can be extended to load from a persistent cache.
 ///
+/// {@category Widget}
+///
 class ScalableImageCache {
   final _canonicalized = <ScalableImageSource, _CacheEntry>{};
 
@@ -1353,6 +1359,8 @@ class ScalableImageCache {
 /// coordinate, e.g. when mapping a touch event into the original
 /// SVG's coordinate space.
 ///
+/// {@category Widget}
+///
 class ScalingTransform {
   ///
   /// The horizontal scale factor
@@ -1498,6 +1506,8 @@ class ScalingTransform {
 /// ```
 ///
 /// See `demo/lib/main.dart` for a more complete example.
+///
+/// {@category Widget}
 ///
 class ExportedIDLookup {
   ScalableImage? _si;

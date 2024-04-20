@@ -662,7 +662,7 @@ Future<void> _miscCoverage() async {
     expectException(() => g.privateAssertIsEquivalent(m));
   }
   Style().tagName;
-  SvgText((_) {}).textStyle = SvgTextStyle.empty();
+  SvgText().textStyle = SvgTextStyle.empty();
   expect(true, SvgTextStyle.empty().hashCode == SvgTextStyle.empty().hashCode);
   ScalableImage.blank().toDag().modifyCurrentColor(const Color(0xff000000));
   final something = ScalableImage.fromSvgString(
@@ -677,7 +677,6 @@ Future<void> _miscCoverage() async {
   SvgPaint.empty().hashCode;
   expect(false,
       SvgPaint.empty() == (SvgPaint.empty()..strokeDashArray = const [1.1]));
-  SvgPaint.empty().userSpace();
   expectException(() => SvgGradientStop(
       0,
       SvgLinearGradientColor(
@@ -761,7 +760,7 @@ Future<void> _miscCoverage() async {
     m[3];
   });
   {
-    final ma = MutableAffine().mutableCopy();
+    final ma = MutableAffine.identity().mutableCopy();
     ma.toString();
     expectException(() => ma.get(999, 0));
     expectException(() => ma.get(0, 999));
@@ -922,7 +921,7 @@ void main() {
       }
       final m1 = MutableAffine.cssTransform(vec);
       if (m1.determinant().abs() > 0.0000000000001) {
-        final m2 = MutableAffine.copy(m1)..invert();
+        final m2 = m1.mutableCopy()..invert();
         m1.multiplyBy(m2);
         for (int r = 0; r < 3; r++) {
           for (int c = 0; c < 3; c++) {

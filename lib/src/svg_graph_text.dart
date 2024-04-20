@@ -46,19 +46,37 @@ part of 'svg_graph.dart';
 // A lot of the complexity comes from SVG's rather unique notion of having a
 // coordinate be either a single value or a list.
 
+///
+/// An SVG `text`.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
 class SvgText extends SvgInheritableAttributesNode {
+  ///
+  /// The top-level span containing all of the text content.
+  ///
   SvgTextSpan root = SvgTextSpan('text');
-  final void Function(String) warn;
 
-  late final List<SvgTextChunk> flattened = _flatten();
+  final void Function(String) _warn;
 
-  SvgText(this.warn) {
+  late final List<_SvgTextChunk> _flattened = _flatten();
+
+  ///
+  /// Create a new text mode.
+  ///
+  /// [warn], if present, will be called if any warnings are generated while
+  /// processing the text element in the production of a `ScalableImage`.
+  ///
+  SvgText({void Function(String)? warn})
+      : _warn = warn ?? nullWarn,
+        super._p() {
     root.x = root.y = const [0.0];
   }
 
   SvgText._cloned(SvgText super.other)
       : root = other.root._clone(null),
-        warn = other.warn,
+        _warn = other._warn,
         super._cloned();
 
   @override
@@ -84,36 +102,36 @@ class SvgText extends SvgInheritableAttributesNode {
   set styleClass(String v) => root.styleClass = v;
 
   @override
-  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
-    super.applyStylesheet(stylesheet, warn);
-    root.applyStylesheetToChildren(stylesheet, warn);
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    super._applyStylesheet(stylesheet, warn);
+    root._applyStylesheetToChildren(stylesheet, warn);
   }
 
   @override
-  SvgNode? resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, SvgNodeReferrers referrers) {
+  SvgNode? _resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
+      void Function(String) warn, _SvgNodeReferrers referrers) {
     // Even invisible text can influence layout, so we don't try to optimize
     // it away.
-    return resolveMask(idLookup, ancestor, warn, referrers);
+    return _resolveMask(idLookup, ancestor, warn, referrers);
   }
 
   ///
   /// This flattens out the text span components, but it doesn't cascade
   /// the text attributes or the paints.  That happens later, in build().
   ///
-  List<SvgTextChunk> _flatten() {
-    root.trimRight();
-    List<SvgTextChunk> children = [];
-    root._flattenInto(children, _FlattenContext.empty(), warn);
+  List<_SvgTextChunk> _flatten() {
+    root._trimRight();
+    List<_SvgTextChunk> children = [];
+    root._flattenInto(children, _FlattenContext.empty(), _warn);
     return children;
   }
 
   @override
-  bool canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
-    for (final chunk in flattened) {
+  bool _canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
+    for (final chunk in _flattened) {
       for (final span in chunk.spans) {
-        final cascaded = span.paint.cascade(ancestor, idLookup, (_) {});
-        final p = cascaded.toSIPaint();
+        final cascaded = span.paint._cascade(ancestor, idLookup, (_) {});
+        final p = cascaded._toSIPaint();
         if (p.canUseLuma) {
           return true;
         }
@@ -125,7 +143,7 @@ class SvgText extends SvgInheritableAttributesNode {
   @override
   RectT? _getUntransformedBounds(SvgTextStyle ta) {
     RectT? result;
-    for (final chunk in flattened) {
+    for (final chunk in _flattened) {
       final RectT r = chunk.getBounds(ta);
       if (result == null) {
         result = r;
@@ -137,7 +155,7 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  bool build(
+  bool _build(
       SIBuilder<String, SIImageData> builder,
       CanonicalizedData<SIImageData> canon,
       Map<String, SvgNode> idLookup,
@@ -159,7 +177,7 @@ class SvgText extends SvgInheritableAttributesNode {
       builder.group(null, transform, groupAlpha, blend);
     }
     builder.text(null);
-    for (final chunk in flattened) {
+    for (final chunk in _flattened) {
       // Our SvgText node's paint and text attributes have already been
       // cascaded into our children.
       chunk.build(builder, canon, idLookup, ancestor, ta);
@@ -175,6 +193,12 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 }
 
+///
+/// An SVG `tspan`.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
 class SvgTextSpan extends SvgInheritableTextAttributes
     implements SvgTextSpanComponent {
   List<double>? x;
@@ -184,6 +208,8 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   List<SvgTextSpanComponent> parts = [];
   @override
   final String tagName;
+
+  /// The ID value, which is always null for a text span.
   @override
   String? get id => null;
 
@@ -209,9 +235,9 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   void appendPart(SvgTextSpanComponent part) => parts.add(part);
 
   @override
-  bool trimRight() {
+  bool _trimRight() {
     for (int i = parts.length - 1; i >= 0; i--) {
-      if (parts[i].trimRight()) {
+      if (parts[i]._trimRight()) {
         return true;
       }
     }
@@ -219,20 +245,20 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   }
 
   @override
-  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
-    super.applyStylesheet(stylesheet, warn);
-    applyStylesheetToChildren(stylesheet, warn);
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    super._applyStylesheet(stylesheet, warn);
+    _applyStylesheetToChildren(stylesheet, warn);
   }
 
-  void applyStylesheetToChildren(
+  void _applyStylesheetToChildren(
       Stylesheet stylesheet, void Function(String) warn) {
     for (final p in parts) {
-      p.applyStylesheet(stylesheet, warn);
+      p._applyStylesheet(stylesheet, warn);
     }
   }
 
   @override
-  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn) {
     // We cascade the paint and text attributes within the text tag's subtree,
     // since we're destroying that structure.
@@ -257,8 +283,8 @@ class _FlattenContext {
         y = _FCNumberSource.createOr(span.y, ancestor.y),
         dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
         dy = _FCNumberSource.createOr(span.dy, ancestor.dy),
-        ta = span.textStyle.cascade(ancestor.ta),
-        paint = span.paint.cascade(ancestor.paint, null, warn);
+        ta = span.textStyle._cascade(ancestor.ta),
+        paint = span.paint._cascade(ancestor.paint, null, warn);
 
   _FlattenContext.empty()
       : x = _FCNumberSource.root(),
@@ -319,40 +345,52 @@ class _FCLastValue {
   double value = 0;
 }
 
-abstract class SvgTextSpanComponent {
+///
+/// A component of an SVG `tspan`.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
+sealed class SvgTextSpanComponent {
+  SvgTextSpanComponent._p();
+
   SvgTextSpanComponent _clone(SvgTextSpan? parent);
 
-  bool trimRight();
+  bool _trimRight();
 
-  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn);
 
-  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
 }
 
+///
+/// A string run within an SVG `text`.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
+///
+/// {@category SVG DOM}
+///
 class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   final SvgTextSpan parent;
   String text;
 
-  SvgTextSpanStringComponent(this.parent, this.text) {
-    assert(text != '');
-  }
+  SvgTextSpanStringComponent(this.parent, this.text) : super._p();
 
   @override
   SvgTextSpanStringComponent _clone(SvgTextSpan? parent) =>
       SvgTextSpanStringComponent(parent!, text);
 
   @override
-  void applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
 
   @override
-  bool trimRight() {
+  bool _trimRight() {
     text = text.trimRight();
     return true;
   }
 
   @override
-  void _flattenInto(List<SvgTextChunk> children, _FlattenContext fc,
+  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
       void Function(String) warn) {
     for (int i = 0; i < text.length; i++) {
       double? x = fc.pull(fc.x);
@@ -365,11 +403,11 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
       final ch = text.substring(i, i + 1);
       if (x != null) {
         // New chunk
-        final chunk = SvgTextChunk(x, y);
-        chunk.spans.add(SvgFlatSpan(dx, dy, fc.ta, fc.paint, ch));
+        final chunk = _SvgTextChunk(x, y);
+        chunk.spans.add(_SvgFlatSpan(dx, dy, fc.ta, fc.paint, ch));
         children.add(chunk);
       } else {
-        final SvgTextChunk chunk = children.last;
+        final _SvgTextChunk chunk = children.last;
         dy = dy + y - chunk.y;
         final lastSpan = chunk.spans.last;
         if (dx == 0 &&
@@ -378,20 +416,20 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
             fc.paint == lastSpan.paint) {
           lastSpan.text.write(ch);
         } else {
-          chunk.spans.add(SvgFlatSpan(dx, dy, fc.ta, fc.paint, ch));
+          chunk.spans.add(_SvgFlatSpan(dx, dy, fc.ta, fc.paint, ch));
         }
       }
     }
   }
 }
 
-class SvgTextChunk {
+class _SvgTextChunk {
   final double x;
   final double y;
-  final List<SvgFlatSpan> spans = [];
+  final List<_SvgFlatSpan> spans = [];
   SITextAnchor? _anchor;
 
-  SvgTextChunk(this.x, this.y);
+  _SvgTextChunk(this.x, this.y);
 
   SITextAnchor getAnchor(SvgTextStyle ancestor) {
     assert(spans.length > 1);
@@ -399,7 +437,7 @@ class SvgTextChunk {
     if (a != null) {
       return a;
     }
-    final r = _anchor = spans.first.attributes.cascade(ancestor).textAnchor!;
+    final r = _anchor = spans.first.attributes._cascade(ancestor).textAnchor!;
     for (final span in spans) {
       span.attributes.textAnchor = SITextAnchor.start;
     }
@@ -458,14 +496,15 @@ class SvgTextChunk {
   }
 }
 
-class SvgFlatSpan {
+class _SvgFlatSpan {
   final double dx;
   final double dy;
   final SvgTextStyle attributes;
   final SvgPaint paint;
   final StringBuffer text;
 
-  SvgFlatSpan(this.dx, this.dy, this.attributes, this.paint, String initialText)
+  _SvgFlatSpan(
+      this.dx, this.dy, this.attributes, this.paint, String initialText)
       : text = StringBuffer(initialText);
 
   void build(
@@ -476,8 +515,8 @@ class SvgFlatSpan {
       Map<String, SvgNode> idLookup,
       SvgPaint ancestor,
       SvgTextStyle ta) {
-    ta = attributes.cascade(ta);
-    final cascaded = paint.cascade(ancestor, idLookup, builder.warn);
+    ta = attributes._cascade(ta);
+    final cascaded = paint._cascade(ancestor, idLookup, builder.warn);
     final int? fontFamilyIndex;
     if (ta.fontFamily == null) {
       fontFamilyIndex = null;
@@ -490,9 +529,16 @@ class SvgFlatSpan {
     final textIndex = canon.strings[text.toString()];
     final dxIndex = canon.floatValues[x + dx];
     final dyIndex = canon.floatValues[y + dy];
-    final fontSizeIndex = canon.floatValues[ta.fontSize.toSI()];
-    builder.textSpan(null, dxIndex, dyIndex, textIndex, ta.toSITextAttributes(),
-        fontFamilyIndex, fontSizeIndex, cascaded.toSIPaint());
+    final fontSizeIndex = canon.floatValues[ta.fontSize._toSI()];
+    builder.textSpan(
+        null,
+        dxIndex,
+        dyIndex,
+        textIndex,
+        ta._toSITextAttributes(),
+        fontFamilyIndex,
+        fontSizeIndex,
+        cascaded._toSIPaint());
   }
 
   RectT getBounds(double x, double y, SvgTextStyle ancestor) {
@@ -502,8 +548,8 @@ class SvgFlatSpan {
     // and renderBox.
     const heightScale = 1.2;
     const widthScale = 0.6;
-    final cascaded = attributes.cascade(ancestor);
-    final size = cascaded.fontSize.toSI();
+    final cascaded = attributes._cascade(ancestor);
+    final size = cascaded.fontSize._toSI();
     final height = size * heightScale;
     final width = text.length * size * widthScale;
     x += dx;

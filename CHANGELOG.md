@@ -3,6 +3,7 @@
 - Allow a list of fonts for SVG text (Issue 91)
 - Add the ability to see what part of an SVG is
   clicked on -- see `ExportedIDLookup` (Issue 92)
+- Add a DOM API for SVG assets (Issue 19)
 - Add a `ScalableImageWidget` method to read from a file (Issue 88)
 - Allow ID selection from `style` (Issue 93)
 

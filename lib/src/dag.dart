@@ -176,13 +176,13 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     // Maximize instance sharing with source SI
     _addAll(_renderables, dagger);
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
-  void _addAll(List<SIRenderable> children, Set<SIRenderable> dagger) {
+  void _addAll(List<SIRenderable> children, Set<Object> dagger) {
     for (final r in children) {
       dagger.add(r);
       r.addChildren(dagger);
@@ -202,7 +202,7 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
   @override
   String debugSizeMessage() {
-    final Set<SIRenderable> nodes = <SIRenderable>{};
+    final Set<Object> nodes = <SIRenderable>{};
     for (final r in _renderables) {
       nodes.add(r);
       r.addChildren(nodes);
@@ -228,6 +228,12 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
   }
 }
 
+class ScalableImageDagNotExported {
+  static void addAllToDagger(ScalableImageDag si, Set<Object> dagger) {
+    si._addAll(si._renderables, dagger);
+  }
+}
+
 abstract class _SIParentBuilder {
   List<SIRenderable> get _renderables;
 }
@@ -236,7 +242,7 @@ abstract mixin class _SIParentNode {
   List<SIRenderable> get _renderables;
 
   List<SIRenderable> _childrenPrunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     bool changed = false;
     final copy = List<SIRenderable>.empty(growable: true);
     for (final r in _renderables) {
@@ -346,7 +352,7 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
 
   @override
   SIRenderable? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     final mp = mask.prunedBy(dagger, imageSet, b);
     if (mp == null) {
       return null;
@@ -359,14 +365,14 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
     final mg = dagger.lookup(m);
     if (mg != null) {
       assert(mg is SIMasked);
-      return mg;
+      return mg as SIMasked;
     }
     dagger.add(m);
     return m;
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {
+  void addChildren(Set<Object> dagger) {
     dagger.add(mask);
     mask.addChildren(dagger);
     dagger.add(child);
@@ -421,7 +427,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     b = Transformer.transformBoundaryFromParent(transform, b)!;
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
@@ -452,7 +458,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   SIGroup? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     final rr = _childrenPrunedBy(dagger, imageSet, b);
     if (rr.isEmpty) {
       return null;
@@ -470,7 +476,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {
+  void addChildren(Set<Object> dagger) {
     for (final r in _renderables) {
       dagger.add(r);
       r.addChildren(dagger);
@@ -553,7 +559,7 @@ class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   SIExportedID? prunedBy(
-      Set<SIRenderable> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
     final rr = _childrenPrunedBy(dagger, imageSet, b);
     if (rr.isEmpty) {
       return null;
@@ -572,7 +578,7 @@ class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
   }
 
   @override
-  void addChildren(Set<SIRenderable> dagger) {
+  void addChildren(Set<Object> dagger) {
     final r = _renderables[0];
     dagger.add(r);
     r.addChildren(dagger);
@@ -663,17 +669,17 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   @protected
   @override
   late final List<double> floatValues;
-  final _paths = <Object?, Path>{};
-  final Set<Object> _dagger = <Object>{};
+  final paths = <Object?, Path>{};
+  final Set<Object> dagger = <Object>{};
   final Color? currentColor;
 
   SIGenericDagBuilder(this._givenViewport, this.warn, this.currentColor);
 
   T _daggerize<T extends Object>(T r) {
-    var result = _dagger.lookup(r);
+    var result = dagger.lookup(r);
     if (result == null) {
       result = r;
-      _dagger.add(result);
+      dagger.add(result);
     }
     return result as T;
   }
@@ -696,25 +702,25 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   Path _getPath(PathDataT pathData) {
     final key = immutableKey(pathData);
-    final p = _paths[key];
+    final p = paths[key];
     if (p != null) {
       return p;
     }
     final pb = UIPathBuilder();
     makePath(pathData, pb, warn: warn);
-    return _paths[key] = pb.path;
+    return paths[key] = pb.path;
   }
 
   @override
   PathBuilder? startPath(SIPaint paint, Object key) {
-    final p = _paths[key];
+    final p = paths[key];
     if (p != null) {
       final sip = _daggerize(SIPath(p, paint));
       addRenderable(sip);
       return null;
     }
     return UIPathBuilder(onEnd: (pb) {
-      _paths[key] = pb.path;
+      paths[key] = pb.path;
       final p = _daggerize(SIPath(pb.path, paint));
       addRenderable(p);
     });

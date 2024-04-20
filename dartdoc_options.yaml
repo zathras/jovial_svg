@@ -1,0 +1,12 @@
+
+dartdoc:
+    categories:
+      "Core":
+        markdown: doc/core.md
+      "Widget":
+        markdown: doc/widget.md
+      "SVG DOM":
+        name:  "Document Object Model"
+        markdown: doc/svg_dom.md
+    categoryOrder: ["Core", "Widget", "SVG DOM"]
+    showUndocumentedCategories: true
