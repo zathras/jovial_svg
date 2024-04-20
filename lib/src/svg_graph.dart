@@ -484,8 +484,8 @@ class _SvgNodeReferrers {
 }
 
 ///
-/// Text attributes of an SVG element that are inherited from an ancestor
-/// node.  These attributes are also present in an [SvgTextSpan] within
+/// Attributes of an SVG element that are inherited from an ancestor
+/// node, and that are also present in an [SvgTextSpan] within
 /// an SVG `text` element..
 ///
 /// {@category SVG DOM}
