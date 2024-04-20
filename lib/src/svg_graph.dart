@@ -55,12 +55,7 @@ part 'svg_graph_text.dart';
 /// {@category SVG DOM}
 ///
 class SvgDOM {
-  ///
-  /// A table used to look up nodes by their string ID.  Note that this table
-  /// is _not_ rebuilt automatically if the [SvgDOM] is modified
-  /// programmatically.  See [rebuildIDLookup].
-  ///
-  Map<String, SvgNode> idLookup;
+  Map<String, SvgNode>? _idLookup;
 
   ///
   /// The root node of the DOM.
@@ -92,7 +87,21 @@ class SvgDOM {
   bool _resolved = false;
 
   SvgDOM(this.root, this.stylesheet, this.width, this.height, this.tintColor,
-      this.tintMode, this.idLookup);
+      this.tintMode);
+
+  ///
+  /// A table used to look up nodes by their string ID.  Note that this table
+  /// is _not_ rebuilt automatically if the [SvgDOM] is modified
+  /// programmatically.  See [resetIDLookup].
+  ///
+  Map<String, SvgNode> get idLookup {
+    var r = _idLookup;
+    if (r == null) {
+      _idLookup = r = {};
+      root._addIDs(r);
+    }
+    return r;
+  }
 
   ///
   /// Determine the bounds, for use in user space calculations (e.g.
@@ -174,19 +183,19 @@ class SvgDOM {
   }
 
   ///
-  /// Rebuild the ID lookup table.  Client code can change the DOM,
+  /// Reset the [idLookup] table.  If it is subsequently accessed,
+  /// it will be rebuilt automatically, in an O(n) operation on the number
+  /// of nodes in the DOM.
+  ///
+  /// Client code can change the DOM,
   /// adding or removing nodes, or changing the `id` values of nodes.
-  /// The lookup table is __not__ automatically rebuilt when this
+  /// The lookup table is __not__ automatically reset when this
   /// happens.  After one or more such modifications, client code
   /// should call this method if it plans to subsequently look up
   /// nodes by name.
   ///
-  /// Note that `SvgDOMManager` calls this method if needed when
-  /// building a `ScalableImage`.
-  ///
-  void rebuildIDLookup() {
-    idLookup = {};
-    root._addIDs(idLookup);
+  void resetIDLookup() {
+    _idLookup = null;
   }
 
   ///
@@ -202,9 +211,8 @@ class SvgDOM {
     if (_resolved) {
       throw StateError('Parse graph has already been built');
     }
-    final r = SvgDOM(
-        root._clone(), stylesheet, width, height, tintColor, tintMode, {});
-    r.rebuildIDLookup();
+    final r =
+        SvgDOM(root._clone(), stylesheet, width, height, tintColor, tintMode);
     return r;
   }
 
@@ -2859,6 +2867,11 @@ class _SvgBoundary {
 class SvgDOMNotExported {
   static void build(SvgDOM svg, SIBuilder<String, SIImageData> builder) =>
       svg._build(builder);
+
+  static void setIDLookup(SvgDOM svg, Map<String, SvgNode> idLookup) {
+    assert(svg._idLookup == null);
+    svg._idLookup = Map.unmodifiable(idLookup);
+  }
 
   static SvgDOM clone(SvgDOM svg) => svg._clone();
 

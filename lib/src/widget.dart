@@ -1360,6 +1360,7 @@ class ScalableImageCache {
 /// SVG's coordinate space.
 ///
 /// {@category Widget}
+/// {@category Core}
 ///
 class ScalingTransform {
   ///

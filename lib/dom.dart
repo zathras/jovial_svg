@@ -207,7 +207,7 @@ class SvgDOMManager {
     final SvgDOM svg;
     if (last) {
       svg = dom;
-      svg.rebuildIDLookup();
+      svg.resetIDLookup();
     } else {
       svg = SvgDOMNotExported.clone(dom); // Builds ID lookup
     }

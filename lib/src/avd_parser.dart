@@ -251,7 +251,9 @@ abstract class AvdParser extends GenericParser {
         }
       }
     }
-    avd = SvgDOM(root, const {}, width, height, tintColor, tintMode, {});
+    avd = SvgDOM(root, const {}, width, height, tintColor, tintMode);
+    SvgDOMNotExported.setIDLookup(avd, const {});
+    // AVDs don't have IDs, so setting it to an unmodifiable empty map is fine.
     _parentStack.add(avd.root);
   }
 

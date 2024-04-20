@@ -83,6 +83,7 @@ abstract class SvgParser extends GenericParser {
   /// parse graph so that references can be resolved. See `SvgParseGraph._build`.
   ///
   late final SvgDOM svg;
+  late final Map<String, SvgNode> idLookup;
   bool _svgTagSeen = false;
 
   /// Stylesheet.  Key is element type, or ID.  ID starts with '#'.
@@ -92,6 +93,7 @@ abstract class SvgParser extends GenericParser {
   SvgParser(this.warn, this.exportedIDs, this._builder);
 
   void buildResult() {
+    SvgDOMNotExported.setIDLookup(svg, idLookup);
     if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
@@ -265,7 +267,7 @@ abstract class SvgParser extends GenericParser {
     }
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
-    final r = svg = SvgDOM(root, _stylesheet, width, height, null, null, {});
+    final r = svg = SvgDOM(root, _stylesheet, width, height, null, null);
     _svgTagSeen = true;
     _parentStack.add(r.root);
   }
@@ -645,7 +647,7 @@ abstract class SvgParser extends GenericParser {
   void _processId(SvgNode n, Map<String, String> attrs) {
     final id = n.id = attrs.remove('id');
     if (id != null) {
-      svg.idLookup[id] = n;
+      idLookup[id] = n;
       pattern:
       for (final Pattern e in exportedIDs) {
         for (final Match m in e.allMatches(id)) {
