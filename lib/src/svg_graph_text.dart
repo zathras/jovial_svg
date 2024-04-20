@@ -108,11 +108,11 @@ class SvgText extends SvgInheritableAttributesNode {
   }
 
   @override
-  SvgNode? _resolve(Map<String, SvgNode> idLookup, SvgPaint ancestor,
-      void Function(String) warn, _SvgNodeReferrers referrers) {
+  SvgNode? _resolve(
+      _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers) {
     // Even invisible text can influence layout, so we don't try to optimize
     // it away.
-    return _resolveMask(idLookup, ancestor, warn, referrers);
+    return _resolveMask(ctx, ancestor, referrers);
   }
 
   ///
