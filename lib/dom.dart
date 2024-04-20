@@ -70,6 +70,8 @@ export 'src/svg_graph.dart'
         Style,
         SvgTextStyle,
         SvgPaint,
+        SvgInheritableAttributes,
+        SvgInheritableTextAttributes,
         SvgInheritableAttributesNode,
         SvgGradientNode,
         SvgGradientColor,

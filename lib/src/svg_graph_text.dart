@@ -209,11 +209,7 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   @override
   final String tagName;
 
-  /// The ID value, which is always null for a text span.
-  @override
-  String? get id => null;
-
-  SvgTextSpan(this.tagName);
+  SvgTextSpan(this.tagName) : super._p();
 
   SvgTextSpan._cloned(SvgTextSpan other)
       : x = other.x,
@@ -224,6 +220,13 @@ class SvgTextSpan extends SvgInheritableTextAttributes
         super._cloned(other) {
     parts.addAll(other.parts.map((p) => p._clone(this)));
   }
+
+  // We inherit an applyStyle implementation that assumes we're a node,
+  // so we need to stub this out.  Styles applied by node ID will be
+  // inherited by our enclosing SvgText, which forwards its style
+  // information to its root span.
+  @override
+  String? get _idForApplyStyle => null;
 
   @override
   SvgTextSpan _clone(SvgTextSpan? parent) => SvgTextSpan._cloned(this);

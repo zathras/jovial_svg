@@ -37,9 +37,9 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:jovial_misc/io_utils.dart';
+import 'package:jovial_svg/dom.dart';
 import 'package:meta/meta.dart';
 
-import 'affine.dart';
 import 'common_noui.dart';
 import 'compact_noui.dart';
 import 'path_noui.dart';
@@ -345,13 +345,12 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// {@category SVG DOM}
 ///
 class Style extends SvgInheritableAttributes {
-  ///
-  /// A `Style` has no id, so we always give null.
-  ///
-  @override
-  String? get id => null;
+  Style() : super._p();
 
-  Style();
+  // We inherit an applyStyle implementation that's unreachable, so we need to
+  // stub this out.
+  @override
+  String? get _idForApplyStyle => null;
 
   void _applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
@@ -484,9 +483,13 @@ class _SvgNodeReferrers {
   }
 }
 
-/// Just the inheritable attributes that are applicable to text.  The
-/// fields are split out as SvgTextFields, since the actual text node
-/// forwards those to its child.
+///
+/// Text attributes of an SVG element that are inherited from an ancestor
+/// node.  These attributes are also present in an [SvgTextSpan] within
+/// an SVG `text` element..
+///
+/// {@category SVG DOM}
+///
 abstract class SvgInheritableTextAttributes {
   ///
   /// The paint parameters to use when rendering a node.
@@ -504,7 +507,7 @@ abstract class SvgInheritableTextAttributes {
   ///
   String styleClass;
 
-  SvgInheritableTextAttributes()
+  SvgInheritableTextAttributes._p()
       : paint = SvgPaint.empty(),
         textStyle = SvgTextStyle.empty(),
         styleClass = '';
@@ -526,7 +529,7 @@ abstract class SvgInheritableTextAttributes {
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
 
-  String? get id;
+  String? get _idForApplyStyle;
 
   bool _isInvisible(SvgPaint cascaded) {
     return cascaded.hidden == true ||
@@ -565,9 +568,9 @@ abstract class SvgInheritableTextAttributes {
     }
 
     applyStyles(stylesheet[tagName]);
-    //
-    if (id != null) {
-      applyStyles(stylesheet['#$id']);
+
+    if (_idForApplyStyle != null) {
+      applyStyles(stylesheet['#$_idForApplyStyle']);
     }
   }
 
@@ -577,8 +580,14 @@ abstract class SvgInheritableTextAttributes {
   }
 }
 
+///
+/// Attributes of an SVG element that are inherited from an ancestor
+/// node.  These attributes are also present in [Style] instances.
+///
+/// {@category SVG DOM}
+///
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
-  SvgInheritableAttributes();
+  SvgInheritableAttributes._p() : super._p();
 
   SvgInheritableAttributes._withPaint(super.paint) : super._withPaint();
 
@@ -624,8 +633,6 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 ///
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
-  SvgInheritableAttributesNode._p();
-
   @override
   String? id;
 
@@ -635,7 +642,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   @override
   String? get exportedID => idIsExported ? id : null;
 
-  SvgInheritableAttributesNode();
+  SvgInheritableAttributesNode._p() : super._p();
 
   SvgInheritableAttributesNode._withPaint(super.paint) : super._withPaint();
 
@@ -643,6 +650,9 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
       : id = other.id,
         idIsExported = other.idIsExported,
         super._cloned();
+
+  @override
+  String? get _idForApplyStyle => id;
 
   @override
   void _visitPaths(void Function(Object pathKey) f) {}
