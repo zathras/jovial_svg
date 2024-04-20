@@ -268,6 +268,7 @@ abstract class SvgParser extends GenericParser {
     _processInheritable(root, attrs);
     _warnUnusedAttributes(attrs);
     final r = svg = SvgDOM(root, _stylesheet, width, height, null, null);
+    idLookup = {};
     _svgTagSeen = true;
     _parentStack.add(r.root);
   }
