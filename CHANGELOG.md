@@ -5,7 +5,8 @@
   clicked on -- see `ExportedIDLookup` (Issue 92)
 - Add a DOM API for SVG assets (Issue 19)
 - Add a `ScalableImageWidget` method to read from a file (Issue 88)
-- Allow ID selection from `style` (Issue 93)
+- Allow node ID selection from `style` (Issue 93)
+- Fix attribute handling when masked node is used more than once (Issue 94)
 
 ## [1.1.20] - December 2023
 
