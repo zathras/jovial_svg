@@ -420,7 +420,8 @@ sealed class SvgNode {
   _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta);
 
   ///
-  /// The ID value used to look up this node.
+  /// The ID value used to look up this node.  See also
+  /// [SvgDOM.resetIDLookup].
   ///
   String? id;
 
@@ -494,12 +495,17 @@ abstract class SvgInheritableTextAttributes {
   ///
   /// The paint parameters to use when rendering a node.
   ///
-  SvgPaint paint;
+  SvgPaint get paint => _paint = (_paint ?? SvgPaint.empty());
+  set paint(SvgPaint v) => _paint = v;
+  SvgPaint? _paint;
 
   ///
   /// The text styling information to use when rendering a node
   ///
-  SvgTextStyle textStyle;
+  SvgTextStyle get textStyle =>
+      _textStyle = (_textStyle ?? SvgTextStyle.empty());
+  set textStyle(SvgTextStyle v) => _textStyle = v;
+  SvgTextStyle? _textStyle;
 
   ///
   /// The [Stylesheet] `class` value for CSS [Style] instances to be applied
@@ -507,18 +513,15 @@ abstract class SvgInheritableTextAttributes {
   ///
   String styleClass;
 
-  SvgInheritableTextAttributes._p()
-      : paint = SvgPaint.empty(),
-        textStyle = SvgTextStyle.empty(),
-        styleClass = '';
+  SvgInheritableTextAttributes._p() : styleClass = '';
 
-  SvgInheritableTextAttributes._withPaint(this.paint)
-      : textStyle = SvgTextStyle.empty(),
+  SvgInheritableTextAttributes._withPaint(SvgPaint paint)
+      : _paint = paint,
         styleClass = '';
 
   SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
-      : paint = other.paint,
-        textStyle = other.textStyle,
+      : _paint = other._paint,
+        _textStyle = other._textStyle,
         styleClass = other.styleClass;
 
   ///
@@ -670,13 +673,6 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   bool _isInvisible(SvgPaint cascaded) =>
       !display || super._isInvisible(cascaded);
 
-  bool _hasNonMaskAttributes() =>
-      transform != null ||
-      paint != (SvgPaint.empty()..mask = paint.mask) ||
-      textStyle != SvgTextStyle.empty() ||
-      groupAlpha != null ||
-      (blendMode ?? SIBlendMode.normal) != SIBlendMode.normal;
-
   @override
   _SvgBoundary? _getUserSpaceBoundary(SvgTextStyle ta) {
     RectT? bounds = _getUntransformedBounds(ta);
@@ -705,12 +701,16 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
           warn('    Ignoring mask that refers to itself.');
         } else {
           final masked = _SvgMasked(this, n);
-          if (_hasNonMaskAttributes()) {
+          bool hasNonMaskAttributesExceptPaint = transform != null ||
+              textStyle != SvgTextStyle.empty() ||
+              groupAlpha != null ||
+              (blendMode ?? SIBlendMode.normal) != SIBlendMode.normal;
+          if (hasNonMaskAttributesExceptPaint) {
             final g = SvgGroup();
             g.transform = transform;
             transform = null;
-            g.textStyle = textStyle;
-            textStyle = SvgTextStyle.empty();
+            g._textStyle = _textStyle;
+            _textStyle = null;
             g.groupAlpha = groupAlpha;
             groupAlpha = null;
             g.blendMode = blendMode;
@@ -2086,7 +2086,7 @@ class SvgTextStyle {
 
   SvgTextStyle.empty();
 
-  SvgTextStyle(
+  SvgTextStyle._p(
       {required this.fontFamily,
       required this.fontStyle,
       required this.textAnchor,
@@ -2103,7 +2103,7 @@ class SvgTextStyle {
         textDecoration = SITextDecoration.none;
 
   SvgTextStyle _cascade(SvgTextStyle ancestor) {
-    return SvgTextStyle(
+    return SvgTextStyle._p(
         fontSize: fontSize._orInherit(ancestor.fontSize),
         fontFamily: fontFamily ?? ancestor.fontFamily,
         textAnchor: textAnchor ?? ancestor.textAnchor,

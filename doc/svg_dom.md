@@ -14,7 +14,7 @@ final svg = SvgDOMManager.fromString(svgSrc);
 final node = svg.dom.idLookup['foo'] as SvgEllipse;
 node.paint.fillColor = Colors.blue;
 final ScalableImage si = svg.build();
-   ... display SI, perhaps in a ScalableImageWidget ...
+   ... display si, perhaps in a ScalableImageWidget ...
 ```
 
 A full sample can be found in the GitHub repository in
