@@ -217,6 +217,8 @@ class SvgDOM {
   }
 
   void _visitPaths(void Function(Object pathKey) f) => root._visitPaths(f);
+
+  void _cloneAttributes() => root._cloneAttributes();
 }
 
 class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
@@ -407,6 +409,8 @@ sealed class SvgNode {
 
   void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
 
+  void _cloneAttributes();
+
   SvgNode? _resolve(
       _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers);
 
@@ -507,20 +511,12 @@ abstract class SvgInheritableTextAttributes {
   ///
   /// The paint parameters to use when rendering a node.
   ///
-  ///  NOTE:  The node may mutate this paint.
-  ///         If the same paint instance is set on multiple nodes, the
-  ///         results will be undefined.
-  ///
   SvgPaint get paint => _paint = (_paint ?? SvgPaint.empty());
   set paint(SvgPaint v) => _paint = v;
   SvgPaint? _paint;
 
   ///
   /// The text styling information to use when rendering a node
-  ///
-  ///  NOTE:  This node may mutate this text style.
-  ///         If the same style instance is set on multiple nodes, the
-  ///         results will be undefined.
   ///
   SvgTextStyle get textStyle =>
       _textStyle = (_textStyle ?? SvgTextStyle.empty());
@@ -540,9 +536,15 @@ abstract class SvgInheritableTextAttributes {
         styleClass = '';
 
   SvgInheritableTextAttributes._cloned(SvgInheritableTextAttributes other)
-      : _paint = other._paint,
-        _textStyle = other._textStyle,
+      : _paint = other._paint?._clone(),
+        _textStyle = other._textStyle?._clone(),
         styleClass = other.styleClass;
+
+  @mustCallSuper
+  void _cloneAttributes() {
+    _paint = _paint?._clone();
+    _textStyle = _textStyle?._clone();
+  }
 
   ///
   /// The tag name of this node, to be used when matching CSS [Style]
@@ -610,23 +612,8 @@ abstract class SvgInheritableTextAttributes {
 /// {@category SVG DOM}
 ///
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
-  SvgInheritableAttributes._p() : super._p();
-
-  SvgInheritableAttributes._withPaint(super.paint) : super._withPaint();
-
-  SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
-      : transform = other.transform,
-        display = other.display,
-        groupAlpha = other.groupAlpha,
-        blendMode = other.blendMode,
-        super._cloned();
-
   ///
   /// Transformation(s) to apply to a node, in matrix form.
-  ///
-  ///  NOTE:  The node may mutate this transform.
-  ///         If the same affine instance is set on multiple nodes, the
-  ///         results will be undefined.
   ///
   MutableAffine? transform;
 
@@ -645,6 +632,24 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
   ///
   SIBlendMode? blendMode;
   // Doesn't inherit; instead, a group is created
+
+  SvgInheritableAttributes._p() : super._p();
+
+  SvgInheritableAttributes._withPaint(super.paint) : super._withPaint();
+
+  SvgInheritableAttributes._cloned(SvgInheritableAttributes super.other)
+      : transform = other.transform?.mutableCopy(),
+        display = other.display,
+        groupAlpha = other.groupAlpha,
+        blendMode = other.blendMode,
+        super._cloned();
+
+  @override
+  @mustCallSuper
+  void _cloneAttributes() {
+    super._cloneAttributes();
+    transform = transform?.mutableCopy();
+  }
 
   @override
   void _takeFrom(Style s, void Function(String) warn) {
@@ -818,6 +823,28 @@ class SvgPaint {
         strokeColor = SvgColor.none,
         inClipPath = false;
 
+  SvgPaint _clone() {
+    assert(_userSpace == _dummy);
+    return SvgPaint._filled(
+        currentColor: currentColor,
+        fillColor: fillColor,
+        fillAlpha: fillAlpha,
+        strokeColor: strokeColor,
+        strokeAlpha: strokeAlpha,
+        strokeWidth: strokeWidth,
+        strokeMiterLimit: strokeMiterLimit,
+        strokeJoin: strokeJoin,
+        strokeCap: strokeCap,
+        fillType: fillType,
+        clipFillType: clipFillType,
+        inClipPath: inClipPath,
+        strokeDashArray: strokeDashArray,
+        strokeDashOffset: strokeDashOffset,
+        hidden: hidden,
+        mask: mask,
+        userSpace: _userSpace);
+  }
+
   static RectT _dummy() => const RectT(0, 0, 0, 0);
 
   SvgPaint _cascade(SvgPaint ancestor, Map<String, SvgNode>? idLookup,
@@ -975,6 +1002,15 @@ class SvgGroup extends SvgInheritableAttributesNode {
 
   @override
   SvgGroup _clone() => SvgGroup._cloned(this);
+
+  @override
+  @mustCallSuper
+  void _cloneAttributes() {
+    super._cloneAttributes();
+    for (final c in children) {
+      c._cloneAttributes();
+    }
+  }
 
   @override
   void _visitPaths(void Function(Object pathKey) f) {
@@ -1193,6 +1229,9 @@ class _SvgMasked extends SvgNode {
   _SvgMasked _clone() => unreachable(this);
   // Clone can only happen before resolve, so there can't be any masked
   // nodes.
+
+  @override
+  void _cloneAttributes() => unreachable(null);
 
   @override
   void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
@@ -1940,6 +1979,12 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
+  void _cloneAttributes() {
+    // We don't need to clone gradient.  It is mutable, but we don't mutate
+    // it when generating a ScalableImage.
+  }
+
+  @override
   void _visitPaths(void Function(Object pathKey) f) {}
 
   @override
@@ -2130,6 +2175,14 @@ class SvgTextStyle {
         fontWeight = SvgFontWeight.w400,
         fontSize = SvgFontSize.medium,
         textDecoration = SITextDecoration.none;
+
+  SvgTextStyle? _clone() => SvgTextStyle._p(
+      fontFamily: fontFamily,
+      fontStyle: fontStyle,
+      textAnchor: textAnchor,
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      textDecoration: textDecoration);
 
   SvgTextStyle _cascade(SvgTextStyle ancestor) {
     return SvgTextStyle._p(
@@ -2840,6 +2893,9 @@ class AvdClipPath extends SvgNode {
       void Function(String) warn) {} // coverage:ignore-line
 
   @override
+  void _cloneAttributes() {}
+
+  @override
   bool _build(
       SIBuilder<String, SIImageData> builder,
       CanonicalizedData<SIImageData> canon,
@@ -2916,6 +2972,8 @@ class SvgDOMNotExported {
 
   static void visitPaths(SvgDOM dom, void Function(Object pathKey) f) =>
       dom._visitPaths(f);
+
+  static void cloneAttributes(SvgDOM svg) => svg._cloneAttributes();
 }
 
 @immutable

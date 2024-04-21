@@ -83,6 +83,12 @@ class SvgText extends SvgInheritableAttributesNode {
   SvgText _clone() => SvgText._cloned(this);
 
   @override
+  void _cloneAttributes() {
+    super._cloneAttributes();
+    root._cloneAttributes();
+  }
+
+  @override
   String get tagName => root.tagName; // which is 'text'
 
   ///
@@ -241,6 +247,14 @@ class SvgTextSpan extends SvgInheritableTextAttributes
     parts.addAll(other.parts.map((p) => p._clone(this)));
   }
 
+  @override
+  void _cloneAttributes() {
+    super._cloneAttributes();
+    for (final p in parts) {
+      p._cloneAttributes();
+    }
+  }
+
   // We inherit an applyStyle implementation that assumes we're a node,
   // so we need to stub this out.  Styles applied by node ID will be
   // inherited by our enclosing SvgText, which forwards its style
@@ -379,6 +393,8 @@ sealed class SvgTextSpanComponent {
 
   SvgTextSpanComponent _clone(SvgTextSpan? parent);
 
+  void _cloneAttributes();
+
   bool _trimRight();
 
   void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
@@ -405,6 +421,12 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
 
   @override
   void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
+
+  @override
+  void _cloneAttributes() {
+    // We don't need to clone text.  It is mutable, but we don't mutate
+    // it when generating a ScalableImage.
+  }
 
   @override
   bool _trimRight() {

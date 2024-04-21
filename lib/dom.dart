@@ -209,7 +209,11 @@ class SvgDOMManager {
     final SvgDOM svg;
     if (last) {
       svg = dom;
+      // The client might have messed up the ID lookup table, and might
+      // have introduced instance sharing on attributes that we modify
+      // when stylesheets are applied.
       svg.resetIDLookup();
+      SvgDOMNotExported.cloneAttributes(svg);
     } else {
       svg = SvgDOMNotExported.clone(dom); // Builds ID lookup
     }
