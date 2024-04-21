@@ -735,7 +735,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
         } else {
           final masked = _SvgMasked(this, n);
           bool hasNonMaskAttributesExceptPaint = transform != null ||
-              textStyle != SvgTextStyle.empty() ||
+              (_textStyle != null && textStyle != SvgTextStyle.empty()) ||
               groupAlpha != null ||
               (blendMode ?? SIBlendMode.normal) != SIBlendMode.normal;
           if (hasNonMaskAttributesExceptPaint) {
@@ -1033,7 +1033,9 @@ class SvgGroup extends SvgInheritableAttributesNode {
   @override
   SvgNode? _resolve(
       _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers) {
-    final cascaded = paint._cascade(ancestor, ctx.idLookup, ctx.warn);
+    final cascaded = _paint == null
+        ? ancestor
+        : paint._cascade(ancestor, ctx.idLookup, ctx.warn);
     final newC = List<SvgNode>.empty(growable: true);
     referrers = _SvgNodeReferrers(this, referrers);
     for (SvgNode n in children) {
@@ -1054,7 +1056,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
 
   @override
   RectT? _getUntransformedBounds(SvgTextStyle ta) {
-    final currTA = textStyle._cascade(ta);
+    final currTA = _textStyle == null ? ta : textStyle._cascade(ta);
     RectT? curr;
     for (final ch in children) {
       final boundary = ch._getUserSpaceBoundary(currTA);
@@ -1084,8 +1086,10 @@ class SvgGroup extends SvgInheritableAttributesNode {
     final blend = blendHandledByParent
         ? SIBlendMode.normal
         : (blendMode ?? SIBlendMode.normal);
-    final currTA = textStyle._cascade(ta);
-    final cascaded = paint._cascade(ancestor, idLookup, builder.warn);
+    final currTA = _textStyle == null ? ta : textStyle._cascade(ta);
+    final cascaded = _paint == null
+        ? ancestor
+        : paint._cascade(ancestor, idLookup, builder.warn);
     if (transform == null &&
         groupAlpha == null &&
         blend == SIBlendMode.normal &&
@@ -1114,7 +1118,8 @@ class SvgGroup extends SvgInheritableAttributesNode {
 
   @override
   bool _canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
-    final cascaded = paint._cascade(ancestor, idLookup, (_) {});
+    final cascaded =
+        _paint == null ? ancestor : paint._cascade(ancestor, idLookup, (_) {});
     for (final ch in children) {
       if (ch._canUseLuma(idLookup, cascaded)) {
         return true;
@@ -1362,7 +1367,9 @@ class SvgUse extends SvgInheritableAttributesNode {
       ctx.warn('    Ignoring <use> that refers to itself.');
       return null;
     }
-    final cascaded = paint._cascade(ancestor, ctx.idLookup, ctx.warn);
+    final cascaded = _paint == null
+        ? ancestor
+        : paint._cascade(ancestor, ctx.idLookup, ctx.warn);
     n = n._resolve(ctx, cascaded, referrers);
     if (n == null || transform?.determinant() == 0.0) {
       return null;
@@ -1483,7 +1490,9 @@ abstract class SvgPathMaker extends SvgInheritableAttributesNode {
     final blend = blendHandledByParent
         ? SIBlendMode.normal
         : (blendMode ?? SIBlendMode.normal);
-    final cascaded = paint._cascade(ancestor, idLookup, builder.warn);
+    final cascaded = _paint == null
+        ? ancestor
+        : paint._cascade(ancestor, idLookup, builder.warn);
     if (cascaded.hidden == true) {
       return false;
     }
@@ -1505,7 +1514,8 @@ abstract class SvgPathMaker extends SvgInheritableAttributesNode {
 
   @override
   bool _canUseLuma(Map<String, SvgNode> idLookup, SvgPaint ancestor) {
-    final cascaded = paint._cascade(ancestor, idLookup, (_) {});
+    final cascaded =
+        _paint == null ? ancestor : paint._cascade(ancestor, idLookup, (_) {});
     final p = cascaded._toSIPaint();
     return p.canUseLuma;
   }
@@ -2116,7 +2126,9 @@ class SvgImage extends SvgInheritableAttributesNode {
     final sid = SIImageData(
         x: x, y: y, width: width, height: height, encoded: imageData);
     int imageNumber = canon.images[sid];
-    final cascaded = paint._cascade(ancestor, idLookup, builder.warn);
+    final cascaded = _paint == null
+        ? ancestor
+        : paint._cascade(ancestor, idLookup, builder.warn);
     if (cascaded.hidden == true) {
       return false;
     }
