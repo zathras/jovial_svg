@@ -354,19 +354,31 @@ class Style extends SvgInheritableAttributes {
 
   void _applyText(
       SvgInheritableTextAttributes node, void Function(String) warn) {
+    // NOTE:  Don't try to optimize by using node._paint or node._textStyle.
+    // That wouldn't work with SvgText, and besides, any memory allocated
+    // here would be short-lived.
     node.paint._takeFrom(this, warn);
     node.textStyle._takeFrom(this);
   }
 
   void _apply(SvgInheritableAttributes node, void Function(String) warn) {
     _applyText(node, warn);
-    node.transform = node.transform ?? transform;
+    final st = transform;
+    if (st != null) {
+      final nt = node.transform;
+      if (nt == null) {
+        node.transform = st.mutableCopy();
+      } else {
+        nt.multiplyBy(st);
+      }
+    }
     // NOTE:  SVG's transform isn't the same as CSS's.  SVG's is almost
     // certainly simpler, but there may be other differences.  The line above
     // assumes they're the same.  Depending on how different they are, for full
     // support it might even be necessary to treat them as different things.
     // For example, the origin for SVG's transforms is 0,0; maybe CSS does
     // something different?
+
     node.blendMode = node.blendMode ?? blendMode;
     node.groupAlpha = node.groupAlpha ?? groupAlpha;
   }
@@ -495,12 +507,20 @@ abstract class SvgInheritableTextAttributes {
   ///
   /// The paint parameters to use when rendering a node.
   ///
+  ///  NOTE:  The node may mutate this paint.
+  ///         If the same paint instance is set on multiple nodes, the
+  ///         results will be undefined.
+  ///
   SvgPaint get paint => _paint = (_paint ?? SvgPaint.empty());
   set paint(SvgPaint v) => _paint = v;
   SvgPaint? _paint;
 
   ///
   /// The text styling information to use when rendering a node
+  ///
+  ///  NOTE:  This node may mutate this text style.
+  ///         If the same style instance is set on multiple nodes, the
+  ///         results will be undefined.
   ///
   SvgTextStyle get textStyle =>
       _textStyle = (_textStyle ?? SvgTextStyle.empty());
@@ -603,6 +623,10 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 
   ///
   /// Transformation(s) to apply to a node, in matrix form.
+  ///
+  ///  NOTE:  The node may mutate this transform.
+  ///         If the same affine instance is set on multiple nodes, the
+  ///         results will be undefined.
   ///
   MutableAffine? transform;
 

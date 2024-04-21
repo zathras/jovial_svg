@@ -85,17 +85,37 @@ class SvgText extends SvgInheritableAttributesNode {
   @override
   String get tagName => root.tagName; // which is 'text'
 
+  ///
+  /// [SvgTextSpan.x] from [root]
+  ///
   List<double>? get x => root.x;
   set x(List<double>? v) => root.x = v;
+
+  ///
+  /// [SvgTextSpan.y] from [root]
+  ///
   List<double>? get y => root.y;
   set y(List<double>? v) => root.y = v;
 
+  ///
+  /// [SvgTextSpan.paint] from [root] - see
+  ///
   @override
   SvgPaint get paint => root.paint;
+  @override
+  set paint(SvgPaint v) => root.paint = v;
+
+  ///
+  /// [SvgTextSpan.textStyle] from [root]
+  ///
   @override
   SvgTextStyle get textStyle => root.textStyle;
   @override
   set textStyle(SvgTextStyle v) => root.textStyle = v;
+
+  ///
+  /// [SvgTextStyle.styleClass] from [root]
+  ///
   @override
   String get styleClass => root.styleClass;
   @override
