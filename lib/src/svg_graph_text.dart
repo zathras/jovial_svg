@@ -114,7 +114,7 @@ class SvgText extends SvgInheritableAttributesNode {
   set textStyle(SvgTextStyle v) => root.textStyle = v;
 
   ///
-  /// [SvgTextStyle.styleClass] from [root]
+  /// [SvgTextSpan.styleClass] from [root]
   ///
   @override
   String get styleClass => root.styleClass;
