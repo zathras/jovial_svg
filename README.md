@@ -14,6 +14,8 @@ that are applicable to static images, plus a healthy subset of
 Cascading style sheets (CSS) are supported, via the `<style>` tag.
 In addition to SVG, [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
+SVG assets can be modified with a DOM interface in order to produce
+animation.
 
 The library is [published to `pub.dev`](https://pub.dev/packages/jovial_svg),
 where you can also find the

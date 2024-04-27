@@ -847,7 +847,9 @@ abstract class ScalableImageBase extends ScalableImage {
   void paintChildren(Canvas c, Color currentColor);
 
   @override
-  Set<ExportedID> get exportedIDs {
+  late final Set<ExportedID> exportedIDs = _calculateExportedIDs();
+
+  Set<ExportedID> _calculateExportedIDs() {
     final result = List<ExportedIDBoundary>.empty(growable: true);
     final MutableAffine xform = MutableAffine.identity();
     final Rect vp = viewport;

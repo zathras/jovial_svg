@@ -6,7 +6,8 @@ import 'package:jovial_svg/jovial_svg.dart';
 import 'package:jovial_svg/dom.dart';
 
 ///
-/// Demonstration of using the DOM-like API to animate an SVG
+/// Demonstration of using the DOM-like API to animate an SVG.  This demo
+/// also detects a mouse click in the moving rectangle.
 ///
 void main() {
   runApp(const JovialTestApp());
@@ -37,13 +38,14 @@ class Animated extends StatefulWidget {
 }
 
 class _AnimatedState extends State<Animated> {
-  final svg = SvgDOMManager.fromString(svgString);
+  final svg = SvgDOMManager.fromString(svgString, exportedIDs: ['r']);
   late ScalableImage si;
   late final Timer timer;
   final stopwatch = Stopwatch();
   late final SvgEllipse circle;
   late final SvgRect rect;
   late final SvgEllipse ellipse;
+  final lookup = ExportedIDLookup();
 
   @override
   void initState() {
@@ -89,6 +91,18 @@ class _AnimatedState extends State<Animated> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      ScalableImageWidget(si: si, scale: double.infinity, fit: BoxFit.contain);
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTapDown: _handleTapDown,
+        child: ScalableImageWidget(
+            si: si,
+            scale: double.infinity,
+            fit: BoxFit.contain,
+            lookup: lookup));
+  }
+
+  void _handleTapDown(TapDownDetails event) {
+    final Set<String> hits = lookup.hits(event.localPosition);
+    print('Tap down at ${event.localPosition}:  $hits');
+  }
 }

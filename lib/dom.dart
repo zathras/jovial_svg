@@ -139,15 +139,18 @@ class SvgDOMManager {
   /// the XML representation in the stream [input].
   ///
   /// [exportedIDs] specifies a list of node IDs that are to be exported.
+  /// Each time [build] is called, the set returned from the new instance's
+  /// [ScalableImage.exportedIDs] will be different than from previous
+  /// instances.
   ///
-  /// If [warn] is non-null, it will be called if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to do nothing.
   ///
   static Future<SvgDOMManager> fromStream(final Stream<String> input,
       {List<Pattern> exportedIDs = const [],
-      void Function(String)? warn}) async {
-    final warnArg = warn ?? nullWarn;
+      void Function(String)? warnF}) async {
+    final warnArg = warnF ?? nullWarn;
     final p = StreamSvgParser(input, exportedIDs, null, warn: warnArg);
     await p.parse();
     return SvgDOMManager._new(p.svg);
@@ -158,14 +161,17 @@ class SvgDOMManager {
   /// the XML representation in [input].
   ///
   /// [exportedIDs] specifies a list of node IDs that are to be exported.
+  /// Each time [build] is called, the set returned from the new instance's
+  /// [ScalableImage.exportedIDs] will be different than from previous
+  /// instances.
   ///
-  /// If [warn] is non-null, it will be called if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to do nothing.
   ///
   static SvgDOMManager fromString(final String input,
-      {List<Pattern> exportedIDs = const [], void Function(String)? warn}) {
-    final warnArg = warn ?? nullWarn;
+      {List<Pattern> exportedIDs = const [], void Function(String)? warnF}) {
+    final warnArg = warnF ?? nullWarn;
     final p = StringSvgParser(input, exportedIDs, null, warn: warnArg);
     p.parse();
     return SvgDOMManager._new(p.svg);
@@ -193,19 +199,19 @@ class SvgDOMManager {
   /// However, setting this true makes the build process consume
   /// less memory, and be faster.
   ///
-  /// If [warn] is non-null, it will be called if the SVG asset contains
+  /// If [warnF] is non-null, it will be called if the SVG asset contains
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to print nothing.
   ///
   /// [currentColor] sets [ScalableImage.currentColor].
   ///
   ScalableImage build(
-      {bool last = false, void Function(String)? warn, Color? currentColor}) {
+      {bool last = false, void Function(String)? warnF, Color? currentColor}) {
     if (_lastCall) {
       throw StateError('build was previously called with last true');
     }
     _lastCall = last;
-    final warnArg = warn ?? nullWarn;
+    final warnArg = warnF ?? nullWarn;
     final SvgDOM svg;
     if (last) {
       svg = dom;
