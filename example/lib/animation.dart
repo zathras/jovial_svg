@@ -103,6 +103,7 @@ class _AnimatedState extends State<Animated> {
 
   void _handleTapDown(TapDownDetails event) {
     final Set<String> hits = lookup.hits(event.localPosition);
+    // ignore: avoid_print
     print('Tap down at ${event.localPosition}:  $hits');
   }
 }
