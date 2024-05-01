@@ -270,7 +270,7 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
       collectPaint(paint);
 
   @override
-  PathBuilder? startPath(SIPaint paint, Object key) {
+  EnhancedPathBuilder? startPath(SIPaint paint, Object key) {
     collectPaint(paint);
     return null;
   }
@@ -1554,6 +1554,13 @@ class _PathKey {
 /// {@category SVG DOM}
 ///
 class SvgPath extends SvgPathMaker {
+  ///
+  /// The path commands.  The syntax is specified at at
+  /// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html
+  ///
+  /// See [StringPathBuilder] for one tool that can be used to modify the
+  /// path data.
+  ///
   String pathData;
 
   SvgPath(this.pathData);
@@ -1584,7 +1591,7 @@ class SvgPath extends SvgPathMaker {
       return null;
     }
     final builder = _SvgPathBoundsBuilder();
-    PathParser(builder, pathData).parse();
+    RealPathParser(builder, pathData).parse();
     return builder.bounds;
   }
 
@@ -1616,7 +1623,7 @@ class SvgPath extends SvgPathMaker {
 // We use pathData as our path key
 }
 
-class _SvgPathBoundsBuilder implements PathBuilder {
+class _SvgPathBoundsBuilder implements EnhancedPathBuilder {
   RectT? bounds;
 
   void _addToBounds(RectT rect) {
@@ -1715,7 +1722,7 @@ class SvgRect extends SvgPathMaker {
     if (exportedID != null) {
       builder.exportedID(null, canon.strings[exportedID!]);
     }
-    PathBuilder? pb = builder.startPath(curr, _PathKey(this));
+    EnhancedPathBuilder? pb = builder.startPath(curr, _PathKey(this));
     if (pb != null) {
       if (rx <= 0 || ry <= 0) {
         pb.moveTo(PointT(x, y));
@@ -1831,7 +1838,7 @@ class SvgEllipse extends SvgPathMaker {
     if (exportedID != null) {
       builder.exportedID(null, canon.strings[exportedID!]);
     }
-    PathBuilder? pb = builder.startPath(curr, _PathKey(this));
+    EnhancedPathBuilder? pb = builder.startPath(curr, _PathKey(this));
     if (pb != null) {
       pb.addOval(RectT(cx - rx, cy - ry, 2 * rx, 2 * ry));
       pb.end();
@@ -1922,7 +1929,7 @@ class SvgPoly extends SvgPathMaker {
     if (exportedID != null) {
       builder.exportedID(null, canon.strings[exportedID!]);
     }
-    PathBuilder? pb = builder.startPath(curr, _PathKey(this));
+    EnhancedPathBuilder? pb = builder.startPath(curr, _PathKey(this));
     if (pb != null) {
       pb.moveTo(points[0]);
       for (int i = 1; i < points.length; i++) {

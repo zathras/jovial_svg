@@ -971,7 +971,7 @@ class CompactChildData {
 }
 
 // This is the dual of _CompactPathBuilder
-class CompactPathParser extends AbstractPathParser {
+class CompactPathParser extends AbstractPathParser<EnhancedPathBuilder> {
   final ByteBufferDataInputStream children;
   final FloatBufferInputStream args;
   bool _nextNybble = false;
@@ -1527,7 +1527,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  PathBuilder? startPath(SIPaint paint, Object? key) {
+  EnhancedPathBuilder? startPath(SIPaint paint, Object? key) {
     final int? pathNumber = _pathShare[key];
     final int? paintNumber = _paintShare[paint];
     children.writeByte(PATH_CODE |
@@ -1550,7 +1550,7 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     }
   }
 
-  void makePath(PathDataT pathData, PathBuilder pb,
+  void makePath(PathDataT pathData, EnhancedPathBuilder pb,
       {required void Function(String) warn});
 
   PathDataT immutableKey(PathDataT pathData);
@@ -1657,7 +1657,7 @@ enum _PathCommand {
   arcToPointEllipseLargeCW
 }
 
-class CompactPathBuilder<PathDataT, IM> extends PathBuilder {
+class CompactPathBuilder<PathDataT, IM> extends EnhancedPathBuilder {
   final DataOutputSink _children;
   final FloatSink _args;
 

@@ -36,9 +36,9 @@ import 'common_noui.dart';
 import 'dart:math' show pi;
 
 ///
-/// Buidler of a Flutter UI path.  See [PathBuilder] for usage.
+/// Buidler of a Flutter UI path.  See [EnhancedPathBuilder] for usage.
 ///
-class UIPathBuilder implements PathBuilder {
+class UIPathBuilder implements EnhancedPathBuilder {
   final void Function(UIPathBuilder)? _onEnd;
 
   UIPathBuilder({void Function(UIPathBuilder)? onEnd}) : _onEnd = onEnd;

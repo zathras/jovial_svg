@@ -100,8 +100,11 @@ export 'src/svg_graph.dart'
         SvgFontWeight,
         SvgFontSize;
 
+export 'src/path_noui.dart' show PathParser, PathBuilder, StringPathBuilder;
+
 export 'src/common_noui.dart'
     show
+        ParseError,
         SIFillType,
         SIStrokeJoin,
         SIStrokeCap,

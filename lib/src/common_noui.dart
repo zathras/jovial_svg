@@ -136,7 +136,7 @@ abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   /// will return null, and the scalable image will re-use the previously
   /// built, equivalent path.
   ///
-  PathBuilder? startPath(SIPaint paint, Object key);
+  EnhancedPathBuilder? startPath(SIPaint paint, Object key);
 }
 
 class SIImageData {
@@ -496,10 +496,10 @@ class SIColorVisitor {
 /// Mixin for SIBuilder that builds paths from strings
 ///
 mixin SIStringPathMaker {
-  void makePath(String pathData, PathBuilder pb,
+  void makePath(String pathData, EnhancedPathBuilder pb,
       {required void Function(String) warn}) {
     try {
-      PathParser(pb, pathData).parse();
+      RealPathParser(pb, pathData).parse();
     } catch (e) {
       warn(e.toString());
       // As per the SVG spec, paths shall be parsed up to the first error,

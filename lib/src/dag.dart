@@ -712,7 +712,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  PathBuilder? startPath(SIPaint paint, Object key) {
+  EnhancedPathBuilder? startPath(SIPaint paint, Object key) {
     final p = paths[key];
     if (p != null) {
       final sip = _daggerize(SIPath(p, paint));
@@ -726,7 +726,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     });
   }
 
-  void makePath(PathDataT pathData, PathBuilder pb,
+  void makePath(PathDataT pathData, EnhancedPathBuilder pb,
       {required void Function(String) warn});
 
   @override

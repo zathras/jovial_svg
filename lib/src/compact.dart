@@ -1225,7 +1225,7 @@ class _ExportedIDContext {
 }
 
 mixin _SICompactPathBuilder {
-  void makePath(CompactChildData pathData, PathBuilder pb,
+  void makePath(CompactChildData pathData, EnhancedPathBuilder pb,
       {required void Function(String) warn}) {
     CompactPathParser(pathData, pb).parse();
   }

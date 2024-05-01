@@ -32,10 +32,15 @@ library jovial_svg.path_noui;
 
 import 'dart:math';
 
+import 'package:meta/meta.dart';
+
 import 'common_noui.dart';
 
 ///
-/// A builder of a path.
+/// A builder of a path whose source is a SVG `path` element
+///
+///
+/// {@category SVG DOM}
 ///
 abstract class PathBuilder {
   ///
@@ -73,12 +78,111 @@ abstract class PathBuilder {
       required bool largeArc,
       required bool clockwise});
 
-  void addOval(RectT rect);
-
   ///
   /// Finish the path.
   ///
   void end();
+}
+
+///
+/// A builder of a path, including building an oval (which isn't part of
+/// SVG's `path` syntax, but is used for the circle and ellipse node types).
+///
+abstract class EnhancedPathBuilder extends PathBuilder {
+  ///
+  /// Add an oval (ellipse) that fills the given rectangle.
+  ///
+  void addOval(RectT rect);
+}
+
+///
+/// A [PathBuilder] that produces a path string.  This can be used with
+/// a [RealPathParser] if you have a path string that you want to parse, modify,
+/// and then reconstitute as a path string.
+///
+/// Usage:
+/// One possible use is to intercept path builder calls, and transform them to
+/// something else.  For example, if for some reason you wanted to remove all
+/// lineTo commands (`'L'`/`'l'`, or additional coordinates in an `'M'`/`'m'`)
+/// from the path of an `SvgPath` node, you could do this:
+/// ```
+/// class NoLinesPathBuilder extends StringPathBuilder {
+///    @override
+///    void lineTo(PointT p)  {}
+///  }
+///
+/// void removeLinesFrom(final SvgPath node) {
+///   final pb = NoLinesPathBuilder();
+///   PathParser(pb, node.pathData).parse();
+///   node.pathData = pb.result;
+/// }
+/// ```
+///
+/// {@category SVG DOM}
+///
+class StringPathBuilder extends PathBuilder {
+  final _result = StringBuffer();
+
+  String get result => _result.toString();
+
+  @override
+  void moveTo(PointT p) {
+    _result.write('M ${p.x} ${p.y} ');
+  }
+
+  @override
+  void close() {
+    _result.write('Z ');
+  }
+
+  @override
+  void lineTo(PointT p) {
+    _result.write('L ${p.x} ${p.y} ');
+  }
+
+  @override
+  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {
+    if (shorthand) {
+      _result.write('S ');
+    } else {
+      _result.write('C ${c1.x} ${c1.y} ');
+    }
+    _result.write('${c2.x} ${c2.y} ${p.x} ${p.y} ');
+  }
+
+  @override
+  void quadraticBezierTo(PointT control, PointT p, bool shorthand) {
+    if (shorthand) {
+      _result.write('T ');
+    } else {
+      _result.write('Q ${control.x} ${control.y} ');
+    }
+    _result.write('${p.x} ${p.y} ');
+  }
+
+  @override
+  void arcToPoint(PointT arcEnd,
+      {required RadiusT radius,
+      required double rotation,
+      required bool largeArc,
+      required bool clockwise}) {
+    _result.write('A ');
+    _result.write(radius.x);
+    _result.write(' ');
+    _result.write(radius.y);
+    _result.write(' ');
+    _result.write(rotation * 180.0 / pi);
+    _result.write(' ');
+    _result.write(largeArc ? '1 ' : '0 ');
+    _result.write(clockwise ? '1 ' : '0 ');
+    _result.write(arcEnd.x);
+    _result.write(' ');
+    _result.write(arcEnd.y);
+    _result.write(' ');
+  }
+
+  @override
+  void end() {}
 }
 
 ///
@@ -88,8 +192,8 @@ abstract class PathBuilder {
 /// control point of the last such curve, and tracking the current point.
 /// This helper implements that logic.
 ///
-abstract class AbstractPathParser {
-  final PathBuilder builder;
+abstract class AbstractPathParser<BT extends PathBuilder> {
+  final BT builder;
   PointT _initialPoint;
   // https://www.w3.org/TR/SVG/ s. 9.3.1
   PointT? _lastCubicControl;
@@ -104,11 +208,12 @@ abstract class AbstractPathParser {
         _currentPoint = const PointT(0, 0);
 
   ///
-  /// Run a command that adds to the path.  The commands first argument is
+  /// Run a command that adds to the path.  The command's first argument is
   /// [firstValue], but it may take other arguments.  Splitting out the first
   /// argument value like this makes it easier to deal with repeated
   /// commands in a String path.
   ///
+  @protected
   void runPathCommand(double firstValue, PointT Function(double) command) {
     _nextQuadControl = null;
     _nextCubicControl = null;
@@ -119,8 +224,9 @@ abstract class AbstractPathParser {
 
   ///
   /// moveTo is special, because it sets the initial point.  It isn't
-  /// run through runPathCommand, like the other commands are.
+  /// run through [runPathCommand], like the other commands are.
   ///
+  @protected
   void buildMoveTo(PointT c) {
     _currentPoint = c;
     _initialPoint = c;
@@ -129,6 +235,7 @@ abstract class AbstractPathParser {
     _lastCubicControl = null;
   }
 
+  @protected
   PointT buildCubicBezier(PointT? control1, PointT control2, PointT dest) {
     final shorthand = control1 == null;
     final c1 = control1 ?? _shorthandControl(_lastCubicControl);
@@ -138,6 +245,7 @@ abstract class AbstractPathParser {
     return dest;
   }
 
+  @protected
   PointT buildQuadraticBezier(PointT? control, PointT dest) {
     final shorthand = control == null;
     final c = control ?? _shorthandControl(_lastQuadControl);
@@ -151,6 +259,7 @@ abstract class AbstractPathParser {
   /// buildClose() is not run through runCommand.  It can't be, since it
   /// takes no argument.
   ///
+  @protected
   void buildClose() {
     builder.close();
     _currentPoint = _initialPoint;
@@ -162,6 +271,7 @@ abstract class AbstractPathParser {
   /// buildEnd() (which is for the end of the path) is not run through
   /// runCommand.  It can't be, since it takes no argument.
   ///
+  @protected
   void buildEnd() {
     builder.end();
   }
@@ -181,96 +291,119 @@ abstract class AbstractPathParser {
 }
 
 ///
-/// Parse an SVG Path. See the specification at
+/// Parse an SVG Path. The path syntax is specified at at
 /// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html
 ///
 /// Usage:
 /// ```
 /// String src = "M 125,75 a100,50 0 0,1 100,50"
-/// final builder = UIPathBuilder();
+/// final PathBuilder builder = ...;
 /// PathParser(builder, src).parse();
-/// Path p = builder.path;
-/// ... render p on a Canvas...
+/// ... do something with whatever builder produces ...
 /// ```
-class PathParser extends AbstractPathParser {
+///
+/// {@category SVG DOM}
+///
+final class PathParser {
+  final RealPathParser _hidden;
+
+  ///
+  /// Create a parser to parse [source].  It will call the appropriate methods
+  /// on [builder] to build a result.
+  ///
+  PathParser(PathBuilder builder, String source)
+      : _hidden = RealPathParser(builder, source);
+
+  ///
+  /// Parse the string.  On error, this throws a [ParseError], but it leaves
+  /// the path up to where the error occurred in builder.path.  The error
+  /// behavior specified in s. 9.5.4 of
+  /// https://www.w3.org/TR/2018/CR-SVG2-20181004/paths.html can be had
+  /// by catching the exception, reporting it to the user if appropriate,
+  /// and rendering the partial path.
+  ///
+  void parse() => _hidden.parse();
+}
+
+class RealPathParser extends AbstractPathParser<PathBuilder> {
   final BnfLexer _lexer;
   // Is the current command relative?
   bool _relative = false;
 
-  PathParser(super.builder, String source) : _lexer = BnfLexer(source);
+  RealPathParser(super.builder, String source) : _lexer = BnfLexer(source);
 
-  static final Map<String, void Function(PathParser)> _action = {
-    'M': (PathParser p) {
+  static final Map<String, void Function(RealPathParser)> _action = {
+    'M': (RealPathParser p) {
       p._relative = false;
       p._moveTo();
     },
-    'm': (PathParser p) {
+    'm': (RealPathParser p) {
       p._relative = true;
       p._moveTo();
     },
-    'Z': (PathParser p) => p.buildClose(),
-    'z': (PathParser p) => p.buildClose(),
-    'L': (PathParser p) {
+    'Z': (RealPathParser p) => p.buildClose(),
+    'z': (RealPathParser p) => p.buildClose(),
+    'L': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._lineTo);
     },
-    'l': (PathParser p) {
+    'l': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._lineTo);
     },
-    'H': (PathParser p) {
+    'H': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._horizontalLineTo);
     },
-    'h': (PathParser p) {
+    'h': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._horizontalLineTo);
     },
-    'V': (PathParser p) {
+    'V': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._verticalLineTo);
     },
-    'v': (PathParser p) {
+    'v': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._verticalLineTo);
     },
-    'C': (PathParser p) {
+    'C': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._cubicBezier);
     },
-    'c': (PathParser p) {
+    'c': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._cubicBezier);
     },
-    'S': (PathParser p) {
+    'S': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._shorthandCubicBezier);
     },
-    's': (PathParser p) {
+    's': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._shorthandCubicBezier);
     },
-    'Q': (PathParser p) {
+    'Q': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._quadraticBezier);
     },
-    'q': (PathParser p) {
+    'q': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._quadraticBezier);
     },
-    'T': (PathParser p) {
+    'T': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._shorthandQuadraticBezier);
     },
-    't': (PathParser p) {
+    't': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._shorthandQuadraticBezier);
     },
-    'A': (PathParser p) {
+    'A': (RealPathParser p) {
       p._relative = false;
       p._repeat(p._arcToPoint);
     },
-    'a': (PathParser p) {
+    'a': (RealPathParser p) {
       p._relative = true;
       p._repeat(p._arcToPoint);
     },
@@ -294,7 +427,7 @@ class PathParser extends AbstractPathParser {
       _lexer.skipWhitespace();
       while (!_lexer.eof) {
         String cmd = _lexer.nextPathCommand();
-        final void Function(PathParser)? a = _action[cmd];
+        final void Function(RealPathParser)? a = _action[cmd];
         if (a == null) {
           _lexer.error('Unrecognized command "$cmd"');
         } else {
