@@ -37,9 +37,9 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:jovial_misc/io_utils.dart';
-import 'package:jovial_svg/dom.dart';
 import 'package:meta/meta.dart';
 
+import 'affine.dart';
 import 'common_noui.dart';
 import 'compact_noui.dart';
 import 'path_noui.dart';
