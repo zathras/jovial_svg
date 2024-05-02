@@ -1,13 +1,13 @@
 # jovial_svg 
 
 Robust, efficient rendering of SVG static images, supporting a well-defined 
-profile of SVG and an efficient binary storage format.  Very fast load times 
+profile of SVG, an efficient binary storage format, and animation.  Very 
+fast load times 
 result from using this binary format -- loading a pre-compiled binary file 
 is usually an order of magnitude faster than parsing an XML SVG file.  Observed
 speedups for loading larger SVG files range from 5x to 20x.
 
-The supported SVG profile
-includes the parts of 
+The supported SVG profile includes the parts of 
 [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/)
 that are applicable to static images, plus a healthy subset of
 [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  In-line 
@@ -106,6 +106,24 @@ you paste the URL to an SVG asset into the program; it then loads and renders
 it.
 
 <img width="80%" src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/images/demo_screen_shot.png">
+
+## Animation and Interactivity
+
+Interactivity is supported by letting a program detect mouse clicks within
+a rendered SVG asset.  Named SVG nodes can be marked as exported, and exported
+nodes' names and bounding rectangles are made available to the caller.
+The bounding rectangles can be compared with the location of a mouse click
+or touch event to determine which node was rendered at the given point.
+See the `ExportedID` class for details.
+
+A document object model (DOM) API is provided to programmatically modify an
+SVG asset.  Using it, Dart code can change rendering atributes like color,
+line width, font and many others.  It can also add or remove nodes from
+the in-memory graph that represents the asset.  These modifications can 
+be done repeatedly to achieve animation.
+
+See `animation.dart` in the `examples` directory to see animaiton and
+interactivity being used.
 
 ## Supported SVG Profile
 
