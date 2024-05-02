@@ -50,10 +50,10 @@ class _AnimatedState extends State<Animated> {
 
   @override
   void initState() {
-    final lookup = svg.dom.idLookup;
-    circle = lookup['c'] as SvgEllipse;
-    rect = lookup['r'] as SvgRect;
-    ellipse = lookup['e'] as SvgEllipse;
+    final nodes = svg.dom.idLookup;
+    circle = nodes['c'] as SvgEllipse;
+    rect = nodes['r'] as SvgRect;
+    ellipse = nodes['e'] as SvgEllipse;
 
     final star = Path();
     star.addPolygon([
@@ -78,7 +78,7 @@ class _AnimatedState extends State<Animated> {
   }
 
   Offset pointAt(double r, double angle) =>
-      Offset(r * cos(angle), r * sin(angle));
+      Offset(r * sin(angle), -r * cos(angle));
 
   @override
   void dispose() {
@@ -105,8 +105,9 @@ class _AnimatedState extends State<Animated> {
     rect.paint.fillColor = SvgColor.value(c.toColor().value);
 
     // Spin the star
+    theta = seconds;
     custom.transform = MutableAffine.translation(60, 30)
-      ..multiplyBy(MutableAffine.rotation(seconds));
+      ..multiplyBy(MutableAffine.rotation(theta));
 
     // Leave the circle alone
 
