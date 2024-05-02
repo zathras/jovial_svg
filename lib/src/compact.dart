@@ -1243,6 +1243,9 @@ class SIDagBuilderFromCompact
 
   @override
   List<SIImage> convertImages(List<SIImage> images) => images;
+
+  @override
+  void addPath(Object path, SIPaint paint) => unreachable(null);
 }
 
 class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>

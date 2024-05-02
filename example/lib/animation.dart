@@ -45,6 +45,7 @@ class _AnimatedState extends State<Animated> {
   late final SvgEllipse circle;
   late final SvgRect rect;
   late final SvgEllipse ellipse;
+  late final SvgCustomPath custom;
   final lookup = ExportedIDLookup();
 
   @override
@@ -53,12 +54,31 @@ class _AnimatedState extends State<Animated> {
     circle = lookup['c'] as SvgEllipse;
     rect = lookup['r'] as SvgRect;
     ellipse = lookup['e'] as SvgEllipse;
+
+    final star = Path();
+    star.addPolygon([
+      pointAt(30, 0),
+      pointAt(30, 2 * pi * 2 / 5),
+      pointAt(30, 4 * pi * 2 / 5),
+      pointAt(30, 1 * pi * 2 / 5),
+      pointAt(30, 3 * pi * 2 / 5)
+    ], true);
+    custom = SvgCustomPath(star);
+    custom.paint.fillColor = SvgColor.value(Colors.cyan.value);
+    custom.paint.fillAlpha = 128;
+    custom.paint.fillType = SIFillType.nonZero;
+    custom.transform = MutableAffine.translation(60, 30);
+    svg.dom.root.children.add(custom);
+
     super.initState();
     timer = Timer.periodic(
         const Duration(milliseconds: 8), (_) => setState(update));
     stopwatch.start();
     update();
   }
+
+  Offset pointAt(double r, double angle) =>
+      Offset(r * cos(angle), r * sin(angle));
 
   @override
   void dispose() {
@@ -83,6 +103,10 @@ class _AnimatedState extends State<Animated> {
     theta = 360.0 * seconds / 9;
     final c = HSVColor.fromAHSV(1.0, theta % 360.0, 1.0, 1.0);
     rect.paint.fillColor = SvgColor.value(c.toColor().value);
+
+    // Spin the star
+    custom.transform = MutableAffine.translation(60, 30)
+      ..multiplyBy(MutableAffine.rotation(seconds));
 
     // Leave the circle alone
 

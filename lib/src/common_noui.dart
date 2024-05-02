@@ -137,6 +137,12 @@ abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   /// built, equivalent path.
   ///
   EnhancedPathBuilder? startPath(SIPaint paint, Object key);
+
+  ///
+  /// Add a path from an SvgCustomPath.  This is unreachable from a compact
+  /// SI.
+  ///
+  void addPath(Object path, SIPaint paint);
 }
 
 class SIImageData {
@@ -1101,6 +1107,9 @@ class BnfLexer {
 /// Exception thrown when there is a problem parsing
 /// See [PathParser.parse].
 ///
+///
+/// {@category SVG DOM}
+///
 class ParseError {
   final String message;
 
@@ -1129,7 +1138,7 @@ enum SIStrokeJoin { miter, round, bevel }
 enum SIStrokeCap { butt, round, square }
 
 ///
-/// Possible fill type values for a paint object.  This is analagous
+/// Possible fill type values for a paint object.  This is analogous
 /// to `PathFillType` in `dart:ui`.
 ///
 /// {@category SVG DOM}

@@ -1586,6 +1586,9 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     super.traversalDone();
     _colorWriter?.close();
   }
+
+  @override
+  void addPath(Object path, SIPaint paint) => unreachable(null);
 }
 
 class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>

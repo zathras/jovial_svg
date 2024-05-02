@@ -869,4 +869,10 @@ class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
   List<SIImage> convertImages(List<SIImageData> images) =>
       List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
           growable: false);
+
+  @override
+  void addPath(Object path, SIPaint paint) {
+    final p = _daggerize(SIPath(path as Path, _daggerize(paint)));
+    addRenderable(p);
+  }
 }

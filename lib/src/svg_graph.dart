@@ -337,6 +337,9 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
   void get initial {} // coverage:ignore-line
 
   @override
+  void addPath(Object path, SIPaint paint) {}
+
+  @override
   void Function(String) get warn => (_) {};
 }
 
@@ -1620,7 +1623,7 @@ class SvgPath extends SvgPathMaker {
 
   @override
   int get _pathKeyHash => unreachable(0);
-// We use pathData as our path key
+  // We use pathData as our path key
 }
 
 class _SvgPathBoundsBuilder implements EnhancedPathBuilder {
@@ -1665,6 +1668,58 @@ class _SvgPathBoundsBuilder implements EnhancedPathBuilder {
   @override
   void quadraticBezierTo(PointT control, PointT p, bool shorthand) =>
       _addToBounds(RectT.fromPoints(control, p));
+}
+
+// Not exported.  We make hidden methods public here so they can be
+// overridden in a package where Flutter's Path can be visible.
+abstract class SvgCustomPathAbstract extends SvgPathMaker {
+  SvgCustomPathAbstract();
+  SvgCustomPathAbstract.copy(SvgCustomPathAbstract super.other)
+      : super._cloned();
+
+  @override
+  SvgCustomPathAbstract _clone() => clone();
+  SvgCustomPathAbstract clone();
+
+  @override
+  SvgNode? _resolve(
+      _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers) {
+    return _resolveMask(ctx, ancestor, referrers);
+  }
+
+  @override
+  RectT? _getUntransformedBounds(SvgTextStyle ta) => getUntransformedBounds(ta);
+  RectT? getUntransformedBounds(SvgTextStyle ta);
+
+  @override
+  bool _makePath(SIBuilder<String, SIImageData> builder,
+      CanonicalizedData<SIImageData> canon, SvgPaint cascaded) {
+    if (_isInvisible(cascaded)) {
+      return false;
+    }
+    if (exportedID != null) {
+      builder.exportedID(null, canon.strings[exportedID!]);
+    }
+    addPathNode(builder, cascaded._toSIPaint());
+    if (exportedID != null) {
+      builder.endExportedID(null);
+    }
+    return true;
+  }
+
+  void addPathNode(SIBuilder<String, SIImageData> builder, SIPaint cascaded);
+
+  @override
+  void _visitPaths(void Function(Object pathKey) f) => visitPaths(f);
+  void visitPaths(void Function(Object pathKey) f);
+
+  @override
+  bool _pathKeyEquals(SvgPathMaker other) => unreachable(false);
+  // We the path itself as our path key
+
+  @override
+  int get _pathKeyHash => unreachable(0);
+  // We use the path itself as our path key
 }
 
 ///

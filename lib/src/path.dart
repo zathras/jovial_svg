@@ -31,12 +31,14 @@ POSSIBILITY OF SUCH DAMAGE.
 library jovial_svg.path;
 
 import 'dart:ui';
+import 'package:jovial_svg/src/svg_graph.dart';
+
 import 'path_noui.dart';
 import 'common_noui.dart';
 import 'dart:math' show pi;
 
 ///
-/// Buidler of a Flutter UI path.  See [EnhancedPathBuilder] for usage.
+/// Builder of a Flutter UI path.  See [EnhancedPathBuilder] for usage.
 ///
 class UIPathBuilder implements EnhancedPathBuilder {
   final void Function(UIPathBuilder)? _onEnd;
@@ -94,4 +96,66 @@ class UIPathBuilder implements EnhancedPathBuilder {
   Offset newOffset(PointT o) => Offset(o.x, o.y);
 
   Radius newRadius(RadiusT r) => Radius.elliptical(r.x, r.y);
+}
+
+///
+/// An SVG node that lets the client specify the [Path] directly.  This can
+/// be used with the SVG DOM API, by programmatically creating an instance
+/// of this node, and inserting it into an SVG DOM, either in a [SvgGroup] or
+/// into [SvgDOM.root].
+///
+/// {@category SVG DOM}
+///
+abstract class SvgCustomPath implements SvgInheritableAttributesNode {
+  ///
+  /// The path to draw when this node is rendered.
+  ///
+  abstract Path path;
+
+  ///
+  /// Create a new custom path node.
+  ///
+  factory SvgCustomPath(Path path) => SvgCustomPathImpl(path);
+
+  ///
+  /// Convenience method to parse a path string, producing a Flutter [Path].
+  /// See [PathParser] for details on parsing.
+  ///
+  static Path parsePath(String source) {
+    final b = UIPathBuilder();
+    final p = PathParser(b, source);
+    p.parse();
+    return b.path;
+  }
+}
+
+class SvgCustomPathImpl extends SvgCustomPathAbstract implements SvgCustomPath {
+  @override
+  Path path;
+
+  SvgCustomPathImpl(this.path);
+
+  SvgCustomPathImpl._cloned(SvgCustomPathImpl super.other)
+      : path = Path.from(other.path),
+        super.copy();
+
+  @override
+  SvgCustomPathImpl clone() => SvgCustomPathImpl._cloned(this);
+
+  @override
+  String get tagName => 'customPath';
+
+  @override
+  RectT? getUntransformedBounds(SvgTextStyle ta) {
+    final b = path.getBounds();
+    return RectT(b.left, b.top, b.width, b.height);
+  }
+
+  @override
+  void addPathNode(SIBuilder<String, SIImageData> builder, SIPaint cascaded) {
+    builder.addPath(path, cascaded);
+  }
+
+  @override
+  void visitPaths(void Function(Object pathKey) f) => f(path);
 }
