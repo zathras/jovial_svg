@@ -254,8 +254,8 @@
     /></g
     ><g transform="translate(700,230)"
     ><rect fill="none" x="0.5" width="148.5" height="128.5" y="0.5" clip-path="url(#clipPath9)"
-      /><text x="34" font-size="14px" y="17.8174" clip-path="url(#clipPath9)" font-family="sans-serif" stroke="none" xml:space="preserve"
-      >SvgTexStyle</text
+      /><text x="32" font-size="14px" y="17.8174" clip-path="url(#clipPath9)" font-family="sans-serif" stroke="none" xml:space="preserve"
+      >SvgTextStyle</text
       ><path fill="none" d="M1 23.8174 L149 23.8174" clip-path="url(#clipPath9)"
       /><text x="5" font-size="14px" y="38.6348" clip-path="url(#clipPath9)" font-family="sans-serif" stroke="none" xml:space="preserve"
       >fontFamily</text

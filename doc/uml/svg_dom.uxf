@@ -496,7 +496,7 @@ m2=1</panel_attributes>
       <w>150</w>
       <h>130</h>
     </coordinates>
-    <panel_attributes>SvgTexStyle
+    <panel_attributes>SvgTextStyle
 --
 fontFamily
 fontStyle
