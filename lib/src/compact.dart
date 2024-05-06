@@ -1196,7 +1196,7 @@ class _ExportedIDVisitor extends _BoundaryVisitor {
       xform = eContext.xform;
     } else {
       final nt = eContext.xform.mutableCopy();
-      nt.multiply(transform.toMutable);
+      nt.multiplyBy(transform.toMutable);
       xform = nt;
     }
     eContext = _ExportedIDContext(eContext, null, xform);

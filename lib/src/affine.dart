@@ -41,7 +41,7 @@ import 'package:vector_math/vector_math_64.dart';
 
 ///
 /// Affine matrix, used to represent scale, translate and other
-/// transformations to applied to e.g. an SVG node.  Attaching an
+/// transformations applied to e.g. an SVG node.  Attaching an
 /// affine matrix to a node is equivalent to calling `dart:ui`'s
 /// `Canvas.transform` method.
 ///
@@ -242,10 +242,16 @@ class MutableAffine extends Affine {
       : _storage = storage ?? Matrix3.zero(),
         super._p();
 
+  ///
+  /// Create a matrix representing the identity transform.
+  ///
   MutableAffine.identity()
       : _storage = Matrix3.identity(),
         super._p();
 
+  ///
+  /// Create a matrix representing a scaling transform.
+  ///
   MutableAffine.scale(double sx, double sy)
       : _storage = Matrix3.zero(),
         super._p() {
@@ -254,6 +260,9 @@ class MutableAffine extends Affine {
     set(2, 2, 1);
   }
 
+  ///
+  /// Create a matrix representing a translation.
+  ///
   MutableAffine.translation(double tx, double ty)
       : _storage = Matrix3.identity(),
         super._p() {
@@ -262,7 +271,8 @@ class MutableAffine extends Affine {
   }
 
   ///
-  /// Represent a rotation transform, for the angle [a] in radians.
+  /// Create a matrix representing a rotation transform, for the
+  /// angle [a] in radians.
   ///
   MutableAffine.rotation(double a)
       : _storage = Matrix3.zero(),
@@ -276,12 +286,18 @@ class MutableAffine extends Affine {
     set(2, 2, 1);
   }
 
+  ///
+  /// Create a matrix representing x skew transformation.
+  ///
   MutableAffine.skewX(double a)
       : _storage = Matrix3.identity(),
         super._p() {
     set(0, 1, tan(a));
   }
 
+  ///
+  /// Create a matrix representing y skew transformation.
+  ///
   MutableAffine.skewY(double a)
       : _storage = Matrix3.identity(),
         super._p() {
@@ -313,8 +329,14 @@ class MutableAffine extends Affine {
     set(2, 2, 1);
   }
 
+  ///
+  /// Set the given matrix element
+  ///
   void set(int row, int col, double v) => _storage.setEntry(row, col, v);
 
+  ///
+  /// Mutliply this matrix by [other], storing the result in this matrix.
+  ///
   void multiplyBy(MutableAffine other) => _storage.multiply(other._storage);
 
   ///
@@ -323,8 +345,14 @@ class MutableAffine extends Affine {
   ///
   void invert() => _storage.invert();
 
+  ///
+  /// Give the determinent of this matrix.
+  ///
   double determinant() => _storage.determinant();
 
+  ///
+  /// Return `true` if this is the identity matrix
+  ///
   bool isIdentity() => _storage.isIdentity();
 
   @override
@@ -339,9 +367,6 @@ class MutableAffine extends Affine {
       }
     }
   }
-
-  /// Multiply this by [arg].
-  void multiply(MutableAffine arg) => _storage.multiply(arg._storage);
 
   @override
   Affine get toKey {

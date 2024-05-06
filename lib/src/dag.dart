@@ -439,7 +439,7 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       final t = transform;
       if (t != null) {
         final nt = exportedIDXform.mutableCopy();
-        nt.multiply(t.toMutable);
+        nt.multiplyBy(t.toMutable);
         exportedIDXform = nt;
       }
     }

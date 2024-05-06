@@ -237,5 +237,5 @@ assets, one of those alternatives might be worth considering.
 ## Internal Documentation
 
 There's a high-level overview of the source code in the repo, in
-`doc/index.html`.  This complements a reasonably (though not extensive)
-level of comments in the source itself.
+`doc/index.html`.  This complements a reasonable level of comments 
+in the source itself.
