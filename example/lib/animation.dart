@@ -47,6 +47,7 @@ class _AnimatedState extends State<Animated> {
   late final SvgEllipse ellipse;
   late final SvgCustomPath custom;
   final lookup = ExportedIDLookup();
+  int lastNumPoints = 5;
 
   @override
   void initState() {
@@ -55,15 +56,7 @@ class _AnimatedState extends State<Animated> {
     rect = nodes['r'] as SvgRect;
     ellipse = nodes['e'] as SvgEllipse;
 
-    final star = Path();
-    star.addPolygon([
-      pointAt(30, 0),
-      pointAt(30, 2 * pi * 2 / 5),
-      pointAt(30, 4 * pi * 2 / 5),
-      pointAt(30, 1 * pi * 2 / 5),
-      pointAt(30, 3 * pi * 2 / 5)
-    ], true);
-    custom = SvgCustomPath(star);
+    custom = SvgCustomPath(makeStar(lastNumPoints));
     custom.paint.fillColor = SvgColor.value(Colors.cyan.value);
     custom.paint.fillAlpha = 128;
     custom.paint.fillType = SIFillType.nonZero;
@@ -77,8 +70,20 @@ class _AnimatedState extends State<Animated> {
     update();
   }
 
-  Offset pointAt(double r, double angle) =>
-      Offset(r * sin(angle), -r * cos(angle));
+  Path makeStar(int numPoints) {
+    const r = 30;
+    final points = <Offset>[];
+    final skip = numPoints ~/ 2;
+    int angle = 0;
+    for (int i = 0; i < numPoints; i++) {
+      angle = (angle + skip) % numPoints;
+      final theta = angle * 2 * pi / numPoints;
+      points.add(Offset(r * sin(theta), -r * cos(theta)));
+    }
+    final star = Path();
+    star.addPolygon(points, true);
+    return star;
+  }
 
   @override
   void dispose() {
@@ -108,6 +113,15 @@ class _AnimatedState extends State<Animated> {
     theta = seconds;
     custom.transform = MutableAffine.translation(60, 30)
       ..multiplyBy(MutableAffine.rotation(theta));
+
+    // Animate the number of points in the star, by swapping
+    // in a new computed path
+    int numPoints = 5 + 2 * ((seconds ~/ 4) % 6);
+    if (numPoints != lastNumPoints) {
+      lastNumPoints = numPoints;
+      custom.path = makeStar(numPoints);
+    }
+
 
     // Leave the circle alone
 
