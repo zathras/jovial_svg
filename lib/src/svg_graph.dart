@@ -1334,7 +1334,11 @@ class _SvgMasked extends SvgNode {
 /// {@category SVG DOM}
 ///
 class SvgUse extends SvgInheritableAttributesNode {
+  ///
+  /// The [id] of the node we refer to
+  ///
   String? childID;
+
   double? width;
   double? height;
 

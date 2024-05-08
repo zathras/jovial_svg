@@ -122,7 +122,6 @@ class _AnimatedState extends State<Animated> {
       custom.path = makeStar(numPoints);
     }
 
-
     // Leave the circle alone
 
     // "Render" svg to a ScalableImage

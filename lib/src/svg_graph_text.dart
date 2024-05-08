@@ -47,7 +47,7 @@ part of 'svg_graph.dart';
 // coordinate be either a single value or a list.
 
 ///
-/// An SVG `text`.  See
+/// An SVG `text` node.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
 ///
 /// {@category SVG DOM}

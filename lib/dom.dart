@@ -120,8 +120,8 @@ export 'src/common_noui.dart'
 export 'src/affine.dart' show Affine, MutableAffine;
 
 ///
-/// Support for loading an SVG asset, maniuplating it, and producing
-/// `ScalableImage` instances from the asset's current state.
+/// Support for loading an SVG asset, manipulating it, and producing
+/// [ScalableImage] instances from the asset's current state.
 /// This is the entry point for use of the dom library.
 ///
 /// {@category SVG DOM}

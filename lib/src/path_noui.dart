@@ -37,8 +37,9 @@ import 'package:meta/meta.dart';
 import 'common_noui.dart';
 
 ///
-/// A builder of a path whose source is a SVG `path` element
-///
+/// A builder of a path whose source is a SVG `path` element.  A
+/// [PathParser] calls methods on an implementor of [PathBuilder] as
+/// it parses the components of an SVG path.
 ///
 /// {@category SVG DOM}
 ///
@@ -97,7 +98,7 @@ abstract class EnhancedPathBuilder extends PathBuilder {
 
 ///
 /// A [PathBuilder] that produces a path string.  This can be used with
-/// a [RealPathParser] if you have a path string that you want to parse, modify,
+/// a [PathParser] if you have a path string that you want to parse, modify,
 /// and then reconstitute as a path string.
 ///
 /// Usage:
