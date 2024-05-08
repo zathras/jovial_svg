@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
@@ -47,7 +48,8 @@ class _AnimatedState extends State<Animated> {
   late final SvgEllipse ellipse;
   late final SvgCustomPath custom;
   final lookup = ExportedIDLookup();
-  int lastNumPoints = 5;
+  final starRadii = Float64List(17);
+  final twinklePeriod = Float64List(17);
 
   @override
   void initState() {
@@ -56,11 +58,15 @@ class _AnimatedState extends State<Animated> {
     rect = nodes['r'] as SvgRect;
     ellipse = nodes['e'] as SvgEllipse;
 
-    custom = SvgCustomPath(makeStar(lastNumPoints));
+    custom = SvgCustomPath(Path()); // Empty path; updated in update()
     custom.paint.fillColor = SvgColor.value(Colors.cyan.value);
     custom.paint.fillAlpha = 128;
     custom.paint.fillType = SIFillType.nonZero;
     custom.transform = MutableAffine.translation(60, 30);
+    final rand = Random();
+    for (int i = 0; i < twinklePeriod.length; i++) {
+      twinklePeriod[i] = 0.1 + rand.nextDouble() * 0.6;
+    }
     svg.dom.root.children.add(custom);
 
     super.initState();
@@ -70,16 +76,15 @@ class _AnimatedState extends State<Animated> {
     update();
   }
 
-  Path makeStar(int numPoints) {
-    const r = 30;
-    final points = <Offset>[];
-    final skip = numPoints ~/ 2;
+  Path makeStar(List<double> radii) {
+    final skip = radii.length ~/ 2;
     int angle = 0;
-    for (int i = 0; i < numPoints; i++) {
-      angle = (angle + skip) % numPoints;
-      final theta = angle * 2 * pi / numPoints;
-      points.add(Offset(r * sin(theta), -r * cos(theta)));
-    }
+    final points = List.generate(radii.length, (int i) {
+      final r = radii[i];
+      angle = (angle + skip) % radii.length;
+      final theta = angle * 2 * pi / radii.length;
+      return Offset(r * sin(theta), -r * cos(theta));
+    });
     final star = Path();
     star.addPolygon(points, true);
     return star;
@@ -113,14 +118,11 @@ class _AnimatedState extends State<Animated> {
     theta = seconds;
     custom.transform = MutableAffine.translation(60, 30)
       ..multiplyBy(MutableAffine.rotation(theta));
-
-    // Animate the number of points in the star, by swapping
-    // in a new computed path
-    int numPoints = 5 + 2 * ((seconds ~/ 4) % 6);
-    if (numPoints != lastNumPoints) {
-      lastNumPoints = numPoints;
-      custom.path = makeStar(numPoints);
+    // Make it twinkle by moving the points in and out
+    for (int i = 0; i < starRadii.length; i++) {
+      starRadii[i] = 30 + 3 * sin(seconds * 2 * pi / twinklePeriod[i]);
     }
+    custom.path = makeStar(starRadii);
 
     // Leave the circle alone
 
