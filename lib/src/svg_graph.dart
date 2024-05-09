@@ -407,6 +407,8 @@ typedef Stylesheet = Map<String, List<Style>>;
 ///
 /// Common supertype for all nodes in an SVG DOM graph.
 ///
+/// {@category SVG DOM}
+///
 sealed class SvgNode {
   SvgNode._p();
 
