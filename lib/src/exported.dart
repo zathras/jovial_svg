@@ -122,7 +122,9 @@ enum ImageDisposeBugWorkaround {
 }
 
 ///
-/// The main entry point to this library.  This class features several
+/// An image-like asset that can be scaled to any size and rendered without 
+/// losing resolution, typically derived from an SVG file.
+/// This class features several
 /// static methods to load a [ScalableImage] from various sources.  It
 /// provides two in-memory representations:  a memory-saving "compact"
 /// representation, as well as a faster internal graph structure.  Provision
