@@ -122,7 +122,7 @@ enum ImageDisposeBugWorkaround {
 }
 
 ///
-/// An image-like asset that can be scaled to any size and rendered without 
+/// An image-like asset that can be scaled to any size and rendered without
 /// losing resolution, typically derived from an SVG file.
 /// This class features several
 /// static methods to load a [ScalableImage] from various sources.  It
