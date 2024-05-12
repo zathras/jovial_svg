@@ -1,11 +1,11 @@
-## [1.1.21] - Upcoming
+## [1.1.21] - May 2024
 
-- Allow a list of fonts for SVG text (Issue 91)
+- Add a DOM API for animating/modifying SVG assets (Issues 19, 95)
 - Add the ability to see what part of an SVG is
   clicked on -- see `ExportedIDLookup` (Issue 92)
-- Add a DOM API for SVG assets (Issues 19, 95)
-- Add a `ScalableImageWidget` method to read from a file (Issue 88)
+- Allow a list of fonts for SVG text (Issue 91)
 - Allow node ID selection from `style` (Issue 93)
+- Add a `ScalableImageWidget` method to read from a file (Issue 88)
 - Fix attribute handling when masked node is used more than once (Issue 94)
 
 ## [1.1.20] - December 2023

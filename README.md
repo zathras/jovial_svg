@@ -3,7 +3,7 @@
 Robust, efficient rendering of SVG static images, supporting a well-defined 
 profile of SVG, an efficient binary storage format, and animation.  Very 
 fast load times 
-result from using this binary format -- loading a pre-compiled binary file 
+result from using the binary format -- loading a pre-compiled binary file 
 is usually an order of magnitude faster than parsing an XML SVG file.  Observed
 speedups for loading larger SVG files range from 5x to 20x.
 
