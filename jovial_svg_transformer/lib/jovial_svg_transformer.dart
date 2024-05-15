@@ -35,7 +35,8 @@ class ToSI {
 
   void _usage(final ArgParser argp) {
     print('');
-    print('dart run jovial_svg_transformer [options]');
+    print('dart run jovial_svg_transformer [options]'
+        ' --input <name> --output <name>');
     for (final line in argp.usage.split('\n')) {
       print('    $line');
     }
@@ -50,21 +51,13 @@ class ToSI {
   ///
   /// Run the program according to [arguments].
   ///
-  Future<void> main(List<String> arguments) async {
+  void main(List<String> arguments) async {
     final argp = ArgParser(usageLineLength: 72);
-    argp.addOption('output', abbr: 'o', help: 'output file', mandatory: true);
-    argp.addOption('input', abbr: 'i', help: 'input file', mandatory: true);
-    argp.addFlag('avd',
-        abbr: 'a',
-        help: 'Process an Android Vector Drawable instead of an SVG');
+    argp.addFlag('help', abbr: 'h', help: 'show help message');
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
-    argp.addMultiOption('export',
-        abbr: 'e',
-        splitCommas: false,
-        help:
-            'Export:  Export the given SVG node ID.  Multiple values may be specified.');
+
     argp.addMultiOption('exportx',
         abbr: 'x',
         splitCommas: false,
@@ -76,6 +69,10 @@ class ToSI {
     final String? outFile;
     try {
       results = argp.parse(arguments);
+      if (results['help'] == true) {
+        print('');
+        _usage(argp);
+      }
       inFile = results['input'];
       outFile = results['output'];
     } catch (ex) {

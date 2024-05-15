@@ -28,9 +28,10 @@ abstract class ToSI {
     exit(1);
   }
 
-  Future<void> main(List<String> arguments) async {
+  void main(List<String> arguments) async {
     final argp = ArgParser(usageLineLength: 72);
     argp.addOption('out', abbr: 'o', help: 'output directory');
+    argp.addFlag('help', abbr: 'h', help: 'show help message');
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
@@ -46,6 +47,9 @@ abstract class ToSI {
             'Export:  Export the IDs matched by the given regular expression.  '
             'Multiple values may be specified.');
     final ArgResults results = argp.parse(arguments);
+    if (results['help'] == true) {
+      usage(argp);
+    }
     bool big = results['big'] == true;
     bool warn = results['quiet'] != true;
     for (final String e in (results['export'] as List<String>)) {
@@ -122,4 +126,4 @@ class SvgToSI extends ToSI {
       StringSvgParser(src, exportedIds, builder, warn: warn).parse();
 }
 
-Future<void> main(List<String> arguments) => SvgToSI().main(arguments);
+void main(List<String> arguments) => SvgToSI().main(arguments);
