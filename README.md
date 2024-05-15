@@ -62,7 +62,7 @@ The `svg_to_si` program compiles an SVG file into a much more efficient
 binary representation, suitable for inclusion in an asset bundle.  The
 `avd_to_si` program converts an Android Vector Drawable file.  If you prefer,
 you can instead use 
-[`jovial_svg_transformer`](ihttps://pub.dev/packages/jovial_svg_transformer)
+[`jovial_svg_transformer`](https://pub.dev/packages/jovial_svg_transformer)
 to convert files at build time.  <em>Converting
 to an si file speeds runtime loading by an order of magnitude.</em>  You can
 activate the conversion programs with `dart pub global activate jovial_svg`,
