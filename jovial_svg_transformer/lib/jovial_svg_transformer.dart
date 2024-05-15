@@ -1,3 +1,11 @@
+// ignore_for_file: implementation_imports
+
+///
+/// This package exposes an API that can be used to build an asset transformer
+/// to turn SVG or AVD files into an efficient binary representation for
+/// `jovial_svg`.
+///
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -12,7 +20,7 @@ import 'package:jovial_svg/src/avd_parser.dart';
 /// Convert SVG or AVD to SI
 ///
 class ToSI {
-  List<Pattern> _exportedIds = List.empty(growable: true);
+  final List<Pattern> _exportedIds = List.empty(growable: true);
   bool _parseAVD = false;
 
   void _parse(String src, SIBuilder<String, SIImageData> builder,
