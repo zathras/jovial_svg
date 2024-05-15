@@ -704,7 +704,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   static const int latestFileVersion = 11;
 
   ///
-  /// Write the compact representation out.
+  /// Write the compact representation out, and close [out].
   ///
   int writeToFile(DataOutputSink out) {
     assert(fileVersion == latestFileVersion);
