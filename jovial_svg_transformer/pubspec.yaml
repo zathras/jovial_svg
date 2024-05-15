@@ -1,17 +1,22 @@
 name: jovial_svg_transformer
-description: An asset transformer to convert from SVG or AVD assets to jovial_svg's binary format.
-version: 1.0.0-rc.1
-repository: https://github.com/zathras/jovial_svg/tree/main/jovial_svg_transformer
+description: An asset transformer for `jovial_svg`.
+version: 1.0.0-rc.4
+repository: https://github.com/zathras/jovial_svg
+
+executables:
+  jovial_svg_transformer:
 
 environment:
   sdk: ^3.4.0
 
-# Add regular dependencies here.
 dependencies:
   jovial_svg: ^1.1.21
   jovial_misc: ^0.8.0
   args: ^2.0.0
 
 dev_dependencies:
-  lints: ^3.0.0
+  flutter_lints: ^3.0.0
   test: ^1.24.0
+  flutter:
+    sdk: flutter
+
