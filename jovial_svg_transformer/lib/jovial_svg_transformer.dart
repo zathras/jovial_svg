@@ -5,6 +5,7 @@
 /// to turn SVG or AVD files into an efficient binary representation for
 /// `jovial_svg`.
 ///
+library jovial_svg_transformer;
 
 import 'dart:io';
 import 'dart:typed_data';
