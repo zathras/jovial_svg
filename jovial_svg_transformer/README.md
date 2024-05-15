@@ -20,3 +20,33 @@ Using floats instead of doubles is likely a bit faster, and makes
 the files images smaller in memory at runtime.  For most files,
 floats offer more than enough precision.
 
+Here's a sample pubspec to show how to use this in a project:
+```
+name: example
+description: "Example of using an asset transformer"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  jovial_svg: ^1.1.21
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  jovial_svg_transformer: ^1.0.0
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - path: assets/tiger.svg
+      transformers:
+        - package: jovial_svg_transformer
+```
