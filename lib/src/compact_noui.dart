@@ -320,6 +320,7 @@ abstract class CompactTraverserBase<R, IM,
     final anchor = (fileVersion < 2)
         ? SITextAnchor.start
         : SITextAnchor.values[(byte >> 5) & 0x03];
+    const dominantBaseline = SIDominantBaseline.auto; // Just default value
     final SITextDecoration decoration;
     if (fileVersion < 6) {
       decoration = SITextDecoration.none;
@@ -333,6 +334,7 @@ abstract class CompactTraverserBase<R, IM,
         fontFamily: (ffi == null) ? null : _stringLists[ffi],
         fontStyle: style,
         textAnchor: anchor,
+        dominantBaseline: dominantBaseline,
         fontSize: fontSize,
         fontWeight: weight,
         textDecoration: decoration);
@@ -352,6 +354,7 @@ abstract class CompactTraverserBase<R, IM,
     final style = SIFontStyle.values[byte & 0x1];
     final weight = SIFontWeight.values[(byte >> 1) & 0xf];
     final anchor = SITextAnchor.values[(byte >> 5) & 0x03];
+    const dominantBaseline = SIDominantBaseline.auto; // Just default value
     byte = _children.readUnsignedByte();
     final ffi = _flag(byte, 1) ? _readSmallishInt(_children) : null;
     final fontSizeIndex = _readSmallishInt(_children);
@@ -371,6 +374,7 @@ abstract class CompactTraverserBase<R, IM,
         fontFamily: fontFamily,
         fontStyle: style,
         textAnchor: anchor,
+        dominantBaseline: dominantBaseline,
         fontSize: _floatValues[fontSizeIndex],
         fontWeight: weight,
         textDecoration: decoration);
