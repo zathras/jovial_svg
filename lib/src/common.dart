@@ -1259,7 +1259,7 @@ class SITextSpan extends SITextChunk {
     // gold-plating.
     final tp = TextPainter(text: span, textDirection: TextDirection.ltr);
     tp.layout();
-    final baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    
     final double anchorDx;
     switch (attributes.textAnchor) {
       case SITextAnchor.start:
@@ -1272,6 +1272,28 @@ class SITextSpan extends SITextChunk {
         anchorDx = -tp.width;
         break;
     }
+
+    final double baseDy;
+    switch (attributes.dominantBaseline) {
+      case SIDominantBaseline.auto:
+      case SIDominantBaseline.alphabetic:
+      case SIDominantBaseline.textBeforeEdge:
+        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+        break;
+      case SIDominantBaseline.middle:
+      case SIDominantBaseline.central:
+        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic) / 2;
+        break;
+      case SIDominantBaseline.hanging:
+      case SIDominantBaseline.textAfterEdge:
+        baseDy = 0;
+        break;
+      case SIDominantBaseline.ideographic:
+      case SIDominantBaseline.mathematical:
+        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.ideographic);
+        break;
+    }
+
     thingToDo(dx + anchorDx, dy + baseDy, tp);
   }
 

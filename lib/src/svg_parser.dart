@@ -788,6 +788,29 @@ abstract class SvgParser extends GenericParser {
       }
     }
 
+    attr = attrs.remove('dominant-baseline')?.toLowerCase();
+    if (attr == null || attr == 'inherit') {
+      // Let it stay at null
+    } else {
+      const vals = {
+        'middle': SIDominantBaseline.middle,
+        'central': SIDominantBaseline.central,
+        'hanging': SIDominantBaseline.hanging,
+        'auto': SIDominantBaseline.auto,
+        'alphabetic': SIDominantBaseline.alphabetic,
+        'ideographic': SIDominantBaseline.ideographic,
+        'mathematical': SIDominantBaseline.mathematical,
+        'text-after-edge': SIDominantBaseline.textAfterEdge,
+        'text-before-edge': SIDominantBaseline.textBeforeEdge,
+      };
+      final v = vals[attr];
+      if (v != null) {
+        t.dominantBaseline = v;
+      } else {
+        warn('    Ignoring invalid dominant-baseline "$attr"');
+      }
+    }
+
     attr = attrs.remove('text-decoration');
     if (attr == null || attr == 'inherit') {
       // Let it stay at null

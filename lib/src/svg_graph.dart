@@ -2234,6 +2234,7 @@ class SvgTextStyle {
   List<String>? fontFamily; // Null is not the same as [] due to cascading
   SIFontStyle? fontStyle;
   SITextAnchor? textAnchor;
+  SIDominantBaseline? dominantBaseline;
   SITextDecoration? textDecoration;
   SvgFontWeight fontWeight = SvgFontWeight.inherit;
   SvgFontSize fontSize = SvgFontSize.inherit;
@@ -2244,6 +2245,7 @@ class SvgTextStyle {
       {required this.fontFamily,
       required this.fontStyle,
       required this.textAnchor,
+      required this.dominantBaseline,
       required this.fontWeight,
       required this.fontSize,
       required this.textDecoration});
@@ -2251,6 +2253,7 @@ class SvgTextStyle {
   SvgTextStyle._initial()
       : fontFamily = null,
         textAnchor = SITextAnchor.start,
+        dominantBaseline = SIDominantBaseline.auto,
         fontStyle = SIFontStyle.normal,
         fontWeight = SvgFontWeight.w400,
         fontSize = SvgFontSize.medium,
@@ -2260,6 +2263,7 @@ class SvgTextStyle {
       fontFamily: fontFamily,
       fontStyle: fontStyle,
       textAnchor: textAnchor,
+      dominantBaseline: dominantBaseline,
       fontWeight: fontWeight,
       fontSize: fontSize,
       textDecoration: textDecoration);
@@ -2269,6 +2273,7 @@ class SvgTextStyle {
         fontSize: fontSize._orInherit(ancestor.fontSize),
         fontFamily: fontFamily ?? ancestor.fontFamily,
         textAnchor: textAnchor ?? ancestor.textAnchor,
+        dominantBaseline: dominantBaseline ?? ancestor.dominantBaseline,
         textDecoration: textDecoration ?? ancestor.textDecoration,
         fontWeight: fontWeight._orInherit(ancestor.fontWeight),
         fontStyle: fontStyle ?? ancestor.fontStyle);
@@ -2278,6 +2283,7 @@ class SvgTextStyle {
     fontSize = fontSize._orInherit(style.textStyle.fontSize);
     fontFamily = fontFamily ?? style.textStyle.fontFamily;
     textAnchor = textAnchor ?? style.textStyle.textAnchor;
+    dominantBaseline = dominantBaseline ?? style.textStyle.dominantBaseline;
     textDecoration = textDecoration ?? style.textStyle.textDecoration;
     fontWeight = fontWeight._orInherit(style.textStyle.fontWeight);
     fontStyle = fontStyle ?? style.textStyle.fontStyle;
@@ -2286,6 +2292,7 @@ class SvgTextStyle {
   SITextAttributes _toSITextAttributes() => SITextAttributes(
       fontFamily: fontFamily,
       textAnchor: textAnchor!,
+      dominantBaseline: dominantBaseline!,
       textDecoration: textDecoration!,
       fontStyle: fontStyle!,
       fontWeight: fontWeight._toSI(),
@@ -2295,7 +2302,7 @@ class SvgTextStyle {
   int get hashCode =>
       0x0ba469d9 ^
       Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, textAnchor,
-          textDecoration, fontWeight, fontSize);
+          dominantBaseline, textDecoration, fontWeight, fontSize);
 
   @override
   bool operator ==(Object other) {
@@ -2306,6 +2313,7 @@ class SvgTextStyle {
               .equals(fontFamily, other.fontFamily) &&
           fontStyle == other.fontStyle &&
           textAnchor == other.textAnchor &&
+          dominantBaseline == other.dominantBaseline &&
           textDecoration == other.textDecoration &&
           fontWeight == other.fontWeight &&
           fontSize == other.fontSize;

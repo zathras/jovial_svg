@@ -1234,6 +1234,24 @@ enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
 enum SITextAnchor { start, middle, end }
 
 ///
+/// Text anchor values.  See
+/// https://www.w3.org/TR/SVG11/text.html .
+///
+/// {@category SVG DOM}
+///
+enum SIDominantBaseline {
+  auto,
+  ideographic,
+  alphabetic,
+  mathematical,
+  central,
+  textAfterEdge,
+  middle,
+  textBeforeEdge,
+  hanging
+}
+
+///
 /// Text decoration values.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
 ///
@@ -1244,18 +1262,21 @@ enum SITextDecoration { none, lineThrough, overline, underline }
 class SITextAttributes {
   final List<String>? fontFamily;
   final SITextAnchor textAnchor;
+  final SIDominantBaseline dominantBaseline;
   final SIFontStyle fontStyle;
   final SIFontWeight fontWeight;
   final double fontSize;
   final SITextDecoration textDecoration;
 
-  SITextAttributes(
-      {required this.fontFamily,
-      required this.textAnchor,
-      required this.fontStyle,
-      required this.fontWeight,
-      required this.fontSize,
-      required this.textDecoration});
+  SITextAttributes({
+    required this.fontFamily,
+    required this.textAnchor,
+    required this.fontStyle,
+    required this.fontWeight,
+    required this.fontSize,
+    required this.textDecoration,
+    required this.dominantBaseline
+  });
 
   @override
   bool operator ==(final Object other) {
@@ -1265,6 +1286,7 @@ class SITextAttributes {
       return (const ListEquality<String>())
               .equals(fontFamily, other.fontFamily) &&
           textAnchor == other.textAnchor &&
+          dominantBaseline == other.dominantBaseline &&
           fontStyle == other.fontStyle &&
           fontWeight == other.fontWeight &&
           fontSize == other.fontSize &&
@@ -1278,7 +1300,7 @@ class SITextAttributes {
   int get hashCode =>
       0xa7cb9e84 ^
       Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, fontWeight,
-          fontSize, textAnchor, textDecoration);
+      fontSize, textAnchor, textDecoration, dominantBaseline);
 }
 
 ///
