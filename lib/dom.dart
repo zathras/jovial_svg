@@ -48,9 +48,9 @@ POSSIBILITY OF SUCH DAMAGE.
 /// ```
 ///
 /// A full sample can be found in the GitHub repository in
-/// `example/lib/animation.dart`.  See
+/// `example/lib/animation.dart`.  Here is an overview of the DOM
+/// class structure:
 /// <img src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/uml/svg_dom.svg" />
-/// for an overview of the DOM class structure.
 ///
 library dom;
 
