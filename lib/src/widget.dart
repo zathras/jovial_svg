@@ -1154,6 +1154,25 @@ class _CacheEntry {
 /// private members.  See also the `demo_hive` application to see how
 /// [ScalableImageSource] can be extended to load from a persistent cache.
 ///
+/// Sample usage (see `example/lib/cache.dart` for the full program):
+///
+/// ```
+/// class _HomePageState extends State<HomePage> {
+///  ScalableImageCache _svgCache = ScalableImageCache(size: 70);
+///  ...
+///  @override
+///  Widget build(BuildContext context) {
+///    return ...
+///              ScalableImageWidget.fromSISource(
+///                  cache: _svgCache,
+///                  scale: 1000,
+///                  si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index]),
+///                  ...),
+///     ...;
+///   }
+/// }
+/// ```
+///
 /// {@category Widget}
 ///
 class ScalableImageCache {
