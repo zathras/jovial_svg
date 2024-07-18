@@ -1,3 +1,7 @@
+## [1.1.22] - Upcoming
+
+- Fix cache to work when warnF is specified (Issue 103)
+
 ## [1.1.21] - May 2024
 
 - Add a DOM API for animating/modifying SVG assets (Issues 19, 95)
