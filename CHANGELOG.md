@@ -1,6 +1,6 @@
-## [1.1.22] - Upcoming
+## [1.1.22] - August 2024
 
-- Fix cache to work when warnF is specified (Issue 103)
+- Fix widget's cache to work when `warnF` is specified (Issue 103)
 
 ## [1.1.21] - May 2024
 
