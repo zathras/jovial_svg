@@ -199,12 +199,16 @@ class SvgDOM {
   }
 
   ///
-  /// Make a clone of this parse graph.  This is useful if you want to
-  /// build (and display) a ScalableImage from th is parse graph, then
-  /// make some changes, and display the result.  Building a ScalableImage
+  /// Make a clone of this parse graph.  This internal method is useful to
+  /// build (and display) a `ScalableImage` from this parse graph, then
+  /// make some changes, and display the result.  Building a `ScalableImage`
   /// from a parse graph is a destructive operation - it can only be done
   /// once per `SvgParseGraph` instance.  By cloning the parse graph each time,
-  /// you keep an un-built version around.
+  /// the un-built version is maintained.
+  ///
+  /// This does a deep clone, which is unlikey to be useful for application 
+  /// code doing general graph manipulation.  For that, making a copy of a
+  /// targeted set of notes is generally sufficient.
   ///
   /// Throws [StateError] if this [SvgDOM] has been built.
   SvgDOM _clone() {
