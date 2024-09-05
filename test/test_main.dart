@@ -31,7 +31,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jovial_misc/io_utils.dart';
 import 'package:jovial_svg/dom.dart';
-import 'package:jovial_svg/src/affine.dart';
 import 'package:jovial_svg/src/avd_parser.dart';
 import 'package:jovial_svg/src/common.dart';
 import 'package:jovial_svg/src/common_noui.dart';
