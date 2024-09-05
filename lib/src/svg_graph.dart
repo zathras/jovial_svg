@@ -206,7 +206,7 @@ class SvgDOM {
   /// once per `SvgParseGraph` instance.  By cloning the parse graph each time,
   /// the un-built version is maintained.
   ///
-  /// This does a deep clone, which is unlikey to be useful for application 
+  /// This does a deep clone, which is unlikey to be useful for application
   /// code doing general graph manipulation.  For that, making a copy of a
   /// targeted set of notes is generally sufficient.
   ///
@@ -1025,6 +1025,15 @@ class SvgGroup extends SvgInheritableAttributesNode {
   void _visitPaths(void Function(Object pathKey) f) {
     for (final c in children) {
       c._visitPaths(f);
+    }
+  }
+
+  @mustCallSuper
+  @override
+  void _addIDs(Map<String, SvgNode> idLookup) {
+    super._addIDs(idLookup);
+    for (final c in children) {
+      c._addIDs(idLookup);
     }
   }
 
