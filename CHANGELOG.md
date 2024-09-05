@@ -1,3 +1,7 @@
+## [1.1.23] - Upcoming
+
+- Fix ID lookup with SvgDOM (Issue 113)
+
 ## [1.1.22] - August 2024
 
 - Fix widget's cache to work when `warnF` is specified (Issue 103)
