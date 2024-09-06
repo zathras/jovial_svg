@@ -1514,7 +1514,8 @@ class ScalingTransform {
 /// }
 /// ```
 ///
-/// See `demo/lib/main.dart` for a more complete example.
+/// See `example/lib/animation.dart` and `demo/lib/main.dart` for
+/// more complete examples.
 ///
 /// {@category Widget}
 ///
