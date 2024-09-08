@@ -233,7 +233,7 @@ class SvgDOM {
     final sb = StringBuffer();
     sb.write('SvgDOM(\n');
     sb.write('  stylesheet:  $stylesheet\n');
-    sb.write('  nodes: ${root}\n');
+    sb.write('  nodes: $root\n');
     sb.write(')\n');
     return sb.toString();
   }
@@ -496,6 +496,7 @@ sealed class SvgNode {
   /// Give a human-readable representation of this node, for debugging and
   /// exploration.
   ///
+  @override
   String toString() {
     final String idPart;
     if (id == null) {
