@@ -233,7 +233,7 @@ class SvgDOM {
     final sb = StringBuffer();
     sb.write('SvgDOM(\n');
     sb.write('  stylesheet:  $stylesheet\n');
-    sb.write('  nodes: ${root.toStringIndented(4)}\n');
+    sb.write('  nodes: ${root}\n');
     sb.write(')\n');
     return sb.toString();
   }
@@ -496,7 +496,7 @@ sealed class SvgNode {
   /// Give a human-readable representation of this node, for debugging and
   /// exploration.
   ///
-  String toStringIndented(int indent) {
+  String toString() {
     final String idPart;
     if (id == null) {
       idPart = '';
@@ -806,7 +806,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   /// exploration.
   ///
   @override
-  String toStringIndented(int indent) {
+  String toString() {
     final String idPart;
     if (id == null) {
       idPart = '';
@@ -1196,12 +1196,18 @@ class SvgGroup extends SvgInheritableAttributesNode {
   /// exploration.
   ///
   @override
-  String toStringIndented(int indent) {
+  String toString() => _toStringIndented(4);
+
+  String _toStringIndented(int indent) {
     final sb = StringBuffer();
     for (final c in children) {
       sb.write('\n');
       sb.write(''.padLeft(indent, ' '));
-      sb.write(c.toStringIndented(indent + 2));
+      if (c is SvgGroup) {
+        sb.write(c._toStringIndented(indent + 2));
+      } else {
+        sb.write(c.toString());
+      }
     }
     if (children.isNotEmpty) {
       sb.write('\n');
@@ -1209,7 +1215,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
         sb.write(''.padLeft(indent - 2, ' '));
       }
     }
-    return '${super.toStringIndented(indent)} [${sb.toString()}]';
+    return '${super.toString()} [${sb.toString()}]';
   }
 }
 
@@ -2216,7 +2222,7 @@ class SvgGradientNode implements SvgNode {
   /// exploration.
   ///
   @override
-  String toStringIndented(int indent) {
+  String toString() {
     final String idPart;
     if (id == null) {
       idPart = '';
