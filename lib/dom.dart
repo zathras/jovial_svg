@@ -250,4 +250,11 @@ class SvgDOMManager {
     }
     return si;
   }
+
+  ///
+  /// Give a human-readable sketch of the contents of our DOM.  This might
+  /// be useful for debugging and/or exploration.
+  ///
+  @override
+  String toString() => '${super.toString()} : $dom';
 }

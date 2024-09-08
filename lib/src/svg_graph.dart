@@ -223,6 +223,20 @@ class SvgDOM {
   void _visitPaths(void Function(Object pathKey) f) => root._visitPaths(f);
 
   void _cloneAttributes() => root._cloneAttributes();
+
+  ///
+  /// Give a human-readable sketch of the contents of this `SvgDOM`.  This might
+  /// be useful for debugging and/or exploration.
+  ///
+  @override
+  String toString() {
+    final sb = StringBuffer();
+    sb.write('SvgDOM(\n');
+    sb.write('  stylesheet:  $stylesheet\n');
+    sb.write('  nodes: ${root.toStringIndented(4)}\n');
+    sb.write(')\n');
+    return sb.toString();
+  }
 }
 
 class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
@@ -476,6 +490,21 @@ sealed class SvgNode {
     if (i != null) {
       idLookup[i] = this;
     }
+  }
+
+  ///
+  /// Give a human-readable representation of this node, for debugging and
+  /// exploration.
+  ///
+  String toStringIndented(int indent) {
+    final String idPart;
+    if (id == null) {
+      idPart = '';
+    } else {
+      idPart = '(id: $id)';
+    }
+    final cName = runtimeType.toString();
+    return '$cName$idPart';
   }
 }
 
@@ -770,6 +799,22 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
       }
     }
     return this;
+  }
+
+  ///
+  /// Give a human-readable representation of this node, for debugging and
+  /// exploration.
+  ///
+  @override
+  String toStringIndented(int indent) {
+    final String idPart;
+    if (id == null) {
+      idPart = '';
+    } else {
+      idPart = '(id: $id)';
+    }
+    final cName = runtimeType.toString();
+    return '$cName$idPart';
   }
 }
 
@@ -1144,6 +1189,27 @@ class SvgGroup extends SvgInheritableAttributesNode {
       }
     }
     return false;
+  }
+
+  ///
+  /// Give a human-readable representation of this node, for debugging and
+  /// exploration.
+  ///
+  @override
+  String toStringIndented(int indent) {
+    final sb = StringBuffer();
+    for (final c in children) {
+      sb.write('\n');
+      sb.write(''.padLeft(indent, ' '));
+      sb.write(c.toStringIndented(indent + 2));
+    }
+    if (children.isNotEmpty) {
+      sb.write('\n');
+      if (indent > 2) {
+        sb.write(''.padLeft(indent - 2, ' '));
+      }
+    }
+    return '${super.toStringIndented(indent)} [${sb.toString()}]';
   }
 }
 
@@ -2144,6 +2210,22 @@ class SvgGradientNode implements SvgNode {
   ///
   @override
   SIBlendMode? get blendMode => null;
+
+  ///
+  /// Give a human-readable representation of this node, for debugging and
+  /// exploration.
+  ///
+  @override
+  String toStringIndented(int indent) {
+    final String idPart;
+    if (id == null) {
+      idPart = '';
+    } else {
+      idPart = '(id: $id)';
+    }
+    final cName = runtimeType.toString();
+    return '$cName$idPart';
+  }
 }
 
 ///

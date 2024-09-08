@@ -59,6 +59,7 @@ class _AnimatedState extends State<Animated> {
 
   @override
   void initState() {
+    print('Initial DOM:  ${svg.dom}');
     final nodes = svg.dom.idLookup;
     circle = nodes['c'] as SvgEllipse;
     rect = nodes['r'] as SvgRect;
