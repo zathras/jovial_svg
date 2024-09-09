@@ -1,6 +1,7 @@
 ## [1.1.23] - Upcoming
 
 - Fix ID lookup with SvgDOM (Issue 113)
+- DOM:  Export ValueColor, SvgFontSizeAbsolute (Issue 115)
 - Add a nicer toString() to SvgDOM for debugging/exploration.
 
 ## [1.1.22] - August 2024

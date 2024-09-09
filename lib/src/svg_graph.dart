@@ -1562,9 +1562,8 @@ class SvgSymbol extends SvgGroup {
 }
 
 ///
-/// Common supertype of all nodes that make SVG paths.
-///
-/// {@category SVG DOM}
+/// Common supertype of all nodes that make SVG paths.  Not exported;
+/// no public attributes.
 ///
 abstract class SvgPathMaker extends SvgInheritableAttributesNode {
   SvgPathMaker() : super._p();
@@ -2429,7 +2428,7 @@ abstract class SvgFontSize {
   ///
   /// Create an absolute font size.
   ///
-  factory SvgFontSize.absolute(double size) => _SvgFontSizeAbsolute(size);
+  factory SvgFontSize.absolute(double size) => SvgFontSizeAbsolute(size);
 
   static const SvgFontSize inherit = _SvgFontSizeInherit();
 
@@ -2438,27 +2437,39 @@ abstract class SvgFontSize {
   static const SvgFontSize smaller = _SvgFontSizeRelative(1 / 1.2);
 
   static const double _med = 12;
-  static const SvgFontSize medium = _SvgFontSizeAbsolute(_med);
+  static const SvgFontSizeAbsolute medium = SvgFontSizeAbsolute(_med);
 
-  static const SvgFontSize small = _SvgFontSizeAbsolute(_med / 1.2);
-  static const SvgFontSize x_small = _SvgFontSizeAbsolute(_med / (1.2 * 1.2));
-  static const SvgFontSize xx_small =
-      _SvgFontSizeAbsolute(_med / (1.2 * 1.2 * 1.2));
+  static const SvgFontSizeAbsolute small = SvgFontSizeAbsolute(_med / 1.2);
+  static const SvgFontSizeAbsolute x_small =
+      SvgFontSizeAbsolute(_med / (1.2 * 1.2));
+  static const SvgFontSizeAbsolute xx_small =
+      SvgFontSizeAbsolute(_med / (1.2 * 1.2 * 1.2));
 
-  static const SvgFontSize large = _SvgFontSizeAbsolute(_med * 1.2);
-  static const SvgFontSize x_large = _SvgFontSizeAbsolute(_med * 1.2 * 1.2);
-  static const SvgFontSize xx_large =
-      _SvgFontSizeAbsolute(_med * 1.2 * 1.2 * 1.2);
+  static const SvgFontSizeAbsolute large = SvgFontSizeAbsolute(_med * 1.2);
+  static const SvgFontSizeAbsolute x_large =
+      SvgFontSizeAbsolute(_med * 1.2 * 1.2);
+  static const SvgFontSizeAbsolute xx_large =
+      SvgFontSizeAbsolute(_med * 1.2 * 1.2 * 1.2);
 
   SvgFontSize _orInherit(SvgFontSize ancestor);
 
   double _toSI();
 }
 
-class _SvgFontSizeAbsolute extends SvgFontSize {
+///
+/// Absolute font size for SVG text.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontPropertiesUsedBySVG .
+///
+/// {@category SVG DOM}
+///
+class SvgFontSizeAbsolute extends SvgFontSize {
+  ///
+  /// The size, in the units specified by SVG.  See
+  /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontPropertiesUsedBySVG .
+  ///
   final double size;
 
-  const _SvgFontSizeAbsolute(this.size) : super._p();
+  const SvgFontSizeAbsolute(this.size) : super._p();
 
   @override
   SvgFontSize _orInherit(SvgFontSize ancestor) => this;
@@ -2551,26 +2562,38 @@ abstract class SvgColor {
   ///
   /// Create a reference to a gradient
   ///
-  static SvgColor reference(String id) => _SvgColorReference(id);
+  static SvgColorReference reference(String id) => SvgColorReference(id);
 }
 
+///
+/// A color value, specified as a 32 bit ARGB value.  Normally, the alpha
+/// is fully opaque (0xff); transparency in SVG is specified as a separate
+/// attribute.  However, many renderers (including this one) honor a
+/// transparency value other than 0xff in the top byte, where appropriate.
+///
+/// {@category SVG DOM}
+///
 class SvgValueColor extends SvgColor {
-  final int _value;
-  const SvgValueColor(this._value);
+  ///
+  /// The ARGB color value
+  ///
+  final int value;
+
+  const SvgValueColor(this.value);
 
   @override
   SIColor _toSIColor(
       int alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     if (alpha == 0xff) {
-      return SIValueColor(_value);
+      return SIValueColor(value);
     } else {
-      return SIValueColor((_value & 0xffffff) | (alpha << 24));
+      return SIValueColor((value & 0xffffff) | (alpha << 24));
     }
   }
 
   @override
   String toString() =>
-      'SvgValueColor(#${_value.toRadixString(16).padLeft(6, "0")})';
+      'SvgValueColor(#${value.toRadixString(16).padLeft(6, "0")})';
 }
 
 class _SvgInheritColor extends SvgColor {
@@ -2611,10 +2634,19 @@ class _SvgCurrentColor extends SvgColor {
   }
 }
 
-class _SvgColorReference extends SvgColor {
+///
+/// A reference to a gradient color. See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
+///
+/// {@category SVG DOM}
+///
+class SvgColorReference extends SvgColor {
+  ///
+  /// The ID of the gradient node that defines this color.
+  ///
   final String id;
 
-  _SvgColorReference(this.id);
+  SvgColorReference(this.id);
 
   @override
   SvgColor _orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup,
@@ -2638,7 +2670,7 @@ class _SvgColorReference extends SvgColor {
 }
 
 ///
-/// And SVG gradient stop.  See
+/// An SVG gradient stop.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
 /// {@category SVG DOM}
@@ -2662,7 +2694,7 @@ class SvgGradientStop {
 /// {@category SVG DOM}
 ///
 sealed class SvgGradientColor extends SvgColor {
-  final bool? objectBoundingBox;
+  bool? objectBoundingBox;
   List<SvgGradientStop>? stops;
   Affine? transform;
   SvgGradientColor? parent;
@@ -3184,7 +3216,7 @@ final svgGraphUnreachablePrivate = [
   () => const _SvgFontWeightInherit()._toSI(),
   () => const _SvgFontWeightLighter()._toSI(),
   () => const _SvgFontWeightBolder()._toSI(),
-  () => _SvgColorReference('')._toSIColor(0, SvgColor.white, SvgPaint._dummy),
+  () => SvgColorReference('')._toSIColor(0, SvgColor.white, SvgPaint._dummy),
   () => SvgColor.inherit._toSIColor(0, SvgColor.white, SvgPaint._dummy),
   () => SvgColor.white.toString(),
   () => _SvgFontSizeRelativeDeferred(1, SvgFontSize.absolute(0))._toSI(),
