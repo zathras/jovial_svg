@@ -11,8 +11,9 @@ The supported SVG profile includes the parts of
 [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/)
 that are applicable to static images, plus a healthy subset of
 [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  In-line 
-Cascading style sheets (CSS) are supported, via the `<style>` tag.
-In addition to SVG, [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
+Cascading style sheets (CSS) are supported with limitations, via 
+the `<style>` tag.  In addition to SVG, 
+[Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
 SVG assets can be modified with a DOM interface in order to produce
 animation.
@@ -157,6 +158,10 @@ attributes.
   * The pattern element is not supported (Not in Tiny; cf. SVG 13.3).
   * The `style` tag for inline CSS and the `style=` attribute are
      supported to specify node attributes (not in Tiny - cf. s. 6.2).
+  * However, contrary to the SVG specification, node attributes take 
+    precedence over stylesheet attributes (see
+    <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
+    116</a>.
   * CSS attributes that don't have a corresponding SVG attribute generally
     are not supported, e.g. `background` and `transform-origin` are not.
   * Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
