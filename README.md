@@ -156,14 +156,6 @@ attributes.
      in Tiny).
   * The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
   * The pattern element is not supported (Not in Tiny; cf. SVG 13.3).
-  * The `style` tag for inline CSS and the `style=` attribute are
-     supported to specify node attributes (not in Tiny - cf. s. 6.2).
-  * However, contrary to the SVG specification, node attributes take 
-    precedence over stylesheet attributes -- see
-    <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
-    116</a>.
-  * CSS attributes that don't have a corresponding SVG attribute generally
-    are not supported, e.g. `background` and `transform-origin` are not.
   * Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   * Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
@@ -173,6 +165,15 @@ attributes.
   * Filter effects via the `filter` tag are not supported (not in Tiny, cf.
      SVG s. 15) 
   * XML namespaces are ignored.
+  * Stylesheets:
+      * The `style` tag for inline CSS and the `style=` attribute are
+        supported to specify node attributes (not in Tiny - cf. s. 6.2).
+      * Contrary to the SVG specification, node attributes take 
+        precedence over stylesheet attributes -- see
+        <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
+        116</a>.
+      * CSS attributes that don't have a corresponding SVG attribute generally
+        are not supported, e.g. `background` and `transform-origin` are not.
   * Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute
