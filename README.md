@@ -172,6 +172,9 @@ attributes.
         precedence over stylesheet attributes -- see
         <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
         116</a>.
+      * Other non-obvious CSS precedence rules (like
+        <a href="specificity">https://www.w3.org/TR/2008/REC-CSS2-20080411/cascade.html#specificity</a>)
+        aren't respected.
       * CSS attributes that don't have a corresponding SVG attribute generally
         are not supported, e.g. `background` and `transform-origin` are not.
   * Text profile:
