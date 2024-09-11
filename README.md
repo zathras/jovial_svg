@@ -173,7 +173,7 @@ attributes.
         <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
         116</a>.
       * Other non-obvious CSS precedence rules (like
-        <a href="specificity">https://www.w3.org/TR/2008/REC-CSS2-20080411/cascade.html#specificity</a>)
+        <a href="https://www.w3.org/TR/2008/REC-CSS2-20080411/cascade.html#specificity">specificity</a>)
         aren't respected.
       * CSS attributes that don't have a corresponding SVG attribute generally
         are not supported, e.g. `background` and `transform-origin` are not.
