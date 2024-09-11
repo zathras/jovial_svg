@@ -555,6 +555,12 @@ abstract class SvgInheritableTextAttributes {
   SvgPaint? _paint;
 
   ///
+  /// Reset the paint value.  This is equivalent to setting the `paint`
+  /// to [SvgPaint.empty], but may be slightly more efficient.
+  ///
+  void resetPaint() => _paint = null;
+
+  ///
   /// The text styling information to use when rendering a node
   ///
   SvgTextStyle get textStyle =>
@@ -570,7 +576,7 @@ abstract class SvgInheritableTextAttributes {
 
   SvgInheritableTextAttributes._p() : styleClass = '';
 
-  SvgInheritableTextAttributes._withPaint(SvgPaint paint)
+  SvgInheritableTextAttributes._withPaint(SvgPaint? paint)
       : _paint = paint,
         styleClass = '';
 
@@ -1049,7 +1055,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
   @protected
   bool get _multipleNodesOK => false;
 
-  SvgGroup({SvgPaint? paint}) : super._withPaint(paint ?? SvgPaint.empty());
+  SvgGroup({SvgPaint? paint}) : super._withPaint(paint);
 
   SvgGroup._cloned(SvgGroup super.other)
       : children = List.from(other.children.map((n) => n._clone())),
