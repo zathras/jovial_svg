@@ -1056,7 +1056,9 @@ abstract class SvgParser extends GenericParser {
           // Unlike a node, our styleClass doesn't come from the
           // parser.  A badly formed CSS entry could try to set an attribute
           // called 'class,' so we set styleClass last.
-          s.gradientStop = _processStop(attrs);
+
+          final stop = _processStop(attrs);
+          s.gradientStop = stop?.getStopStyle();
         }
       }
       assert(lastPos != pos);

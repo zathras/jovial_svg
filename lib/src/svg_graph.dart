@@ -373,7 +373,7 @@ class Style extends SvgInheritableAttributes {
   ///
   /// The gradient stop attributes for this style.
   ///
-  SvgGradientStop? gradientStop;
+  SvgGradientStopStyle? gradientStop;
 
   // We inherit an applyStyle implementation that's unreachable, so we need to
   // stub this out.
@@ -2701,6 +2701,20 @@ class SvgColorReference extends SvgColor {
 }
 
 ///
+/// The style attributes for an SVG gradient stop.  See
+/// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
+///
+/// {@category SVG DOM}
+///
+class SvgGradientStopStyle {
+  double? offset;
+  SvgColor? color;
+  int? alpha;
+
+  SvgGradientStopStyle(this.offset, this.color, this.alpha);
+}
+
+///
 /// An SVG gradient stop.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
@@ -2710,10 +2724,22 @@ class SvgGradientStop extends _HasStylesheet {
   double? _offset;
   SvgColor? _color; // But not a gradient!
   int? _alpha;
+
+  /// The offset, or 0 if it is not set.  See [offsetIsSet].  offset cannot
+  /// return null due to backwards compatibility constraints.
   double get offset => _offset ?? 0.0;
+  bool get offsetIsSet => _offset != null;
+
+  /// The offset, or black if it is not set.  See [colorIsSet].  color
+  /// cannot return null due to backwards compatibility constraints.
   SvgColor get color => _color ?? SvgColor.black; // But not a gradient!
+  bool get colorIsSet => _offset != null;
   //default stop-color is 'black'. Ref https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stop-color
+
+  /// The alpha, or 0xff if it is not set.  See [alphaIsSet].  alpha
+  /// cannot return null due to backwards compatibility constraints.
   int get alpha => _alpha ?? 0xff;
+  bool get alphaIsSet => _offset != null;
 
   ///
   /// The class of this stop for applying stylesheets
@@ -2740,6 +2766,17 @@ class SvgGradientStop extends _HasStylesheet {
   }
 
   ///
+  /// Get the style attributes for this stop, or null if none are set
+  ///
+  SvgGradientStopStyle? getStopStyle() {
+    if (alphaIsSet || colorIsSet || offsetIsSet) {
+      return SvgGradientStopStyle(_offset, _color, _alpha);
+    } else {
+      return null;
+    }
+  }
+
+  ///
   /// Apply the stylesheet.  If it results in a change, create a new stop
   /// with the changes; otherwise, return null.
   ///
@@ -2762,9 +2799,9 @@ class SvgGradientStop extends _HasStylesheet {
 
   @override
   void _takeFrom(Style s, void Function(String) warn) {
-    _alpha ??= s.gradientStop?._alpha;
-    _color ??= s.gradientStop?._color;
-    _offset ??= s.gradientStop?._offset;
+    _alpha ??= s.gradientStop?.alpha;
+    _color ??= s.gradientStop?.color;
+    _offset ??= s.gradientStop?.offset;
   }
 }
 

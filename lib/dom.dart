@@ -92,6 +92,7 @@ export 'src/svg_graph.dart'
         SvgValueColor,
         SvgColorReference,
         SvgGradientStop,
+        SvgGradientStopStyle,
         SvgGradientColor,
         SvgCoordinate,
         SvgLinearGradientColor,
