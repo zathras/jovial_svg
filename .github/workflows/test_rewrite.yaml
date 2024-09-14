@@ -19,6 +19,7 @@ jobs:
             - run: cd utils/image_cmp ; flutter pub upgrade
             - run: cd example ; flutter pub upgrade
             - run: cd demo_hive; flutter pub upgrade
+            - run: cd jovial_svg_transformer; flutter pub upgrade
             - run: flutter analyze
             - run: flutter test --dart-define=jovial_svg_rewriteAllFailedTests=true test/test_main.dart
             - run: uptime
