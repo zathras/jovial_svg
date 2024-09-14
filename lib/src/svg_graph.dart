@@ -2733,13 +2733,13 @@ class SvgGradientStop extends _HasStylesheet {
   /// The offset, or black if it is not set.  See [colorIsSet].  color
   /// cannot return null due to backwards compatibility constraints.
   SvgColor get color => _color ?? SvgColor.black; // But not a gradient!
-  bool get colorIsSet => _offset != null;
+  bool get colorIsSet => _color != null;
   //default stop-color is 'black'. Ref https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stop-color
 
   /// The alpha, or 0xff if it is not set.  See [alphaIsSet].  alpha
   /// cannot return null due to backwards compatibility constraints.
   int get alpha => _alpha ?? 0xff;
-  bool get alphaIsSet => _offset != null;
+  bool get alphaIsSet => _alpha != null;
 
   ///
   /// The class of this stop for applying stylesheets
