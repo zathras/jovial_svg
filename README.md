@@ -168,6 +168,10 @@ attributes.
   * Stylesheets:
       * The `style` tag for inline CSS and the `style=` attribute are
         supported to specify node attributes (not in Tiny - cf. s. 6.2).
+      * Stylesheets can be used to set the rendering attributes on
+        node types, like the paint properties, opacity, etc.
+      * Stylesheets can also be used to set the properties of a
+        `stop` in a color gradient.
       * Contrary to the SVG specification, node attributes take 
         precedence over stylesheet attributes -- see
         <a href="https://github.com/zathras/jovial_svg/issues/116">Issue

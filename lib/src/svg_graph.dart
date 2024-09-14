@@ -150,8 +150,8 @@ class SvgDOM {
     RectT userSpace() => _userSpaceBounds;
     final rootPaint = SvgPaint._root(userSpace);
     final rootTA = SvgTextStyle._initial();
-    SvgNode? newRoot = root._resolve(_ResolveContext(idLookup, builder.warn),
-        rootPaint, _SvgNodeReferrers(this));
+    final rc = _ResolveContext(idLookup, builder.warn, stylesheet.isNotEmpty);
+    SvgNode? newRoot = root._resolve(rc, rootPaint, _SvgNodeReferrers(this));
     _resolved = true;
     builder.vector(
         width: width, height: height, tintColor: tintColor, tintMode: tintMode);
@@ -370,6 +370,11 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 class Style extends SvgInheritableAttributes {
   Style() : super._p();
 
+  ///
+  /// The gradient stop attributes for this style.
+  ///
+  SvgGradientStop? gradientStop;
+
   // We inherit an applyStyle implementation that's unreachable, so we need to
   // stub this out.
   @override
@@ -539,6 +544,55 @@ class _SvgNodeReferrers {
   }
 }
 
+abstract class _HasStylesheet {
+  String get styleClass;
+  String get tagName;
+  String? get _idForApplyStyle;
+
+  static final _whitespace = RegExp(r'\s+');
+
+  @mustCallSuper
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    void applyStyles(List<Style>? styles) {
+      if (styles != null) {
+        for (int i = styles.length - 1; i >= 0; i--) {
+          final s = styles[i];
+          if (s.styleClass == '') {
+            _takeFrom(s, warn);
+          }
+        }
+      }
+    }
+
+    // First, take any stylesheet keyed to our nod ID
+    if (_idForApplyStyle != null) {
+      applyStyles(stylesheet['#$_idForApplyStyle']);
+    }
+
+    // Next, any whose styleClass matches one of ours
+    final ourClasses = styleClass.trim().split(_whitespace).toSet();
+    if (ourClasses.isNotEmpty) {
+      for (final tag in [tagName, '']) {
+        final List<Style>? styles = stylesheet[tag];
+        if (styles != null) {
+          for (int i = styles.length - 1; i >= 0; i--) {
+            final s = styles[i];
+            if (ourClasses.contains(s.styleClass)) {
+              _takeFrom(s, warn);
+            }
+          }
+        }
+      }
+    }
+
+    // And finally, any whose styleClass is '' for our tagName
+    applyStyles(stylesheet[tagName]);
+  }
+
+  @protected
+  void _takeFrom(Style s, void Function(String) warn);
+}
+
 ///
 /// Attributes of an SVG element that are inherited from an ancestor
 /// node, and that are also present in an [SvgTextSpan] within
@@ -546,7 +600,7 @@ class _SvgNodeReferrers {
 ///
 /// {@category SVG DOM}
 ///
-abstract class SvgInheritableTextAttributes {
+abstract class SvgInheritableTextAttributes extends _HasStylesheet {
   ///
   /// The paint parameters to use when rendering a node.
   ///
@@ -572,6 +626,7 @@ abstract class SvgInheritableTextAttributes {
   /// The [Stylesheet] `class` value for CSS [Style] instances to be applied
   /// to this node.
   ///
+  @override
   String styleClass;
 
   SvgInheritableTextAttributes._p() : styleClass = '';
@@ -595,11 +650,10 @@ abstract class SvgInheritableTextAttributes {
   /// The tag name of this node, to be used when matching CSS [Style]
   /// instances.
   ///
+  @override
   String get tagName;
   // WARNING:  Any fields added here need to be shadowed in SvgText,
   // to redirect to the first text span.
-
-  String? get _idForApplyStyle;
 
   bool _isInvisible(SvgPaint cascaded) {
     return cascaded.hidden == true ||
@@ -608,42 +662,7 @@ abstract class SvgInheritableTextAttributes {
             !cascaded.inClipPath);
   }
 
-  static final _whitespace = RegExp(r'\s+');
-
-  @mustCallSuper
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
-    final ourClasses = styleClass.trim().split(_whitespace).toSet();
-    if (ourClasses.isNotEmpty) {
-      for (final tag in [tagName, '']) {
-        final List<Style>? styles = stylesheet[tag];
-        if (styles != null) {
-          for (int i = styles.length - 1; i >= 0; i--) {
-            final s = styles[i];
-            if (ourClasses.contains(s.styleClass)) {
-              _takeFrom(s, warn);
-            }
-          }
-        }
-      }
-    }
-    void applyStyles(List<Style>? styles) {
-      if (styles != null) {
-        for (int i = styles.length - 1; i >= 0; i--) {
-          final s = styles[i];
-          if (s.styleClass == '') {
-            _takeFrom(s, warn);
-          }
-        }
-      }
-    }
-
-    applyStyles(stylesheet[tagName]);
-
-    if (_idForApplyStyle != null) {
-      applyStyles(stylesheet['#$_idForApplyStyle']);
-    }
-  }
-
+  @override
   @protected
   void _takeFrom(Style s, void Function(String) warn) {
     s._applyText(this, warn);
@@ -2166,11 +2185,16 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    gradient._applyStylesheet(stylesheet, warn);
+  }
 
   @override
   SvgNode? _resolve(
       _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers) {
+    if (!ctx.stylesheetApplied) {
+      gradient._resetStylesheet();
+    }
     final pid = parentID;
     if (pid != null) {
       var parent = ctx.idLookup[pid];
@@ -2556,6 +2580,7 @@ abstract class SvgColor {
   static const SvgColor currentColor = _SvgCurrentColor._p();
 
   static const SvgColor white = SvgValueColor(0xffffffff);
+  static const SvgColor black = SvgValueColor(0xff000000);
   static const SvgColor transparent = SvgValueColor(0x00ffffff);
 
   SvgColor _orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup,
@@ -2681,15 +2706,65 @@ class SvgColorReference extends SvgColor {
 ///
 /// {@category SVG DOM}
 ///
-class SvgGradientStop {
-  final double offset;
-  final SvgColor color; // But not a gradient!
-  final int alpha;
+class SvgGradientStop extends _HasStylesheet {
+  double? _offset;
+  SvgColor? _color; // But not a gradient!
+  int? _alpha;
+  double get offset => _offset ?? 0.0;
+  SvgColor get color => _color ?? SvgColor.black; // But not a gradient!
+  //default stop-color is 'black'. Ref https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stop-color
+  int get alpha => _alpha ?? 0xff;
 
-  SvgGradientStop(this.offset, this.color, this.alpha) {
+  ///
+  /// The class of this stop for applying stylesheets
+  ///
+  @override
+  final String styleClass;
+
+  ///
+  /// The id of this stop for looking up sytlesheets
+  ///
+  String? id;
+
+  @override
+  String? get _idForApplyStyle => id;
+
+  @override
+  String get tagName => 'stop';
+
+  SvgGradientStop(this._offset, this._color, this._alpha,
+      {this.id, this.styleClass = ''}) {
     if (color is SvgGradientColor) {
       throw StateError('Internal error:  Gradient stop cannot be gradient');
     }
+  }
+
+  ///
+  /// Apply the stylesheet.  If it results in a change, create a new stop
+  /// with the changes; otherwise, return null.
+  ///
+  SvgGradientStop? _modifiedByStylesheet(
+      Stylesheet stylesheet, void Function(String) warn) {
+    if (stylesheet.isEmpty) {
+      return null;
+    }
+    final newStop =
+        SvgGradientStop(_offset, _color, _alpha, styleClass: styleClass);
+    newStop._applyStylesheet(stylesheet, warn);
+    if (_offset != newStop._offset ||
+        _color != newStop._color ||
+        _alpha != newStop._alpha) {
+      return newStop;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void _takeFrom(Style s, void Function(String) warn) {
+    _alpha ??= s.gradientStop?._alpha;
+    _color ??= s.gradientStop?._color;
+    _offset ??= s.gradientStop?._offset;
   }
 }
 
@@ -2702,6 +2777,7 @@ class SvgGradientStop {
 sealed class SvgGradientColor extends SvgColor {
   bool? objectBoundingBox;
   List<SvgGradientStop>? stops;
+  List<SvgGradientStop>? _stopsWithStylesheet;
   Affine? transform;
   SvgGradientColor? parent;
   SIGradientSpreadMethod? spreadMethod;
@@ -2714,7 +2790,8 @@ sealed class SvgGradientColor extends SvgColor {
   bool get _objectBoundingBoxR =>
       objectBoundingBox ?? parent?._objectBoundingBoxR ?? true;
 
-  List<SvgGradientStop> get _stopsR => stops ?? parent?._stopsR ?? [];
+  List<SvgGradientStop> get _stopsR =>
+      _stopsWithStylesheet ?? stops ?? parent?._stopsR ?? [];
 
   Affine? get _transformR => transform ?? parent?._transformR;
 
@@ -2724,6 +2801,34 @@ sealed class SvgGradientColor extends SvgColor {
   void addStop(SvgGradientStop s) {
     final sl = stops ??= List<SvgGradientStop>.empty(growable: true);
     sl.add(s);
+  }
+
+  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+    final ss = stops;
+    if (ss != null) {
+      for (int i = 0; i < ss.length; i++) {
+        final n = ss[i]._modifiedByStylesheet(stylesheet, warn);
+        if (n != null) {
+          final list = _stopsWithStylesheet ??= ss.toList(growable: false);
+          list[i] = n;
+        }
+      }
+    }
+  }
+
+  ///
+  /// Reset any application of a stylesheet, from a previous build
+  ///
+  void _resetStylesheet() {
+    _stopsWithStylesheet = null;
+  }
+
+  List<double> _generateOffsets(final List<SvgGradientStop> stops) {
+    double currOffset = 0.0;
+    return List<double>.generate(stops.length, (i) {
+      currOffset = max(currOffset, stops[i].offset);
+      return currOffset;
+    }, growable: false);
   }
 }
 
@@ -2805,8 +2910,7 @@ class SvgLinearGradientColor extends SvgGradientColor {
   SIColor _toSIColor(
       int alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = _stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
-        growable: false);
+    final offsets = _generateOffsets(stops);
     final colors = List<SIColor>.generate(
         stops.length,
         (i) => stops[i]
@@ -2891,8 +2995,7 @@ class SvgRadialGradientColor extends SvgGradientColor {
   SIColor _toSIColor(
       int alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = _stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
-        growable: false);
+    final offsets = _generateOffsets(stops);
     final colors = List<SIColor>.generate(
         stops.length,
         (i) => stops[i]
@@ -2982,8 +3085,7 @@ class SvgSweepGradientColor extends SvgGradientColor {
   SIColor _toSIColor(
       int alpha, SvgColor cascadedCurrentColor, RectT Function() userSpace) {
     final stops = _stopsR;
-    final offsets = List<double>.generate(stops.length, (i) => stops[i].offset,
-        growable: false);
+    final offsets = _generateOffsets(stops);
     final colors = List<SIColor>.generate(
         stops.length,
         (i) => stops[i]
@@ -3200,9 +3302,10 @@ class SvgDOMNotExported {
 class _ResolveContext {
   final Map<String, SvgNode> idLookup;
   final void Function(String) warn;
+  final bool stylesheetApplied;
   final Map<SvgNode, SvgNode> generatedFor = Map.identity();
 
-  _ResolveContext(this.idLookup, this.warn);
+  _ResolveContext(this.idLookup, this.warn, this.stylesheetApplied);
 }
 
 /// Private APIs that are unreachable, or for debugging (like toString()).
@@ -3235,7 +3338,7 @@ final svgGraphUnreachablePrivate = [
   () => SvgDefs('')._getUntransformedBounds(SvgTextStyle._initial()),
   () => _SvgMasked(SvgDefs(''), SvgMask())._applyStylesheet({}, (_) {}),
   () => _SvgMasked(SvgDefs(''), SvgMask())._resolve(
-      _ResolveContext(const {}, (_) {}),
+      _ResolveContext(const {}, (_) {}, true),
       SvgPaint.empty(),
       _SvgNodeReferrers(null)),
   () => (SvgPaint.empty()..hidden = true)._toSIPaint(),

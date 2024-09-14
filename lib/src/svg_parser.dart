@@ -93,10 +93,10 @@ abstract class SvgParser extends GenericParser {
   SvgParser(this.warn, this.exportedIDs, this._builder);
 
   void buildResult() {
-    SvgDOMNotExported.setIDLookup(svg, idLookup);
     if (!_svgTagSeen) {
       throw ParseError('No <svg> tag');
     }
+    SvgDOMNotExported.setIDLookup(svg, idLookup);
     final b = _builder;
     if (b != null) {
       SvgDOMNotExported.build(svg, b);
@@ -171,7 +171,14 @@ abstract class SvgParser extends GenericParser {
           _currentGradient = null;
         }
       } else if (evtName == 'stop') {
-        _processStop(_toMap(evt.attributes));
+        final g = _currentGradient;
+        if (g == null) {
+          throw ParseError('<stop> outside of gradient');
+        }
+        final s = _processStop(_toMap(evt.attributes));
+        if (s != null) {
+          g.gradient.addStop(s);
+        }
       } else if (evtName == 'use') {
         _processUse(_toMap(evt.attributes));
       } else if (tagsIgnored.add(evtName)) {
@@ -585,30 +592,22 @@ abstract class SvgParser extends GenericParser {
     }
   }
 
-  void _processStop(Map<String, String> attrs) {
-    final g = _currentGradient;
-    if (g == null) {
-      throw ParseError('<stop> outside of gradient');
-    }
-
-    //default stop-color is 'black'. Ref https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stop-color
-    final SvgColor color =
-        getSvgColor(attrs.remove('stop-color')?.trim() ?? 'black');
-    if (color != SvgColor.inherit &&
+  SvgGradientStop? _processStop(Map<String, String> attrs) {
+    final String? colorAttr = attrs.remove('stop-color')?.trim();
+    final SvgColor? color = colorAttr == null ? null : getSvgColor(colorAttr);
+    if (color != null &&
+        color != SvgColor.inherit &&
         color != SvgColor.currentColor &&
         color is! SvgValueColor) {
       warn('Illegal color value for gradient stop:  $color');
-      return;
+      return null;
     }
-    int alpha = getAlpha(attrs.remove('stop-opacity')) ?? 0xff;
-    double offset =
-        (getFloat(attrs.remove('offset'), percent: _percentOK) ?? 0.0)
-            .clamp(0.0, 1.0);
-    if (g.gradient.stops?.isNotEmpty == true) {
-      final minOffset = g.gradient.stops!.last.offset;
-      offset = max(offset, minOffset);
-    }
-    g.gradient.addStop(SvgGradientStop(offset, color, alpha));
+    final int? alpha = getAlpha(attrs.remove('stop-opacity'));
+    double? offset =
+        getFloat(attrs.remove('offset'), percent: _percentOK)?.clamp(0.0, 1.0);
+    final sc = attrs.remove('class') ?? '';
+    final id = attrs.remove('id');
+    return SvgGradientStop(offset, color, alpha, styleClass: sc, id: id);
   }
 
   void _processUse(Map<String, String> attrs) {
@@ -1057,6 +1056,7 @@ abstract class SvgParser extends GenericParser {
           // Unlike a node, our styleClass doesn't come from the
           // parser.  A badly formed CSS entry could try to set an attribute
           // called 'class,' so we set styleClass last.
+          s.gradientStop = _processStop(attrs);
         }
       }
       assert(lastPos != pos);
