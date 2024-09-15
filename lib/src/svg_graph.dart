@@ -145,7 +145,7 @@ class SvgDOM {
 
   void _build(SIBuilder<String, SIImageData> builder) {
     if (stylesheet.isNotEmpty) {
-      root._applyStylesheet(stylesheet, builder.warn);
+      root._applyStylesheet(_makeFastStylesheet(stylesheet), builder.warn);
     }
     RectT userSpace() => _userSpaceBounds;
     final rootPaint = SvgPaint._root(userSpace);
@@ -238,6 +238,8 @@ class SvgDOM {
     return sb.toString();
   }
 }
+
+typedef _WarnT = void Function(String);
 
 class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
   final CanonicalizedData<SIImageData> canon;
@@ -358,7 +360,7 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
   void addPath(Object path, SIPaint paint) {}
 
   @override
-  void Function(String) get warn => (_) {};
+  _WarnT get warn => (_) {};
 }
 
 ///
@@ -380,8 +382,7 @@ class Style extends SvgInheritableAttributes {
   @override
   String? get _idForApplyStyle => null;
 
-  void _applyText(
-      SvgInheritableTextAttributes node, void Function(String) warn) {
+  void _applyText(SvgInheritableTextAttributes node, _WarnT warn) {
     // NOTE:  Don't try to optimize by using node._paint or node._textStyle.
     // That wouldn't work with SvgText, and besides, any memory allocated
     // here would be short-lived.
@@ -389,7 +390,7 @@ class Style extends SvgInheritableAttributes {
     node.textStyle._takeFrom(this);
   }
 
-  void _apply(SvgInheritableAttributes node, void Function(String) warn) {
+  void _apply(SvgInheritableAttributes node, _WarnT warn) {
     _applyText(node, warn);
     final st = transform;
     if (st != null) {
@@ -427,6 +428,72 @@ class Style extends SvgInheritableAttributes {
 ///
 typedef Stylesheet = Map<String, List<Style>>;
 
+typedef _FastStylesheet = Map<String, _StylesheetTagEntry>;
+
+Map<String, _StylesheetTagEntry> _makeFastStylesheet(Stylesheet original) =>
+    original.map((k, e) => MapEntry(k, _StylesheetTagEntry(e)));
+
+///
+/// The list of styles for a given tag type is sometimes quite long, scaling
+/// in size with the number of nodes in the SVG asset, potentially.
+/// This can lead to O(n^2) behavior, if we iterate though the list of
+/// styles to pick out the ones that match a set of styleClass entries.
+/// Stylesheet processing might be done as part of an animation, if someone
+/// is using the DOM API to modify an SVG asset, so we really don't want
+/// O(n^2).  However, we do want to retain the original order.
+///
+/// So:  We map from styleClass value to the list of matching indices.
+///
+class _StylesheetTagEntry {
+  final List<Style> original;
+  Map<String, List<int>>? _byClass; // Map to indices in original
+
+  _StylesheetTagEntry(this.original);
+
+  Map<String, List<int>> get byClass {
+    var r = _byClass;
+    if (r != null) {
+      return r;
+    }
+    r = <String, List<int>>{};
+    for (int i = 0; i < original.length; i++) {
+      final Style s = original[i];
+      List<int> rr = r.putIfAbsent(s.styleClass, () => <int>[]);
+      rr.add(i);
+    }
+    r.updateAll((k, e) => Uint32List.fromList(e));
+    return _byClass = r;
+  }
+
+  List<Style>? forClass(String styleClass) {
+    final List<int>? indices = byClass[styleClass];
+    if (indices == null) {
+      return null;
+    }
+    return indices.map((i) => original[i]).toList(growable: false);
+  }
+
+  List<Style>? forClasses(List<String> styleClasses) {
+    if (styleClasses.isEmpty) {
+      return null;
+    } else if (styleClasses.length == 1) {
+      return forClass(styleClasses[0]);
+    }
+    final indices = <int>[];
+    for (final sc in styleClasses) {
+      final List<int>? ii = byClass[sc];
+      if (ii != null) {
+        indices.addAll(ii);
+      }
+    }
+    if (indices.isEmpty) {
+      return null;
+    }
+    indices.sort();
+    return indices.map((i) => original[i]).toList(growable: false);
+  }
+}
+
 ///
 /// Common supertype for all nodes in an SVG DOM graph.
 ///
@@ -435,7 +502,7 @@ typedef Stylesheet = Map<String, List<Style>>;
 sealed class SvgNode {
   SvgNode._p();
 
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn);
 
   void _cloneAttributes();
 
@@ -552,14 +619,12 @@ abstract class _HasStylesheet {
   static final _whitespace = RegExp(r'\s+');
 
   @mustCallSuper
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
-    void applyStyles(List<Style>? styles) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
+    void applyStyles(_StylesheetTagEntry? ste) {
+      List<Style>? styles = ste?.forClass('');
       if (styles != null) {
         for (int i = styles.length - 1; i >= 0; i--) {
-          final s = styles[i];
-          if (s.styleClass == '') {
-            _takeFrom(s, warn);
-          }
+          _takeFrom(styles[i], warn);
         }
       }
     }
@@ -570,16 +635,13 @@ abstract class _HasStylesheet {
     }
 
     // Next, any whose styleClass matches one of ours
-    final ourClasses = styleClass.trim().split(_whitespace).toSet();
+    final ourClasses = styleClass.trim().split(_whitespace).toList();
     if (ourClasses.isNotEmpty) {
       for (final tag in [tagName, '']) {
-        final List<Style>? styles = stylesheet[tag];
+        final List<Style>? styles = stylesheet[tag]?.forClasses(ourClasses);
         if (styles != null) {
           for (int i = styles.length - 1; i >= 0; i--) {
-            final s = styles[i];
-            if (ourClasses.contains(s.styleClass)) {
-              _takeFrom(s, warn);
-            }
+            _takeFrom(styles[i], warn);
           }
         }
       }
@@ -590,7 +652,7 @@ abstract class _HasStylesheet {
   }
 
   @protected
-  void _takeFrom(Style s, void Function(String) warn);
+  void _takeFrom(Style s, _WarnT warn);
 }
 
 ///
@@ -664,7 +726,7 @@ abstract class SvgInheritableTextAttributes extends _HasStylesheet {
 
   @override
   @protected
-  void _takeFrom(Style s, void Function(String) warn) {
+  void _takeFrom(Style s, _WarnT warn) {
     s._applyText(this, warn);
   }
 }
@@ -716,7 +778,7 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
   }
 
   @override
-  void _takeFrom(Style s, void Function(String) warn) {
+  void _takeFrom(Style s, _WarnT warn) {
     s._apply(this, warn);
   }
 }
@@ -927,8 +989,8 @@ class SvgPaint {
 
   static RectT _dummy() => const RectT(0, 0, 0, 0);
 
-  SvgPaint _cascade(SvgPaint ancestor, Map<String, SvgNode>? idLookup,
-      void Function(String) warn) {
+  SvgPaint _cascade(
+      SvgPaint ancestor, Map<String, SvgNode>? idLookup, _WarnT warn) {
     return SvgPaint._filled(
         currentColor:
             currentColor._orInherit(ancestor.currentColor, idLookup, warn),
@@ -951,7 +1013,7 @@ class SvgPaint {
         userSpace: ancestor._userSpace); // userSpace is inherited from root
   }
 
-  void _takeFrom(Style style, void Function(String) warn) {
+  void _takeFrom(Style style, _WarnT warn) {
     currentColor =
         currentColor._orInherit(style.paint.currentColor, null, warn);
     fillColor = fillColor._orInherit(style.paint.fillColor, null, warn);
@@ -1112,7 +1174,7 @@ class SvgGroup extends SvgInheritableAttributesNode {
   String get tagName => 'g';
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     super._applyStylesheet(stylesheet, warn);
     for (final c in children) {
       c._applyStylesheet(stylesheet, warn);
@@ -1355,7 +1417,7 @@ class _SvgMasked extends SvgNode {
   void _cloneAttributes() => unreachable(null);
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     assert(false);
     // Do nothing - stylesheets are applied before Masked are created.
   }
@@ -2185,7 +2247,7 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     gradient._applyStylesheet(stylesheet, warn);
   }
 
@@ -2583,8 +2645,8 @@ abstract class SvgColor {
   static const SvgColor black = SvgValueColor(0xff000000);
   static const SvgColor transparent = SvgValueColor(0x00ffffff);
 
-  SvgColor _orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup,
-          void Function(String) warn) =>
+  SvgColor _orInherit(
+          SvgColor ancestor, Map<String, SvgNode>? idLookup, _WarnT warn) =>
       this;
 
   SIColor _toSIColor(
@@ -2631,8 +2693,8 @@ class _SvgInheritColor extends SvgColor {
   const _SvgInheritColor._p();
 
   @override
-  SvgColor _orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup,
-          void Function(String) warn) =>
+  SvgColor _orInherit(
+          SvgColor ancestor, Map<String, SvgNode>? idLookup, _WarnT warn) =>
       ancestor;
 
   @override
@@ -2680,8 +2742,8 @@ class SvgColorReference extends SvgColor {
   SvgColorReference(this.id);
 
   @override
-  SvgColor _orInherit(SvgColor ancestor, Map<String, SvgNode>? idLookup,
-      void Function(String) warn) {
+  SvgColor _orInherit(
+      SvgColor ancestor, Map<String, SvgNode>? idLookup, _WarnT warn) {
     if (idLookup == null) {
       return this; // We'll resolve it later
     } else {
@@ -2781,7 +2843,7 @@ class SvgGradientStop extends _HasStylesheet {
   /// with the changes; otherwise, return null.
   ///
   SvgGradientStop? _modifiedByStylesheet(
-      Stylesheet stylesheet, void Function(String) warn) {
+      _FastStylesheet stylesheet, _WarnT warn) {
     if (stylesheet.isEmpty) {
       return null;
     }
@@ -2798,7 +2860,7 @@ class SvgGradientStop extends _HasStylesheet {
   }
 
   @override
-  void _takeFrom(Style s, void Function(String) warn) {
+  void _takeFrom(Style s, _WarnT warn) {
     _alpha ??= s.gradientStop?.alpha;
     _color ??= s.gradientStop?.color;
     _offset ??= s.gradientStop?.offset;
@@ -2840,7 +2902,7 @@ sealed class SvgGradientColor extends SvgColor {
     sl.add(s);
   }
 
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     final ss = stops;
     if (ss != null) {
       for (int i = 0; i < ss.length; i++) {
@@ -3248,8 +3310,8 @@ class AvdClipPath extends SvgNode {
   SIBlendMode get blendMode => SIBlendMode.normal; // coverage:ignore-line
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet,
-      void Function(String) warn) {} // coverage:ignore-line
+  void _applyStylesheet(
+      _FastStylesheet stylesheet, _WarnT warn) {} // coverage:ignore-line
 
   @override
   void _cloneAttributes() {}
@@ -3338,7 +3400,7 @@ class SvgDOMNotExported {
 @immutable
 class _ResolveContext {
   final Map<String, SvgNode> idLookup;
-  final void Function(String) warn;
+  final _WarnT warn;
   final bool stylesheetApplied;
   final Map<SvgNode, SvgNode> generatedFor = Map.identity();
 
@@ -3373,7 +3435,8 @@ final svgGraphUnreachablePrivate = [
   () => SvgUse(null)._canUseLuma({}, SvgPaint.empty()),
   () => _testCallBuild(SvgDefs('')),
   () => SvgDefs('')._getUntransformedBounds(SvgTextStyle._initial()),
-  () => _SvgMasked(SvgDefs(''), SvgMask())._applyStylesheet({}, (_) {}),
+  () => _SvgMasked(SvgDefs(''), SvgMask())
+      ._applyStylesheet(_makeFastStylesheet({}), (_) {}),
   () => _SvgMasked(SvgDefs(''), SvgMask())._resolve(
       _ResolveContext(const {}, (_) {}, true),
       SvgPaint.empty(),
