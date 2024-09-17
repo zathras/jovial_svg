@@ -31,6 +31,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show min, max;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -837,17 +838,14 @@ class _AvdBundleSource extends ScalableImageSource {
       return bundle == other.bundle &&
           key == other.key &&
           compact == other.compact &&
-          bigFloats == other.bigFloats &&
-          warn == other.warn &&
-          warnF == other.warnF;
+          bigFloats == other.bigFloats;
     } else {
       return false;
     }
   }
 
   @override
-  int get hashCode =>
-      0x94fadcba ^ Object.hash(bundle, key, compact, bigFloats, warn, warnF);
+  int get hashCode => 0x94fadcba ^ Object.hash(bundle, key, compact, bigFloats);
 }
 
 class _SvgBundleSource extends ScalableImageSource {
@@ -886,9 +884,7 @@ class _SvgBundleSource extends ScalableImageSource {
           key == other.key &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats &&
-          warn == other.warn &&
-          warnF == other.warnF;
+          bigFloats == other.bigFloats;
     } else {
       return false;
     }
@@ -896,8 +892,7 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x544f0d11 ^
-      Object.hash(bundle, key, currentColor, compact, bigFloats, warn, warnF);
+      0x544f0d11 ^ Object.hash(bundle, key, currentColor, compact, bigFloats);
 
   @override
   String toString() =>
@@ -945,9 +940,7 @@ class _SvgHttpSource extends ScalableImageSource {
           currentColor == other.currentColor &&
           compact == other.compact &&
           bigFloats == other.bigFloats &&
-          warn == other.warn &&
-          warnF == other.warnF &&
-          httpHeaders == other.httpHeaders &&
+          mapEquals(httpHeaders, other.httpHeaders) &&
           defaultEncoding == other.defaultEncoding;
     } else {
       return false;
@@ -956,9 +949,9 @@ class _SvgHttpSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
+      // I just leave out httpHeaders
       0xf7972f9b ^
-      Object.hash(url, currentColor, compact, bigFloats, warn, warnF,
-          defaultEncoding, httpHeaders);
+      Object.hash(url, currentColor, compact, bigFloats, defaultEncoding);
 
   @override
   String toString() => '_SVGHttpSource($url $compact $bigFloats '
@@ -1001,8 +994,7 @@ class _SvgFileSource extends ScalableImageSource {
       return file == other.file &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats &&
-          warnF == other.warnF;
+          bigFloats == other.bigFloats;
     } else {
       return false;
     }
@@ -1010,7 +1002,7 @@ class _SvgFileSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0xd111d574 ^ Object.hash(file, currentColor, compact, bigFloats, warnF);
+      0xd111d574 ^ Object.hash(file, currentColor, compact, bigFloats);
 
   @override
   String toString() =>
@@ -1053,10 +1045,8 @@ class _AvdHttpSource extends ScalableImageSource {
       return url == other.url &&
           compact == other.compact &&
           bigFloats == other.bigFloats &&
-          warn == other.warn &&
-          warnF == other.warnF &&
           defaultEncoding == other.defaultEncoding &&
-          httpHeaders == other.httpHeaders;
+          mapEquals(httpHeaders, other.httpHeaders);
     } else {
       return false;
     }
@@ -1064,9 +1054,8 @@ class _AvdHttpSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x95ccea44 ^
-      Object.hash(
-          url, compact, bigFloats, warn, warnF, defaultEncoding, httpHeaders);
+      // I just leave out httpHeaders
+      0x95ccea44 ^ Object.hash(url, compact, bigFloats, defaultEncoding);
 
   @override
   String toString() =>
@@ -1153,6 +1142,25 @@ class _CacheEntry {
 /// [ScalableImageCache]; [ScalableImageWidget] does not use any of its
 /// private members.  See also the `demo_hive` application to see how
 /// [ScalableImageSource] can be extended to load from a persistent cache.
+///
+/// Sample usage (see `example/lib/cache.dart` for the full program):
+///
+/// ```
+/// class _HomePageState extends State<HomePage> {
+///  ScalableImageCache _svgCache = ScalableImageCache(size: 70);
+///  ...
+///  @override
+///  Widget build(BuildContext context) {
+///    return ...
+///              ScalableImageWidget.fromSISource(
+///                  cache: _svgCache,
+///                  scale: 1000,
+///                  si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index]),
+///                  ...),
+///     ...;
+///   }
+/// }
+/// ```
 ///
 /// {@category Widget}
 ///
@@ -1506,7 +1514,8 @@ class ScalingTransform {
 /// }
 /// ```
 ///
-/// See `demo/lib/main.dart` for a more complete example.
+/// See `example/lib/animation.dart` and `demo/lib/main.dart` for
+/// more complete examples.
 ///
 /// {@category Widget}
 ///

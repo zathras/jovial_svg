@@ -11,8 +11,9 @@ The supported SVG profile includes the parts of
 [SVG Tiny 1.2](https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/)
 that are applicable to static images, plus a healthy subset of
 [SVG 1.1](https://www.w3.org/TR/2011/REC-SVG11-20110816/).  In-line 
-Cascading style sheets (CSS) are supported, via the `<style>` tag.
-In addition to SVG, [Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
+Cascading style sheets (CSS) are supported with limitations, via 
+the `<style>` tag.  In addition to SVG, 
+[Android Vector Drawable](https://developer.android.com/guide/topics/graphics/vector-drawable-resources) files
 are supported.  A widget for displaying these scalable images is provided.
 SVG assets can be modified with a DOM interface in order to produce
 animation.
@@ -155,10 +156,6 @@ attributes.
      in Tiny).
   * The symbol element is supported (Not in Tiny; cf.  SVG 5.5).
   * The pattern element is not supported (Not in Tiny; cf. SVG 13.3).
-  * The `style` tag for inline CSS and the `style=` attribute are
-     supported to specify node attributes (not in Tiny - cf. s. 6.2).
-  * CSS attributes that don't have a corresponding SVG attribute generally
-    are not supported, e.g. `background` and `transform-origin` are not.
   * Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   * Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
@@ -168,6 +165,22 @@ attributes.
   * Filter effects via the `filter` tag are not supported (not in Tiny, cf.
      SVG s. 15) 
   * XML namespaces are ignored.
+  * Stylesheets:
+      * The `style` tag for inline CSS and the `style=` attribute are
+        supported to specify node attributes (not in Tiny - cf. s. 6.2).
+      * Stylesheets can be used to set the rendering attributes on
+        node types, like the paint properties, opacity, etc.
+      * Stylesheets can also be used to set the properties of a
+        `stop` in a color gradient.
+      * Contrary to the SVG specification, node attributes take 
+        precedence over stylesheet attributes -- see
+        <a href="https://github.com/zathras/jovial_svg/issues/116">Issue
+        116</a>.
+      * Other non-obvious CSS precedence rules (like
+        <a href="https://www.w3.org/TR/2008/REC-CSS2-20080411/cascade.html#specificity">specificity</a>)
+        aren't respected.
+      * CSS attributes that don't have a corresponding SVG attribute generally
+        are not supported, e.g. `background` and `transform-origin` are not.
   * Text profile:
       * `text` and `tspan` tags are supported.
       * Embedded fonts are not supported.  However, the `font-family` attribute

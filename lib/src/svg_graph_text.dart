@@ -58,7 +58,7 @@ class SvgText extends SvgInheritableAttributesNode {
   ///
   SvgTextSpan root = SvgTextSpan('text');
 
-  final void Function(String) _warn;
+  final _WarnT _warn;
 
   late final List<_SvgTextChunk> _flattened = _flatten();
 
@@ -128,7 +128,7 @@ class SvgText extends SvgInheritableAttributesNode {
   set styleClass(String v) => root.styleClass = v;
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     super._applyStylesheet(stylesheet, warn);
     root._applyStylesheetToChildren(stylesheet, warn);
   }
@@ -282,21 +282,20 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   }
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {
     super._applyStylesheet(stylesheet, warn);
     _applyStylesheetToChildren(stylesheet, warn);
   }
 
-  void _applyStylesheetToChildren(
-      Stylesheet stylesheet, void Function(String) warn) {
+  void _applyStylesheetToChildren(_FastStylesheet stylesheet, _WarnT warn) {
     for (final p in parts) {
       p._applyStylesheet(stylesheet, warn);
     }
   }
 
   @override
-  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
-      void Function(String) warn) {
+  void _flattenInto(
+      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn) {
     // We cascade the paint and text attributes within the text tag's subtree,
     // since we're destroying that structure.
     fc = _FlattenContext(fc, this, warn);
@@ -314,8 +313,7 @@ class _FlattenContext {
   final SvgTextStyle ta;
   final SvgPaint paint;
 
-  _FlattenContext(
-      _FlattenContext ancestor, SvgTextSpan span, void Function(String) warn)
+  _FlattenContext(_FlattenContext ancestor, SvgTextSpan span, _WarnT warn)
       : x = _FCNumberSource.createOr(span.x, ancestor.x),
         y = _FCNumberSource.createOr(span.y, ancestor.y),
         dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
@@ -397,10 +395,10 @@ sealed class SvgTextSpanComponent {
 
   bool _trimRight();
 
-  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
-      void Function(String) warn);
+  void _flattenInto(
+      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn);
 
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn);
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn);
 }
 
 ///
@@ -420,7 +418,7 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
       SvgTextSpanStringComponent(parent!, text);
 
   @override
-  void _applyStylesheet(Stylesheet stylesheet, void Function(String) warn) {}
+  void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn) {}
 
   @override
   void _cloneAttributes() {
@@ -435,8 +433,8 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   }
 
   @override
-  void _flattenInto(List<_SvgTextChunk> children, _FlattenContext fc,
-      void Function(String) warn) {
+  void _flattenInto(
+      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn) {
     for (int i = 0; i < text.length; i++) {
       double? x = fc.pull(fc.x);
       double y = fc.pullOrLast(fc.y);

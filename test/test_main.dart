@@ -30,7 +30,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jovial_misc/io_utils.dart';
-import 'package:jovial_svg/src/affine.dart';
+import 'package:jovial_svg/dom.dart';
 import 'package:jovial_svg/src/avd_parser.dart';
 import 'package:jovial_svg/src/common.dart';
 import 'package:jovial_svg/src/common_noui.dart';
@@ -56,7 +56,8 @@ const rewriteAllFailedTests =
 
 ///
 /// Test that reading the SVG and the SI results in the same root group,
-/// and that they render the same.
+/// and that they render the same.  Also check that running through the DOM
+/// doesn't change anything.
 ///
 Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
   for (FileSystemEntity ent in svgDir.listSync()
@@ -64,10 +65,12 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README' && !name.endsWith('.swp')) {
-      final fromSvg =
-          ScalableImage.fromSvgString(await ent.readAsString(), warnF: _noWarn);
-      final fromSvgC = ScalableImage.fromSvgString(await ent.readAsString(),
+      final str = await ent.readAsString();
+      final fromSvg = ScalableImage.fromSvgString(str, warnF: _noWarn);
+      final fromSvgC = ScalableImage.fromSvgString(str,
           warnF: _noWarn, compact: true, bigFloats: true);
+      final dom = SvgDOMManager.fromString(str);
+      final fromSvgDOM = dom.build();
       final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
       StringSvgParser(await ent.readAsString(), const [], b, warn: _noWarn)
           .parse();
@@ -78,6 +81,8 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
       final fromSi = ScalableImage.fromSIBytes(cs.toList(), compact: false);
       final svgB = await renderToBytes(fromSvg, format: ImageByteFormat.png);
       final svgcB = await renderToBytes(fromSvgC, format: ImageByteFormat.png);
+      final svgDomB =
+          await renderToBytes(fromSvgDOM, format: ImageByteFormat.png);
       final siB = await renderToBytes(fromSi, format: ImageByteFormat.png);
       void fail(Uint8List si, Uint8List sv, bool compact) {
         if (outputDir != null) {
@@ -107,6 +112,8 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
         fail(svgB, svgcB, true);
         rethrow;
       }
+      expect(svgB, svgDomB);
+      _checkDrawingSame(fromSvg, fromSvgDOM, '$ent differs');
     }
   }
 }

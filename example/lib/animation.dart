@@ -16,7 +16,12 @@ void main() {
 
 const svgString = '''
 <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
-  <circle id="c" cx="25" cy="25" r="20" fill="green" />
+  <style>
+   circle {
+     fill: green
+   }
+  </style>
+  <circle id="c" cx="25" cy="25" r="20" />
   <rect id="r"  x="10" y="60" width="75" height="10" fill="yellow" />
   <ellipse id="e" cx="40" cy="50" rx="37" ry="25" fill="red" />
 </svg>
@@ -47,16 +52,19 @@ class _AnimatedState extends State<Animated> {
   late final SvgRect rect;
   late final SvgEllipse ellipse;
   late final SvgCustomPath custom;
+  late final Style circleStyle;
   final lookup = ExportedIDLookup();
   final starRadii = Float64List(17);
   final twinklePeriod = Float64List(17);
 
   @override
   void initState() {
+    debugPrint('Initial DOM:  ${svg.dom}');
     final nodes = svg.dom.idLookup;
     circle = nodes['c'] as SvgEllipse;
     rect = nodes['r'] as SvgRect;
     ellipse = nodes['e'] as SvgEllipse;
+    circleStyle = svg.dom.stylesheet['circle']![0];
 
     custom = SvgCustomPath(Path()); // Empty path; updated in update()
     custom.paint.fillColor = SvgColor.value(Colors.cyan.value);
@@ -124,7 +132,12 @@ class _AnimatedState extends State<Animated> {
     }
     custom.path = makeStar(starRadii);
 
-    // Leave the circle alone
+    // Change the stylesheet for circles.  Otherwise, Leave the circle alone
+    if (seconds % 5 > 4) {
+      circleStyle.paint.fillColor = SvgColor.value(0xff0000ff);
+    } else {
+      circleStyle.paint.fillColor = SvgColor.value(0xff00ff00);
+    }
 
     // "Render" svg to a ScalableImage
     si = svg.build();

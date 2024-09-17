@@ -48,9 +48,9 @@ POSSIBILITY OF SUCH DAMAGE.
 /// ```
 ///
 /// A full sample can be found in the GitHub repository in
-/// `example/lib/animation.dart`.  See
+/// `example/lib/animation.dart`.  Here is an overview of the DOM
+/// class structure:
 /// <img src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/uml/svg_dom.svg" />
-/// for an overview of the DOM class structure.
 ///
 library dom;
 
@@ -66,39 +66,43 @@ import 'src/svg_graph.dart';
 export 'src/svg_graph.dart'
     show
         SvgDOM,
-        Stylesheet,
         Style,
-        SvgTextStyle,
-        SvgPaint,
-        SvgInheritableAttributes,
+        Stylesheet,
+        SvgNode,
         SvgInheritableTextAttributes,
+        SvgInheritableAttributes,
         SvgInheritableAttributesNode,
+        SvgPaint,
+        SvgGroup,
+        SvgRoot,
+        SvgDefs,
+        SvgMask,
+        SvgUse,
+        SvgSymbol,
+        SvgPath,
+        SvgRect,
+        SvgEllipse,
+        SvgPoly,
         SvgGradientNode,
-        SvgGradientColor,
+        SvgImage,
+        SvgTextStyle,
+        SvgFontSize,
+        SvgFontSizeAbsolute,
+        SvgColor,
+        SvgValueColor,
+        SvgColorReference,
         SvgGradientStop,
+        SvgGradientStopStyle,
+        SvgGradientColor,
         SvgCoordinate,
         SvgLinearGradientColor,
         SvgRadialGradientColor,
         SvgSweepGradientColor,
-        SvgGroup,
-        SvgDefs,
-        SvgNode,
-        SvgRoot,
-        SvgSymbol,
-        SvgMask,
-        SvgPath,
-        SvgEllipse,
-        SvgRect,
-        SvgPoly,
-        SvgImage,
-        SvgUse,
-        SvgText,
-        SvgTextSpanComponent,
-        SvgTextSpanStringComponent,
-        SvgTextSpan,
-        SvgColor,
         SvgFontWeight,
-        SvgFontSize;
+        SvgText,
+        SvgTextSpan,
+        SvgTextSpanComponent,
+        SvgTextSpanStringComponent;
 
 export 'src/path.dart' show SvgCustomPath;
 
@@ -250,4 +254,11 @@ class SvgDOMManager {
     }
     return si;
   }
+
+  ///
+  /// Give a human-readable sketch of the contents of our DOM.  This might
+  /// be useful for debugging and/or exploration.
+  ///
+  @override
+  String toString() => '${super.toString()} : $dom';
 }

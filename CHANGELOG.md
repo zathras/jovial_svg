@@ -1,3 +1,15 @@
+## [1.1.23] - Upcoming
+
+- Fix ID lookup with SvgDOM (Issue 113)
+- DOM:  Export ValueColor, SvgFontSizeAbsolute (Issue 115)
+- Set a color gradient's `stop` attributes from a stylesheet (Issue 117).
+- Add a nicer toString() to SvgDOM for debugging/exploration.
+- Made node `paint` slight more efficient; added `resetPaint()` method.
+
+## [1.1.22] - August 2024
+
+- Fix widget's cache to work when `warnF` is specified (Issue 103)
+
 ## [1.1.21] - May 2024
 
 - Add a DOM API for animating/modifying SVG assets (Issues 19, 95)
