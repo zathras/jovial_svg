@@ -5,6 +5,7 @@
 - Set a color gradient's `stop` attributes from a stylesheet (Issue 117).
 - Add a nicer toString() to SvgDOM for debugging/exploration.
 - Made node `paint` slight more efficient; added `resetPaint()` method.
+- Partial support for SVG text `dominant-baseline` attribute
 
 ## [1.1.22] - August 2024
 

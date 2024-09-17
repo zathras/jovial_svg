@@ -320,7 +320,6 @@ abstract class CompactTraverserBase<R, IM,
     final anchor = (fileVersion < 2)
         ? SITextAnchor.start
         : SITextAnchor.values[(byte >> 5) & 0x03];
-    const dominantBaseline = SIDominantBaseline.auto; // Just default value
     final SITextDecoration decoration;
     if (fileVersion < 6) {
       decoration = SITextDecoration.none;
@@ -334,7 +333,7 @@ abstract class CompactTraverserBase<R, IM,
         fontFamily: (ffi == null) ? null : _stringLists[ffi],
         fontStyle: style,
         textAnchor: anchor,
-        dominantBaseline: dominantBaseline,
+        dominantBaseline: SIDominantBaseline.auto,
         fontSize: fontSize,
         fontWeight: weight,
         textDecoration: decoration);
@@ -354,8 +353,15 @@ abstract class CompactTraverserBase<R, IM,
     final style = SIFontStyle.values[byte & 0x1];
     final weight = SIFontWeight.values[(byte >> 1) & 0xf];
     final anchor = SITextAnchor.values[(byte >> 5) & 0x03];
-    const dominantBaseline = SIDominantBaseline.auto; // Just default value
+
+    final SIDominantBaseline dominantBaseline;
     byte = _children.readUnsignedByte();
+    if (fileVersion < 12) {
+      dominantBaseline = SIDominantBaseline.auto;
+    } else {
+      final byte2 = _children.readUnsignedByte();
+      dominantBaseline = SIDominantBaseline.values[byte2 & 0x0f];
+    }
     final ffi = _flag(byte, 1) ? _readSmallishInt(_children) : null;
     final fontSizeIndex = _readSmallishInt(_children);
     final SITextDecoration decoration =
@@ -705,7 +711,9 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
   ///    9 - jovial_svg version 1.1.4, April 2022 (givenViewport, currentColor)
   ///    10 - jovial_svg version 1.1.21, March 2024 (font-family as list,
   ///         exported node IDs)
-  static const int latestFileVersion = 11;
+  ///    11 - jovial_svg version 1.1.21, May 2024 (ExportedIDLookup)
+  ///    12 - jovial_svg version 1.1.23, Sept. 2024 (dominant-baseline)
+  static const int latestFileVersion = 12;
 
   ///
   /// Write the compact representation out, and close [out].
@@ -1467,6 +1475,8 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
         attributes.textDecoration.index << 2 |
         (_getColorType(paint.fillColor) << 4) |
         (_getColorType(paint.strokeColor) << 6));
+
+    children.writeByte(attributes.dominantBaseline.index);
 
     if (fontFamilyIndex != null) {
       _writeSmallishInt(children, fontFamilyIndex);
