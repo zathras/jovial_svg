@@ -1,0 +1,49 @@
+<svg
+  width="400"
+  height="450"
+  viewBox="0 0 400 450"
+  xmlns="http://www.w3.org/2000/svg">
+  <!-- Materialization of anchors -->
+  <path
+    d="M60,20 L60,420
+           M30,20 L400,20
+           M30,70 L400,70
+           M30,120 L400,120
+           M30,170 L400,170
+           M30,220 L400,220
+           M30,270 L400,270
+           M30,320 L400,320
+           M30,370 L400,370
+           M30,420 L400,420"
+    stroke="grey" />
+
+  <!-- Anchors in action -->
+  <text dominant-baseline="Auto" x="70" y="20">Auto</text>
+  <text dominant-baseline="Middle" x="70" y="70">Middle</text>
+  <text dominant-baseline="Central" x="70" y="120">Central</text>
+  <text dominant-baseline="Ideographic" x="70" y="170">Ideographic</text>
+  <text dominant-baseline="Hanging" x="70" y="220">Hanging</text>
+  <text dominant-baseline="Mathematical" x="70" y="270">Mathematical</text>
+  <text dominant-baseline="text-top" x="70" y="320">Text-top</text>
+  <text dominant-baseline="text-after-edge" x="70" y="370">Text-after-edge</text>
+  <text dominant-baseline="text-before-edge" x="70" y="420">Text-before-edge</text>
+
+  <!-- Materialization of anchors -->
+  <circle cx="60" cy="20" r="3" fill="red" />
+  <circle cx="60" cy="70" r="3" fill="red" />
+  <circle cx="60" cy="120" r="3" fill="red" />
+  <circle cx="60" cy="170" r="3" fill="red" />
+  <circle cx="60" cy="220" r="3" fill="red" />
+  <circle cx="60" cy="270" r="3" fill="red" />
+  <circle cx="60" cy="320" r="3" fill="red" />
+  <circle cx="60" cy="370" r="3" fill="red" />
+  <circle cx="60" cy="420" r="3" fill="red" />
+
+  <style>
+    <![CDATA[
+      text {
+        font: bold 30px Verdana, Helvetica, Arial, sans-serif;
+      }
+      ]]>
+  </style>
+</svg>
