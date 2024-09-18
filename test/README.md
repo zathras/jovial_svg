@@ -20,7 +20,7 @@ then you can try making the change you want to the library.  After your change,
 the tests should pass (unless you just fixed a bug that caused one of the
 reference  images to be wrong!).
 
-As a general rule, the reference images in the repo were generated on a Mac
-Mini (Apple silicon).  When the underlying platform changes in a way that
-changes the rendering, I do check that the results look the same, by visual
-inspection.
+The reference images in the repo were generated on Linux, using the action
+https://github.com/zathras/jovial_svg/actions/workflows/test_rewrite.yaml .
+When the underlying platform changes in a way that changes the rendering, I 
+check that the results look the same, by visual inspection.
