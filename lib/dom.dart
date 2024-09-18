@@ -117,6 +117,7 @@ export 'src/common_noui.dart'
         SIBlendMode,
         SIGradientSpreadMethod,
         SITintMode,
+        SIDominantBaseline,
         SIFontStyle,
         SITextAnchor,
         SITextDecoration;

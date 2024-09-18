@@ -1234,7 +1234,7 @@ enum SIFontWeight { w100, w200, w300, w400, w500, w600, w700, w800, w900 }
 enum SITextAnchor { start, middle, end }
 
 ///
-/// Text anchor values.  See
+/// Dominant baseline values.  See
 /// https://www.w3.org/TR/SVG11/text.html .
 ///
 /// {@category SVG DOM}
@@ -1268,15 +1268,14 @@ class SITextAttributes {
   final double fontSize;
   final SITextDecoration textDecoration;
 
-  SITextAttributes({
-    required this.fontFamily,
-    required this.textAnchor,
-    required this.fontStyle,
-    required this.fontWeight,
-    required this.fontSize,
-    required this.textDecoration,
-    required this.dominantBaseline
-  });
+  SITextAttributes(
+      {required this.fontFamily,
+      required this.textAnchor,
+      required this.fontStyle,
+      required this.fontWeight,
+      required this.fontSize,
+      required this.textDecoration,
+      required this.dominantBaseline});
 
   @override
   bool operator ==(final Object other) {
@@ -1300,7 +1299,7 @@ class SITextAttributes {
   int get hashCode =>
       0xa7cb9e84 ^
       Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, fontWeight,
-      fontSize, textAnchor, textDecoration, dominantBaseline);
+          fontSize, textAnchor, textDecoration, dominantBaseline);
 }
 
 ///

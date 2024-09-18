@@ -1280,8 +1280,8 @@ class SITextSpan extends SITextChunk {
     switch (attributes.dominantBaseline) {
       case SIDominantBaseline.auto:
       case SIDominantBaseline.alphabetic:
-      baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      break;
+        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+        break;
       case SIDominantBaseline.textBeforeEdge:
         baseDy = 0;
         break;
@@ -1302,7 +1302,8 @@ class SITextSpan extends SITextChunk {
         baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.ideographic);
         break;
       case SIDominantBaseline.mathematical:
-        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) / 2;
+        baseDy =
+            -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) / 2;
         break;
     }
 
