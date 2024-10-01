@@ -32,7 +32,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// Utilities that are common between DAG and Compact
 /// scalable image implementations.
 ///
-library jovial_svg.common;
+library;
 
 import 'dart:math';
 import 'dart:typed_data';

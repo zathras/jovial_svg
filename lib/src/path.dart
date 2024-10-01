@@ -28,7 +28,7 @@ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 */
 
-library jovial_svg.path;
+library;
 
 import 'dart:ui';
 import 'package:jovial_svg/src/svg_graph.dart';

@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// This representation renders fast, but occupies the amount of memory you'd
 /// expect with Dart objects.
 ///
-library jovial_svg.dag;
+library;
 
 import 'dart:typed_data';
 

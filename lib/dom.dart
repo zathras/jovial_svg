@@ -52,7 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// class structure:
 /// <img src="https://raw.githubusercontent.com/zathras/jovial_svg/main/doc/uml/svg_dom.svg" />
 ///
-library dom;
+library;
 
 import 'dart:ui';
 

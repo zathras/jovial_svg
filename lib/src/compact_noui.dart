@@ -29,7 +29,7 @@ SOFTWARE.
 /// no dependencies on Flutter so that the non-flutter application
 /// "dart run jovial_svg:avd_to_si" can work.
 ///
-library jovial_svg.compact_noui;
+library;
 
 import 'dart:collection';
 import 'dart:convert';

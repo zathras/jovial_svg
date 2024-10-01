@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// time.  This representation rendered about 3x slower in some informal
 /// tests, but occupies perhaps an order of magnitude less memory.
 ///
-library jovial_svg.compact;
+library;
 
 import 'dart:convert';
 import 'dart:typed_data';

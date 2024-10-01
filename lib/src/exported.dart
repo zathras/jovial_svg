@@ -32,7 +32,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// We define the exported items in a sub-package so that we can
 /// selectively export from it
 ///
-library jovial_svg.exported;
+library;
 
 import 'dart:convert' show Encoding, utf8;
 import 'dart:typed_data';

@@ -31,7 +31,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 /// Android Vector Drawable parser
 ///
-library jovial_svg.avd.parser;
+library;
 
 import 'dart:math';
 

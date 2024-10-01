@@ -25,7 +25,7 @@ SOFTWARE.
 ///
 /// Internal widget library - exported with jovial_svg
 ///
-library jovial_svg.widget;
+library;
 
 import 'dart:async';
 import 'dart:convert';

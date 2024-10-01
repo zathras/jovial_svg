@@ -32,7 +32,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /// A little wrapper around Dart matrix operations to efficiently
 /// represent affine transformations, without depending on Flutter.
 //
-library jovial_svg.affine;
+library;
 
 import 'dart:math';
 import 'dart:typed_data';

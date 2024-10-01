@@ -42,7 +42,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///    * stroke-dasharray, stroke-dashoffset attributes (cf. Tiny 11.4)
 ///    * non-scaling stroke (not in SVG 1.1; cf. Tiny 11.5)
 ///    * Constrained transformations (not in SVG 1.1; cf. Tiny 7.7)
-library jovial_svg.svg_parser;
+library;
 
 import 'dart:async';
 import 'dart:collection';

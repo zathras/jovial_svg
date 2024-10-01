@@ -60,7 +60,7 @@ POSSIBILITY OF SUCH DAMAGE.
 ///  will, if needed, asynchronously load a [ScalableImage] asset and
 ///  prepare any embedded pixel-based images.
 ///
-library jovial_svg;
+library;
 
 export 'src/exported.dart'
     show ScalableImage, ExportedID, ImageDisposeBugWorkaround;
