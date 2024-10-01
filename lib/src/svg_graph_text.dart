@@ -50,8 +50,6 @@ part of 'svg_graph.dart';
 /// An SVG `text` node.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
 ///
-/// {@category SVG DOM}
-///
 class SvgText extends SvgInheritableAttributesNode {
   ///
   /// The top-level span containing all of the text content.
@@ -223,8 +221,6 @@ class SvgText extends SvgInheritableAttributesNode {
 /// An SVG `tspan`.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
 ///
-/// {@category SVG DOM}
-///
 class SvgTextSpan extends SvgInheritableTextAttributes
     implements SvgTextSpanComponent {
   List<double>? x;
@@ -384,8 +380,6 @@ class _FCLastValue {
 /// A component of an SVG `tspan`.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
 ///
-/// {@category SVG DOM}
-///
 sealed class SvgTextSpanComponent {
   SvgTextSpanComponent._p();
 
@@ -404,8 +398,6 @@ sealed class SvgTextSpanComponent {
 ///
 /// A string run within an SVG `text`.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html .
-///
-/// {@category SVG DOM}
 ///
 class SvgTextSpanStringComponent extends SvgTextSpanComponent {
   final SvgTextSpan parent;

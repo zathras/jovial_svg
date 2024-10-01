@@ -129,8 +129,6 @@ export 'src/affine.dart' show Affine, MutableAffine;
 /// [ScalableImage] instances from the asset's current state.
 /// This is the entry point for use of the dom library.
 ///
-/// {@category SVG DOM}
-///
 class SvgDOMManager {
   SvgDOMManager._new(this.dom);
 

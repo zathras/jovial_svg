@@ -45,8 +45,6 @@ import 'package:vector_math/vector_math_64.dart';
 /// affine matrix to a node is equivalent to calling `dart:ui`'s
 /// `Canvas.transform` method.
 ///
-/// {@category SVG DOM}
-///
 abstract class Affine {
   Affine._p();
 
@@ -233,8 +231,6 @@ class _CompactAffine extends Affine {
 ///
 /// An mutable version of an [Affine] matrix.
 ///
-/// {@category SVG DOM}
-///
 class MutableAffine extends Affine {
   final Matrix3 _storage;
 
@@ -313,8 +309,6 @@ class MutableAffine extends Affine {
   /// in CSS's format, which consists of six float values.  See the matrix
   /// transform in s. 7.6.1 of
   /// https://www.w3.org/TR/SVGTiny12/coords.html#TransformAttribute .
-  ///
-  /// {@category SVG DOM}
   ///
   MutableAffine.cssTransform(List<double> css)
       : _storage = Matrix3.zero(),

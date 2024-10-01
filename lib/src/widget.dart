@@ -50,8 +50,6 @@ import 'exported.dart';
 /// [ScalableImageWidget] in Flutter's `RepaintBoundary`
 /// might result in significantly better performance.
 ///
-/// {@category Widget}
-///
 abstract class ScalableImageWidget extends StatefulWidget {
   ///
   /// Whether the underlying `ScalableImage`'s painting is complex enough
@@ -486,8 +484,6 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
 ///
 /// If new subclasses are written, attention is drawn to the need to implement
 /// `operator ==` and `hashCode`.
-///
-/// {@category Widget}
 ///
 abstract class ScalableImageSource {
   ///
@@ -1162,8 +1158,6 @@ class _CacheEntry {
 /// }
 /// ```
 ///
-/// {@category Widget}
-///
 class ScalableImageCache {
   final _canonicalized = <ScalableImageSource, _CacheEntry>{};
 
@@ -1367,9 +1361,6 @@ class ScalableImageCache {
 /// coordinate, e.g. when mapping a touch event into the original
 /// SVG's coordinate space.
 ///
-/// {@category Widget}
-/// {@category Core}
-///
 class ScalingTransform {
   ///
   /// The horizontal scale factor
@@ -1516,8 +1507,6 @@ class ScalingTransform {
 ///
 /// See `example/lib/animation.dart` and `demo/lib/main.dart` for
 /// more complete examples.
-///
-/// {@category Widget}
 ///
 class ExportedIDLookup {
   ScalableImage? _si;

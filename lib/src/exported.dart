@@ -98,7 +98,6 @@ import 'svg_parser.dart';
 /// library's initial publication, that had not yet been released.  As of
 /// Flutter 2.5, it has been.
 ///
-///  {@category Core}
 enum ImageDisposeBugWorkaround {
   /// Only dispose image descriptors.  This value is believed to be
   /// obsolete.
@@ -156,8 +155,6 @@ enum ImageDisposeBugWorkaround {
 /// reachable objects being unmodifiable.  A buggy application could
 /// corrupt the internal state by calling [unprepareImages] excessively, for
 /// example, which could cause embedded images to not render.
-///
-///  {@category Core}
 ///
 @immutable
 abstract class ScalableImage {
@@ -870,8 +867,6 @@ abstract class ScalableImageBase extends ScalableImage {
 /// created.
 ///
 /// See also `ExportedIDLookup` in the `widgets` package.
-///
-///  {@category Core}
 ///
 class ExportedID {
   ///

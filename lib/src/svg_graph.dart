@@ -52,8 +52,6 @@ part 'svg_graph_text.dart';
 /// SVG XML file (or, internally, by parsing an Android AVD XML file).
 /// See also `SVGDomManager`.
 ///
-/// {@category SVG DOM}
-///
 class SvgDOM {
   Map<String, SvgNode>? _idLookup;
 
@@ -367,8 +365,6 @@ class _CollectCanonBuilder implements SIBuilder<String, SIImageData> {
 /// An entry in the list of styles for a given element type or node ID in a
 /// [Stylesheet].
 ///
-/// {@category SVG DOM}
-///
 class Style extends SvgInheritableAttributes {
   Style() : super._p();
 
@@ -423,8 +419,6 @@ class Style extends SvgInheritableAttributes {
 /// is like "tspan" or "", and an ID starts with "#".  The
 /// [Style] instances will be in the order they were encountered in the
 /// SVG source file.
-///
-/// {@category SVG DOM}
 ///
 typedef Stylesheet = Map<String, List<Style>>;
 
@@ -496,8 +490,6 @@ class _StylesheetTagEntry {
 
 ///
 /// Common supertype for all nodes in an SVG DOM graph.
-///
-/// {@category SVG DOM}
 ///
 sealed class SvgNode {
   SvgNode._p();
@@ -660,8 +652,6 @@ abstract class _HasStylesheet {
 /// node, and that are also present in an [SvgTextSpan] within
 /// an SVG `text` element..
 ///
-/// {@category SVG DOM}
-///
 abstract class SvgInheritableTextAttributes extends _HasStylesheet {
   ///
   /// The paint parameters to use when rendering a node.
@@ -735,8 +725,6 @@ abstract class SvgInheritableTextAttributes extends _HasStylesheet {
 /// Attributes of an SVG element that are inherited from an ancestor
 /// node.  These attributes are also present in [Style] instances.
 ///
-/// {@category SVG DOM}
-///
 abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
   ///
   /// Transformation(s) to apply to a node, in matrix form.
@@ -786,8 +774,6 @@ abstract class SvgInheritableAttributes extends SvgInheritableTextAttributes {
 ///
 /// Common supertype of nodes that can contain the attributes that are inherited
 /// by children.
-///
-/// {@category SVG DOM}
 ///
 abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
     implements SvgNode {
@@ -910,8 +896,6 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
 /// Parameters used to control the painting of an SVG
 /// node.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html .
-///
-/// {@category SVG DOM}
 ///
 class SvgPaint {
   SvgColor currentColor;
@@ -1129,8 +1113,6 @@ class SvgPaint {
 /// An SVG `g` node.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/struct.html#Groups .
 ///
-/// {@category SVG DOM}
-///
 class SvgGroup extends SvgInheritableAttributesNode {
   var children = List<SvgNode>.empty(growable: true);
   @protected
@@ -1310,8 +1292,6 @@ class SvgGroup extends SvgInheritableAttributesNode {
 ///
 /// The root node of an `SvgDOM`.
 ///
-/// {@category SVG DOM}
-///
 class SvgRoot extends SvgGroup {
   SvgRoot();
 
@@ -1330,8 +1310,6 @@ class SvgRoot extends SvgGroup {
 ///
 /// An SVG definitions node.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/struct.html#DefsElement .
-///
-/// {@category SVG DOM}
 ///
 class SvgDefs extends SvgGroup {
   @override
@@ -1371,8 +1349,6 @@ class SvgDefs extends SvgGroup {
 ///
 /// An SVG `mask`.  See
 /// https://www.w3.org/TR/2011/REC-SVG11-20110816/masking.html#MaskElement .
-///
-/// {@category SVG DOM}
 ///
 class SvgMask extends SvgGroup {
   SvgMask();
@@ -1506,8 +1482,6 @@ class _SvgMasked extends SvgNode {
 /// An SVG `use`.  See
 /// https://www.w3.org/TR/2011/REC-SVG11-20110816/struct.html#UseElement .
 ///
-/// {@category SVG DOM}
-///
 class SvgUse extends SvgInheritableAttributesNode {
   ///
   /// The [id] of the node we refer to
@@ -1629,8 +1603,6 @@ class SvgUse extends SvgInheritableAttributesNode {
 /// An SVG `symbol`.  See
 /// https://www.w3.org/TR/2011/REC-SVG11-20110816/struct.html#SymbolElement .
 ///
-/// {@category SVG DOM}
-///
 class SvgSymbol extends SvgGroup {
   SvgSymbol();
 
@@ -1731,8 +1703,6 @@ class _PathKey {
 ///
 /// An SVG `path`.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/paths.html#PathElement .
-///
-/// {@category SVG DOM}
 ///
 class SvgPath extends SvgPathMaker {
   ///
@@ -1904,8 +1874,6 @@ abstract class SvgCustomPathAbstract extends SvgPathMaker {
 /// An SVG `rect` element.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#RectElement .
 ///
-/// {@category SVG DOM}
-///
 class SvgRect extends SvgPathMaker {
   double x;
   double y;
@@ -2016,8 +1984,6 @@ class SvgRect extends SvgPathMaker {
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#EllipseElement and
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#CircleElement .
 ///
-/// {@category SVG DOM}
-///
 class SvgEllipse extends SvgPathMaker {
   /// x coordinate of the center
   double cx;
@@ -2108,8 +2074,6 @@ class SvgEllipse extends SvgPathMaker {
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#LineElement ,
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#PolylineElement , or
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/shapes.html#PolygonElement .
-///
-/// {@category SVG DOM}
 ///
 class SvgPoly extends SvgPathMaker {
   /// true makes it a polygon; false a polyline
@@ -2202,8 +2166,6 @@ class SvgPoly extends SvgPathMaker {
 /// A node in an SVG asset that defines an
 /// [SvgGradientColor].  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
-///
-/// {@category SVG DOM}
 ///
 class SvgGradientNode implements SvgNode {
   SvgGradientColor gradient;
@@ -2330,8 +2292,6 @@ class SvgGradientNode implements SvgNode {
 /// An SVG `image`.  See
 /// https://www.w3.org/TR/2011/REC-SVG11-20110816/struct.html#ImageElement .
 ///
-/// {@category SVG DOM}
-///
 class SvgImage extends SvgInheritableAttributesNode {
   Uint8List imageData = _emptyData;
   double x = 0;
@@ -2420,8 +2380,6 @@ class SvgImage extends SvgInheritableAttributesNode {
 ///
 /// Text styling information for an SVG asset.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontPropertiesUsedBySVG .
-///
-/// {@category SVG DOM}
 ///
 class SvgTextStyle {
   List<String>? fontFamily; // Null is not the same as [] due to cascading
@@ -2520,8 +2478,6 @@ class SvgTextStyle {
 /// Font size for SVG text.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontPropertiesUsedBySVG .
 ///
-/// {@category SVG DOM}
-///
 abstract class SvgFontSize {
   const SvgFontSize._p();
 
@@ -2559,8 +2515,6 @@ abstract class SvgFontSize {
 ///
 /// Absolute font size for SVG text.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontPropertiesUsedBySVG .
-///
-/// {@category SVG DOM}
 ///
 class SvgFontSizeAbsolute extends SvgFontSize {
   ///
@@ -2623,8 +2577,6 @@ class _SvgFontSizeInherit extends SvgFontSize {
 /// Color as SVG knows it, plus alpha in the high-order byte (in case we
 /// encounter an SVG file with an (invalid) eight-character hex value).
 ///
-/// {@category SVG DOM}
-///
 abstract class SvgColor {
   const SvgColor();
 
@@ -2671,8 +2623,6 @@ abstract class SvgColor {
 /// is fully opaque (0xff); transparency in SVG is specified as a separate
 /// attribute.  However, many renderers (including this one) honor a
 /// transparency value other than 0xff in the top byte, where appropriate.
-///
-/// {@category SVG DOM}
 ///
 class SvgValueColor extends SvgColor {
   ///
@@ -2739,8 +2689,6 @@ class _SvgCurrentColor extends SvgColor {
 /// A reference to a gradient color. See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
-/// {@category SVG DOM}
-///
 class SvgColorReference extends SvgColor {
   ///
   /// The ID of the gradient node that defines this color.
@@ -2774,8 +2722,6 @@ class SvgColorReference extends SvgColor {
 /// The style attributes for an SVG gradient stop.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
-/// {@category SVG DOM}
-///
 class SvgGradientStopStyle {
   double? offset;
   SvgColor? color;
@@ -2787,8 +2733,6 @@ class SvgGradientStopStyle {
 ///
 /// An SVG gradient stop.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
-///
-/// {@category SVG DOM}
 ///
 class SvgGradientStop extends _HasStylesheet {
   double? _offset;
@@ -2879,8 +2823,6 @@ class SvgGradientStop extends _HasStylesheet {
 /// A gradient color.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
-/// {@category SVG DOM}
-///
 sealed class SvgGradientColor extends SvgColor {
   bool? objectBoundingBox;
   List<SvgGradientStop>? stops;
@@ -2943,8 +2885,6 @@ sealed class SvgGradientColor extends SvgColor {
 /// A coordinate in a gradient color.  A coordinate can be a pixel value
 /// or a percentage.
 ///
-/// {@category SVG DOM}
-///
 class SvgCoordinate {
   final double _value;
 
@@ -2974,8 +2914,6 @@ class SvgCoordinate {
 ///
 /// An SVG linear gradient.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients
-///
-/// {@category SVG DOM}
 ///
 class SvgLinearGradientColor extends SvgGradientColor {
   SvgCoordinate? x1;
@@ -3058,8 +2996,6 @@ class SvgLinearGradientColor extends SvgGradientColor {
 ///
 /// An SVG radial gradient.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
-///
-/// {@category SVG DOM}
 ///
 class SvgRadialGradientColor extends SvgGradientColor {
   final SvgCoordinate? cx; // default 0.5
@@ -3154,8 +3090,6 @@ class SvgRadialGradientColor extends SvgGradientColor {
 /// An SVG sweep gradient.  See
 /// https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/painting.html#Gradients .
 ///
-/// {@category SVG DOM}
-///
 class SvgSweepGradientColor extends SvgGradientColor {
   final double? cx; // default 0.5
   final double? cy; // default 0.5
@@ -3215,8 +3149,6 @@ class SvgSweepGradientColor extends SvgGradientColor {
 ///
 /// The value of an SVG font weight attribute.
 /// See https://www.w3.org/TR/2008/REC-SVGTiny12-20081222/text.html#FontWeightProperty .
-///
-/// {@category SVG DOM}
 ///
 abstract class SvgFontWeight {
   const SvgFontWeight._p();

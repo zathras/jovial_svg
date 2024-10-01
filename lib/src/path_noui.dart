@@ -41,8 +41,6 @@ import 'common_noui.dart';
 /// [PathParser] calls methods on an implementor of [PathBuilder] as
 /// it parses the components of an SVG path.
 ///
-/// {@category SVG DOM}
-///
 abstract class PathBuilder {
   ///
   /// Add a moveTo to the path
@@ -118,8 +116,6 @@ abstract class EnhancedPathBuilder extends PathBuilder {
 ///   node.pathData = pb.result;
 /// }
 /// ```
-///
-/// {@category SVG DOM}
 ///
 class StringPathBuilder extends PathBuilder {
   final _result = StringBuffer();
@@ -302,8 +298,6 @@ abstract class AbstractPathParser<BT extends PathBuilder> {
 /// PathParser(builder, src).parse();
 /// ... do something with whatever builder produces ...
 /// ```
-///
-/// {@category SVG DOM}
 ///
 final class PathParser {
   final RealPathParser _hidden;

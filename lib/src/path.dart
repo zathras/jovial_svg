@@ -104,8 +104,6 @@ class UIPathBuilder implements EnhancedPathBuilder {
 /// of this node, and inserting it into an SVG DOM, either in a [SvgGroup] or
 /// into [SvgDOM.root].
 ///
-/// {@category SVG DOM}
-///
 abstract class SvgCustomPath implements SvgInheritableAttributesNode {
   ///
   /// The path to draw when this node is rendered.

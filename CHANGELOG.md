@@ -1,5 +1,6 @@
 ## [1.1.23] - Upcoming
 
+- Get rid of buggy dartdoc @category annotations.
 - Fix ID lookup with SvgDOM (Issue 113)
 - DOM:  Export ValueColor, SvgFontSizeAbsolute (Issue 115)
 - Set a color gradient's `stop` attributes from a stylesheet (Issue 117).
