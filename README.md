@@ -39,7 +39,7 @@ MaterialApp(
           Uri.parse('https://jovial.com/images/jupiter.svg'))));
 ```
 It's generally preferable to pre-load an instance of `ScalableImage`, as
-discussed below.
+discussed below.  Alternately, a cache can be used to avoid re-loading.
 
 [Sample applicatons](https://github.com/zathras/jovial_svg/tree/main/example) 
 are available.  The 

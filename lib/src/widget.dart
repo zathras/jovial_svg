@@ -41,7 +41,8 @@ import 'exported.dart';
 ///
 /// A widget for displaying a [ScalableImage].  The image can be
 /// automatically scaled by the widget, and fit into the available area
-/// with a `BoxFit` and an `Alignment`.
+/// with a `BoxFit` and an `Alignment`.  Where loading is required, a
+/// [ScalableImageCache] can be provided.
 ///
 /// Note that rendering a scalable image can be time-consuming if the
 /// underlying scene is complex.  Notably, GPU performance can be a
