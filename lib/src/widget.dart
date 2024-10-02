@@ -1397,6 +1397,11 @@ class ScalingTransform {
   static const _identity =
       ScalingTransform._p(1, 1, 0, 0, Rect.fromLTRB(0, 0, 1, 1));
 
+  ///
+  /// Create a scaling transform to display a [ScalableImage] in a
+  /// container of [containerSize] where the [ScalableImage.viewport]'s
+  /// value is [siViewport], for the given box [fit] and [alignment].
+  ///
   factory ScalingTransform(
       {required Size containerSize,
       required Rect siViewport,
