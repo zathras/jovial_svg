@@ -1,4 +1,4 @@
-## [1.1.23] - Upcoming
+## [1.1.23] - October 2024
 
 - Get rid of buggy dartdoc @category annotations.
 - Fix ID lookup with SvgDOM (Issue 113)
