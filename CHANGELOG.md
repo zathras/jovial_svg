@@ -1,5 +1,6 @@
 ## [1.1.24] - Upcoming
 - Fix `exportedIDs` with widget image sources (Issue 118)
+- Optimization:  Strip warnF from ScalableImageCache key (Issue 119)
 
 ## [1.1.23] - October 2024
 
