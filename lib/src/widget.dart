@@ -872,7 +872,8 @@ class _SvgBundleSource extends ScalableImageSource {
       currentColor: currentColor,
       compact: compact,
       bigFloats: bigFloats,
-      warnF: _warnArg);
+      warnF: _warnArg,
+      exportedIDs: exportedIDs);
 
   @override
   bool operator ==(final Object other) {
@@ -881,7 +882,8 @@ class _SvgBundleSource extends ScalableImageSource {
           key == other.key &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats;
+          bigFloats == other.bigFloats &&
+          listEquals(exportedIDs, other.exportedIDs);
     } else {
       return false;
     }
@@ -889,11 +891,13 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0x544f0d11 ^ Object.hash(bundle, key, currentColor, compact, bigFloats);
+      0x544f0d11 ^
+      Object.hash(bundle, key, currentColor, compact, bigFloats,
+          Object.hashAll(exportedIDs));
 
   @override
-  String toString() =>
-      '_SVGBundleSource($key $bundle $compact $bigFloats currentColor)';
+  String toString() => '_SVGBundleSource($key $bundle $compact $bigFloats '
+      '$currentColor $exportedIDs)';
 }
 
 class _SvgHttpSource extends ScalableImageSource {
@@ -928,6 +932,7 @@ class _SvgHttpSource extends ScalableImageSource {
       bigFloats: bigFloats,
       warnF: _warnArg,
       defaultEncoding: defaultEncoding,
+      exportedIDs: exportedIDs,
       httpHeaders: httpHeaders);
 
   @override
@@ -938,7 +943,8 @@ class _SvgHttpSource extends ScalableImageSource {
           compact == other.compact &&
           bigFloats == other.bigFloats &&
           mapEquals(httpHeaders, other.httpHeaders) &&
-          defaultEncoding == other.defaultEncoding;
+          defaultEncoding == other.defaultEncoding &&
+          listEquals(exportedIDs, other.exportedIDs);
     } else {
       return false;
     }
@@ -948,11 +954,12 @@ class _SvgHttpSource extends ScalableImageSource {
   int get hashCode =>
       // I just leave out httpHeaders
       0xf7972f9b ^
-      Object.hash(url, currentColor, compact, bigFloats, defaultEncoding);
+      Object.hash(url, currentColor, compact, bigFloats, defaultEncoding,
+          Object.hashAll(exportedIDs));
 
   @override
   String toString() => '_SVGHttpSource($url $compact $bigFloats '
-      '$currentColor $defaultEncoding $httpHeaders)';
+      '$currentColor $defaultEncoding $httpHeaders $exportedIDs)';
 }
 
 class _SvgFileSource extends ScalableImageSource {
@@ -982,6 +989,7 @@ class _SvgFileSource extends ScalableImageSource {
         currentColor: currentColor,
         compact: compact,
         bigFloats: bigFloats,
+        exportedIDs: exportedIDs,
         warnF: warnF);
   }
 
@@ -991,7 +999,8 @@ class _SvgFileSource extends ScalableImageSource {
       return file == other.file &&
           currentColor == other.currentColor &&
           compact == other.compact &&
-          bigFloats == other.bigFloats;
+          bigFloats == other.bigFloats &&
+          listEquals(exportedIDs, other.exportedIDs);
     } else {
       return false;
     }
@@ -999,11 +1008,13 @@ class _SvgFileSource extends ScalableImageSource {
 
   @override
   int get hashCode =>
-      0xd111d574 ^ Object.hash(file, currentColor, compact, bigFloats);
+      0xd111d574 ^
+      Object.hash(
+          file, currentColor, compact, bigFloats, Object.hashAll(exportedIDs));
 
   @override
   String toString() =>
-      '_SVGFileSource($file $compact $bigFloats $currentColor ';
+      '_SVGFileSource($file $compact $bigFloats $currentColor $exportedIDs)';
 }
 
 class _AvdHttpSource extends ScalableImageSource {

@@ -1,3 +1,6 @@
+## [1.1.24] - Upcoming
+- Fix `exportedIDs` with widget image sources (Issue 118)
+
 ## [1.1.23] - October 2024
 
 - Get rid of buggy dartdoc @category annotations.
