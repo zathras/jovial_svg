@@ -530,6 +530,17 @@ abstract class ScalableImageSource {
   void Function(String)? get warnF => null;
 
   ///
+  /// Give an object that is suitable for storing as the key in a [Map] for
+  /// this source.  The returned object must be `==` this (it must compare
+  /// as equivalent), and it must have the same `hashCode` as this.  It should
+  /// have any extra fields stripped off that might cause large amounts of
+  /// object retention.  For example, if [warnF] is retained as a field, it
+  /// could be a closure that retains arbitrary state, so it should not be
+  /// retained.
+  ///
+  ScalableImageSource get asKey => this;
+
+  ///
   /// Compare this source to another.  Subclasses must override this, so that
   /// different instances of equivalent sources give true.  This avoids
   /// unnecessary rebuilding of [ScalableImage] objects.
@@ -693,7 +704,8 @@ abstract class ScalableImageSource {
   /// program.
   ///
   /// [fileReader] is a function that delivers the contents of the file as
-  /// a string.
+  /// a string.  This value is _not_ considered when looking for an
+  /// already-loaded image in a [ScalableImageCache].
   ///
   /// [currentColor], if set, will set the currentColor value of the
   /// [ScalableImage] instance returned.  Note, however, that if the same
@@ -830,6 +842,10 @@ class _AvdBundleSource extends ScalableImageSource {
   }
 
   @override
+  ScalableImageSource get asKey => _AvdBundleSource(bundle, key,
+      compact: compact, bigFloats: bigFloats, warn: false, warnF: null);
+
+  @override
   bool operator ==(final Object other) {
     if (other is _AvdBundleSource) {
       return bundle == other.bundle &&
@@ -874,6 +890,14 @@ class _SvgBundleSource extends ScalableImageSource {
       bigFloats: bigFloats,
       warnF: _warnArg,
       exportedIDs: exportedIDs);
+
+  @override
+  ScalableImageSource get asKey => _SvgBundleSource(bundle, key, currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      exportedIDs: exportedIDs,
+      warn: false,
+      warnF: null);
 
   @override
   bool operator ==(final Object other) {
@@ -936,6 +960,15 @@ class _SvgHttpSource extends ScalableImageSource {
       httpHeaders: httpHeaders);
 
   @override
+  ScalableImageSource get asKey => _SvgHttpSource(url, currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      exportedIDs: exportedIDs,
+      httpHeaders: httpHeaders,
+      warn: false,
+      warnF: null);
+
+  @override
   bool operator ==(final Object other) {
     if (other is _SvgHttpSource) {
       return url == other.url &&
@@ -994,6 +1027,16 @@ class _SvgFileSource extends ScalableImageSource {
   }
 
   @override
+  ScalableImageSource get asKey => _SvgFileSource(file, _nullFileReader,
+      currentColor: currentColor,
+      compact: compact,
+      bigFloats: bigFloats,
+      exportedIDs: exportedIDs,
+      warnF: null);
+
+  static String _nullFileReader() => '';
+
+  @override
   bool operator ==(final Object other) {
     if (other is _SvgFileSource) {
       return file == other.file &&
@@ -1046,6 +1089,15 @@ class _AvdHttpSource extends ScalableImageSource {
       warnF: _warnArg,
       defaultEncoding: defaultEncoding,
       httpHeaders: httpHeaders);
+
+  @override
+  ScalableImageSource get asKey => _AvdHttpSource(url,
+      compact: compact,
+      bigFloats: bigFloats,
+      defaultEncoding: defaultEncoding,
+      httpHeaders: httpHeaders,
+      warn: false,
+      warnF: null);
 
   @override
   bool operator ==(final Object other) {
@@ -1258,7 +1310,9 @@ class ScalableImageCache {
     _CacheEntry? e = _canonicalized[src];
     if (e == null) {
       e = _CacheEntry(src, src.createSI());
-      _canonicalized[src] = e;
+      final k = src.asKey;
+      assert(k == src);
+      _canonicalized[k] = e;
     } else {
       _verifyCorrectHash(src, e._siSrc!);
       if (e._lessRecent != null) {
@@ -1316,7 +1370,9 @@ class ScalableImageCache {
       return;
     }
     final e = _CacheEntry(src, src.createSI());
-    _canonicalized[src] = e;
+    final k = src.asKey;
+    assert(k == src);
+    _canonicalized[k] = e;
     if (old._refCount > 0) {
       e._refCount = old._refCount;
       assert(old._lessRecent == null && old._moreRecent == null);
