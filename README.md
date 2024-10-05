@@ -232,8 +232,8 @@ a solid starting point that a group of experts put considerable thought behind.
 If you come across an SVG
 asset that falls within the scope of this library, but that doesn't render,
 please try to narrow down what support would be needed in the library, and 
-submit an image that correctly uses that feature in any bug 
-report.  Contributions can be considered too -- and the binary format 
+submit an image that correctly uses that feature in any enhancement
+request.  Contributions can be considered too -- and the binary format 
 has plenty of room for extensibility.
 
 For the binary format, it is a goal to ensure that new versions of the
