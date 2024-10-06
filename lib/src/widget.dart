@@ -842,8 +842,10 @@ class _AvdBundleSource extends ScalableImageSource {
   }
 
   @override
-  ScalableImageSource get asKey => _AvdBundleSource(bundle, key,
-      compact: compact, bigFloats: bigFloats, warn: false, warnF: null);
+  ScalableImageSource get asKey => warnF == null
+      ? this
+      : _AvdBundleSource(bundle, key,
+          compact: compact, bigFloats: bigFloats, warn: false, warnF: null);
 
   @override
   bool operator ==(final Object other) {
@@ -892,12 +894,14 @@ class _SvgBundleSource extends ScalableImageSource {
       exportedIDs: exportedIDs);
 
   @override
-  ScalableImageSource get asKey => _SvgBundleSource(bundle, key, currentColor,
-      compact: compact,
-      bigFloats: bigFloats,
-      exportedIDs: exportedIDs,
-      warn: false,
-      warnF: null);
+  ScalableImageSource get asKey => warnF == null
+      ? this
+      : _SvgBundleSource(bundle, key, currentColor,
+          compact: compact,
+          bigFloats: bigFloats,
+          exportedIDs: exportedIDs,
+          warn: false,
+          warnF: null);
 
   @override
   bool operator ==(final Object other) {
@@ -960,13 +964,15 @@ class _SvgHttpSource extends ScalableImageSource {
       httpHeaders: httpHeaders);
 
   @override
-  ScalableImageSource get asKey => _SvgHttpSource(url, currentColor,
-      compact: compact,
-      bigFloats: bigFloats,
-      exportedIDs: exportedIDs,
-      httpHeaders: httpHeaders,
-      warn: false,
-      warnF: null);
+  ScalableImageSource get asKey => warnF == null
+      ? this
+      : _SvgHttpSource(url, currentColor,
+          compact: compact,
+          bigFloats: bigFloats,
+          exportedIDs: exportedIDs,
+          httpHeaders: httpHeaders,
+          warn: false,
+          warnF: null);
 
   @override
   bool operator ==(final Object other) {
@@ -1091,13 +1097,15 @@ class _AvdHttpSource extends ScalableImageSource {
       httpHeaders: httpHeaders);
 
   @override
-  ScalableImageSource get asKey => _AvdHttpSource(url,
-      compact: compact,
-      bigFloats: bigFloats,
-      defaultEncoding: defaultEncoding,
-      httpHeaders: httpHeaders,
-      warn: false,
-      warnF: null);
+  ScalableImageSource get asKey => warnF == null
+      ? this
+      : _AvdHttpSource(url,
+          compact: compact,
+          bigFloats: bigFloats,
+          defaultEncoding: defaultEncoding,
+          httpHeaders: httpHeaders,
+          warn: false,
+          warnF: null);
 
   @override
   bool operator ==(final Object other) {
