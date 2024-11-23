@@ -6,6 +6,7 @@ dart run jovial_svg:svg_to_si
 echo ""
 echo "***  Has CHANGELOG.md been updated?  ***"
 echo "Checked for warn before all print calls?"
+echo "Publishing jovial_svg_transformer next?"
 echo ""
 printf "          (Press return.)  "
 read x
