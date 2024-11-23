@@ -34,12 +34,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  jovial_svg: ^1.1.21
+  jovial_svg: ^1.1.24
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  jovial_svg_transformer: ^1.0.0
+  jovial_svg_transformer: ^1.0.2
   flutter_lints: ^3.0.0
 
 flutter:
