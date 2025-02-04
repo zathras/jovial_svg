@@ -13,7 +13,7 @@ jobs:
             - uses: subosito/flutter-action@v2
               with:
                   channel: 'stable'
-                  flutter-version: '3.24.3'
+                  flutter-version: '3.27.3'
             - run: flutter pub upgrade
             - run: cd demo; flutter pub upgrade
             - run: cd utils/image_cmp ; flutter pub upgrade
