@@ -6,6 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:jovial_svg/jovial_svg.dart';
 import 'package:jovial_svg/dom.dart';
 
+extension ColorToInt on Color {
+  static int _floatToInt8(double x) {
+    return (x * 255.0).round() & 0xff;
+  }
+
+  ///
+  /// Convert a Color to a 32 bit ARGB int value.  This duplicates the deprecated
+  /// `Color.value` method.  It looks like Flutter has decided to represent
+  /// a, r, g and b as doubles internally, though it still has the constructor
+  /// that takes ARGB.  SVG pretty heavily assumes 32-bit ARGB values, so it
+  /// makes sense to carry that through the library, e.g. in the compact
+  /// representation.
+  ///
+  int get valueARGB =>
+      _floatToInt8(a) << 24 |
+      _floatToInt8(r) << 16 |
+      _floatToInt8(g) << 8 |
+      _floatToInt8(b) << 0;
+}
+
 ///
 /// Demonstration of using the DOM-like API to animate an SVG.  This demo
 /// also detects a mouse click in the moving rectangle.
@@ -67,7 +87,7 @@ class _AnimatedState extends State<Animated> {
     circleStyle = svg.dom.stylesheet['circle']![0];
 
     custom = SvgCustomPath(Path()); // Empty path; updated in update()
-    custom.paint.fillColor = SvgColor.value(Colors.cyan.value);
+    custom.paint.fillColor = SvgColor.value(Colors.cyan.valueARGB);
     custom.paint.fillAlpha = 128;
     custom.paint.fillType = SIFillType.nonZero;
     custom.transform = MutableAffine.translation(60, 30);
@@ -120,7 +140,7 @@ class _AnimatedState extends State<Animated> {
     // Rotate the hue of the rectangle
     theta = 360.0 * seconds / 9;
     final c = HSVColor.fromAHSV(1.0, theta % 360.0, 1.0, 1.0);
-    rect.paint.fillColor = SvgColor.value(c.toColor().value);
+    rect.paint.fillColor = SvgColor.value(c.toColor().valueARGB);
 
     // Spin the star
     theta = seconds;

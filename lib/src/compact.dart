@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2024, William Foote
+Copyright (c) 2021-2025, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -192,7 +192,7 @@ class ScalableImageCompact extends ScalableImageBase
   int? get currentColorARGB =>
       currentColor == ScalableImageBase.defaultCurrentColor
           ? null
-          : currentColor.value;
+          : currentColor.valueARGB;
 
   @override
   RectT? get givenViewportNoUI => convertRectToRectT(givenViewport);
@@ -235,7 +235,7 @@ class ScalableImageCompact extends ScalableImageBase
     b.vector(
         width: width,
         height: height,
-        tintColor: tintColor?.value,
+        tintColor: tintColor?.valueARGB,
         tintMode: SITintModeMapping.fromBlendMode(tintMode));
     accept(b);
     b.endVector();
@@ -258,7 +258,7 @@ class ScalableImageCompact extends ScalableImageBase
   SITintMode blendModeToSI(BlendMode b) => SITintModeMapping.fromBlendMode(b);
 
   @override
-  int colorValue(Color tintColor) => tintColor.value;
+  int colorValue(Color tintColor) => tintColor.valueARGB;
 
   static ScalableImageCompact fromByteData(ByteData data,
           {Color? currentColor}) =>
@@ -697,7 +697,7 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary?>
     builder.vector(
         width: width,
         height: height,
-        tintColor: si.tintColor?.value,
+        tintColor: si.tintColor?.valueARGB,
         tintMode: SITintModeMapping.fromBlendMode(si.tintMode));
   }
 

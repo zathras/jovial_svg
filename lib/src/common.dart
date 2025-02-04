@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021-2024, William Foote
+Copyright (c) 2021-2025, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -45,6 +45,26 @@ import '../jovial_svg.dart';
 import 'affine.dart';
 import 'common_noui.dart';
 import 'exported.dart' show ExportedIDBoundary;
+
+extension ColorToInt on Color {
+  static int _floatToInt8(double x) {
+    return (x * 255.0).round() & 0xff;
+  }
+
+  ///
+  /// Convert a Color to a 32 bit ARGB int value.  This duplicates the deprecated
+  /// `Color.value` method.  It looks like Flutter has decided to represent
+  /// a, r, g and b as doubles internally, though it still has the constructor
+  /// that takes ARGB.  SVG pretty heavily assumes 32-bit ARGB values, so it
+  /// makes sense to carry that through the library, e.g. in the compact
+  /// representation.
+  ///
+  int get valueARGB =>
+      _floatToInt8(a) << 24 |
+      _floatToInt8(r) << 16 |
+      _floatToInt8(g) << 8 |
+      _floatToInt8(b) << 0;
+}
 
 Rect? convertRectTtoRect(RectT? r) {
   if (r == null) {

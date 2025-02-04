@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
 /*
-Copyright (c) 2021-2024, William Foote
+Copyright (c) 2021-2025, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

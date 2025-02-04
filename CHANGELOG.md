@@ -1,3 +1,6 @@
+## [1.1.25] - February 2025
+- Avoid the newly deprecated `Color.value`
+
 ## [1.1.24] - November 2024
 - Fix `exportedIDs` with widget image sources (Issue 118)
 - Optimization:  Strip warnF from ScalableImageCache key (Issue 119)
