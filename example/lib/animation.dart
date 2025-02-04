@@ -20,10 +20,10 @@ extension ColorToInt on Color {
   /// representation.
   ///
   int get valueARGB =>
-      _floatToInt8(this.a) << 24 |
-      _floatToInt8(this.r) << 16 |
-      _floatToInt8(this.g) << 8 |
-      _floatToInt8(this.b) << 0;
+      _floatToInt8(a) << 24 |
+      _floatToInt8(r) << 16 |
+      _floatToInt8(g) << 8 |
+      _floatToInt8(b) << 0;
 }
 
 ///
