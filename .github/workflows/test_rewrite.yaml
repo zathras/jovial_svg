@@ -25,7 +25,7 @@ jobs:
             - run: uptime
             - run: lsb_release -a
             - run: flutter --version
-            - uses: actions/upload-artifact@v3
+            - uses: actions/upload-artifact@v4
               with:
                 name:  reference_images
                 path:  tmp/reference_images
