@@ -62,12 +62,12 @@ POSSIBILITY OF SUCH DAMAGE.
 ///
 library;
 
+export 'src/cache.dart' show ScalableImageCache, ExportedIDLookup;
 export 'src/exported.dart'
     show ScalableImage, ExportedID, ImageDisposeBugWorkaround;
+export 'src/ink.dart' show ScalableImageInk;
 export 'src/widget.dart'
     show
         ScalableImageWidget,
         ScalableImageSource,
-        ScalableImageCache,
-        ScalingTransform,
-        ExportedIDLookup;
+        ScalingTransform;
