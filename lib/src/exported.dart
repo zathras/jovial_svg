@@ -40,6 +40,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:jovial_svg/src/get_network_content/get_network_content.dart';
 import 'affine.dart';
 import 'avd_parser.dart';
 import 'common.dart';
@@ -448,14 +449,22 @@ abstract class ScalableImage {
     Color? currentColor,
     Encoding defaultEncoding = utf8,
     Map<String, String>? httpHeaders,
+    bool withCredentials = false,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromSvgString(await _getContent(url, defaultEncoding, httpHeaders),
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: warnArg,
-        exportedIDs: exportedIDs,
-        currentColor: currentColor);
+    return fromSvgString(
+      await _getContent(
+        url,
+        defaultEncoding,
+        httpHeaders,
+        withCredentials,
+      ),
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+      exportedIDs: exportedIDs,
+      currentColor: currentColor,
+    );
   }
 
   ///
@@ -602,31 +611,38 @@ abstract class ScalableImage {
     void Function(String)? warnF,
     Encoding defaultEncoding = utf8,
     Map<String, String>? httpHeaders,
+    bool withCredentials = false,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromAvdString(await _getContent(url, defaultEncoding, httpHeaders),
-        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+    return fromAvdString(
+      await _getContent(
+        url,
+        defaultEncoding,
+        httpHeaders,
+        withCredentials,
+      ),
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+    );
   }
 
-  static Future<String> _getContent(Uri url, Encoding defaultEncoding,
-      Map<String, String>? httpHeaders) async {
+  static Future<String> _getContent(
+    Uri url,
+    Encoding defaultEncoding,
+    Map<String, String>? httpHeaders,
+    bool withCredentials,
+  ) async {
     String? content = url.data?.contentAsString(encoding: defaultEncoding);
-    if (content == null) {
-      final client = http.Client();
-      try {
-        final response = await client.get(url, headers: httpHeaders);
-        final ct = response.headers['content-type'];
-        if (ct == null || !ct.toLowerCase().contains('charset')) {
-          //  Use default if not specified in content-type header
-          content = defaultEncoding.decode(response.bodyBytes);
-        } else {
-          content = response.body;
-        }
-      } finally {
-        client.close();
-      }
+    if (content != null) {
+      return content;
     }
-    return content;
+    return getNetworkContent(
+      url,
+      defaultEncoding,
+      httpHeaders,
+      withCredentials,
+    );
   }
 
   ///
