@@ -288,8 +288,20 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-      painter: _painter, size: _preferredSize, isComplex: widget.isComplex);
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext ctx, BoxConstraints constraints) {
+        ScalingTransform transform = ScalingTransform(
+            containerSize: Size(constraints.maxWidth, constraints.maxHeight),
+            siViewport: widget._si.viewport);
+        return CustomPaint(
+            painter: _painter,
+            size: Size(transform.scaleX * widget._si.viewport.width,
+                transform.scaleY * widget._si.viewport.height),
+            isComplex: widget.isComplex);
+      },
+    );
+  }
 }
 
 class _SIPainter extends CustomPainter {
