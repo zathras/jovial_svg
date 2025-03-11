@@ -293,7 +293,9 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
       builder: (BuildContext ctx, BoxConstraints constraints) {
         ScalingTransform transform = ScalingTransform(
             containerSize: Size(constraints.maxWidth, constraints.maxHeight),
-            siViewport: widget._si.viewport);
+            siViewport: widget._si.viewport,
+            fit: widget._fit,
+            alignment: widget._alignment);
         return CustomPaint(
             painter: _painter,
             size: Size(transform.scaleX * widget._si.viewport.width,
@@ -507,6 +509,7 @@ abstract class ScalableImageSource {
   ///
   @Deprecated('Use createSI instead')
   Future<ScalableImage> get si => throw StateError('Use createSI() instead');
+
   // NOTE:  Any subclasses created prior to 1.0.7 will have overridden this
   // method, because it was abstract.  No code created from 1.0.7 on should
   // call it, so the StateError is OK.
@@ -836,6 +839,7 @@ class _AvdBundleSource extends ScalableImageSource {
   final bool warn;
   @override
   final void Function(String)? warnF;
+
   _AvdBundleSource(this.bundle, this.key,
       {required this.compact,
       required this.bigFloats,
@@ -1185,6 +1189,7 @@ class _CacheEntry {
   int _refCount = 0;
   _CacheEntry? _moreRecent;
   _CacheEntry? _lessRecent;
+
   // Invariant:  If refCount is 0, _moreRecent and _lessRecent are non-null
   // Invariant:  If _moreRecent is null, refCount > 0
   // Invariant:  If _lessRecent is null, refCount > 0
@@ -1281,6 +1286,7 @@ class ScalableImageCache {
   /// number of images will be held to this size.
   ///
   int get size => _size;
+
   set size(int val) {
     if (val < 0) {
       throw ArgumentError.value(val, 'cache size');
