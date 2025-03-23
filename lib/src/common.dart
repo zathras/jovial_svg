@@ -1005,21 +1005,23 @@ class _ImageLoader {
   }
 
   void unprepare() {
-    if (_timesPrepared <= 0) {
-      throw StateError(
-          'Attempt to unprepare() an image that was not prepare()d');
-    }
-    _timesPrepared--;
-    if (_timesPrepared == 0) {
-      callDispose(() =>
-          _decoded?.dispose()); // Could be null if prepare() is still running
-      callDispose(() => _codec?.dispose());
-      callDispose(() => _descriptor?.dispose());
-      callDispose(() => _buf?.dispose());
-      _decoded = null;
-      _codec = null;
-      _descriptor = null;
-      _buf = null;
+    if (_timesPrepared>0) {
+      if (_timesPrepared <= 0) {
+        throw StateError(
+            'Attempt to unprepare() an image that was not prepare()d');
+      }
+      _timesPrepared--;
+      if (_timesPrepared == 0) {
+        callDispose(() =>
+            _decoded?.dispose()); // Could be null if prepare() is still running
+        callDispose(() => _codec?.dispose());
+        callDispose(() => _descriptor?.dispose());
+        callDispose(() => _buf?.dispose());
+        _decoded = null;
+        _codec = null;
+        _descriptor = null;
+        _buf = null;
+      }
     }
   }
 
