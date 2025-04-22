@@ -33,7 +33,7 @@ class ToSI {
     }
   }
 
-  void _usage(final ArgParser argp) {
+  void _usage(final ArgParser argp) async {
     print('');
     print('dart run jovial_svg_transformer [options]'
         ' --input <name> --output <name>');
@@ -45,6 +45,7 @@ class ToSI {
     print('the files images smaller in memory at runtime.  For most files,');
     print('floats offer more than enough precision.');
     print('');
+    await stdout.flush();
     exit(1);
   }
 
@@ -57,6 +58,7 @@ class ToSI {
     argp.addFlag('big',
         abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
+    argp.addFlag('avd', help: 'Use AVD format instead of SVG.');
 
     argp.addMultiOption('exportx',
         abbr: 'x',
@@ -64,6 +66,11 @@ class ToSI {
         help:
             'Export:  Export the SVG node IDs matched by the given regular expression.  '
             'Multiple values may be specified.');
+
+    argp.addOption('export', help: "Export the specified SVG node id.");
+    argp.addOption('input', help: 'Specify input file.');
+    argp.addOption('output', help: 'Specify output file.');
+
     final ArgResults results;
     final String? inFile;
     final String? outFile;
@@ -83,10 +90,10 @@ class ToSI {
     }
     bool big = results['big'] == true;
     bool warn = results['quiet'] != true;
-    for (final String e in (results['export'] as List<String>)) {
+    for (final String e in (results['export'] as List<String>?) ?? []) {
       _exportedIds.add(e);
     }
-    for (final String ex in (results['exportx'] as List<String>)) {
+    for (final String ex in (results['exportx'] as List<String>?) ?? []) {
       _exportedIds.add(RegExp(ex));
     }
     _parseAVD = results['avd'] == true;
@@ -97,6 +104,7 @@ class ToSI {
     final f = File(inFile);
     if (!f.existsSync()) {
       print('$f not found - aborting');
+      await stdout.flush();
       exit(1);
     }
     final warnF = warn ? (String s) => print(s) : (String _) {};
@@ -108,6 +116,7 @@ class ToSI {
       print('***** Error in ${f.path} *****');
       print('     $e');
       print('');
+      await stdout.flush();
       exit(1);
     }
     final out = File(outFile);
