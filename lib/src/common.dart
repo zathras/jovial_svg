@@ -95,7 +95,10 @@ abstract class SIRenderable {
   bool _wouldPaint(SIColor c) => c is! SINoneColor;
 
   SIRenderable? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b);
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  );
 
   ///
   /// Get the pruning boundary, if this renderable renders something.  A text
@@ -105,41 +108,58 @@ abstract class SIRenderable {
   /// boundaries.
   ///
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform);
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  );
 
-  void _setLinearGradient(Paint p, SILinearGradientColor g, Float64List? xform,
-      Color currentColor) {
+  void _setLinearGradient(
+    Paint p,
+    SILinearGradientColor g,
+    Float64List? xform,
+    Color currentColor,
+  ) {
     p.shader = ui.Gradient.linear(
-        Offset(g.x1, g.y1),
-        Offset(g.x2, g.y2),
-        _gradientColors(currentColor, g),
-        g.stops,
-        g.spreadMethod.toTileMode,
-        xform);
+      Offset(g.x1, g.y1),
+      Offset(g.x2, g.y2),
+      _gradientColors(currentColor, g),
+      g.stops,
+      g.spreadMethod.toTileMode,
+      xform,
+    );
   }
 
-  void _setRadialGradient(Paint p, SIRadialGradientColor g, Float64List? xform,
-      Color currentColor) {
+  void _setRadialGradient(
+    Paint p,
+    SIRadialGradientColor g,
+    Float64List? xform,
+    Color currentColor,
+  ) {
     p.shader = ui.Gradient.radial(
-        Offset(g.cx, g.cy),
-        g.r,
-        _gradientColors(currentColor, g),
-        g.stops,
-        g.spreadMethod.toTileMode,
-        xform,
-        Offset(g.fx, g.fy));
+      Offset(g.cx, g.cy),
+      g.r,
+      _gradientColors(currentColor, g),
+      g.stops,
+      g.spreadMethod.toTileMode,
+      xform,
+      Offset(g.fx, g.fy),
+    );
   }
 
   void _setSweepGradient(
-      Paint p, SISweepGradientColor g, Float64List? xform, Color currentColor) {
+    Paint p,
+    SISweepGradientColor g,
+    Float64List? xform,
+    Color currentColor,
+  ) {
     p.shader = ui.Gradient.sweep(
-        Offset(g.cx, g.cy),
-        _gradientColors(currentColor, g),
-        g.stops,
-        g.spreadMethod.toTileMode,
-        g.startAngle,
-        g.endAngle,
-        xform);
+      Offset(g.cx, g.cy),
+      _gradientColors(currentColor, g),
+      g.stops,
+      g.spreadMethod.toTileMode,
+      g.startAngle,
+      g.endAngle,
+      xform,
+    );
   }
 
   // The colors within a gradient, fed to a Flutter shader.
@@ -156,7 +176,10 @@ abstract class SIRenderable {
   }
 
   Float64List? _gradientXform(
-      SIGradientColor c, Rect Function() boundsF, Color currentColor) {
+    SIGradientColor c,
+    Rect Function() boundsF,
+    Color currentColor,
+  ) {
     final transform = c.transform;
     if (c.objectBoundingBox) {
       final bounds = boundsF();
@@ -459,7 +482,11 @@ mixin SIGroupHelper {
   final List<bool> _blendModeStack = [];
 
   void startPaintGroup(
-      Canvas c, Affine? transform, int? groupAlpha, BlendMode? blendMode) {
+    Canvas c,
+    Affine? transform,
+    int? groupAlpha,
+    BlendMode? blendMode,
+  ) {
     if (blendMode != null) {
       _blendModeStack.add(true);
       c.saveLayer(null, Paint()..blendMode = blendMode);
@@ -470,10 +497,11 @@ mixin SIGroupHelper {
       c.save();
     } else {
       c.saveLayer(
-          null,
-          Paint()
-            ..blendMode = BlendMode.srcOver
-            ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff));
+        null,
+        Paint()
+          ..blendMode = BlendMode.srcOver
+          ..color = Color.fromARGB(groupAlpha, 0xff, 0xff, 0xff),
+      );
     }
     if (transform != null) {
       c.transform(transform.forCanvas);
@@ -523,13 +551,14 @@ mixin SIMaskedHelper {
       ...[0, 0, 0, 0, 1],
       ...[0, 0, 0, 0, 1],
       ...[0, 0, 0, 0, 1],
-      ...[0.2126, 0.7152, 0.0722, 0, 0]
+      ...[0.2126, 0.7152, 0.0722, 0, 0],
     ]);
     c.saveLayer(
-        bounds,
-        Paint()
-          ..colorFilter = f
-          ..blendMode = BlendMode.srcIn);
+      bounds,
+      Paint()
+        ..colorFilter = f
+        ..blendMode = BlendMode.srcIn,
+    );
   }
 
   ///
@@ -565,18 +594,24 @@ class SITextBuilder<R> {
   final List<SITextSpan> _spans = [];
   final List<SITextChunk> _chunks = [];
 
-  SITextBuilder(
-      [this.parent,
-      this._dx = 0,
-      this._dy = 0,
-      this._anchor = SITextAnchor.start]);
+  SITextBuilder([
+    this.parent,
+    this._dx = 0,
+    this._dy = 0,
+    this._anchor = SITextAnchor.start,
+  ]);
 
   SITextBuilder<R>? multiSpanChunk(double dx, double dy, SITextAnchor anchor) {
     return SITextBuilder(this, dx, dy, anchor);
   }
 
-  SITextBuilder<R>? span(double dx, double dy, String text,
-      SITextAttributes attributes, SIPaint paint) {
+  SITextBuilder<R>? span(
+    double dx,
+    double dy,
+    String text,
+    SITextAttributes attributes,
+    SIPaint paint,
+  ) {
     final s = SITextSpan(text, dx, dy, attributes, paint);
     if (parent == null) {
       _chunks.add(s);
@@ -616,30 +651,47 @@ mixin SITextHelper<R> {
   }
 
   R textMultiSpanChunk(
-      R collector, int dxIndex, int dyIndex, SITextAnchor anchor) {
+    R collector,
+    int dxIndex,
+    int dyIndex,
+    SITextAnchor anchor,
+  ) {
     assert(_textBuilder != null);
     _textBuilder = _textBuilder?.multiSpanChunk(
-        floatValues[dxIndex], floatValues[dyIndex], anchor);
+      floatValues[dxIndex],
+      floatValues[dyIndex],
+      anchor,
+    );
     return collector;
   }
 
   R textSpan(
-      R collector,
-      int dxIndex,
-      int dyIndex,
-      int textIndex,
-      SITextAttributes attributes,
-      int? fontFamilyIndex,
-      int fontSizeIndex,
-      SIPaint paint) {
+    R collector,
+    int dxIndex,
+    int dyIndex,
+    int textIndex,
+    SITextAttributes attributes,
+    int? fontFamilyIndex,
+    int fontSizeIndex,
+    SIPaint paint,
+  ) {
     assert(_textBuilder != null);
-    assert((fontFamilyIndex == null && attributes.fontFamily == null) ||
-        (fontFamilyIndex != null) &&
-            (const ListEquality<String>())
-                .equals(stringLists[fontFamilyIndex], attributes.fontFamily));
+    assert(
+      (fontFamilyIndex == null && attributes.fontFamily == null) ||
+          (fontFamilyIndex != null) &&
+              (const ListEquality<String>()).equals(
+                stringLists[fontFamilyIndex],
+                attributes.fontFamily,
+              ),
+    );
     assert(floatValues[fontSizeIndex] == attributes.fontSize);
-    _textBuilder = _textBuilder?.span(floatValues[dxIndex],
-        floatValues[dyIndex], strings[textIndex], attributes, paint);
+    _textBuilder = _textBuilder?.span(
+      floatValues[dxIndex],
+      floatValues[dyIndex],
+      strings[textIndex],
+      attributes,
+      paint,
+    );
     return collector;
   }
 
@@ -668,12 +720,17 @@ class SIClipPath extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-          Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) =>
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary? b,
+  ) =>
       this;
 
   @override
   PruningBoundary? getBoundary(
-          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) =>
       PruningBoundary(path.getBounds());
 
   @override
@@ -705,16 +762,31 @@ class SIPath extends SIRenderable {
     paint.shader = null;
     late final bounds = getBounds();
     Rect boundsF() => bounds;
-    si.accept(SIColorVisitor(
+    si.accept(
+      SIColorVisitor(
         value: (SIValueColor c) => paint.color = Color(c.argb),
         current: () => paint.color = currentColor,
         none: () => hasWork = false,
         linearGradient: (SILinearGradientColor c) => _setLinearGradient(
-            paint, c, _gradientXform(c, boundsF, currentColor), currentColor),
+          paint,
+          c,
+          _gradientXform(c, boundsF, currentColor),
+          currentColor,
+        ),
         radialGradient: (SIRadialGradientColor c) => _setRadialGradient(
-            paint, c, _gradientXform(c, boundsF, currentColor), currentColor),
+          paint,
+          c,
+          _gradientXform(c, boundsF, currentColor),
+          currentColor,
+        ),
         sweepGradient: (SISweepGradientColor c) => _setSweepGradient(
-            paint, c, _gradientXform(c, boundsF, currentColor), currentColor)));
+          paint,
+          c,
+          _gradientXform(c, boundsF, currentColor),
+          currentColor,
+        ),
+      ),
+    );
     return hasWork;
   }
 
@@ -786,7 +858,10 @@ class SIPath extends SIRenderable {
 
   @override
   SIRenderable? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary? b,
+  ) {
     if (b == null) {
       return this;
     }
@@ -803,15 +878,21 @@ class SIPath extends SIRenderable {
     Rect pathB = path.getBounds();
     if (_wouldPaint(siPaint.strokeColor)) {
       final sw = siPaint.strokeWidth;
-      pathB = Rect.fromLTWH(pathB.left - sw / 2, pathB.top - sw / 2,
-          pathB.width + sw, pathB.height + sw);
+      pathB = Rect.fromLTWH(
+        pathB.left - sw / 2,
+        pathB.top - sw / 2,
+        pathB.width + sw,
+        pathB.height + sw,
+      );
     }
     return pathB;
   }
 
   @override
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) {
     return PruningBoundary(getBounds());
   }
 
@@ -862,18 +943,27 @@ class SIImage extends SIRenderable {
 
   @override
   PruningBoundary? getBoundary(
-          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) =>
       PruningBoundary(Rect.fromLTWH(x, y, width.toDouble(), height.toDouble()));
 
   @override
   SIRenderable? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary? b,
+  ) {
     if (b == null) {
       imageSet.add(this);
       return this;
     }
-    final Rect imageB =
-        Rect.fromLTWH(x, y, width.toDouble(), height.toDouble());
+    final Rect imageB = Rect.fromLTWH(
+      x,
+      y,
+      width.toDouble(),
+      height.toDouble(),
+    );
     final bb = b.getBounds();
     if (imageB.overlaps(bb)) {
       imageSet.add(this);
@@ -947,10 +1037,13 @@ class _ImageLoader {
       if (ScalableImage.imageDisposeBugWorkaround !=
           ImageDisposeBugWorkaround.silentlyIgnoreErrors) {
         debugPrint(
-            'WARNING:  Bug detected in Flutter image-related dispose() call.');
+          'WARNING:  Bug detected in Flutter image-related dispose() call.',
+        );
         debugPrint('    Ignoring $e');
-        debugPrint('    This warning can be silenced with '
-            'ScalableImage.imageDisposeBugWorkaround.');
+        debugPrint(
+          '    This warning can be silenced with '
+          'ScalableImage.imageDisposeBugWorkaround.',
+        );
         debugPrint('    See  https://github.com/zathras/jovial_svg/issues/62');
         debugPrint('    Stack trace: $st');
       }
@@ -1007,12 +1100,14 @@ class _ImageLoader {
   void unprepare() {
     if (_timesPrepared <= 0) {
       throw StateError(
-          'Attempt to unprepare() an image that was not prepare()d');
+        'Attempt to unprepare() an image that was not prepare()d',
+      );
     }
     _timesPrepared--;
     if (_timesPrepared == 0) {
-      callDispose(() =>
-          _decoded?.dispose()); // Could be null if prepare() is still running
+      callDispose(
+        () => _decoded?.dispose(),
+      ); // Could be null if prepare() is still running
       callDispose(() => _codec?.dispose());
       callDispose(() => _descriptor?.dispose());
       callDispose(() => _buf?.dispose());
@@ -1026,10 +1121,18 @@ class _ImageLoader {
   void paint(Canvas c) {
     final im = _decoded;
     if (im != null) {
-      final src =
-          Rect.fromLTWH(0, 0, im.width.toDouble(), im.height.toDouble());
-      final dest =
-          Rect.fromLTWH(source.x, source.y, source.width, source.height);
+      final src = Rect.fromLTWH(
+        0,
+        0,
+        im.width.toDouble(),
+        im.height.toDouble(),
+      );
+      final dest = Rect.fromLTWH(
+        source.x,
+        source.y,
+        source.width,
+        source.height,
+      );
       c.drawImageRect(im, src, dest, Paint());
     }
   }
@@ -1040,8 +1143,13 @@ class SIText extends SIRenderable {
 
   SIText(this.chunks);
 
-  factory SIText.legacy(String text, List<double> x, List<double> y,
-      SITextAttributes attributes, SIPaint siPaint) {
+  factory SIText.legacy(
+    String text,
+    List<double> x,
+    List<double> y,
+    SITextAttributes attributes,
+    SIPaint siPaint,
+  ) {
     final chunks = <SITextChunk>[];
     final len = min(min(x.length, y.length), text.length);
     for (int i = 0; i < len; i++) {
@@ -1058,12 +1166,17 @@ class SIText extends SIRenderable {
 
   @override
   PruningBoundary? getBoundary(
-          List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) =>
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) =>
       chunks.isEmpty ? null : PruningBoundary(_bounds);
 
   @override
   SIRenderable? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary? b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary? b,
+  ) {
     if (chunks.isEmpty) {
       return null;
     }
@@ -1123,7 +1236,9 @@ abstract class SITextChunk {
   Rect get _bounds;
 
   void build<PathDataT>(
-      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder);
+    CanonicalizedData<SIImage> canon,
+    SIBuilder<PathDataT, SIImage> builder,
+  );
 }
 
 class SITextSpan extends SITextChunk {
@@ -1138,16 +1253,21 @@ class SITextSpan extends SITextChunk {
   late final Rect _bounds = () {
     late final Rect result;
     _doWithPainter(
-        Colors.black, Paint(), attributes.textDecoration.asTextDecoration,
-        (double left, double top, TextPainter tp) {
-      result = Rect.fromLTWH(left, top, tp.width, tp.height);
-    });
+      Colors.black,
+      Paint(),
+      attributes.textDecoration.asTextDecoration,
+      (double left, double top, TextPainter tp) {
+        result = Rect.fromLTWH(left, top, tp.width, tp.height);
+      },
+    );
     return result;
   }();
 
   @override
   void build<PathDataT>(
-      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder) {
+    CanonicalizedData<SIImage> canon,
+    SIBuilder<PathDataT, SIImage> builder,
+  ) {
     final int? fontFamilyIndex;
     if (attributes.fontFamily == null) {
       fontFamilyIndex = null;
@@ -1155,21 +1275,31 @@ class SITextSpan extends SITextChunk {
       for (final String s in attributes.fontFamily!) {
         canon.strings[s];
       }
-      fontFamilyIndex =
-          canon.stringLists.getIfNotNull(CList(attributes.fontFamily!));
+      fontFamilyIndex = canon.stringLists.getIfNotNull(
+        CList(attributes.fontFamily!),
+      );
     }
     final textIndex = canon.strings[text];
     final dxIndex = canon.floatValues[dx];
     final dyIndex = canon.floatValues[dy];
     final fontSizeIndex = canon.floatValues[attributes.fontSize];
-    builder.textSpan(null, dxIndex, dyIndex, textIndex, attributes,
-        fontFamilyIndex, fontSizeIndex, siPaint);
+    builder.textSpan(
+      null,
+      dxIndex,
+      dyIndex,
+      textIndex,
+      attributes,
+      fontFamilyIndex,
+      fontSizeIndex,
+      siPaint,
+    );
   }
 
   Paint? _getPaint(SIText parent, SIColor c, Color currentColor) {
     Rect boundsF() => parent._bounds;
     Paint? r;
-    c.accept(SIColorVisitor(
+    c.accept(
+      SIColorVisitor(
         value: (SIValueColor c) {
           final p = r = Paint();
           p.color = Color(c.argb);
@@ -1178,19 +1308,33 @@ class SITextSpan extends SITextChunk {
         none: () {},
         linearGradient: (SILinearGradientColor c) {
           final p = r = Paint();
-          parent._setLinearGradient(p, c,
-              parent._gradientXform(c, boundsF, currentColor), currentColor);
+          parent._setLinearGradient(
+            p,
+            c,
+            parent._gradientXform(c, boundsF, currentColor),
+            currentColor,
+          );
         },
         radialGradient: (SIRadialGradientColor c) {
           final p = r = Paint();
-          parent._setRadialGradient(p, c,
-              parent._gradientXform(c, boundsF, currentColor), currentColor);
+          parent._setRadialGradient(
+            p,
+            c,
+            parent._gradientXform(c, boundsF, currentColor),
+            currentColor,
+          );
         },
         sweepGradient: (SISweepGradientColor c) {
           final p = r = Paint();
-          parent._setSweepGradient(p, c,
-              parent._gradientXform(c, boundsF, currentColor), currentColor);
-        }));
+          parent._setSweepGradient(
+            p,
+            c,
+            parent._gradientXform(c, boundsF, currentColor),
+            currentColor,
+          );
+        },
+      ),
+    );
     return r;
   }
 
@@ -1204,8 +1348,11 @@ class SITextSpan extends SITextChunk {
       if (decorated && siPaint.fillColor is! SIValueColor) {
         c.saveLayer(_bounds, Paint());
         final white = Paint()..color = Colors.white;
-        _doWithPainter(currentColor, white, decoration,
-            (double left, double top, TextPainter tp) {
+        _doWithPainter(currentColor, white, decoration, (
+          double left,
+          double top,
+          TextPainter tp,
+        ) {
           tp.paint(c, Offset(left, top));
         });
         c.saveLayer(_bounds, Paint()..blendMode = BlendMode.srcIn);
@@ -1213,8 +1360,11 @@ class SITextSpan extends SITextChunk {
         c.restore();
         c.restore();
       } else {
-        _doWithPainter(currentColor, foreground, decoration,
-            (double left, double top, TextPainter tp) {
+        _doWithPainter(currentColor, foreground, decoration, (
+          double left,
+          double top,
+          TextPainter tp,
+        ) {
           tp.paint(c, Offset(left, top));
         });
       }
@@ -1229,8 +1379,11 @@ class SITextSpan extends SITextChunk {
           ..color = Colors.white
           ..strokeWidth = siPaint.strokeWidth
           ..style = PaintingStyle.stroke;
-        _doWithPainter(currentColor, white, decoration,
-            (double left, double top, TextPainter tp) {
+        _doWithPainter(currentColor, white, decoration, (
+          double left,
+          double top,
+          TextPainter tp,
+        ) {
           tp.paint(c, Offset(left, top));
         });
         c.saveLayer(_bounds, Paint()..blendMode = BlendMode.srcIn);
@@ -1242,8 +1395,11 @@ class SITextSpan extends SITextChunk {
         strokeP.style = PaintingStyle.stroke;
         final decoration2 =
             foreground == null ? decoration : TextDecoration.none;
-        _doWithPainter(currentColor, strokeP, decoration2,
-            (double left, double top, TextPainter tp) {
+        _doWithPainter(currentColor, strokeP, decoration2, (
+          double left,
+          double top,
+          TextPainter tp,
+        ) {
           tp.paint(c, Offset(left, top));
         });
       }
@@ -1251,10 +1407,11 @@ class SITextSpan extends SITextChunk {
   }
 
   void _doWithPainter(
-      ui.Color currentColor,
-      ui.Paint foreground,
-      TextDecoration decoration,
-      void Function(double left, double top, TextPainter p) thingToDo) {
+    ui.Color currentColor,
+    ui.Paint foreground,
+    TextDecoration decoration,
+    void Function(double left, double top, TextPainter p) thingToDo,
+  ) {
     // It's tempting to try to do all this work once, in the constructor,
     // but we need currColor for the text style.  This node can be reused,
     // so we can't guarantee that's a constant.  Fortunately, text performance
@@ -1264,16 +1421,18 @@ class SITextSpan extends SITextChunk {
     final FontWeight weight = attributes.fontWeight.asFontWeight;
     List<String>? ff = attributes.fontFamily;
     final span = TextSpan(
-        style: TextStyle(
-            foreground: foreground,
-            fontFamily: null,
-            fontFamilyFallback: ff,
-            fontSize: sz,
-            fontStyle: style,
-            fontWeight: weight,
-            decoration: decoration,
-            decorationColor: foreground.color),
-        text: text);
+      style: TextStyle(
+        foreground: foreground,
+        fontFamily: null,
+        fontFamilyFallback: ff,
+        fontSize: sz,
+        fontStyle: style,
+        fontWeight: weight,
+        decoration: decoration,
+        decorationColor: foreground.color,
+      ),
+      text: text,
+    );
     // We could support the decoration-color attribute, but neither Firefox
     // nor Chrome do (in March 2022), so I'd consider that extreme
     // gold-plating.
@@ -1379,13 +1538,25 @@ class SIMultiSpanChunk extends SITextChunk {
     switch (textAnchor) {
       case SITextAnchor.start:
         return ui.Rect.fromLTWH(
-            dx + result.left, dy + result.top, result.width, result.height);
+          dx + result.left,
+          dy + result.top,
+          result.width,
+          result.height,
+        );
       case SITextAnchor.middle:
-        return ui.Rect.fromLTWH(dx + result.left - right / 2, dy + result.top,
-            result.width, result.height);
+        return ui.Rect.fromLTWH(
+          dx + result.left - right / 2,
+          dy + result.top,
+          result.width,
+          result.height,
+        );
       case SITextAnchor.end:
-        return ui.Rect.fromLTWH(dx + result.left - right, dy + result.top,
-            result.width, result.height);
+        return ui.Rect.fromLTWH(
+          dx + result.left - right,
+          dy + result.top,
+          result.width,
+          result.height,
+        );
     }
   }
 
@@ -1400,7 +1571,9 @@ class SIMultiSpanChunk extends SITextChunk {
 
   @override
   void build<PathDataT>(
-      CanonicalizedData<SIImage> canon, SIBuilder<PathDataT, SIImage> builder) {
+    CanonicalizedData<SIImage> canon,
+    SIBuilder<PathDataT, SIImage> builder,
+  ) {
     final xIndex = canon.floatValues[dx];
     final yIndex = canon.floatValues[dy];
     builder.textMultiSpanChunk(null, xIndex, yIndex, textAnchor);
@@ -1466,10 +1639,11 @@ class PruningBoundary {
   PruningBoundary._p(this.a, this.b, this.c, this.d);
 
   Rect getBounds() => Rect.fromLTRB(
-      min(min(a.x, b.x), min(c.x, d.x)),
-      min(min(a.y, b.y), min(c.y, d.y)),
-      max(max(a.x, b.x), max(c.x, d.x)),
-      max(max(a.y, b.y), max(c.y, d.y)));
+        min(min(a.x, b.x), min(c.x, d.x)),
+        min(min(a.y, b.y), min(c.y, d.y)),
+        max(max(a.x, b.x), max(c.x, d.x)),
+        max(max(a.y, b.y), max(c.y, d.y)),
+      );
 
   static Point<double> _tp(Point<double> p, Affine x) => x.transformed(p);
 
@@ -1479,7 +1653,9 @@ class PruningBoundary {
 
 class Transformer {
   static PruningBoundary? transformBoundaryFromChildren(
-      Affine? transform, PruningBoundary? b) {
+    Affine? transform,
+    PruningBoundary? b,
+  ) {
     if (b != null && transform != null) {
       return b.transformed(transform);
     } else {
@@ -1488,7 +1664,9 @@ class Transformer {
   }
 
   static PruningBoundary? transformBoundaryFromParent(
-      Affine? transform, PruningBoundary? b) {
+    Affine? transform,
+    PruningBoundary? b,
+  ) {
     if (b == null) {
       return b;
     }

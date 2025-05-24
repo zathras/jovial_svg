@@ -61,28 +61,42 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
   /// Create an instance with no children, for testing.  This is a private
   /// API:  ScalableImageDag is not an exported type.
   ///
-  ScalableImageDag.forTesting(
-      {required double? width,
-      required double? height,
-      required Color? tintColor,
-      required BlendMode tintMode,
-      required Rect? viewport,
-      Color? currentColor,
-      required List<SIImage> images})
-      : _renderables = const [],
+  ScalableImageDag.forTesting({
+    required double? width,
+    required double? height,
+    required Color? tintColor,
+    required BlendMode tintMode,
+    required Rect? viewport,
+    Color? currentColor,
+    required List<SIImage> images,
+  })  : _renderables = const [],
         super(
-            width, height, tintColor, tintMode, viewport, images, currentColor);
+          width,
+          height,
+          tintColor,
+          tintMode,
+          viewport,
+          images,
+          currentColor,
+        );
 
-  ScalableImageDag._withoutRenderables(
-      {required double? width,
-      required double? height,
-      required Color? tintColor,
-      required BlendMode tintMode,
-      required Rect? viewport,
-      Color? currentColor,
-      required List<SIImage> images})
-      : super(
-            width, height, tintColor, tintMode, viewport, images, currentColor);
+  ScalableImageDag._withoutRenderables({
+    required double? width,
+    required double? height,
+    required Color? tintColor,
+    required BlendMode tintMode,
+    required Rect? viewport,
+    Color? currentColor,
+    required List<SIImage> images,
+  }) : super(
+          width,
+          height,
+          tintColor,
+          tintMode,
+          viewport,
+          images,
+          currentColor,
+        );
 
   ///
   /// Creates a new instance of a blank image.
@@ -91,13 +105,15 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
       : _renderables = [],
         super(null, null, null, BlendMode.srcIn, null, const [], null);
 
-  ScalableImageDag._modified(ScalableImageDag super.other, this._renderables,
-      {required super.viewport,
-      required super.images,
-      required super.currentColor,
-      required super.tintColor,
-      required super.tintMode})
-      : super.modifiedFrom();
+  ScalableImageDag._modified(
+    ScalableImageDag super.other,
+    this._renderables, {
+    required super.viewport,
+    required super.images,
+    required super.currentColor,
+    required super.tintColor,
+    required super.tintMode,
+  }) : super.modifiedFrom();
 
   ///
   /// Create a copy of [other], potentially with a new viewport.  The copy
@@ -105,66 +121,85 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
   /// paths will be pruned to contain only those that intersect the new
   /// viewport.
   ///
-  static ScalableImageDag modified(ScalableImageDag other,
-      {Rect? viewport,
-      required bool prune,
-      double pruningTolerance = 0,
-      required Color currentColor,
-      required Color? tintColor,
-      required BlendMode tintMode}) {
+  static ScalableImageDag modified(
+    ScalableImageDag other, {
+    Rect? viewport,
+    required bool prune,
+    double pruningTolerance = 0,
+    required Color currentColor,
+    required Color? tintColor,
+    required BlendMode tintMode,
+  }) {
     final List<SIImage> images;
     final List<SIRenderable> renderables;
     if (prune && viewport != null) {
       final dagger = <SIRenderable>{};
       final imageSet = <SIImage>{};
-      renderables = other._childrenPrunedBy(dagger, imageSet,
-          PruningBoundary(viewport.deflate(pruningTolerance)));
+      renderables = other._childrenPrunedBy(
+        dagger,
+        imageSet,
+        PruningBoundary(viewport.deflate(pruningTolerance)),
+      );
       images = imageSet.toList(growable: false);
     } else {
       images = other.images;
       renderables = other._renderables;
     }
-    return ScalableImageDag._modified(other, renderables,
-        viewport: viewport,
-        images: images,
-        currentColor: currentColor,
-        tintColor: tintColor,
-        tintMode: tintMode);
+    return ScalableImageDag._modified(
+      other,
+      renderables,
+      viewport: viewport,
+      images: images,
+      currentColor: currentColor,
+      tintColor: tintColor,
+      tintMode: tintMode,
+    );
   }
 
   @override
-  ScalableImage withNewViewport(Rect viewport,
-      {bool prune = false, double pruningTolerance = 0}) {
-    return ScalableImageDag.modified(this,
-        viewport: viewport,
-        prune: prune,
-        pruningTolerance: pruningTolerance,
-        currentColor: currentColor,
-        tintColor: tintColor,
-        tintMode: tintMode);
+  ScalableImage withNewViewport(
+    Rect viewport, {
+    bool prune = false,
+    double pruningTolerance = 0,
+  }) {
+    return ScalableImageDag.modified(
+      this,
+      viewport: viewport,
+      prune: prune,
+      pruningTolerance: pruningTolerance,
+      currentColor: currentColor,
+      tintColor: tintColor,
+      tintMode: tintMode,
+    );
   }
 
   @override
   ScalableImage modifyCurrentColor(Color newCurrentColor) {
-    return ScalableImageDag.modified(this,
-        viewport: viewport,
-        prune: false,
-        pruningTolerance: 0,
-        currentColor: newCurrentColor,
-        tintColor: tintColor,
-        tintMode: tintMode);
+    return ScalableImageDag.modified(
+      this,
+      viewport: viewport,
+      prune: false,
+      pruningTolerance: 0,
+      currentColor: newCurrentColor,
+      tintColor: tintColor,
+      tintMode: tintMode,
+    );
   }
 
   @override
-  ScalableImage modifyTint(
-      {required BlendMode newTintMode, required Color? newTintColor}) {
-    return ScalableImageDag.modified(this,
-        viewport: viewport,
-        prune: false,
-        pruningTolerance: 0,
-        currentColor: currentColor,
-        tintColor: newTintColor,
-        tintMode: newTintMode);
+  ScalableImage modifyTint({
+    required BlendMode newTintMode,
+    required Color? newTintColor,
+  }) {
+    return ScalableImageDag.modified(
+      this,
+      viewport: viewport,
+      prune: false,
+      pruningTolerance: 0,
+      currentColor: currentColor,
+      tintColor: newTintColor,
+      tintMode: newTintMode,
+    );
   }
 
   @override
@@ -176,7 +211,10 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     // Maximize instance sharing with source SI
     _addAll(_renderables, dagger);
     return super._childrenPrunedBy(dagger, imageSet, b);
@@ -242,7 +280,10 @@ abstract mixin class _SIParentNode {
   List<SIRenderable> get _renderables;
 
   List<SIRenderable> _childrenPrunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     bool changed = false;
     final copy = List<SIRenderable>.empty(growable: true);
     for (final r in _renderables) {
@@ -262,15 +303,18 @@ abstract mixin class _SIParentNode {
   }
 
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) {
     PruningBoundary? result;
     for (final r in _renderables) {
       final b = r.getBoundary(exportedIDs, exportedIDXform);
       if (result == null) {
         result = b;
       } else if (b != null) {
-        result =
-            PruningBoundary(result.getBounds().expandToInclude(b.getBounds()));
+        result = PruningBoundary(
+          result.getBounds().expandToInclude(b.getBounds()),
+        );
         // This is simple, fast, and good enough for our purposes.  Given
         // that the rectangles might be tilted relative to each other,
         // the minimum pruning polygon isn't necessarily a rectangle.  If we
@@ -318,7 +362,9 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
 
   @override
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) {
     final mb = mask.getBoundary(exportedIDs, exportedIDXform);
     final cb = child.getBoundary(exportedIDs, exportedIDXform);
     if (mb == null || cb == null) {
@@ -352,7 +398,10 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
 
   @override
   SIRenderable? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     final mp = mask.prunedBy(dagger, imageSet, b);
     if (mp == null) {
       return null;
@@ -415,9 +464,12 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   final BlendMode? blendMode;
   final Affine? transform;
 
-  SIGroup(Iterable<SIRenderable> renderables, this.groupAlpha, this.transform,
-      SIBlendMode blendMode)
-      : _renderables = List.unmodifiable(renderables),
+  SIGroup(
+    Iterable<SIRenderable> renderables,
+    this.groupAlpha,
+    this.transform,
+    SIBlendMode blendMode,
+  )   : _renderables = List.unmodifiable(renderables),
         blendMode = blendMode.asBlendMode;
 
   SIGroup._modified(SIGroup other, this._renderables)
@@ -427,14 +479,19 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   List<SIRenderable> _childrenPrunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     b = Transformer.transformBoundaryFromParent(transform, b)!;
     return super._childrenPrunedBy(dagger, imageSet, b);
   }
 
   @override
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) {
     if (exportedIDXform != null) {
       final t = transform;
       if (t != null) {
@@ -444,7 +501,9 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
       }
     }
     return Transformer.transformBoundaryFromChildren(
-        transform, super.getBoundary(exportedIDs, exportedIDXform));
+      transform,
+      super.getBoundary(exportedIDs, exportedIDXform),
+    );
   }
 
   @override
@@ -458,7 +517,10 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   SIGroup? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     final rr = _childrenPrunedBy(dagger, imageSet, b);
     if (rr.isEmpty) {
       return null;
@@ -540,11 +602,15 @@ class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform) {
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  ) {
     final result = _renderables[0].getBoundary(exportedIDs, exportedIDXform);
     if (exportedIDs != null) {
-      final b =
-          Transformer.transformBoundaryFromChildren(exportedIDXform, result);
+      final b = Transformer.transformBoundaryFromChildren(
+        exportedIDXform,
+        result,
+      );
       if (b != null) {
         exportedIDs.add(ExportedIDBoundary(id, b));
       }
@@ -559,7 +625,10 @@ class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
 
   @override
   SIExportedID? prunedBy(
-      Set<Object> dagger, Set<SIImage> imageSet, PruningBoundary b) {
+    Set<Object> dagger,
+    Set<SIImage> imageSet,
+    PruningBoundary b,
+  ) {
     final rr = _childrenPrunedBy(dagger, imageSet, b);
     if (rr.isEmpty) {
       return null;
@@ -719,25 +788,31 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
       addRenderable(sip);
       return null;
     }
-    return UIPathBuilder(onEnd: (pb) {
-      paths[key] = pb.path;
-      final p = _daggerize(SIPath(pb.path, paint));
-      addRenderable(p);
-    });
+    return UIPathBuilder(
+      onEnd: (pb) {
+        paths[key] = pb.path;
+        final p = _daggerize(SIPath(pb.path, paint));
+        addRenderable(p);
+      },
+    );
   }
 
-  void makePath(PathDataT pathData, EnhancedPathBuilder pb,
-      {required void Function(String) warn});
+  void makePath(
+    PathDataT pathData,
+    EnhancedPathBuilder pb, {
+    required void Function(String) warn,
+  });
 
   @override
   void init(
-      void collector,
-      List<IM> im,
-      List<String> strings,
-      List<List<double>> floatLists,
-      List<List<String>> stringLists,
-      List<double> floatValues,
-      CMap<double>? floatValueMap) {
+    void collector,
+    List<IM> im,
+    List<String> strings,
+    List<List<double>> floatLists,
+    List<List<String>> stringLists,
+    List<double> floatValues,
+    CMap<double>? floatValueMap,
+  ) {
     images = convertImages(im);
     this.strings = strings;
     this.floatLists = floatLists;
@@ -745,13 +820,14 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     this.floatValues = floatValues;
     assert(_si == null);
     _si = ScalableImageDag._withoutRenderables(
-        width: _width,
-        height: _height,
-        viewport: _givenViewport,
-        tintColor: (_tintColor == null) ? null : Color(_tintColor!),
-        tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
-        currentColor: currentColor,
-        images: images);
+      width: _width,
+      height: _height,
+      viewport: _givenViewport,
+      tintColor: (_tintColor == null) ? null : Color(_tintColor!),
+      tintMode: (_tintMode ?? SITintModeMapping.defaultValue).asBlendMode,
+      currentColor: currentColor,
+      images: images,
+    );
     _parentStack.add(this);
   }
 
@@ -772,11 +848,12 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   }
 
   @override
-  void vector(
-      {required double? width,
-      required double? height,
-      required int? tintColor,
-      required SITintMode? tintMode}) {
+  void vector({
+    required double? width,
+    required double? height,
+    required int? tintColor,
+    required SITintMode? tintMode,
+  }) {
     assert(_si == null);
     _width = width;
     _height = height;
@@ -796,7 +873,11 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   void group(
-      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {
+    void collector,
+    Affine? transform,
+    int? groupAlpha,
+    SIBlendMode blend,
+  ) {
     if (transform != null) {
       transform = _daggerize(transform);
     }
@@ -848,10 +929,24 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   @mustCallSuper
-  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
-    addRenderable(SIText.legacy(strings[textIndex], floatLists[xIndex],
-        floatLists[yIndex], a, _daggerize(paint)));
+  void legacyText(
+    void collector,
+    int xIndex,
+    int yIndex,
+    int textIndex,
+    SITextAttributes a,
+    int? fontFamilyIndex,
+    SIPaint paint,
+  ) {
+    addRenderable(
+      SIText.legacy(
+        strings[textIndex],
+        floatLists[xIndex],
+        floatLists[yIndex],
+        a,
+        _daggerize(paint),
+      ),
+    );
   }
 
   @override
@@ -867,8 +962,11 @@ class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
 
   @override
   List<SIImage> convertImages(List<SIImageData> images) =>
-      List<SIImage>.generate(images.length, (i) => SIImage(images[i]),
-          growable: false);
+      List<SIImage>.generate(
+        images.length,
+        (i) => SIImage(images[i]),
+        growable: false,
+      );
 
   @override
   void addPath(Object path, SIPaint paint) {

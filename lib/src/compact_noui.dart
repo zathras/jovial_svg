@@ -74,9 +74,9 @@ abstract class CompactTraverserBase<R, IM,
 
   @protected
   CompactTraverserBase.clone(
-      CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> other,
-      this.visitor)
-      : fileVersion = other.fileVersion,
+    CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> other,
+    this.visitor,
+  )   : fileVersion = other.fileVersion,
         bigFloats = other.bigFloats,
         _strings = other._strings,
         _stringLists = other._stringLists,
@@ -97,21 +97,21 @@ abstract class CompactTraverserBase<R, IM,
         _currPaintID = other._currPaintID,
         groupDepth = other.groupDepth;
 
-  CompactTraverserBase(
-      {required this.fileVersion,
-      required this.bigFloats,
-      required Uint8List visiteeChildren,
-      required List<double> visiteeArgs,
-      required List<double> visiteeTransforms,
-      required int visiteeNumPaths,
-      required int visiteeNumPaints,
-      required this.visitor,
-      required List<String> strings,
-      required List<List<String>> stringLists,
-      required List<List<double>> floatLists,
-      required List<double> floatValues,
-      required List<IM> images})
-      : _strings = strings,
+  CompactTraverserBase({
+    required this.fileVersion,
+    required this.bigFloats,
+    required Uint8List visiteeChildren,
+    required List<double> visiteeArgs,
+    required List<double> visiteeTransforms,
+    required int visiteeNumPaths,
+    required int visiteeNumPaints,
+    required this.visitor,
+    required List<String> strings,
+    required List<List<String>> stringLists,
+    required List<List<double>> floatLists,
+    required List<double> floatValues,
+    required List<IM> images,
+  })  : _strings = strings,
         _stringLists =
             (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
         _floatLists = floatLists,
@@ -120,8 +120,10 @@ abstract class CompactTraverserBase<R, IM,
         _children = ByteBufferDataInputStream(visiteeChildren, Endian.little),
         _args = FloatBufferInputStream(visiteeArgs),
         _transforms = FloatBufferInputStream(visiteeTransforms),
-        _rewindChildren =
-            ByteBufferDataInputStream(visiteeChildren, Endian.little),
+        _rewindChildren = ByteBufferDataInputStream(
+          visiteeChildren,
+          Endian.little,
+        ),
         _rewindArgs = FloatBufferInputStream(visiteeArgs),
         _pathChildrenSeek = Uint32List(visiteeNumPaths),
         _pathArgsSeek = Uint32List(visiteeNumPaths),
@@ -133,8 +135,15 @@ abstract class CompactTraverserBase<R, IM,
         groupDepth = 0;
 
   R traverse(R collector) {
-    collector = visitor.init(collector, _images, _strings, _floatLists,
-        _stringLists, _floatValues, null);
+    collector = visitor.init(
+      collector,
+      _images,
+      _strings,
+      _floatLists,
+      _stringLists,
+      _floatValues,
+      null,
+    );
     final r = traverseGroup(collector);
     visitor.traversalDone();
     closeStreams();
@@ -157,27 +166,33 @@ abstract class CompactTraverserBase<R, IM,
       final code = _children.readUnsignedByte();
       if (code < SIGenericCompactBuilder.LEGACY_TEXT_CODE) {
         // It's PATH_CODE
-        collector = path(collector,
-            hasPathNumber: _flag(code, 0),
-            hasPaintNumber: _flag(code, 1),
-            fillColorType: (code >> 2) & 0x3,
-            strokeColorType: (code >> 4) & 0x3);
+        collector = path(
+          collector,
+          hasPathNumber: _flag(code, 0),
+          hasPaintNumber: _flag(code, 1),
+          fillColorType: (code >> 2) & 0x3,
+          strokeColorType: (code >> 4) & 0x3,
+        );
       } else if (code < SIGenericCompactBuilder.GROUP_CODE) {
         // it's LEGACY_TEXT_CODE
         assert(SIGenericCompactBuilder.LEGACY_TEXT_CODE & 0x3f == 0);
-        collector = legacyText(collector,
-            hasPaintNumber: _flag(code, 0),
-            hasFontFamilyIndex: _flag(code, 1),
-            fillColorType: (code >> 2) & 0x3,
-            strokeColorType: (code >> 4) & 0x3);
+        collector = legacyText(
+          collector,
+          hasPaintNumber: _flag(code, 0),
+          hasFontFamilyIndex: _flag(code, 1),
+          fillColorType: (code >> 2) & 0x3,
+          strokeColorType: (code >> 4) & 0x3,
+        );
       } else if (code < SIGenericCompactBuilder.CLIPPATH_CODE) {
         // it's GROUP_CODE
         assert(SIGenericCompactBuilder.GROUP_CODE & 0x7 == 0);
-        collector = group(collector,
-            blendMode: SIBlendMode.normal,
-            hasTransform: _flag(code, 0),
-            hasTransformNumber: _flag(code, 1),
-            hasGroupAlpha: _flag(code, 2));
+        collector = group(
+          collector,
+          blendMode: SIBlendMode.normal,
+          hasTransform: _flag(code, 0),
+          hasTransformNumber: _flag(code, 1),
+          hasGroupAlpha: _flag(code, 2),
+        );
       } else if (code < SIGenericCompactBuilder.IMAGE_CODE) {
         // it's CLIPPATH_CODE
         assert(SIGenericCompactBuilder.CLIPPATH_CODE & 0x1 == 0);
@@ -197,13 +212,16 @@ abstract class CompactTraverserBase<R, IM,
       } else if (code == SIGenericCompactBuilder.END_MASKED_CODE) {
         if (groupDepth <= 0) {
           throw ParseError(
-              'Unexpected END_MASKED_CODE'); // coverage:ignore-line
+            'Unexpected END_MASKED_CODE',
+          ); // coverage:ignore-line
         } else {
           return visitor.endMasked(collector);
         }
       } else if (code < SIGenericCompactBuilder.MASKED_CODE_NO_LUMA + 2) {
-        assert(code & 0xfe == SIGenericCompactBuilder.MASKED_CODE ||
-            code & 0xfe == SIGenericCompactBuilder.MASKED_CODE_NO_LUMA);
+        assert(
+          code & 0xfe == SIGenericCompactBuilder.MASKED_CODE ||
+              code & 0xfe == SIGenericCompactBuilder.MASKED_CODE_NO_LUMA,
+        );
         // MASKED_CODE is split in two for backwards compatibility with
         // jovial_svg 1.1.0-rc1 through 3
         assert(SIGenericCompactBuilder.MASKED_CODE & 0x1 == 0);
@@ -211,8 +229,12 @@ abstract class CompactTraverserBase<R, IM,
 
         final RectT? maskBounds;
         if (_flag(code, 0)) {
-          maskBounds =
-              RectT(_args.get(), _args.get(), _args.get(), _args.get());
+          maskBounds = RectT(
+            _args.get(),
+            _args.get(),
+            _args.get(),
+            _args.get(),
+          );
         } else {
           maskBounds = null;
         }
@@ -222,11 +244,13 @@ abstract class CompactTraverserBase<R, IM,
       } else if (code == SIGenericCompactBuilder.EXTENDED_GROUP_CODE) {
         int stuff = _children.readByte();
         final blendMode = SIBlendMode.values[stuff & 0xf];
-        collector = group(collector,
-            blendMode: blendMode,
-            hasTransform: _flag(stuff, 4),
-            hasTransformNumber: _flag(stuff, 5),
-            hasGroupAlpha: _flag(stuff, 6));
+        collector = group(
+          collector,
+          blendMode: blendMode,
+          hasTransform: _flag(stuff, 4),
+          hasTransformNumber: _flag(stuff, 5),
+          hasGroupAlpha: _flag(stuff, 6),
+        );
       } else if (code == SIGenericCompactBuilder.TEXT_CODE) {
         collector = text(collector);
       } else if (code == SIGenericCompactBuilder.TEXT_SPAN_CODE) {
@@ -251,8 +275,11 @@ abstract class CompactTraverserBase<R, IM,
     return collector;
   }
 
-  Affine? _getTransform(bool hasTransform, bool hasTransformNumber,
-      ByteBufferDataInputStream children) {
+  Affine? _getTransform(
+    bool hasTransform,
+    bool hasTransformNumber,
+    ByteBufferDataInputStream children,
+  ) {
     if (hasTransformNumber) {
       assert(hasTransform);
       return _transforms.getAffineAt(_readSmallishInt(children) * 6);
@@ -273,13 +300,18 @@ abstract class CompactTraverserBase<R, IM,
 
   R maskedChild(R collector) => visitor.maskedChild(collector);
 
-  R group(R collector,
-      {required SIBlendMode blendMode,
-      required bool hasTransform,
-      required bool hasTransformNumber,
-      required bool hasGroupAlpha}) {
-    final Affine? transform =
-        _getTransform(hasTransform, hasTransformNumber, _children);
+  R group(
+    R collector, {
+    required SIBlendMode blendMode,
+    required bool hasTransform,
+    required bool hasTransformNumber,
+    required bool hasGroupAlpha,
+  }) {
+    final Affine? transform = _getTransform(
+      hasTransform,
+      hasTransformNumber,
+      _children,
+    );
     final int? groupAlpha = hasGroupAlpha ? _children.readUnsignedByte() : null;
     collector = visitor.group(collector, transform, groupAlpha, blendMode);
     groupDepth++;
@@ -288,28 +320,34 @@ abstract class CompactTraverserBase<R, IM,
     return collector;
   }
 
-  R path(R collector,
-      {required bool hasPathNumber,
-      required bool hasPaintNumber,
-      required int fillColorType,
-      required int strokeColorType}) {
+  R path(
+    R collector, {
+    required bool hasPathNumber,
+    required bool hasPaintNumber,
+    required int fillColorType,
+    required int strokeColorType,
+  }) {
     final siPaint = _getPaint(
-        hasPaintNumber: hasPaintNumber,
-        fillColorType: fillColorType,
-        strokeColorType: strokeColorType);
+      hasPaintNumber: hasPaintNumber,
+      fillColorType: fillColorType,
+      strokeColorType: strokeColorType,
+    );
     final CompactChildData pathData = _getPathData(hasPathNumber);
     return visitor.path(collector, pathData, siPaint);
   }
 
-  R legacyText(R collector,
-      {required bool hasPaintNumber,
-      required bool hasFontFamilyIndex,
-      required int fillColorType,
-      required int strokeColorType}) {
+  R legacyText(
+    R collector, {
+    required bool hasPaintNumber,
+    required bool hasFontFamilyIndex,
+    required int fillColorType,
+    required int strokeColorType,
+  }) {
     final p = _getPaint(
-        hasPaintNumber: hasPaintNumber,
-        fillColorType: fillColorType,
-        strokeColorType: strokeColorType);
+      hasPaintNumber: hasPaintNumber,
+      fillColorType: fillColorType,
+      strokeColorType: strokeColorType,
+    );
     final xi = _readSmallishInt(_children);
     final yi = _readSmallishInt(_children);
     final textIndex = _readSmallishInt(_children);
@@ -330,13 +368,14 @@ abstract class CompactTraverserBase<R, IM,
 
     final fontSize = _args.get();
     final ta = SITextAttributes(
-        fontFamily: (ffi == null) ? null : _stringLists[ffi],
-        fontStyle: style,
-        textAnchor: anchor,
-        dominantBaseline: SIDominantBaseline.auto,
-        fontSize: fontSize,
-        fontWeight: weight,
-        textDecoration: decoration);
+      fontFamily: (ffi == null) ? null : _stringLists[ffi],
+      fontStyle: style,
+      textAnchor: anchor,
+      dominantBaseline: SIDominantBaseline.auto,
+      fontSize: fontSize,
+      fontWeight: weight,
+      textDecoration: decoration,
+    );
     return visitor.legacyText(collector, xi, yi, textIndex, ta, ffi, p);
   }
 
@@ -367,9 +406,10 @@ abstract class CompactTraverserBase<R, IM,
     final SITextDecoration decoration =
         SITextDecoration.values[(byte >> 2) & 0x03];
     final paint = _getPaint(
-        hasPaintNumber: _flag(byte, 0),
-        fillColorType: (byte >> 4) & 0x03,
-        strokeColorType: (byte >> 6) & 0x03);
+      hasPaintNumber: _flag(byte, 0),
+      fillColorType: (byte >> 4) & 0x03,
+      strokeColorType: (byte >> 6) & 0x03,
+    );
     final List<String>? fontFamily;
     if (ffi == null) {
       fontFamily = null;
@@ -377,15 +417,24 @@ abstract class CompactTraverserBase<R, IM,
       fontFamily = _stringLists[ffi];
     }
     final ta = SITextAttributes(
-        fontFamily: fontFamily,
-        fontStyle: style,
-        textAnchor: anchor,
-        dominantBaseline: dominantBaseline,
-        fontSize: _floatValues[fontSizeIndex],
-        fontWeight: weight,
-        textDecoration: decoration);
+      fontFamily: fontFamily,
+      fontStyle: style,
+      textAnchor: anchor,
+      dominantBaseline: dominantBaseline,
+      fontSize: _floatValues[fontSizeIndex],
+      fontWeight: weight,
+      textDecoration: decoration,
+    );
     return visitor.textSpan(
-        collector, dxIndex, dyIndex, textIndex, ta, ffi, fontSizeIndex, paint);
+      collector,
+      dxIndex,
+      dyIndex,
+      textIndex,
+      ta,
+      ffi,
+      fontSizeIndex,
+      paint,
+    );
   }
 
   R textMulti(R collector) {
@@ -418,10 +467,11 @@ abstract class CompactTraverserBase<R, IM,
     return collector;
   }
 
-  SIPaint _getPaint(
-      {required bool hasPaintNumber,
-      required int fillColorType,
-      required int strokeColorType}) {
+  SIPaint _getPaint({
+    required bool hasPaintNumber,
+    required int fillColorType,
+    required int strokeColorType,
+  }) {
     final int flags;
     final int oldChildrenSeek;
     final int oldArgsSeek;
@@ -463,20 +513,24 @@ abstract class CompactTraverserBase<R, IM,
     final strokeWidth = hasStrokeWidth ? args.get() : null;
     final strokeMiterLimit = hasStrokeMiterLimit ? args.get() : null;
     final strokeDashArray = hasStrokeDashArray
-        ? List<double>.generate(_readSmallishInt(children), (_) => args.get(),
-            growable: false)
+        ? List<double>.generate(
+            _readSmallishInt(children),
+            (_) => args.get(),
+            growable: false,
+          )
         : null;
     final strokeDashOffset = hasStrokeDashOffset ? args.get() : null;
     final r = SIPaint(
-        fillColor: fillColor,
-        strokeColor: strokeColor,
-        strokeWidth: strokeWidth ?? SIPaint.strokeWidthDefault,
-        strokeMiterLimit: strokeMiterLimit ?? SIPaint.strokeMiterLimitDefault,
-        strokeJoin: strokeJoin,
-        strokeCap: strokeCap,
-        fillType: fillType,
-        strokeDashArray: strokeDashArray,
-        strokeDashOffset: strokeDashOffset);
+      fillColor: fillColor,
+      strokeColor: strokeColor,
+      strokeWidth: strokeWidth ?? SIPaint.strokeWidthDefault,
+      strokeMiterLimit: strokeMiterLimit ?? SIPaint.strokeMiterLimitDefault,
+      strokeJoin: strokeJoin,
+      strokeCap: strokeCap,
+      fillType: fillType,
+      strokeDashArray: strokeDashArray,
+      strokeDashOffset: strokeDashOffset,
+    );
     if (hasPaintNumber) {
       _transforms.seek = oldTransformsSeek;
       _rewindChildren.seek = oldChildrenSeek;
@@ -485,8 +539,11 @@ abstract class CompactTraverserBase<R, IM,
     return r;
   }
 
-  SIColor _readColor(int colorType, ByteBufferDataInputStream children,
-      FloatBufferInputStream args) {
+  SIColor _readColor(
+    int colorType,
+    ByteBufferDataInputStream children,
+    FloatBufferInputStream args,
+  ) {
     if (colorType == 0) {
       return SIValueColor(children.readUnsignedInt());
     } else if (colorType == 1) {
@@ -501,12 +558,17 @@ abstract class CompactTraverserBase<R, IM,
       final sm = SIGradientSpreadMethod.values[(flags >> 3) & 0x3];
       bool hasTransform = _flag(flags, 5);
       bool hasTransformNumber = _flag(flags, 6);
-      final Affine? transform =
-          _getTransform(hasTransform, hasTransformNumber, children);
+      final Affine? transform = _getTransform(
+        hasTransform,
+        hasTransformNumber,
+        children,
+      );
       final len = _readSmallishInt(children);
       final stops = List<double>.generate(
-          len, (_) => _readSharedFloat(children, args),
-          growable: false);
+        len,
+        (_) => _readSharedFloat(children, args),
+        growable: false,
+      );
       final colors = List<SIColor>.generate(len, (_) {
         final ct = children.readUnsignedByte();
         assert(ct != 3);
@@ -518,15 +580,16 @@ abstract class CompactTraverserBase<R, IM,
         final x2 = _readSharedFloat(children, args);
         final y2 = _readSharedFloat(children, args);
         return SILinearGradientColor(
-            x1: x1,
-            y1: y1,
-            x2: x2,
-            y2: y2,
-            objectBoundingBox: objectBoundingBox,
-            spreadMethod: sm,
-            transform: transform,
-            stops: stops,
-            colors: colors);
+          x1: x1,
+          y1: y1,
+          x2: x2,
+          y2: y2,
+          objectBoundingBox: objectBoundingBox,
+          spreadMethod: sm,
+          transform: transform,
+          stops: stops,
+          colors: colors,
+        );
       } else if (gType == 1) {
         final cx = _readSharedFloat(children, args);
         final cy = _readSharedFloat(children, args);
@@ -541,16 +604,17 @@ abstract class CompactTraverserBase<R, IM,
         }
         final r = _readSharedFloat(children, args);
         return SIRadialGradientColor(
-            cx: cx,
-            cy: cy,
-            fx: fx,
-            fy: fy,
-            r: r,
-            objectBoundingBox: objectBoundingBox,
-            spreadMethod: sm,
-            transform: transform,
-            stops: stops,
-            colors: colors);
+          cx: cx,
+          cy: cy,
+          fx: fx,
+          fy: fy,
+          r: r,
+          objectBoundingBox: objectBoundingBox,
+          spreadMethod: sm,
+          transform: transform,
+          stops: stops,
+          colors: colors,
+        );
       } else {
         assert(gType == 2);
         final cx = _readSharedFloat(children, args);
@@ -558,21 +622,24 @@ abstract class CompactTraverserBase<R, IM,
         final startAngle = _readSharedFloat(children, args);
         final endAngle = _readSharedFloat(children, args);
         return SISweepGradientColor(
-            cx: cx,
-            cy: cy,
-            startAngle: startAngle,
-            endAngle: endAngle,
-            objectBoundingBox: objectBoundingBox,
-            spreadMethod: sm,
-            transform: transform,
-            stops: stops,
-            colors: colors);
+          cx: cx,
+          cy: cy,
+          startAngle: startAngle,
+          endAngle: endAngle,
+          objectBoundingBox: objectBoundingBox,
+          spreadMethod: sm,
+          transform: transform,
+          stops: stops,
+          colors: colors,
+        );
       }
     }
   }
 
   double _readSharedFloat(
-      ByteBufferDataInputStream children, FloatBufferInputStream args) {
+    ByteBufferDataInputStream children,
+    FloatBufferInputStream args,
+  ) {
     if (fileVersion >= 7) {
       return _floatValues[_readSmallishInt(children)];
     } else {
@@ -611,8 +678,11 @@ class LegacyStringLists extends ListBase<List<String>> {
 
   LegacyStringLists(List<String> strings)
       : _strings = strings,
-        _stringLists =
-            List<List<String>?>.filled(strings.length, null, growable: false);
+        _stringLists = List<List<String>?>.filled(
+          strings.length,
+          null,
+          growable: false,
+        );
 
   @override
   int get length => _strings.length;
@@ -639,20 +709,21 @@ class LegacyStringLists extends ListBase<List<String>> {
 
 class CompactTraverser<R, IM>
     extends CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> {
-  CompactTraverser(
-      {required super.fileVersion,
-      required super.bigFloats,
-      required super.visiteeChildren,
-      required super.visiteeArgs,
-      required super.visiteeTransforms,
-      required super.visiteeNumPaths,
-      required super.visiteeNumPaints,
-      required super.visitor,
-      required super.strings,
-      required super.stringLists,
-      required super.floatLists,
-      required super.floatValues,
-      required super.images});
+  CompactTraverser({
+    required super.fileVersion,
+    required super.bigFloats,
+    required super.visiteeChildren,
+    required super.visiteeArgs,
+    required super.visiteeTransforms,
+    required super.visiteeNumPaths,
+    required super.visiteeNumPaints,
+    required super.visitor,
+    required super.strings,
+    required super.stringLists,
+    required super.floatLists,
+    required super.floatValues,
+    required super.images,
+  });
 }
 
 ///
@@ -731,12 +802,14 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     // significantly evolve, beyond adding features.
     out.writeByte(0); // Word align
     out.writeUnsignedShort(fileVersion); // Might not be the latest!
-    out.writeByte(_flag(width != null, 0) |
-        _flag(height != null, 1) |
-        _flag(bigFloats, 2) |
-        _flag(tintColor != null, 3) |
-        _flag(currentColorARGB != null, 4) |
-        _flag(givenViewportNoUI != null, 5));
+    out.writeByte(
+      _flag(width != null, 0) |
+          _flag(height != null, 1) |
+          _flag(bigFloats, 2) |
+          _flag(tintColor != null, 3) |
+          _flag(currentColorARGB != null, 4) |
+          _flag(givenViewportNoUI != null, 5),
+    );
     numWritten += 4;
     out.writeUnsignedInt(numPaths);
     out.writeUnsignedInt(numPaints);
@@ -749,12 +822,14 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
       if (bigFloats) {
         fa as Float64List;
         out.writeBytes(
-            fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes));
+          fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes),
+        );
         numWritten += fa.lengthInBytes;
       } else {
         fa as Float32List;
         out.writeBytes(
-            fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes));
+          fa.buffer.asUint8List(fa.offsetInBytes, fa.lengthInBytes),
+        );
         numWritten += fa.lengthInBytes;
       }
     }
@@ -792,7 +867,7 @@ mixin ScalableImageCompactGeneric<ColorT, BlendModeT, IM> {
     numWritten += _writeSmallishInt(out, stringLists.length);
     if (stringLists.isNotEmpty) {
       final Map<String, int> stringIndex = {
-        for (final item in strings.indexed) item.$2: item.$1
+        for (final item in strings.indexed) item.$2: item.$1,
       };
       for (final sl in stringLists) {
         numWritten += _writeSmallishInt(out, sl.length);
@@ -925,21 +1000,22 @@ class ScalableImageCompactNoUI
   RectT? get givenViewportNoUI => null;
 
   ScalableImageCompactNoUI(
-      this.strings,
-      this.stringLists,
-      this.floatLists,
-      this.floatValues,
-      this.images,
-      this.args,
-      this.transforms,
-      this.children,
-      this.numPaths,
-      this.numPaints,
-      this.bigFloats,
-      this.height,
-      this.width,
-      this.tintColor,
-      this.tintMode);
+    this.strings,
+    this.stringLists,
+    this.floatLists,
+    this.floatValues,
+    this.images,
+    this.args,
+    this.transforms,
+    this.children,
+    this.numPaths,
+    this.numPaints,
+    this.bigFloats,
+    this.height,
+    this.width,
+    this.tintColor,
+    this.tintMode,
+  );
 
   @override
   SITintMode blendModeToSI(SITintMode b) => b;
@@ -1132,11 +1208,13 @@ class CompactPathParser extends AbstractPathParser<EnhancedPathBuilder> {
     final x = args.get();
     final arcEnd = PointT(x, args.get());
     final rotation = args.get();
-    builder.arcToPoint(arcEnd,
-        largeArc: largeArc,
-        clockwise: clockwise,
-        radius: r,
-        rotation: rotation);
+    builder.arcToPoint(
+      arcEnd,
+      largeArc: largeArc,
+      clockwise: clockwise,
+      radius: r,
+      rotation: rotation,
+    );
     return arcEnd;
   }
 }
@@ -1155,11 +1233,13 @@ class ColorWriter {
       if (transform != null) {
         transformNumber = _writeTransform(transform);
       }
-      children.writeByte(type |
-          _flag(c.objectBoundingBox, 2) |
-          ((c.spreadMethod.index) << 3) |
-          _flag(transform != null, 5) |
-          _flag(transformNumber != null, 6));
+      children.writeByte(
+        type |
+            _flag(c.objectBoundingBox, 2) |
+            ((c.spreadMethod.index) << 3) |
+            _flag(transform != null, 5) |
+            _flag(transformNumber != null, 6),
+      );
       if (transformNumber != null) {
         _writeSmallishInt(children, transformNumber);
       }
@@ -1173,7 +1253,8 @@ class ColorWriter {
       }
     }
 
-    c.accept(SIColorVisitor(
+    c.accept(
+      SIColorVisitor(
         value: (SIValueColor c) => children.writeUnsignedInt(c.argb),
         none: () {},
         current: () {},
@@ -1198,7 +1279,9 @@ class ColorWriter {
           _writeSharedFloat(c.cy);
           _writeSharedFloat(c.startAngle);
           _writeSharedFloat(c.endAngle);
-        }));
+        },
+      ),
+    );
   }
 
   void close() => children.close();
@@ -1246,10 +1329,14 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   late final CMap<double> _floatValueMap;
   late final List<IM> images;
 
-  SIGenericCompactBuilder(this.bigFloats, this.childrenSink, this.children,
-      this.args, this.transforms,
-      {required this.warn})
-      : _tintMode = SITintMode.srcIn;
+  SIGenericCompactBuilder(
+    this.bigFloats,
+    this.childrenSink,
+    this.children,
+    this.args,
+    this.transforms, {
+    required this.warn,
+  }) : _tintMode = SITintMode.srcIn;
 
   static const PATH_CODE = 0; // 0..63 (6 bits)
   static const LEGACY_TEXT_CODE = 64; // 64..127 (6 bits)
@@ -1307,11 +1394,12 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void vector(
-      {required double? width,
-      required double? height,
-      required int? tintColor,
-      required SITintMode? tintMode}) {
+  void vector({
+    required double? width,
+    required double? height,
+    required int? tintColor,
+    required SITintMode? tintMode,
+  }) {
     _width = width;
     _height = height;
     _tintColor = tintColor;
@@ -1332,13 +1420,14 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
 
   @override
   void init(
-      void collector,
-      List<IM> im,
-      List<String> strings,
-      List<List<double>> floatLists,
-      List<List<String>> stringLists,
-      List<double> floatValues,
-      CMap<double>? floatValueMap) {
+    void collector,
+    List<IM> im,
+    List<String> strings,
+    List<List<double>> floatLists,
+    List<List<String>> stringLists,
+    List<double> floatValues,
+    CMap<double>? floatValueMap,
+  ) {
     images = im;
     this.strings = strings;
     this.floatLists = floatLists;
@@ -1364,22 +1453,30 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
 
   @override
   void group(
-      void collector, Affine? transform, int? groupAlpha, SIBlendMode blend) {
+    void collector,
+    Affine? transform,
+    int? groupAlpha,
+    SIBlendMode blend,
+  ) {
     int? transformNumber;
     if (transform != null) {
       transformNumber = _writeTransform(transform);
     }
     if (blend == SIBlendMode.normal) {
-      children.writeByte(GROUP_CODE |
-          _flag(transform != null, 0) |
-          _flag(transformNumber != null, 1) |
-          _flag(groupAlpha != null, 2));
+      children.writeByte(
+        GROUP_CODE |
+            _flag(transform != null, 0) |
+            _flag(transformNumber != null, 1) |
+            _flag(groupAlpha != null, 2),
+      );
     } else {
       children.writeByte(EXTENDED_GROUP_CODE);
-      children.writeByte(blend.index |
-          _flag(transform != null, 4) |
-          _flag(transformNumber != null, 5) |
-          _flag(groupAlpha != null, 6));
+      children.writeByte(
+        blend.index |
+            _flag(transform != null, 4) |
+            _flag(transformNumber != null, 5) |
+            _flag(groupAlpha != null, 6),
+      );
     }
     if (transformNumber != null) {
       _writeSmallishInt(children, transformNumber);
@@ -1410,14 +1507,23 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   }
 
   @override
-  void legacyText(void collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes a, int? fontFamilyIndex, SIPaint paint) {
+  void legacyText(
+    void collector,
+    int xIndex,
+    int yIndex,
+    int textIndex,
+    SITextAttributes a,
+    int? fontFamilyIndex,
+    SIPaint paint,
+  ) {
     final int? paintNumber = _paintShare[paint];
-    children.writeByte(LEGACY_TEXT_CODE |
-        _flag(paintNumber != null, 0) |
-        _flag(fontFamilyIndex != null, 1) |
-        (_getColorType(paint.fillColor) << 2) |
-        (_getColorType(paint.strokeColor) << 4));
+    children.writeByte(
+      LEGACY_TEXT_CODE |
+          _flag(paintNumber != null, 0) |
+          _flag(fontFamilyIndex != null, 1) |
+          (_getColorType(paint.fillColor) << 2) |
+          (_getColorType(paint.strokeColor) << 4),
+    );
     if (paintNumber != null) {
       _writeSmallishInt(children, paintNumber);
     } else {
@@ -1429,9 +1535,9 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     if (fontFamilyIndex != null) {
       _writeSmallishInt(children, fontFamilyIndex);
     }
-    children.writeByte(a.fontStyle.index |
-        (a.fontWeight.index << 1) |
-        (a.textAnchor.index << 5));
+    children.writeByte(
+      a.fontStyle.index | (a.fontWeight.index << 1) | (a.textAnchor.index << 5),
+    );
     children.writeByte(a.textDecoration.index);
     _writeFloat(a.fontSize);
   }
@@ -1443,7 +1549,11 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
 
   @override
   void textMultiSpanChunk(
-      void collector, int dxIndex, int dyIndex, SITextAnchor anchor) {
+    void collector,
+    int dxIndex,
+    int dyIndex,
+    SITextAnchor anchor,
+  ) {
     children.writeByte(TEXT_MULTI_CODE);
     children.writeByte(anchor.index);
     _writeSmallishInt(children, dxIndex);
@@ -1452,29 +1562,34 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
 
   @override
   void textSpan(
-      void collector,
-      int dxIndex,
-      int dyIndex,
-      int textIndex,
-      SITextAttributes attributes,
-      int? fontFamilyIndex,
-      int fontSizeIndex,
-      SIPaint paint) {
+    void collector,
+    int dxIndex,
+    int dyIndex,
+    int textIndex,
+    SITextAttributes attributes,
+    int? fontFamilyIndex,
+    int fontSizeIndex,
+    SIPaint paint,
+  ) {
     children.writeByte(TEXT_SPAN_CODE);
     _writeSmallishInt(children, dxIndex);
     _writeSmallishInt(children, dyIndex);
     _writeSmallishInt(children, textIndex);
     final int? paintNumber = _paintShare[paint];
 
-    children.writeByte(attributes.fontStyle.index |
-        (attributes.fontWeight.index << 1) |
-        (attributes.textAnchor.index << 5));
+    children.writeByte(
+      attributes.fontStyle.index |
+          (attributes.fontWeight.index << 1) |
+          (attributes.textAnchor.index << 5),
+    );
 
-    children.writeByte(_flag(paintNumber != null, 0) |
-        _flag(fontFamilyIndex != null, 1) |
-        attributes.textDecoration.index << 2 |
-        (_getColorType(paint.fillColor) << 4) |
-        (_getColorType(paint.strokeColor) << 6));
+    children.writeByte(
+      _flag(paintNumber != null, 0) |
+          _flag(fontFamilyIndex != null, 1) |
+          attributes.textDecoration.index << 2 |
+          (_getColorType(paint.fillColor) << 4) |
+          (_getColorType(paint.strokeColor) << 6),
+    );
 
     children.writeByte(attributes.dominantBaseline.index);
 
@@ -1510,12 +1625,14 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     bool hasStrokeMiterLimit = p.strokeWidth != SIPaint.strokeMiterLimitDefault;
     final strokeDashArray = p.strokeDashArray;
     final strokeDashOffset = p.strokeDashOffset;
-    children.writeByte(_flag(hasStrokeWidth, 0) |
-        _flag(hasStrokeMiterLimit, 1) |
-        p.strokeJoin.index << 2 |
-        p.strokeCap.index << 4 |
-        p.fillType.index << 6 |
-        _flag(strokeDashArray != null, 7));
+    children.writeByte(
+      _flag(hasStrokeWidth, 0) |
+          _flag(hasStrokeMiterLimit, 1) |
+          p.strokeJoin.index << 2 |
+          p.strokeCap.index << 4 |
+          p.fillType.index << 6 |
+          _flag(strokeDashArray != null, 7),
+    );
     if (strokeDashArray != null) {
       children.writeByte(_flag(strokeDashOffset != null, 0));
     }
@@ -1544,11 +1661,13 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
   EnhancedPathBuilder? startPath(SIPaint paint, Object? key) {
     final int? pathNumber = _pathShare[key];
     final int? paintNumber = _paintShare[paint];
-    children.writeByte(PATH_CODE |
-        _flag(pathNumber != null, 0) |
-        _flag(paintNumber != null, 1) |
-        (_getColorType(paint.fillColor) << 2) |
-        (_getColorType(paint.strokeColor) << 4));
+    children.writeByte(
+      PATH_CODE |
+          _flag(pathNumber != null, 0) |
+          _flag(paintNumber != null, 1) |
+          (_getColorType(paint.fillColor) << 2) |
+          (_getColorType(paint.strokeColor) << 4),
+    );
     if (paintNumber != null) {
       _writeSmallishInt(children, paintNumber);
     } else {
@@ -1564,8 +1683,11 @@ abstract class SIGenericCompactBuilder<PathDataT, IM>
     }
   }
 
-  void makePath(PathDataT pathData, EnhancedPathBuilder pb,
-      {required void Function(String) warn});
+  void makePath(
+    PathDataT pathData,
+    EnhancedPathBuilder pb, {
+    required void Function(String) warn,
+  });
 
   PathDataT immutableKey(PathDataT pathData);
 
@@ -1609,14 +1731,25 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
     with SIStringPathMaker {
   ScalableImageCompactNoUI? _si;
 
-  SICompactBuilderNoUI._p(bool bigFloats, ByteSink childrenSink, FloatSink args,
-      FloatSink transforms, {required void Function(String) warn})
-      : super(bigFloats, childrenSink,
-            DataOutputSink(childrenSink, Endian.little), args, transforms,
-            warn: warn);
+  SICompactBuilderNoUI._p(
+    bool bigFloats,
+    ByteSink childrenSink,
+    FloatSink args,
+    FloatSink transforms, {
+    required void Function(String) warn,
+  }) : super(
+          bigFloats,
+          childrenSink,
+          DataOutputSink(childrenSink, Endian.little),
+          args,
+          transforms,
+          warn: warn,
+        );
 
-  factory SICompactBuilderNoUI(
-      {required bool bigFloats, required void Function(String) warn}) {
+  factory SICompactBuilderNoUI({
+    required bool bigFloats,
+    required void Function(String) warn,
+  }) {
     final cs = ByteSink();
     final a = bigFloats ? Float64Sink() : Float32Sink();
     final t = bigFloats ? Float64Sink() : Float32Sink();
@@ -1633,21 +1766,22 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
       return _si!;
     }
     return _si = ScalableImageCompactNoUI(
-        strings,
-        stringLists,
-        floatLists,
-        floatValues,
-        images,
-        args.toList(),
-        transforms.toList(),
-        childrenSink.toList(),
-        _pathShare.length,
-        _paintShare.length,
-        bigFloats,
-        _height,
-        _width,
-        _tintColor,
-        _tintMode);
+      strings,
+      stringLists,
+      floatLists,
+      floatValues,
+      images,
+      args.toList(),
+      transforms.toList(),
+      childrenSink.toList(),
+      _pathShare.length,
+      _paintShare.length,
+      bigFloats,
+      _height,
+      _width,
+      _tintColor,
+      _tintMode,
+    );
   }
 }
 
@@ -1671,7 +1805,7 @@ enum _PathCommand {
   arcToPointEllipseSmallCCW,
   arcToPointEllipseSmallCW,
   arcToPointEllipseLargeCCW,
-  arcToPointEllipseLargeCW
+  arcToPointEllipseLargeCW,
 }
 
 class CompactPathBuilder<PathDataT, IM> extends EnhancedPathBuilder {
@@ -1724,11 +1858,13 @@ class CompactPathBuilder<PathDataT, IM> extends EnhancedPathBuilder {
   }
 
   @override
-  void arcToPoint(PointT arcEnd,
-      {required RadiusT radius,
-      required double rotation,
-      required bool largeArc,
-      required bool clockwise}) {
+  void arcToPoint(
+    PointT arcEnd, {
+    required RadiusT radius,
+    required double rotation,
+    required bool largeArc,
+    required bool clockwise,
+  }) {
     if (radius.x == radius.y) {
       if (largeArc) {
         if (clockwise) {
@@ -1947,13 +2083,16 @@ int _flag(bool v, int bit) => v ? (1 << bit) : 0;
 
 int _getColorType(SIColor c) {
   int r = -1;
-  c.accept(SIColorVisitor(
+  c.accept(
+    SIColorVisitor(
       value: (_) => r = 0,
       none: () => r = 1,
       current: () => r = 2,
       linearGradient: (_) => r = 3,
       radialGradient: (_) => r = 3,
-      sweepGradient: (_) => r = 3));
+      sweepGradient: (_) => r = 3,
+    ),
+  );
   assert(r != -1);
   return r;
 }

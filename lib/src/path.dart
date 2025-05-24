@@ -51,16 +51,20 @@ class UIPathBuilder implements EnhancedPathBuilder {
   final path = Path();
 
   @override
-  void arcToPoint(PointT arcEnd,
-          {required RadiusT radius,
-          required double rotation,
-          required bool largeArc,
-          required bool clockwise}) =>
-      path.arcToPoint(newOffset(arcEnd),
-          radius: newRadius(radius),
-          rotation: rotation * 180 / pi,
-          largeArc: largeArc,
-          clockwise: clockwise);
+  void arcToPoint(
+    PointT arcEnd, {
+    required RadiusT radius,
+    required double rotation,
+    required bool largeArc,
+    required bool clockwise,
+  }) =>
+      path.arcToPoint(
+        newOffset(arcEnd),
+        radius: newRadius(radius),
+        rotation: rotation * 180 / pi,
+        largeArc: largeArc,
+        clockwise: clockwise,
+      );
 
   @override
   void addOval(RectT rect) {

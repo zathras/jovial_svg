@@ -70,8 +70,10 @@ class TestApp extends StatelessWidget {
   TestApp({super.key});
   static const simpleSVG = '<svg><text>foo</text></svg>';
   static const simpleAVD = '<vector></vector>';
-  final si = ScalableImage.fromSvgString(simpleSVG, compact: true)
-      .modifyCurrentColor(const Color(0xffff0000));
+  final si = ScalableImage.fromSvgString(
+    simpleSVG,
+    compact: true,
+  ).modifyCurrentColor(const Color(0xffff0000));
   final testSource = TestSource(simpleSVG, 100);
   final errorSource = TestSource('', 100);
 
@@ -79,58 +81,75 @@ class TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final widgets = [
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSvgHttpUrl(Uri.dataFromString(simpleSVG),
-              warnF: _noWarn)),
+        si: ScalableImageSource.fromSvgHttpUrl(
+          Uri.dataFromString(simpleSVG),
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSvgHttpUrl(
-              Uri.parse('https://jovial.com/images/jupiter.svg'),
-              warnF: _noWarn)),
+        si: ScalableImageSource.fromSvgHttpUrl(
+          Uri.parse('https://jovial.com/images/jupiter.svg'),
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromAvdHttpUrl(Uri.dataFromString(simpleAVD),
-              warnF: _noWarn)),
+        si: ScalableImageSource.fromAvdHttpUrl(
+          Uri.dataFromString(simpleAVD),
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSvgHttpUrl(
-              Uri.parse('https://jovial.com/images/jupiter.svg'),
-              warnF: _noWarn)),
+        si: ScalableImageSource.fromSvgHttpUrl(
+          Uri.parse('https://jovial.com/images/jupiter.svg'),
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSvg(
-        rootBundle,
-        '../../demo/assets/svg/svg11_gradient_1.svg',
-        warnF: _noWarn,
-      )),
+        si: ScalableImageSource.fromSvg(
+          rootBundle,
+          '../../demo/assets/svg/svg11_gradient_1.svg',
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          si: ScalableImageSource.fromSI(
-        rootBundle,
-        '../../demo/assets/si/svg11_gradient_1.si',
-      )),
+        si: ScalableImageSource.fromSI(
+          rootBundle,
+          '../../demo/assets/si/svg11_gradient_1.si',
+        ),
+      ),
       ScalableImageWidget.fromSISource(
-          reload: true,
-          background: Colors.amberAccent,
-          si: ScalableImageSource.fromAvd(
-            rootBundle,
-            '../../demo/assets/avd/svg11_gradient_1.xml',
-            warnF: _noWarn,
-          )),
+        reload: true,
+        background: Colors.amberAccent,
+        si: ScalableImageSource.fromAvd(
+          rootBundle,
+          '../../demo/assets/avd/svg11_gradient_1.xml',
+          warnF: _noWarn,
+        ),
+      ),
       ScalableImageWidget.fromSISource(reload: true, si: testSource),
       ScalableImageWidget.fromSISource(reload: true, si: errorSource),
       ScalableImageWidget(si: si),
     ];
     for (final fit in BoxFit.values) {
-      widgets.add(ScalableImageWidget.fromSISource(
+      widgets.add(
+        ScalableImageWidget.fromSISource(
           fit: fit,
           alignment: Alignment.topLeft,
           si: ScalableImageSource.fromSI(
             rootBundle,
             '../../demo/assets/si/svg11_gradient_1.si',
-          )));
+          ),
+        ),
+      );
     }
     return MaterialApp(
-        title: 'SVG Widget Smoke Test',
-        home: Column(
-          children: widgets
-              .map((siw) => SizedBox(width: 10, height: 10, child: siw))
-              .toList(),
-        ));
+      title: 'SVG Widget Smoke Test',
+      home: Column(
+        children: widgets
+            .map((siw) => SizedBox(width: 10, height: 10, child: siw))
+            .toList(),
+      ),
+    );
   }
 }
 

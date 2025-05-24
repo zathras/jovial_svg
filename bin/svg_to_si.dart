@@ -10,8 +10,11 @@ import 'package:jovial_svg/src/svg_parser.dart';
 abstract class ToSI {
   List<Pattern> exportedIds = List.empty(growable: true);
   String get programName;
-  void parse(String src, SIBuilder<String, SIImageData> builder,
-      void Function(String) warn);
+  void parse(
+    String src,
+    SIBuilder<String, SIImageData> builder,
+    void Function(String) warn,
+  );
   String get extension;
 
   void usage(final ArgParser argp) {
@@ -32,20 +35,25 @@ abstract class ToSI {
     final argp = ArgParser(usageLineLength: 72);
     argp.addOption('out', abbr: 'o', help: 'output directory');
     argp.addFlag('help', abbr: 'h', help: 'show help message');
-    argp.addFlag('big',
-        abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
+    argp.addFlag(
+      'big',
+      abbr: 'b',
+      help: 'Use 64 bit double-precision floats, instead of 32.',
+    );
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
-    argp.addMultiOption('export',
-        abbr: 'e',
-        splitCommas: false,
-        help:
-            'Export:  Export the given ID.  Multiple values may be specified.');
-    argp.addMultiOption('exportx',
-        abbr: 'x',
-        splitCommas: false,
-        help:
-            'Export:  Export the IDs matched by the given regular expression.  '
-            'Multiple values may be specified.');
+    argp.addMultiOption(
+      'export',
+      abbr: 'e',
+      splitCommas: false,
+      help: 'Export:  Export the given ID.  Multiple values may be specified.',
+    );
+    argp.addMultiOption(
+      'exportx',
+      abbr: 'x',
+      splitCommas: false,
+      help: 'Export:  Export the IDs matched by the given regular expression.  '
+          'Multiple values may be specified.',
+    );
     final ArgResults results = argp.parse(arguments);
     if (results['help'] == true) {
       usage(argp);
@@ -121,8 +129,11 @@ class SvgToSI extends ToSI {
   String get extension => '.svg';
 
   @override
-  void parse(String src, SIBuilder<String, SIImageData> builder,
-          void Function(String) warn) =>
+  void parse(
+    String src,
+    SIBuilder<String, SIImageData> builder,
+    void Function(String) warn,
+  ) =>
       StringSvgParser(src, exportedIds, builder, warn: warn).parse();
 }
 

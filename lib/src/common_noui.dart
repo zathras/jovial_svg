@@ -61,13 +61,14 @@ abstract class SIVisitor<PathDataT, IM, R> {
   /// provided before init is called.
   ///
   R init(
-      R collector,
-      List<IM> im,
-      List<String> strings,
-      List<List<double>> floatLists,
-      List<List<String>> stringLists,
-      List<double> floatValues,
-      CMap<double>? floatValueMap);
+    R collector,
+    List<IM> im,
+    List<String> strings,
+    List<List<double>> floatLists,
+    List<List<String>> stringLists,
+    List<double> floatValues,
+    CMap<double>? floatValueMap,
+  );
 
   R path(R collector, PathDataT pathData, SIPaint paint);
 
@@ -85,23 +86,35 @@ abstract class SIVisitor<PathDataT, IM, R> {
 
   R image(R collector, int imageIndex);
 
-  R legacyText(R collector, int xIndex, int yIndex, int textIndex,
-      SITextAttributes a, int? fontFamilyIndex, SIPaint paint);
+  R legacyText(
+    R collector,
+    int xIndex,
+    int yIndex,
+    int textIndex,
+    SITextAttributes a,
+    int? fontFamilyIndex,
+    SIPaint paint,
+  );
 
   R text(R collector);
 
   R textSpan(
-      R collector,
-      int dxIndex,
-      int dyIndex,
-      int textIndex,
-      SITextAttributes attributes,
-      int? fontFamilyIndex,
-      int fontSizeIndex,
-      SIPaint paint);
+    R collector,
+    int dxIndex,
+    int dyIndex,
+    int textIndex,
+    SITextAttributes attributes,
+    int? fontFamilyIndex,
+    int fontSizeIndex,
+    SIPaint paint,
+  );
 
   R textMultiSpanChunk(
-      R collector, int dxIndex, int dyIndex, SITextAnchor anchor);
+    R collector,
+    int dxIndex,
+    int dyIndex,
+    SITextAnchor anchor,
+  );
 
   R textEnd(R collector);
 
@@ -122,11 +135,12 @@ abstract class SIBuilder<PathDataT, IM> extends SIVisitor<PathDataT, IM, void> {
   ///
   /// Called once, at the beginning of reading a file.
   ///
-  void vector(
-      {required double? width,
-      required double? height,
-      required int? tintColor,
-      required SITintMode? tintMode});
+  void vector({
+    required double? width,
+    required double? height,
+    required int? tintColor,
+    required SITintMode? tintMode,
+  });
 
   void endVector();
 
@@ -152,12 +166,13 @@ class SIImageData {
   final double height;
   final Uint8List encoded;
 
-  SIImageData(
-      {required this.x,
-      required this.y,
-      required this.width,
-      required this.height,
-      required this.encoded});
+  SIImageData({
+    required this.x,
+    required this.y,
+    required this.width,
+    required this.height,
+    required this.encoded,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -190,16 +205,17 @@ class SIPaint {
   final List<double>? strokeDashArray;
   final double? strokeDashOffset;
 
-  const SIPaint(
-      {required this.fillColor,
-      required this.strokeColor,
-      required this.strokeWidth,
-      required this.strokeMiterLimit,
-      required this.strokeJoin,
-      required this.strokeCap,
-      required this.fillType,
-      required this.strokeDashArray,
-      required this.strokeDashOffset});
+  const SIPaint({
+    required this.fillColor,
+    required this.strokeColor,
+    required this.strokeWidth,
+    required this.strokeMiterLimit,
+    required this.strokeJoin,
+    required this.strokeCap,
+    required this.fillType,
+    required this.strokeDashArray,
+    required this.strokeDashOffset,
+  });
 
   static const double strokeMiterLimitDefault = 4;
   static const double strokeWidthDefault = 1;
@@ -208,15 +224,16 @@ class SIPaint {
   int get hashCode =>
       0x5ed55563 ^
       Object.hash(
-          fillColor,
-          strokeColor,
-          strokeWidth,
-          strokeMiterLimit,
-          strokeJoin,
-          strokeCap,
-          fillType,
-          strokeDashOffset,
-          Object.hashAll(strokeDashArray ?? const <double>[]));
+        fillColor,
+        strokeColor,
+        strokeWidth,
+        strokeMiterLimit,
+        strokeJoin,
+        strokeCap,
+        fillType,
+        strokeDashOffset,
+        Object.hashAll(strokeDashArray ?? const <double>[]),
+      );
 
   @override
   bool operator ==(Object other) {
@@ -230,8 +247,10 @@ class SIPaint {
           strokeJoin == other.strokeJoin &&
           strokeCap == other.strokeCap &&
           fillType == other.fillType &&
-          (const ListEquality<double>())
-              .equals(strokeDashArray, other.strokeDashArray) &&
+          (const ListEquality<double>()).equals(
+            strokeDashArray,
+            other.strokeDashArray,
+          ) &&
           strokeDashOffset == other.strokeDashOffset;
     } else {
       return false;
@@ -321,8 +340,13 @@ abstract class SIGradientColor extends SIColor {
   final SIGradientSpreadMethod spreadMethod;
   final Affine? transform;
 
-  SIGradientColor(this.colors, this.stops, this.objectBoundingBox,
-      this.spreadMethod, this.transform) {
+  SIGradientColor(
+    this.colors,
+    this.stops,
+    this.objectBoundingBox,
+    this.spreadMethod,
+    this.transform,
+  ) {
     assert(colors.length == stops.length);
   }
 
@@ -343,17 +367,17 @@ class SILinearGradientColor extends SIGradientColor {
   final double x2;
   final double y2;
 
-  SILinearGradientColor(
-      {required this.x1,
-      required this.y1,
-      required this.x2,
-      required this.y2,
-      required List<SIColor> colors,
-      required List<double> stops,
-      required bool objectBoundingBox,
-      required SIGradientSpreadMethod spreadMethod,
-      required Affine? transform})
-      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
+  SILinearGradientColor({
+    required this.x1,
+    required this.y1,
+    required this.x2,
+    required this.y2,
+    required List<SIColor> colors,
+    required List<double> stops,
+    required bool objectBoundingBox,
+    required SIGradientSpreadMethod spreadMethod,
+    required Affine? transform,
+  }) : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
   void accept(SIColorVisitor v) => v.linearGradient(this);
@@ -380,8 +404,17 @@ class SILinearGradientColor extends SIGradientColor {
   @override
   int get hashCode =>
       0x11830c9f ^
-      Object.hash(x1, y1, x2, y2, Object.hashAll(colors), Object.hashAll(stops),
-          spreadMethod, transform, objectBoundingBox);
+      Object.hash(
+        x1,
+        y1,
+        x2,
+        y2,
+        Object.hashAll(colors),
+        Object.hashAll(stops),
+        spreadMethod,
+        transform,
+        objectBoundingBox,
+      );
 }
 
 class SIRadialGradientColor extends SIGradientColor {
@@ -391,18 +424,18 @@ class SIRadialGradientColor extends SIGradientColor {
   final double fy;
   final double r;
 
-  SIRadialGradientColor(
-      {required this.cx,
-      required this.cy,
-      required this.fx,
-      required this.fy,
-      required this.r,
-      required List<SIColor> colors,
-      required List<double> stops,
-      required bool objectBoundingBox,
-      required SIGradientSpreadMethod spreadMethod,
-      required Affine? transform})
-      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
+  SIRadialGradientColor({
+    required this.cx,
+    required this.cy,
+    required this.fx,
+    required this.fy,
+    required this.r,
+    required List<SIColor> colors,
+    required List<double> stops,
+    required bool objectBoundingBox,
+    required SIGradientSpreadMethod spreadMethod,
+    required Affine? transform,
+  }) : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
   void accept(SIColorVisitor v) => v.radialGradient(this);
@@ -428,8 +461,16 @@ class SIRadialGradientColor extends SIGradientColor {
   @override
   int get hashCode =>
       0x2b22739d ^
-      Object.hash(cx, cy, r, Object.hashAll(colors), Object.hashAll(stops),
-          spreadMethod, transform, objectBoundingBox);
+      Object.hash(
+        cx,
+        cy,
+        r,
+        Object.hashAll(colors),
+        Object.hashAll(stops),
+        spreadMethod,
+        transform,
+        objectBoundingBox,
+      );
 }
 
 class SISweepGradientColor extends SIGradientColor {
@@ -438,17 +479,17 @@ class SISweepGradientColor extends SIGradientColor {
   final double startAngle;
   final double endAngle;
 
-  SISweepGradientColor(
-      {required this.cx,
-      required this.cy,
-      required this.startAngle,
-      required this.endAngle,
-      required List<SIColor> colors,
-      required List<double> stops,
-      required bool objectBoundingBox,
-      required SIGradientSpreadMethod spreadMethod,
-      required Affine? transform})
-      : super(colors, stops, objectBoundingBox, spreadMethod, transform);
+  SISweepGradientColor({
+    required this.cx,
+    required this.cy,
+    required this.startAngle,
+    required this.endAngle,
+    required List<SIColor> colors,
+    required List<double> stops,
+    required bool objectBoundingBox,
+    required SIGradientSpreadMethod spreadMethod,
+    required Affine? transform,
+  }) : super(colors, stops, objectBoundingBox, spreadMethod, transform);
 
   @override
   void accept(SIColorVisitor v) => v.sweepGradient(this);
@@ -475,8 +516,17 @@ class SISweepGradientColor extends SIGradientColor {
   @override
   int get hashCode =>
       0x5ccb43d2 ^
-      Object.hash(cx, cy, startAngle, endAngle, Object.hashAll(colors),
-          Object.hashAll(stops), spreadMethod, transform, objectBoundingBox);
+      Object.hash(
+        cx,
+        cy,
+        startAngle,
+        endAngle,
+        Object.hashAll(colors),
+        Object.hashAll(stops),
+        spreadMethod,
+        transform,
+        objectBoundingBox,
+      );
 }
 
 class SIColorVisitor {
@@ -487,21 +537,25 @@ class SIColorVisitor {
   final void Function(SIRadialGradientColor c) radialGradient;
   final void Function(SISweepGradientColor c) sweepGradient;
 
-  const SIColorVisitor(
-      {required this.value,
-      required this.none,
-      required this.current,
-      required this.linearGradient,
-      required this.radialGradient,
-      required this.sweepGradient});
+  const SIColorVisitor({
+    required this.value,
+    required this.none,
+    required this.current,
+    required this.linearGradient,
+    required this.radialGradient,
+    required this.sweepGradient,
+  });
 }
 
 ///
 /// Mixin for SIBuilder that builds paths from strings
 ///
 mixin SIStringPathMaker {
-  void makePath(String pathData, EnhancedPathBuilder pb,
-      {required void Function(String) warn}) {
+  void makePath(
+    String pathData,
+    EnhancedPathBuilder pb, {
+    required void Function(String) warn,
+  }) {
     try {
       RealPathParser(pb, pathData).parse();
     } catch (e) {
@@ -744,7 +798,7 @@ abstract class GenericParser {
 
   static final _fillTypeValues = {
     'evenodd': SIFillType.evenOdd,
-    'nonzero': SIFillType.nonZero
+    'nonzero': SIFillType.nonZero,
   };
 
   SIFillType? getFillType(String? s) {
@@ -928,7 +982,8 @@ class BnfLexer {
     }
     final String caret = '^'.padLeft(pos + 1);
     throw ParseError(
-        '$message at character position $_pos\n$segment\n$caret        ');
+      '$message at character position $_pos\n$segment\n$caret        ',
+    );
   }
 
   bool get eof => _pos == source.length;
@@ -1175,7 +1230,7 @@ enum SITintMode {
   softLight,
   src,
   srcOut,
-  xor
+  xor,
 }
 
 ///
@@ -1198,7 +1253,7 @@ enum SIBlendMode {
   hue,
   saturation,
   color,
-  luminosity
+  luminosity,
 }
 
 ///
@@ -1227,7 +1282,7 @@ enum SIDominantBaseline {
   textAfterEdge,
   middle,
   textBeforeEdge,
-  hanging
+  hanging,
 }
 
 ///
@@ -1245,22 +1300,25 @@ class SITextAttributes {
   final double fontSize;
   final SITextDecoration textDecoration;
 
-  SITextAttributes(
-      {required this.fontFamily,
-      required this.textAnchor,
-      required this.fontStyle,
-      required this.fontWeight,
-      required this.fontSize,
-      required this.textDecoration,
-      required this.dominantBaseline});
+  SITextAttributes({
+    required this.fontFamily,
+    required this.textAnchor,
+    required this.fontStyle,
+    required this.fontWeight,
+    required this.fontSize,
+    required this.textDecoration,
+    required this.dominantBaseline,
+  });
 
   @override
   bool operator ==(final Object other) {
     if (identical(this, other)) {
       return true;
     } else if (other is SITextAttributes) {
-      return (const ListEquality<String>())
-              .equals(fontFamily, other.fontFamily) &&
+      return (const ListEquality<String>()).equals(
+            fontFamily,
+            other.fontFamily,
+          ) &&
           textAnchor == other.textAnchor &&
           dominantBaseline == other.dominantBaseline &&
           fontStyle == other.fontStyle &&
@@ -1275,8 +1333,15 @@ class SITextAttributes {
   @override
   int get hashCode =>
       0xa7cb9e84 ^
-      Object.hash(Object.hashAll(fontFamily ?? const []), fontStyle, fontWeight,
-          fontSize, textAnchor, textDecoration, dominantBaseline);
+      Object.hash(
+        Object.hashAll(fontFamily ?? const []),
+        fontStyle,
+        fontWeight,
+        fontSize,
+        textAnchor,
+        textDecoration,
+        dominantBaseline,
+      );
 }
 
 ///

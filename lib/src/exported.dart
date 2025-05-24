@@ -117,7 +117,7 @@ enum ImageDisposeBugWorkaround {
   /// Dispose of everything normally, but do not print a warning if a bug
   /// in an image-related `dispose()` bug is detected (e.g. by catching
   /// an exception).
-  silentlyIgnoreErrors
+  silentlyIgnoreErrors,
 }
 
 ///
@@ -189,9 +189,13 @@ abstract class ScalableImage {
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
-  const ScalableImage._p(this.width, this.height, this.tintColor, this.tintMode,
-      Color? currentColor)
-      : currentColor = currentColor ?? ScalableImageBase.defaultCurrentColor;
+  const ScalableImage._p(
+    this.width,
+    this.height,
+    this.tintColor,
+    this.tintMode,
+    Color? currentColor,
+  ) : currentColor = currentColor ?? ScalableImageBase.defaultCurrentColor;
 
   ///
   /// Give the viewport for this scalable image, in pixels.  By default,
@@ -217,8 +221,11 @@ abstract class ScalableImage {
   /// just slightly within the new viewport.  A positive sub-pixel
   /// tolerance might reduce the size of the new image with no
   /// discernible visual impact.
-  ScalableImage withNewViewport(Rect viewport,
-      {bool prune = false, double pruningTolerance = 0});
+  ScalableImage withNewViewport(
+    Rect viewport, {
+    bool prune = false,
+    double pruningTolerance = 0,
+  });
 
   ///
   /// Return a new ScalableImage like this one, with tint modified.
@@ -226,8 +233,10 @@ abstract class ScalableImage {
   /// Note that the new instance shares most of its underlying state with the
   /// original, so it does not use much memory.
   ///
-  ScalableImage modifyTint(
-      {required BlendMode newTintMode, required Color? newTintColor});
+  ScalableImage modifyTint({
+    required BlendMode newTintMode,
+    required Color? newTintColor,
+  });
 
   ///
   /// Return a new ScalableImage like this one, with currentColor
@@ -298,11 +307,17 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromSIAsset(AssetBundle b, String key,
-      {bool compact = false, Color? currentColor}) async {
+  static Future<ScalableImage> fromSIAsset(
+    AssetBundle b,
+    String key, {
+    bool compact = false,
+    Color? currentColor,
+  }) async {
     final ByteData data = await b.load(key);
-    final c =
-        ScalableImageCompact.fromByteData(data, currentColor: currentColor);
+    final c = ScalableImageCompact.fromByteData(
+      data,
+      currentColor: currentColor,
+    );
     if (compact) {
       return c;
     } else {
@@ -323,8 +338,11 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static ScalableImage fromSIBytes(Uint8List bytes,
-      {bool compact = false, Color? currentColor}) {
+  static ScalableImage fromSIBytes(
+    Uint8List bytes, {
+    bool compact = false,
+    Color? currentColor,
+  }) {
     final r = ScalableImageCompact.fromBytes(bytes, currentColor: currentColor);
     if (compact) {
       return r;
@@ -353,17 +371,22 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static ScalableImage fromSvgString(String src,
-      {bool compact = false,
-      bool bigFloats = false,
-      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
-      void Function(String)? warnF,
-      List<Pattern> exportedIDs = const [],
-      Color? currentColor}) {
+  static ScalableImage fromSvgString(
+    String src, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+    List<Pattern> exportedIDs = const [],
+    Color? currentColor,
+  }) {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     if (compact) {
       final b = SICompactBuilder(
-          warn: warnArg, currentColor: currentColor, bigFloats: bigFloats);
+        warn: warnArg,
+        currentColor: currentColor,
+        bigFloats: bigFloats,
+      );
       StringSvgParser(src, exportedIDs, b, warn: warnArg).parse();
       return b.si;
     } else {
@@ -391,21 +414,26 @@ abstract class ScalableImage {
   ///
   /// See also [ScalableImage.currentColor].
   ///
-  static Future<ScalableImage> fromSvgAsset(AssetBundle b, String key,
-      {bool compact = false,
-      bool bigFloats = false,
-      @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
-      void Function(String)? warnF,
-      List<Pattern> exportedIDs = const [],
-      Color? currentColor}) async {
+  static Future<ScalableImage> fromSvgAsset(
+    AssetBundle b,
+    String key, {
+    bool compact = false,
+    bool bigFloats = false,
+    @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
+    void Function(String)? warnF,
+    List<Pattern> exportedIDs = const [],
+    Color? currentColor,
+  }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final String src = await b.loadString(key, cache: false);
-    return fromSvgString(src,
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: warnArg,
-        exportedIDs: exportedIDs,
-        currentColor: currentColor);
+    return fromSvgString(
+      src,
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+      exportedIDs: exportedIDs,
+      currentColor: currentColor,
+    );
   }
 
   ///
@@ -450,12 +478,14 @@ abstract class ScalableImage {
     Map<String, String>? httpHeaders,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromSvgString(await _getContent(url, defaultEncoding, httpHeaders),
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: warnArg,
-        exportedIDs: exportedIDs,
-        currentColor: currentColor);
+    return fromSvgString(
+      await _getContent(url, defaultEncoding, httpHeaders),
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+      exportedIDs: exportedIDs,
+      currentColor: currentColor,
+    );
   }
 
   ///
@@ -559,8 +589,12 @@ abstract class ScalableImage {
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
     final src = await b.loadString(key, cache: false);
-    return fromAvdString(src,
-        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+    return fromAvdString(
+      src,
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+    );
   }
 
   ///
@@ -604,12 +638,19 @@ abstract class ScalableImage {
     Map<String, String>? httpHeaders,
   }) async {
     final warnArg = warnF ?? (warn ? defaultWarn : nullWarn);
-    return fromAvdString(await _getContent(url, defaultEncoding, httpHeaders),
-        compact: compact, bigFloats: bigFloats, warnF: warnArg);
+    return fromAvdString(
+      await _getContent(url, defaultEncoding, httpHeaders),
+      compact: compact,
+      bigFloats: bigFloats,
+      warnF: warnArg,
+    );
   }
 
-  static Future<String> _getContent(Uri url, Encoding defaultEncoding,
-      Map<String, String>? httpHeaders) async {
+  static Future<String> _getContent(
+    Uri url,
+    Encoding defaultEncoding,
+    Map<String, String>? httpHeaders,
+  ) async {
     String? content = url.data?.contentAsString(encoding: defaultEncoding);
     if (content == null) {
       final client = http.Client();
@@ -741,21 +782,28 @@ abstract class ScalableImageBase extends ScalableImage {
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
-  ScalableImageBase(double? width, double? height, Color? tintColor,
-      BlendMode tintMode, this.givenViewport, this.images, Color? currentColor)
-      : super._p(width, height, tintColor, tintMode, currentColor);
+  ScalableImageBase(
+    double? width,
+    double? height,
+    Color? tintColor,
+    BlendMode tintMode,
+    this.givenViewport,
+    this.images,
+    Color? currentColor,
+  ) : super._p(width, height, tintColor, tintMode, currentColor);
 
   ///
   /// Constructor intended for internal use.  See the static
   /// methods to create a ScalableImage.
   ///
-  ScalableImageBase.modifiedFrom(ScalableImageBase other,
-      {required Rect? viewport,
-      required Color currentColor,
-      required Color? tintColor,
-      required BlendMode tintMode,
-      required this.images})
-      : givenViewport = _newViewport(viewport, other.givenViewport),
+  ScalableImageBase.modifiedFrom(
+    ScalableImageBase other, {
+    required Rect? viewport,
+    required Color currentColor,
+    required Color? tintColor,
+    required BlendMode tintMode,
+    required this.images,
+  })  : givenViewport = _newViewport(viewport, other.givenViewport),
         super._p(
           viewport?.width ?? other.width,
           viewport?.height ?? other.height,
@@ -793,14 +841,18 @@ abstract class ScalableImageBase extends ScalableImage {
   ///
   @protected
   PruningBoundary? getBoundary(
-      List<ExportedIDBoundary>? exportedIDs, Affine? exportedIDXform);
+    List<ExportedIDBoundary>? exportedIDs,
+    Affine? exportedIDXform,
+  );
 
   @override
   Future<void> prepareImages() async {
     // Start preparing them all, with no await, so that the prepare count
     // is immediately incremented.
-    final waiting =
-        List<Future<void>>.generate(images.length, (i) => images[i].prepare());
+    final waiting = List<Future<void>>.generate(
+      images.length,
+      (i) => images[i].prepare(),
+    );
     for (final w in waiting) {
       await w;
     }
@@ -855,7 +907,8 @@ abstract class ScalableImageBase extends ScalableImage {
     xform.transformed(Point(-vp.left, -vp.right));
     getBoundary(result, xform);
     return Set.unmodifiable(
-        result.map((e) => ExportedID(e.id, e.boundary.getBounds())));
+      result.map((e) => ExportedID(e.id, e.boundary.getBounds())),
+    );
   }
 }
 

@@ -137,14 +137,21 @@ abstract class Affine {
   /// Return a point transformed by this matrix.
   ///
   Point<double> transformed(Point<double> p) => Point(
-      p.x * _get(0, 0) + p.y * _get(0, 1) + _get(0, 2),
-      p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2));
+        p.x * _get(0, 0) + p.y * _get(0, 1) + _get(0, 2),
+        p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2),
+      );
 
   @override
   int get hashCode =>
       0x6a41efee ^
-      Object.hash(_get(0, 0), _get(0, 1), _get(0, 2), _get(1, 0), _get(1, 1),
-          _get(1, 2));
+      Object.hash(
+        _get(0, 0),
+        _get(0, 1),
+        _get(0, 2),
+        _get(1, 0),
+        _get(1, 1),
+        _get(1, 2),
+      );
 
   @override
   bool operator ==(Object other) => _equals(other);
@@ -356,8 +363,10 @@ class MutableAffine extends Affine {
   void copyIntoCompact(List<double> storage, [int offset = 0]) {
     for (int col = 0; col < 3; col++) {
       for (int row = 0; row < 2; row++) {
-        storage[offset + _CompactAffine._storageIndex(row, col)] =
-            _get(row, col);
+        storage[offset + _CompactAffine._storageIndex(row, col)] = _get(
+          row,
+          col,
+        );
       }
     }
   }

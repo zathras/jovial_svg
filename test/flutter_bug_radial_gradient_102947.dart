@@ -25,24 +25,26 @@ void main() async {
     60.0,
     224.310302734375,
     0.0,
-    1.0
+    1.0,
   ]);
   p.shader = Gradient.radial(
-      const Offset(2.5, 0.33),
-      0.8,
-      [
-        const Color(0xffff0000),
-        const Color(0xff00ff00),
-        const Color(0xff0000ff),
-        const Color(0xffff00ff)
-      ],
-      [0.0, 0.3, 0.7, 0.9],
-      TileMode.mirror,
-      xform,
-      const Offset(2.55, 0.4));
+    const Offset(2.5, 0.33),
+    0.8,
+    [
+      const Color(0xffff0000),
+      const Color(0xff00ff00),
+      const Color(0xff0000ff),
+      const Color(0xffff00ff),
+    ],
+    [0.0, 0.3, 0.7, 0.9],
+    TileMode.mirror,
+    xform,
+    const Offset(2.55, 0.4),
+  );
   final span = material.TextSpan(
-      style: material.TextStyle(foreground: p, fontSize: 200),
-      text: 'Woodstock!');
+    style: material.TextStyle(foreground: p, fontSize: 200),
+    text: 'Woodstock!',
+  );
   final tp = material.TextPainter(text: span, textDirection: TextDirection.ltr);
   tp.layout();
   tp.paint(c, const Offset(10, 150));

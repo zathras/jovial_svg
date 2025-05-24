@@ -133,7 +133,10 @@ class SvgText extends SvgInheritableAttributesNode {
 
   @override
   SvgNode? _resolve(
-      _ResolveContext ctx, SvgPaint ancestor, _SvgNodeReferrers referrers) {
+    _ResolveContext ctx,
+    SvgPaint ancestor,
+    _SvgNodeReferrers referrers,
+  ) {
     // Even invisible text can influence layout, so we don't try to optimize
     // it away.
     return _resolveMask(ctx, ancestor, referrers);
@@ -180,12 +183,13 @@ class SvgText extends SvgInheritableAttributesNode {
 
   @override
   bool _build(
-      SIBuilder<String, SIImageData> builder,
-      CanonicalizedData<SIImageData> canon,
-      Map<String, SvgNode> idLookup,
-      SvgPaint ancestor,
-      SvgTextStyle ta,
-      {bool blendHandledByParent = false}) {
+    SIBuilder<String, SIImageData> builder,
+    CanonicalizedData<SIImageData> canon,
+    Map<String, SvgNode> idLookup,
+    SvgPaint ancestor,
+    SvgTextStyle ta, {
+    bool blendHandledByParent = false,
+  }) {
     if (!display) {
       return false;
     }
@@ -291,7 +295,10 @@ class SvgTextSpan extends SvgInheritableTextAttributes
 
   @override
   void _flattenInto(
-      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn) {
+    List<_SvgTextChunk> children,
+    _FlattenContext fc,
+    _WarnT warn,
+  ) {
     // We cascade the paint and text attributes within the text tag's subtree,
     // since we're destroying that structure.
     fc = _FlattenContext(fc, this, warn);
@@ -346,7 +353,9 @@ class _FCNumberSource {
   _FCNumberSource._p(this.numbers, this.ancestor, this.last);
 
   factory _FCNumberSource.createOr(
-      List<double>? numbers, _FCNumberSource ancestor) {
+    List<double>? numbers,
+    _FCNumberSource ancestor,
+  ) {
     if (numbers != null && numbers.isNotEmpty) {
       return _FCNumberSource._p(numbers, ancestor, ancestor.last);
     } else {
@@ -390,7 +399,10 @@ sealed class SvgTextSpanComponent {
   bool _trimRight();
 
   void _flattenInto(
-      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn);
+    List<_SvgTextChunk> children,
+    _FlattenContext fc,
+    _WarnT warn,
+  );
 
   void _applyStylesheet(_FastStylesheet stylesheet, _WarnT warn);
 }
@@ -426,7 +438,10 @@ class SvgTextSpanStringComponent extends SvgTextSpanComponent {
 
   @override
   void _flattenInto(
-      List<_SvgTextChunk> children, _FlattenContext fc, _WarnT warn) {
+    List<_SvgTextChunk> children,
+    _FlattenContext fc,
+    _WarnT warn,
+  ) {
     for (int i = 0; i < text.length; i++) {
       double? x = fc.pull(fc.x);
       double y = fc.pullOrLast(fc.y);
@@ -480,11 +495,12 @@ class _SvgTextChunk {
   }
 
   void build(
-      SIBuilder<String, SIImageData> builder,
-      CanonicalizedData<SIImageData> canon,
-      Map<String, SvgNode> idLookup,
-      SvgPaint paint,
-      SvgTextStyle ta) {
+    SIBuilder<String, SIImageData> builder,
+    CanonicalizedData<SIImageData> canon,
+    Map<String, SvgNode> idLookup,
+    SvgPaint paint,
+    SvgTextStyle ta,
+  ) {
     assert(spans.isNotEmpty);
     if (spans.length == 1) {
       spans.first.build(x, y, builder, canon, idLookup, paint, ta);
@@ -539,17 +555,22 @@ class _SvgFlatSpan {
   final StringBuffer text;
 
   _SvgFlatSpan(
-      this.dx, this.dy, this.attributes, this.paint, String initialText)
-      : text = StringBuffer(initialText);
+    this.dx,
+    this.dy,
+    this.attributes,
+    this.paint,
+    String initialText,
+  ) : text = StringBuffer(initialText);
 
   void build(
-      double x,
-      double y,
-      SIBuilder<String, SIImageData> builder,
-      CanonicalizedData<SIImageData> canon,
-      Map<String, SvgNode> idLookup,
-      SvgPaint ancestor,
-      SvgTextStyle ta) {
+    double x,
+    double y,
+    SIBuilder<String, SIImageData> builder,
+    CanonicalizedData<SIImageData> canon,
+    Map<String, SvgNode> idLookup,
+    SvgPaint ancestor,
+    SvgTextStyle ta,
+  ) {
     ta = attributes._cascade(ta);
     final cascaded = paint._cascade(ancestor, idLookup, builder.warn);
     final int? fontFamilyIndex;
@@ -566,14 +587,15 @@ class _SvgFlatSpan {
     final dyIndex = canon.floatValues[y + dy];
     final fontSizeIndex = canon.floatValues[ta.fontSize._toSI()];
     builder.textSpan(
-        null,
-        dxIndex,
-        dyIndex,
-        textIndex,
-        ta._toSITextAttributes(),
-        fontFamilyIndex,
-        fontSizeIndex,
-        cascaded._toSIPaint());
+      null,
+      dxIndex,
+      dyIndex,
+      textIndex,
+      ta._toSITextAttributes(),
+      fontFamilyIndex,
+      fontSizeIndex,
+      cascaded._toSIPaint(),
+    );
   }
 
   RectT getBounds(double x, double y, SvgTextStyle ancestor) {

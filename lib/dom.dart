@@ -155,9 +155,11 @@ class SvgDOMManager {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to do nothing.
   ///
-  static Future<SvgDOMManager> fromStream(final Stream<String> input,
-      {List<Pattern> exportedIDs = const [],
-      void Function(String)? warnF}) async {
+  static Future<SvgDOMManager> fromStream(
+    final Stream<String> input, {
+    List<Pattern> exportedIDs = const [],
+    void Function(String)? warnF,
+  }) async {
     final warnArg = warnF ?? nullWarn;
     final p = StreamSvgParser(input, exportedIDs, null, warn: warnArg);
     await p.parse();
@@ -177,8 +179,11 @@ class SvgDOMManager {
   /// unrecognized tags and/or tag attributes.  If it is null, the default
   /// behavior is to do nothing.
   ///
-  static SvgDOMManager fromString(final String input,
-      {List<Pattern> exportedIDs = const [], void Function(String)? warnF}) {
+  static SvgDOMManager fromString(
+    final String input, {
+    List<Pattern> exportedIDs = const [],
+    void Function(String)? warnF,
+  }) {
     final warnArg = warnF ?? nullWarn;
     final p = StringSvgParser(input, exportedIDs, null, warn: warnArg);
     p.parse();
@@ -213,8 +218,11 @@ class SvgDOMManager {
   ///
   /// [currentColor] sets [ScalableImage.currentColor].
   ///
-  ScalableImage build(
-      {bool last = false, void Function(String)? warnF, Color? currentColor}) {
+  ScalableImage build({
+    bool last = false,
+    void Function(String)? warnF,
+    Color? currentColor,
+  }) {
     if (_lastCall) {
       throw StateError('build was previously called with last true');
     }

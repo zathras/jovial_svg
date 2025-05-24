@@ -71,11 +71,13 @@ abstract class PathBuilder {
   /// Add an arc.  `rotation` in radians, as is (sorta offhandedly) documented
   /// for Flutter's Path.
   ///
-  void arcToPoint(PointT arcEnd,
-      {required RadiusT radius,
-      required double rotation,
-      required bool largeArc,
-      required bool clockwise});
+  void arcToPoint(
+    PointT arcEnd, {
+    required RadiusT radius,
+    required double rotation,
+    required bool largeArc,
+    required bool clockwise,
+  });
 
   ///
   /// Finish the path.
@@ -158,11 +160,13 @@ class StringPathBuilder extends PathBuilder {
   }
 
   @override
-  void arcToPoint(PointT arcEnd,
-      {required RadiusT radius,
-      required double rotation,
-      required bool largeArc,
-      required bool clockwise}) {
+  void arcToPoint(
+    PointT arcEnd, {
+    required RadiusT radius,
+    required double rotation,
+    required bool largeArc,
+    required bool clockwise,
+  }) {
     _result.write('A ');
     _result.write(radius.x);
     _result.write(' ');
@@ -519,11 +523,13 @@ class RealPathParser extends AbstractPathParser<PathBuilder> {
     final double x = _lexer.nextFloat();
     final double y = _lexer.nextFloat();
     PointT dest = _coord(x, y);
-    builder.arcToPoint(dest,
-        radius: r,
-        rotation: rotation,
-        largeArc: largeArc,
-        clockwise: sweepFlag);
+    builder.arcToPoint(
+      dest,
+      radius: r,
+      rotation: rotation,
+      largeArc: largeArc,
+      clockwise: sweepFlag,
+    );
     return dest;
   }
 

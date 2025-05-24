@@ -264,8 +264,9 @@ abstract class SvgParser extends GenericParser {
         width ??= viewbox.width;
         height ??= viewbox.height;
       }
-      transform
-          .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
+      transform.multiplyBy(
+        MutableAffine.translation(-viewbox.left, -viewbox.top),
+      );
       if (transform.isIdentity()) {
         root = SvgRoot();
       } else {
@@ -300,10 +301,14 @@ abstract class SvgParser extends GenericParser {
 
   void _processSymbol(Map<String, String> attrs) {
     final us = SvgSymbol();
-    final width =
-        us.width = getFloat(attrs.remove('width'), percent: _widthPercent);
-    final height =
-        us.height = getFloat(attrs.remove('height'), percent: _heightPercent);
+    final width = us.width = getFloat(
+      attrs.remove('width'),
+      percent: _widthPercent,
+    );
+    final height = us.height = getFloat(
+      attrs.remove('height'),
+      percent: _heightPercent,
+    );
     final viewbox = us.viewbox = getViewbox(attrs.remove('viewbox'));
     _processDefs({}, 'symbol');
     _processGroup(attrs, us);
@@ -313,10 +318,12 @@ abstract class SvgParser extends GenericParser {
     final transform = us.transform ?? MutableAffine.identity();
     if (width != null && height != null) {
       transform.multiplyBy(
-          MutableAffine.scale(width / viewbox.width, height / viewbox.height));
+        MutableAffine.scale(width / viewbox.width, height / viewbox.height),
+      );
     }
-    transform
-        .multiplyBy(MutableAffine.translation(-viewbox.left, -viewbox.top));
+    transform.multiplyBy(
+      MutableAffine.translation(-viewbox.left, -viewbox.top),
+    );
     if (transform.isIdentity()) {
       us.transform = null;
     } else {
@@ -507,10 +514,13 @@ abstract class SvgParser extends GenericParser {
 
   SvgCoordinate? _getCoordinate(String? attr) {
     bool isPercent = false;
-    double? val = getFloat(attr, percent: (v) {
-      isPercent = true;
-      return v;
-    });
+    double? val = getFloat(
+      attr,
+      percent: (v) {
+        isPercent = true;
+        return v;
+      },
+    );
     if (val == null) {
       return null;
     } else if (isPercent) {
@@ -529,19 +539,23 @@ abstract class SvgParser extends GenericParser {
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
-    final MutableAffine? transform =
-        getTransform(null, attrs.remove('gradienttransform'));
+    final MutableAffine? transform = getTransform(
+      null,
+      attrs.remove('gradienttransform'),
+    );
     final spreadMethod = getSpreadMethod(attrs.remove('spreadmethod'));
     final n = SvgGradientNode(
-        parentID,
-        SvgLinearGradientColor(
-            x1: x1,
-            x2: x2,
-            y1: y1,
-            y2: y2,
-            objectBoundingBox: objectBoundingBox,
-            transform: transform,
-            spreadMethod: spreadMethod));
+      parentID,
+      SvgLinearGradientColor(
+        x1: x1,
+        x2: x2,
+        y1: y1,
+        y2: y2,
+        objectBoundingBox: objectBoundingBox,
+        transform: transform,
+        spreadMethod: spreadMethod,
+      ),
+    );
     _processId(n, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(n);
@@ -560,20 +574,24 @@ abstract class SvgParser extends GenericParser {
     final sgu = attrs.remove('gradientunits');
     final bool? objectBoundingBox =
         (sgu == null) ? null : sgu != 'userSpaceOnUse';
-    final MutableAffine? transform =
-        getTransform(null, attrs.remove('gradienttransform'));
+    final MutableAffine? transform = getTransform(
+      null,
+      attrs.remove('gradienttransform'),
+    );
     final spreadMethod = getSpreadMethod(attrs.remove('spreadmethod'));
     final n = SvgGradientNode(
-        parentID,
-        SvgRadialGradientColor(
-            cx: cx,
-            cy: cy,
-            fx: fx,
-            fy: fy,
-            r: r,
-            objectBoundingBox: objectBoundingBox,
-            transform: transform,
-            spreadMethod: spreadMethod));
+      parentID,
+      SvgRadialGradientColor(
+        cx: cx,
+        cy: cy,
+        fx: fx,
+        fy: fy,
+        r: r,
+        objectBoundingBox: objectBoundingBox,
+        transform: transform,
+        spreadMethod: spreadMethod,
+      ),
+    );
     _processId(n, attrs);
     _warnUnusedAttributes(attrs);
     _parentStack.last.children.add(n);
@@ -603,8 +621,10 @@ abstract class SvgParser extends GenericParser {
       return null;
     }
     final int? alpha = getAlpha(attrs.remove('stop-opacity'));
-    double? offset =
-        getFloat(attrs.remove('offset'), percent: _percentOK)?.clamp(0.0, 1.0);
+    double? offset = getFloat(
+      attrs.remove('offset'),
+      percent: _percentOK,
+    )?.clamp(0.0, 1.0);
     final sc = attrs.remove('class') ?? '';
     final id = attrs.remove('id');
     return SvgGradientStop(offset, color, alpha, styleClass: sc, id: id);
@@ -661,7 +681,9 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processInheritableText(
-      SvgInheritableTextAttributes node, Map<String, String> attrs) {
+    SvgInheritableTextAttributes node,
+    Map<String, String> attrs,
+  ) {
     final sc = attrs.remove('class');
     if (sc != null) {
       node.styleClass = sc;
@@ -688,8 +710,10 @@ abstract class SvgParser extends GenericParser {
     }
     p.strokeColor = getSvgColor(attrs.remove('stroke')?.trim());
     p.strokeAlpha = getAlpha(attrs.remove('stroke-opacity'));
-    p.strokeWidth =
-        getFloat(attrs.remove('stroke-width'), percent: _minPercent);
+    p.strokeWidth = getFloat(
+      attrs.remove('stroke-width'),
+      percent: _minPercent,
+    );
     p.strokeCap = getStrokeCap(attrs.remove('stroke-linecap'));
     p.strokeJoin = getStrokeJoin(attrs.remove('stroke-linejoin'));
     p.strokeMiterLimit = getFloat(attrs.remove('stroke-miterlimit'));
@@ -777,7 +801,7 @@ abstract class SvgParser extends GenericParser {
       const vals = {
         'start': SITextAnchor.start,
         'middle': SITextAnchor.middle,
-        'end': SITextAnchor.end
+        'end': SITextAnchor.end,
       };
       final v = vals[attr];
       if (v != null) {
@@ -830,7 +854,9 @@ abstract class SvgParser extends GenericParser {
   }
 
   void _processInheritable(
-      SvgInheritableAttributes node, Map<String, String> attrs) {
+    SvgInheritableAttributes node,
+    Map<String, String> attrs,
+  ) {
     _processInheritableText(node, attrs);
     node.display = attrs.remove('display') != 'none';
     node.groupAlpha = getAlpha(attrs.remove('opacity'));
@@ -859,7 +885,7 @@ abstract class SvgParser extends GenericParser {
         'hue': SIBlendMode.hue,
         'saturation': SIBlendMode.saturation,
         'color': SIBlendMode.color,
-        'luminosity': SIBlendMode.luminosity
+        'luminosity': SIBlendMode.luminosity,
       };
       final v = vals[attr];
       if (v != null) {
@@ -1169,10 +1195,12 @@ class _SvgParserEventHandler with XmlEventVisitor {
 class StreamSvgParser extends SvgParser {
   final Stream<String> _input;
 
-  StreamSvgParser(this._input, List<Pattern> exportedIDs,
-      SIBuilder<String, SIImageData>? builder,
-      {required void Function(String) warn})
-      : super(warn, exportedIDs, builder);
+  StreamSvgParser(
+    this._input,
+    List<Pattern> exportedIDs,
+    SIBuilder<String, SIImageData>? builder, {
+    required void Function(String) warn,
+  }) : super(warn, exportedIDs, builder);
 
   Future<void> parse() async {
     final handler = _SvgParserEventHandler(this);
@@ -1188,10 +1216,12 @@ class StreamSvgParser extends SvgParser {
 class StringSvgParser extends SvgParser {
   final String _input;
 
-  StringSvgParser(this._input, List<Pattern> exportedIDs,
-      SIBuilder<String, SIImageData>? builder,
-      {required void Function(String) warn})
-      : super(warn, exportedIDs, builder);
+  StringSvgParser(
+    this._input,
+    List<Pattern> exportedIDs,
+    SIBuilder<String, SIImageData>? builder, {
+    required void Function(String) warn,
+  }) : super(warn, exportedIDs, builder);
 
   void parse() {
     final handler = _SvgParserEventHandler(this);

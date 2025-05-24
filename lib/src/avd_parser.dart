@@ -90,7 +90,8 @@ abstract class AvdParser extends GenericParser {
     } else if (evt.name == 'group') {
       if (_tagStack.isNotEmpty && _tagStack.last != 'group') {
         throw ParseError(
-            'group only valid at top level, or inside another group:  $evt');
+          'group only valid at top level, or inside another group:  $evt',
+        );
       }
       _parseGroup(evt.attributes);
       if (evt.isSelfClosing) {
@@ -108,7 +109,8 @@ abstract class AvdParser extends GenericParser {
     } else if (evt.name == 'clip-path') {
       if (_tagStack.isNotEmpty && _tagStack.last != 'group') {
         throw ParseError(
-            'clip-path only valid at top level or inside a group:  $evt');
+          'clip-path only valid at top level or inside a group:  $evt',
+        );
       }
       _parseClipPath(evt.attributes);
       if (!evt.isSelfClosing) {
@@ -234,8 +236,10 @@ abstract class AvdParser extends GenericParser {
         // in the path, and add in 2x the line width, if there were ever a
         // need to handle the (rare? illegal?) case where the viewportWidth
         // and viewportHeight attributes aren't specified.
-        warn('    Unable to scale to width/height:  '
-            'Need viewportWidth/viewportHeight.');
+        warn(
+          '    Unable to scale to width/height:  '
+          'Need viewportWidth/viewportHeight.',
+        );
         // Fall through
       } else {
         scaledWidth ??= width;
@@ -244,8 +248,10 @@ abstract class AvdParser extends GenericParser {
           // Do nothing:  Fall through to the normal, unscaled case
         } else {
           // We should scale.  See issue 14.
-          root.transform =
-              MutableAffine.scale(scaledWidth / width, scaledHeight / height);
+          root.transform = MutableAffine.scale(
+            scaledWidth / width,
+            scaledHeight / height,
+          );
           width = scaledWidth;
           height = scaledHeight;
         }
@@ -295,9 +301,12 @@ abstract class AvdParser extends GenericParser {
         translateY != null ||
         pivotX != null ||
         pivotY != null) {
-      transform.multiplyBy(MutableAffine.translation(
+      transform.multiplyBy(
+        MutableAffine.translation(
           (translateX ?? 0) + (pivotX ?? 0),
-          (translateY ?? 0) + (pivotY ?? 0)));
+          (translateY ?? 0) + (pivotY ?? 0),
+        ),
+      );
     }
     if (rotation != null) {
       transform.multiplyBy(MutableAffine.rotation(rotation));
@@ -307,7 +316,8 @@ abstract class AvdParser extends GenericParser {
     }
     if (pivotX != null || pivotY != null) {
       transform.multiplyBy(
-          MutableAffine.translation(-(pivotX ?? 0), -(pivotY ?? 0)));
+        MutableAffine.translation(-(pivotX ?? 0), -(pivotY ?? 0)),
+      );
     }
     // https://developer.android.com/reference/android/graphics/drawable/VectorDrawable
     // says the pivot and translate are "in viewport space," which means the
@@ -441,7 +451,7 @@ abstract class AvdParser extends GenericParser {
     'src_atop': SITintMode.srcATop,
     'multiply': SITintMode.multiply,
     'screen': SITintMode.screen,
-    'add': SITintMode.add
+    'add': SITintMode.add,
   };
 
   SITintMode _getTintMode(String s) {
@@ -528,8 +538,9 @@ abstract class AvdParser extends GenericParser {
         warn('    Unrecognized gradient attribute  ${a.name}');
       }
     }
-    final stops =
-        _defaultGradientStops = List<SvgGradientStop>.empty(growable: true);
+    final stops = _defaultGradientStops = List<SvgGradientStop>.empty(
+      growable: true,
+    );
     if (startColor != null) {
       stops.add(SvgGradientStop(0.0, SvgColor.value(startColor), 0xff));
     }
@@ -545,33 +556,36 @@ abstract class AvdParser extends GenericParser {
         endX != null &&
         endY != null) {
       return SvgLinearGradientColor(
-          x1: SvgCoordinate.value(startX),
-          y1: SvgCoordinate.value(startY),
-          x2: SvgCoordinate.value(endX),
-          y2: SvgCoordinate.value(endY),
-          objectBoundingBox: false,
-          transform: null,
-          spreadMethod: spreadMethod);
+        x1: SvgCoordinate.value(startX),
+        y1: SvgCoordinate.value(startY),
+        x2: SvgCoordinate.value(endX),
+        y2: SvgCoordinate.value(endY),
+        objectBoundingBox: false,
+        transform: null,
+        spreadMethod: spreadMethod,
+      );
     } else if (centerX != null && centerY != null) {
       if (type == 'radial' && radius != null) {
         return SvgRadialGradientColor(
-            cx: SvgCoordinate.value(centerX),
-            cy: SvgCoordinate.value(centerY),
-            fx: SvgCoordinate.value(centerX),
-            fy: SvgCoordinate.value(centerY),
-            r: SvgCoordinate.value(radius),
-            objectBoundingBox: false,
-            transform: null,
-            spreadMethod: spreadMethod);
+          cx: SvgCoordinate.value(centerX),
+          cy: SvgCoordinate.value(centerY),
+          fx: SvgCoordinate.value(centerX),
+          fy: SvgCoordinate.value(centerY),
+          r: SvgCoordinate.value(radius),
+          objectBoundingBox: false,
+          transform: null,
+          spreadMethod: spreadMethod,
+        );
       } else if (type == 'sweep') {
         return SvgSweepGradientColor(
-            cx: centerX,
-            cy: centerY,
-            startAngle: null,
-            endAngle: null,
-            objectBoundingBox: false,
-            transform: null,
-            spreadMethod: spreadMethod);
+          cx: centerX,
+          cy: centerY,
+          startAngle: null,
+          endAngle: null,
+          objectBoundingBox: false,
+          transform: null,
+          spreadMethod: spreadMethod,
+        );
       }
     }
     throw ParseError('invalid gradient');
@@ -596,8 +610,9 @@ abstract class AvdParser extends GenericParser {
     } else if (offset == null) {
       throw ParseError('Missing stop offset');
     }
-    _currGradient!
-        .addStop(SvgGradientStop(offset, SvgColor.value(color), 0xff));
+    _currGradient!.addStop(
+      SvgGradientStop(offset, SvgColor.value(color), 0xff),
+    );
   }
 
   void _finishGradient(SvgGradientColor g) {
