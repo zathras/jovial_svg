@@ -33,7 +33,6 @@ import 'dart:math' show min, max;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'common_noui.dart';
 import 'exported.dart';
@@ -95,6 +94,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [lookup] is used to look up node IDs that were exported in an SVG
   /// asset.  See [ExportedIDLookup].
   ///
+  /// [useInk] will use a Material [Ink] widget, so that e.g. button splashes
+  /// can be shown.
+  ///
   factory ScalableImageWidget({
     Key? key,
     required ScalableImage si,
@@ -105,18 +107,31 @@ abstract class ScalableImageWidget extends StatefulWidget {
     Color? background,
     bool isComplex = false,
     ExportedIDLookup? lookup,
+    bool useInk = false,
   }) =>
-      _SyncSIWidget(
-        key,
-        si,
-        fit,
-        alignment,
-        clip,
-        scale,
-        background,
-        isComplex,
-        lookup,
-      );
+      useInk
+          ? _SyncSIInkWidget(
+              key,
+              si,
+              fit,
+              alignment,
+              clip,
+              scale,
+              background,
+              isComplex,
+              lookup,
+            )
+          : _SyncSIWidget(
+              key,
+              si,
+              fit,
+              alignment,
+              clip,
+              scale,
+              background,
+              isComplex,
+              lookup,
+            );
 
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
@@ -171,6 +186,9 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// which affects advanced use of the `mix-blend-mode` attribute applied over
   /// areas without other drawing.
   ///
+  /// [useInk] will use a Material [Ink] widget, so that e.g. button splashes
+  /// can be shown.
+  ///
   /// NOTE:  If no cache is provided, a default of size zero is used.
   /// There is no provision for client code to change the size of this default
   /// cache; this is intentional.  Having a system-wide cache would invite
@@ -197,6 +215,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
     Widget Function(BuildContext)? onLoading,
     Widget Function(BuildContext)? onError,
     Widget Function(BuildContext, Widget child)? switcher,
+    bool useInk = false,
   }) {
     onLoading ??= _AsyncSIWidget.defaultOnLoading;
     onError ??= onLoading;
@@ -206,6 +225,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
     }
     return _AsyncSIWidget(
       key,
+      useInk,
       si,
       fit,
       alignment,
@@ -223,7 +243,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
   }
 }
 
-class _SyncSIWidget extends ScalableImageWidget {
+abstract class _SyncSIWidgetBase extends ScalableImageWidget {
   final ScalableImage _si;
   final BoxFit _fit;
   final Alignment _alignment;
@@ -231,7 +251,7 @@ class _SyncSIWidget extends ScalableImageWidget {
   final double _scale;
   final Color? _background;
 
-  const _SyncSIWidget(
+  const _SyncSIWidgetBase(
     Key? key,
     this._si,
     this._fit,
@@ -243,23 +263,67 @@ class _SyncSIWidget extends ScalableImageWidget {
     ExportedIDLookup? lookup,
   ) : super._p(key, isComplex, lookup);
 
+  void _paintToCanvas(Canvas canvas, Offset offset, Size size) {
+    final bounds = offset & size;
+    if (_clip) {
+      canvas.clipRect(bounds);
+    }
+    final background = _background;
+    if (background != null) {
+      canvas.drawColor(background, BlendMode.src);
+      canvas.saveLayer(bounds, Paint());
+      canvas.drawColor(const Color(0x00ffffff), BlendMode.src);
+    }
+    try {
+      final xform = ScalingTransform(
+        containerSize: size,
+        siViewport: _si.viewport,
+        fit: _fit,
+        alignment: _alignment,
+      );
+      final lookup = _lookup;
+      if (lookup != null) {
+        lookup._lastTransform = xform;
+        lookup._si = _si;
+      }
+      try {
+        canvas.save();
+        canvas.translate(offset.dx, offset.dy);
+        xform.applyToCanvas(canvas);
+        _si.paint(canvas);
+      } finally {
+        canvas.restore();
+      }
+    } finally {
+      if (background != null) {
+        canvas.restore();
+      }
+    }
+  }
+}
+
+class _SyncSIWidget extends _SyncSIWidgetBase {
+  const _SyncSIWidget(
+      super.key,
+      super._si,
+      super._fit,
+      super._alignment,
+      super._clip,
+      super._scale,
+      super._background,
+      super.isComplex,
+      super.lookup);
+
   @override
   State<StatefulWidget> createState() => _SyncSIWidgetState();
 }
 
 class _SyncSIWidgetState extends State<_SyncSIWidget> {
-  late _SIPainter _painter;
+  late _SICustomPainter _painter;
   late Size _preferredSize;
 
-  static _SIPainter _newPainter(_SyncSIWidget w, bool preparing) => _SIPainter(
-        w._si,
-        w._fit,
-        w._alignment,
-        w._clip,
-        preparing,
-        w._background,
-        w._lookup,
-      );
+  static _SICustomPainter _newPainter(_SyncSIWidget w, bool preparing) =>
+      _SICustomPainter(w, preparing);
 
   static Size _newSize(_SyncSIWidget w) =>
       Size(w._si.viewport.width * w._scale, w._si.viewport.height * w._scale);
@@ -277,8 +341,9 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
     super.didUpdateWidget(old);
     _painter = _newPainter(widget, _painter._preparing);
     _preferredSize = _newSize(widget);
-    if (_painter._preparing) {
-      // If images are still loading, we need the callback when it's done.
+    if (old._si != widget._si || _painter._preparing) {
+      // If it's a different si, we need to prepare.  If it's the same but
+      // images are still loading, we need the callback when it's done.
       _registerWithFuture(widget._si.prepareImages());
       old._si.unprepareImages();
     }
@@ -310,74 +375,122 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
       );
 }
 
-class _SIPainter extends CustomPainter {
-  final ScalableImage _si;
-  final BoxFit _fit;
-  final Alignment _alignment;
-  final bool _clip;
+class _SICustomPainter extends CustomPainter {
+  final _SyncSIWidget _widget;
   final bool _preparing;
-  final Color? _background;
-  final ExportedIDLookup? _lookup;
 
-  _SIPainter(
-    this._si,
-    this._fit,
-    this._alignment,
-    this._clip,
-    this._preparing,
-    this._background,
-    this._lookup,
+  _SICustomPainter(this._widget, this._preparing);
+
+  @override
+  void paint(Canvas canvas, Size size) =>
+      _widget._paintToCanvas(canvas, const Offset(0, 0), size);
+
+  @override
+  bool shouldRepaint(_SICustomPainter oldDelegate) =>
+      _preparing != oldDelegate._preparing ||
+      _widget._si != oldDelegate._widget._si ||
+      _widget._fit != oldDelegate._widget._fit ||
+      _widget._alignment.x != oldDelegate._widget._alignment.x ||
+      _widget._alignment.y != oldDelegate._widget._alignment.y ||
+      _widget._clip != oldDelegate._widget._clip;
+}
+
+class _SyncSIInkWidget extends _SyncSIWidgetBase {
+  const _SyncSIInkWidget(
+    super.key,
+    super._si,
+    super._fit,
+    super._alignment,
+    super._clip,
+    super._scale,
+    super._background,
+    super.isComplex,
+    super.lookup,
   );
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final bounds = Rect.fromLTWH(0, 0, size.width, size.height);
-    if (_clip) {
-      canvas.clipRect(bounds);
-    }
-    final background = _background;
-    if (background != null) {
-      canvas.drawColor(background, BlendMode.src);
-      canvas.saveLayer(bounds, Paint());
-      canvas.drawColor(const Color(0x00ffffff), BlendMode.src);
-    }
-    try {
-      final xform = ScalingTransform(
-        containerSize: size,
-        siViewport: _si.viewport,
-        fit: _fit,
-        alignment: _alignment,
-      );
-      final lookup = _lookup;
-      if (lookup != null) {
-        lookup._lastTransform = xform;
-        lookup._si = _si;
-      }
-      canvas.save();
-      try {
-        xform.applyToCanvas(canvas);
-        _si.paint(canvas);
-      } finally {
-        canvas.restore();
-      }
-    } finally {
-      if (background != null) {
-        canvas.restore();
-      }
+  State<StatefulWidget> createState() => _SyncSIInkWidgetState();
+}
+
+class _SyncSIInkWidgetState extends State<_SyncSIInkWidget> {
+  late Size _preferredSize;
+
+  static Size _newSize(_SyncSIInkWidget w) =>
+      Size(w._si.viewport.width * w._scale, w._si.viewport.height * w._scale);
+
+  @override
+  void initState() {
+    super.initState();
+    _preferredSize = _newSize(widget);
+    unawaited(widget._si.prepareImages());
+    // The BoxPainter also does prepare/unprepare, but it's not well enough
+    // specified to guarantee that, if a new BoxPainter is created, the
+    // old one's unprepare comes after the new one's prepare.  So,
+    // we prepare/unprepeare here in the parent, so the prepare count never
+    // falls below 1 while the SI is being displayed.
+  }
+
+  @override
+  void didUpdateWidget(_SyncSIInkWidget old) {
+    super.didUpdateWidget(old);
+    _preferredSize = _newSize(widget);
+    if (old._si != widget._si) {
+      unawaited(widget._si.prepareImages());
+      old._si.unprepareImages();
     }
   }
 
   @override
-  bool shouldRepaint(_SIPainter oldDelegate) =>
-      _preparing != oldDelegate._preparing ||
-      _si != oldDelegate._si ||
-      _fit != oldDelegate._fit ||
-      _alignment.x != oldDelegate._alignment.x ||
-      _alignment.y != oldDelegate._alignment.y ||
-      _clip != oldDelegate._clip;
+  void dispose() {
+    super.dispose();
+    widget._si.unprepareImages();
+  }
+
+  @override
+  Widget build(BuildContext context) => Ink(
+      width: _preferredSize.width,
+      height: _preferredSize.height,
+      decoration: _SIInkDecoration(widget));
+}
+
+class _SIInkDecoration extends Decoration {
+  final _SyncSIInkWidget widget;
+
+  const _SIInkDecoration(this.widget);
+
+  @override
+  bool get isComplex => widget.isComplex;
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) =>
+      _SIBoxPainter(onChanged, widget);
+}
+
+class _SIBoxPainter extends BoxPainter {
+  _SyncSIInkWidget widget;
+
+  _SIBoxPainter(super.onChanged, this.widget) {
+    widget._si.prepareImages().then((v) => onChanged?.call());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget._si.unprepareImages();
+  }
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final size = configuration.size;
+    if (size == null) {
+      return;
+    }
+    widget._paintToCanvas(canvas, offset, size);
+  }
 }
 
 class _AsyncSIWidget extends ScalableImageWidget {
+  final bool _useInk;
   final ScalableImageSource _siSource;
   final ScalableImageCache _cache;
   final BoxFit _fit;
@@ -392,6 +505,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
 
   const _AsyncSIWidget(
     Key? key,
+    this._useInk,
     this._siSource,
     this._fit,
     this._alignment,
@@ -489,17 +603,31 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         si = si.modifyCurrentColor(cc);
         // Very cheap, just one instance creation
       }
-      result = _SyncSIWidget(
-        null,
-        si,
-        widget._fit,
-        widget._alignment,
-        widget._clip,
-        widget._scale,
-        widget._background,
-        widget.isComplex,
-        widget._lookup,
-      );
+      if (widget._useInk) {
+        result = _SyncSIInkWidget(
+          null,
+          si,
+          widget._fit,
+          widget._alignment,
+          widget._clip,
+          widget._scale,
+          widget._background,
+          widget.isComplex,
+          widget._lookup,
+        );
+      } else {
+        result = _SyncSIWidget(
+          null,
+          si,
+          widget._fit,
+          widget._alignment,
+          widget._clip,
+          widget._scale,
+          widget._background,
+          widget.isComplex,
+          widget._lookup,
+        );
+      }
     }
     final switcher = widget._switcher;
     if (switcher == null) {

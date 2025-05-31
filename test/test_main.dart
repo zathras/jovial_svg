@@ -486,6 +486,17 @@ class CanvasRecorder implements Canvas {
   Float64List getTransform() {
     throw UnimplementedError();
   }
+
+  @override
+  void clipRSuperellipse(RSuperellipse rsuperellipse,
+      {bool doAntiAlias = true}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void drawRSuperellipse(RSuperellipse rsuperellipse, Paint paint) {
+    throw UnimplementedError();
+  }
 }
 
 void _createSI() {
