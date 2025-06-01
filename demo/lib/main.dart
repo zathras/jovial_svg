@@ -43,12 +43,16 @@ const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
+print("@@ a");
   WidgetsFlutterBinding.ensureInitialized();
+print("@@ b");
   final json = await rootBundle.loadString('assets/manifest.json');
   final typeUnsafe = jsonDecode(json) as List<dynamic>;
   final assets = List<Asset>.empty(growable: true);
+print("@@ c");
   for (int i = 0; i < typeUnsafe.length; i++) {
     final name = typeUnsafe[i] as String;
+print("@@ d $name");
     final svg = 'assets/svg/$name.svg';
     String? avd = 'assets/avd/$name.xml';
     String si = 'assets/si/$name.si';
@@ -294,7 +298,7 @@ class _DemoScreenState extends State<DemoScreen> {
                                 })),
                       ])),
                   SizedBox(
-                      width: 120,
+                      width: 140,
                       child: Row(children: [
                         const Text('Zoom/Prune'),
                         Checkbox(
