@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
 /*
-Copyright (c) 2021-2022, William Foote
+Copyright (c) 2021-2025, William Foote
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -43,16 +43,12 @@ const _imageBaseURL =
     'https://raw.githubusercontent.com/zathras/jovial_svg/main/demo';
 
 Future<void> main() async {
-print("@@ a");
   WidgetsFlutterBinding.ensureInitialized();
-print("@@ b");
   final json = await rootBundle.loadString('assets/manifest.json');
   final typeUnsafe = jsonDecode(json) as List<dynamic>;
   final assets = List<Asset>.empty(growable: true);
-print("@@ c");
   for (int i = 0; i < typeUnsafe.length; i++) {
     final name = typeUnsafe[i] as String;
-print("@@ d $name");
     final svg = 'assets/svg/$name.svg';
     String? avd = 'assets/avd/$name.xml';
     String si = 'assets/si/$name.si';
