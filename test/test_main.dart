@@ -487,7 +487,6 @@ class CanvasRecorder implements Canvas {
     throw UnimplementedError();
   }
 
-/*
   @override
   void clipRSuperellipse(RSuperellipse rsuperellipse,
       {bool doAntiAlias = true}) {
@@ -498,7 +497,6 @@ class CanvasRecorder implements Canvas {
   void drawRSuperellipse(RSuperellipse rsuperellipse, Paint paint) {
     throw UnimplementedError();
   }
-*/
 }
 
 void _createSI() {
