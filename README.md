@@ -165,7 +165,7 @@ attributes.
   * Filter effects via the `filter` tag are not supported (not in Tiny, cf.
      SVG s. 15) 
   * XML namespaces are ignored.
-  * Nested [svg] elements are not supported.
+  * Nested `svg` elements are not supported.
   * Stylesheets:
       * The `style` tag for inline CSS and the `style=` attribute are
         supported to specify node attributes (not in Tiny - cf. s. 6.2).
