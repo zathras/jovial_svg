@@ -266,6 +266,7 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
   void _paintToCanvas(Canvas canvas, Offset offset, Size size) {
     final bounds = offset & size;
     if (_clip) {
+      canvas.save();
       canvas.clipRect(bounds);
     }
     final background = _background;
@@ -298,6 +299,9 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
       if (background != null) {
         canvas.restore();
       }
+    }
+    if (_clip) {
+      canvas.restore();
     }
   }
 }
