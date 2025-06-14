@@ -264,6 +264,11 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
   ) : super._p(key, isComplex, lookup);
 
   void _paintToCanvas(Canvas canvas, Offset offset, Size size) {
+    // We always do a save/restore.  It seems that with at least box painter,
+    // it seems that the Flutter library (surprisingly) fails to do a
+    // save/restore when it calls external code.
+    // cf. https://github.com/zathras/jovial_svg/issues/134
+    canvas.save();
     final bounds = offset & size;
     if (_clip) {
       canvas.clipRect(bounds);
@@ -298,6 +303,7 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
       if (background != null) {
         canvas.restore();
       }
+      canvas.restore();
     }
   }
 }

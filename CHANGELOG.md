@@ -1,3 +1,6 @@
+## [1.1.27] - upcoming
+- Work around platform not calling Canvas.save/restore with BoxPainter  (Issue 134)
+
 ## [1.1.26] - June 2025
 - Implement painting to `Ink` in `ScalableImageWidget` (Issue 124)
 - Fix bug in prepare/unprepare logic when widget's state object reused
