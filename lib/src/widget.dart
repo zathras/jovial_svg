@@ -485,7 +485,13 @@ class _SIBoxPainter extends BoxPainter {
     if (size == null) {
       return;
     }
-    widget._paintToCanvas(canvas, offset, size);
+    if (widget._clip) {
+      canvas.save();
+      widget._paintToCanvas(canvas, offset, size);
+      canvas.restore();
+    } else {
+      widget._paintToCanvas(canvas, offset, size);
+    }
   }
 }
 
