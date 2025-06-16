@@ -265,8 +265,10 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
 
   void _paintToCanvas(Canvas canvas, Offset offset, Size size) {
     // We always do a save/restore.  It seems that with at least box painter,
-    // it seems that the Flutter library (surprisingly) fails to do a
-    // save/restore when it calls external code.
+    // that the Flutter library (surprisingly) doesn't to do a save/restore 
+    // when it calls external code.  This may be intentional; it's not defined
+    // in `BoxPainter.paint`, but apparently some usages of `BoxPainter` _rely_
+    // on stateful side effects to `Canvas` when calling `BoxPainter.paint`.
     // cf. https://github.com/zathras/jovial_svg/issues/134
     canvas.save();
     final bounds = offset & size;
