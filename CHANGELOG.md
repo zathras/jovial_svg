@@ -1,4 +1,4 @@
-## [1.1.27] - upcoming
+## [1.1.27] - June 2025
 - Work around platform not calling Canvas.save/restore with BoxPainter  (Issue 134)
 
 ## [1.1.26] - June 2025
