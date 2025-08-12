@@ -168,6 +168,11 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// [onLoading] is called to give a widget to show while the asset is being
   /// loaded.  It defaults to a 1x1 SizedBox.
   ///
+  /// [onLoaded] is called to give a widget to display a loaded `ScalableImage`.
+  /// If not specified, the result will be equivalent to calling the default
+  /// `ScalableImageWidget` constructor.
+  ///  See https://github.com/zathras/jovial_svg/issues/137
+  ///
   /// [onError] is called to give a widget to show if the asset has failed
   /// loading.  It defaults to onLoading.
   ///
@@ -213,6 +218,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
     ExportedIDLookup? lookup,
     ScalableImageCache? cache,
     Widget Function(BuildContext)? onLoading,
+    Widget Function(BuildContext, ScalableImage)? onLoaded,
     Widget Function(BuildContext)? onError,
     Widget Function(BuildContext, Widget child)? switcher,
     bool useInk = false,
@@ -233,6 +239,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
       scale,
       cache,
       onLoading,
+      onLoaded,
       onError,
       switcher,
       currentColor,
@@ -508,6 +515,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
   final Color? _currentColor;
   final Color? _background;
   final Widget Function(BuildContext) _onLoading;
+  final Widget Function(BuildContext, ScalableImage)? _onLoaded;
   final Widget Function(BuildContext) _onError;
   final Widget Function(BuildContext, Widget child)? _switcher;
 
@@ -521,6 +529,7 @@ class _AsyncSIWidget extends ScalableImageWidget {
     this._scale,
     this._cache,
     this._onLoading,
+    this._onLoaded,
     this._onError,
     this._switcher,
     this._currentColor,
@@ -611,7 +620,10 @@ class _AsyncSIWidgetState extends State<_AsyncSIWidget> {
         si = si.modifyCurrentColor(cc);
         // Very cheap, just one instance creation
       }
-      if (widget._useInk) {
+      final onLoaded = widget._onLoaded;
+      if (onLoaded != null) {
+        result = onLoaded(context, si);
+      } else if (widget._useInk) {
         result = _SyncSIInkWidget(
           null,
           si,

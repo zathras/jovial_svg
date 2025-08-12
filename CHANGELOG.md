@@ -1,3 +1,6 @@
+## [1.1.28] - August 2025
+- Add `onLoaded` builder to async `ScalableImageWidget` (Issue 137)
+
 ## [1.1.27] - June 2025
 - Work around platform not calling Canvas.save/restore with BoxPainter  (Issue 134)
 

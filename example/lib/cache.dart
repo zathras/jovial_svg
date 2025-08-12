@@ -106,6 +106,7 @@ class _HomePageState extends State<HomePage> {
                   scale: 1000,
                   si: ScalableImageSource.fromSvgHttpUrl(widget.svgs[index]),
                   onLoading: _onLoading,
+                  onLoaded: _onLoaded,
                   onError: _onError,
                   switcher: _switcher),
             );
@@ -115,6 +116,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _onLoading(BuildContext context) => Container(
       key: const ValueKey(1), color: Colors.green, width: 500, height: 500);
+  Widget _onLoaded(BuildContext context, ScalableImage si) =>
+      ScalableImageWidget(si: si, scale: 1000);
   Widget _onError(BuildContext context) =>
       Container(key: const ValueKey(2), color: Colors.red);
   Widget _switcher(BuildContext context, Widget child) => AnimatedSwitcher(
