@@ -136,7 +136,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
   /// production application, pre-loading the [ScalableImage] and using
-  /// the default constructor is usually preferable, because the
+  /// the default constructor [ScalableImageWidget.new]
+  /// is usually preferable, because the
   /// asynchronous loading that is necessary with an asynchronous
   /// source might cause a momentary flash.  If the widget is frequently
   /// rebuilt, it is generally recommended to provide a [cache] with an
@@ -169,8 +170,8 @@ abstract class ScalableImageWidget extends StatefulWidget {
   /// loaded.  It defaults to a 1x1 SizedBox.
   ///
   /// [onLoaded] is called to give a widget to display a loaded `ScalableImage`.
-  /// If not specified, the result will be equivalent to calling the default
-  /// `ScalableImageWidget` constructor.
+  /// If not specified, the result will be equivalent to calling
+  /// [ScalableImageWidget.new].
   ///  See https://github.com/zathras/jovial_svg/issues/137
   ///
   /// [onError] is called to give a widget to show if the asset has failed
