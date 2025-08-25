@@ -235,28 +235,24 @@ class _DemoScreenState extends State<DemoScreen> {
                         onChanged: _setType,
                         child: Row(children: [
                           const Text('SI', style: TextStyle()),
-                          const Radio(
-                              value: AssetType.si),
+                          const Radio(value: AssetType.si),
                           const Spacer(),
                           const Text('Compact', style: TextStyle()),
-                          const Radio(
-                              value: AssetType.compact),
+                          const Radio(value: AssetType.compact),
                           const Spacer(),
                           Text('SVG',
                               style: (asset.svg == null)
                                   ? const TextStyle(color: Colors.grey)
                                   : const TextStyle()),
                           Radio(
-                              value: AssetType.svg,
-                              enabled: asset.svg != null),
+                              value: AssetType.svg, enabled: asset.svg != null),
                           const Spacer(),
                           Text('AVD',
                               style: (asset.avd == null)
                                   ? const TextStyle(color: Colors.grey)
                                   : const TextStyle()),
                           Radio(
-                              value: AssetType.avd,
-                              enabled: asset.avd != null),
+                              value: AssetType.avd, enabled: asset.avd != null),
                         ]),
                       )),
                   const SizedBox(width: 10),
