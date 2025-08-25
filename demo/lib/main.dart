@@ -230,37 +230,35 @@ class _DemoScreenState extends State<DemoScreen> {
                   const SizedBox(width: 15),
                   SizedBox(
                       width: 265,
-                      child: Row(children: [
-                        const Text('SI', style: TextStyle()),
-                        Radio(
-                            value: AssetType.si,
-                            groupValue: assetType,
-                            onChanged: _setType),
-                        const Spacer(),
-                        const Text('Compact', style: TextStyle()),
-                        Radio(
-                            value: AssetType.compact,
-                            groupValue: assetType,
-                            onChanged: _setType),
-                        const Spacer(),
-                        Text('SVG',
-                            style: (asset.svg == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
-                        Radio(
-                            value: AssetType.svg,
-                            groupValue: assetType,
-                            onChanged: asset.svg == null ? null : _setType),
-                        const Spacer(),
-                        Text('AVD',
-                            style: (asset.avd == null)
-                                ? const TextStyle(color: Colors.grey)
-                                : const TextStyle()),
-                        Radio(
-                            value: AssetType.avd,
-                            groupValue: assetType,
-                            onChanged: asset.avd == null ? null : _setType),
-                      ])),
+                      child: RadioGroup(
+                        groupValue: assetType,
+                        onChanged: _setType,
+                        child: Row(children: [
+                          const Text('SI', style: TextStyle()),
+                          const Radio(
+                              value: AssetType.si),
+                          const Spacer(),
+                          const Text('Compact', style: TextStyle()),
+                          const Radio(
+                              value: AssetType.compact),
+                          const Spacer(),
+                          Text('SVG',
+                              style: (asset.svg == null)
+                                  ? const TextStyle(color: Colors.grey)
+                                  : const TextStyle()),
+                          Radio(
+                              value: AssetType.svg,
+                              enabled: asset.svg != null),
+                          const Spacer(),
+                          Text('AVD',
+                              style: (asset.avd == null)
+                                  ? const TextStyle(color: Colors.grey)
+                                  : const TextStyle()),
+                          Radio(
+                              value: AssetType.avd,
+                              enabled: asset.avd != null),
+                        ]),
+                      )),
                   const SizedBox(width: 10),
                   SizedBox(
                       width: 300,
