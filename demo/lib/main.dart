@@ -63,8 +63,11 @@ Future<void> main() async {
     // SI is required to always be there.
     assets.add(Asset(svg: svg, avd: avd, si: si, siIDs: siIDs));
   }
-  final firstSI =
-      await assets[0].forType(assets[0].defaultType, rootBundle, false);
+  final firstSI = await assets[0].forType(
+    assets[0].defaultType,
+    rootBundle,
+    false,
+  );
   await (firstSI.prepareImages());
   runApp(Demo(assets, firstSI));
 }
@@ -83,24 +86,26 @@ class Demo extends StatelessWidget {
         primarySwatch: Colors.deepPurple, // Not quite Sun purple, but it'll do
       ),
       home: DemoScreen(
-          title: 'Jovial SVG Demo',
-          bundle: rootBundle,
-          // Normally, DefaultAssetBundle.of(context), but since we get
-          // the manifest from rootBundle, it makes sense to just hard-wire
-          // that in.
-          assets: assets,
-          firstSI: firstSI),
+        title: 'Jovial SVG Demo',
+        bundle: rootBundle,
+        // Normally, DefaultAssetBundle.of(context), but since we get
+        // the manifest from rootBundle, it makes sense to just hard-wire
+        // that in.
+        assets: assets,
+        firstSI: firstSI,
+      ),
     );
   }
 }
 
 class DemoScreen extends StatefulWidget {
-  const DemoScreen(
-      {super.key,
-      required this.title,
-      required this.bundle,
-      required this.assets,
-      required this.firstSI});
+  const DemoScreen({
+    super.key,
+    required this.title,
+    required this.bundle,
+    required this.assets,
+    required this.firstSI,
+  });
 
   final String title;
   final List<Asset> assets;
@@ -152,9 +157,10 @@ class _DemoScreenState extends State<DemoScreen> {
           error = 'Empty clipboard';
         } else {
           final newSI = await ScalableImage.fromSvgHttpUrl(
-              Uri.parse(url.trim()),
-              warnF: (s) => debugPrint('Warning:  $s'),
-              exportedIDs: [RegExp(r'.*')]);
+            Uri.parse(url.trim()),
+            warnF: (s) => debugPrint('Warning:  $s'),
+            exportedIDs: [RegExp(r'.*')],
+          );
           await newSI.prepareImages();
           setState(() {
             demoIDs = true;
@@ -188,156 +194,193 @@ class _DemoScreenState extends State<DemoScreen> {
   Widget build(BuildContext context) {
     final asset = assets[assetIndex];
     return Scaffold(
-        appBar: AppBar(
-            leading: RepaintBoundary(
-                child: ScalableImageWidget.fromSISource(
-                    si: ScalableImageSource.fromSI(
-                        DefaultAssetBundle.of(context),
-                        'assets/other/jupiter.si',
-                        currentColor: Colors.blue.shade700))),
-            title: Text('${widget.title} - $assetName')),
-        body: Column(children: [
+      appBar: AppBar(
+        leading: RepaintBoundary(
+          child: ScalableImageWidget.fromSISource(
+            si: ScalableImageSource.fromSI(
+              DefaultAssetBundle.of(context),
+              'assets/other/jupiter.si',
+              currentColor: Colors.blue.shade700,
+            ),
+          ),
+        ),
+        title: Text('${widget.title} - $assetName'),
+      ),
+      body: Column(
+        children: [
           const SizedBox(height: 5),
           Center(
             child: Wrap(
-                spacing: 10,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const SizedBox(width: 0),
-                  SizedBox(
-                      width: 150,
-                      child: Row(children: [
-                        ElevatedButton(
-                          onPressed: (assetIndex > 0)
-                              ? () {
-                                  assetIndex--;
-                                  _setType(assets[assetIndex].defaultType);
-                                }
-                              : null,
-                          child: const Icon(Icons.arrow_left),
-                        ),
+              spacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                const SizedBox(width: 0),
+                SizedBox(
+                  width: 150,
+                  child: Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: (assetIndex > 0)
+                            ? () {
+                                assetIndex--;
+                                _setType(assets[assetIndex].defaultType);
+                              }
+                            : null,
+                        child: const Icon(Icons.arrow_left),
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: (assetIndex + 1 < assets.length)
+                            ? () {
+                                assetIndex++;
+                                _setType(assets[assetIndex].defaultType);
+                              }
+                            : null,
+                        child: const Icon(Icons.arrow_right),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 15),
+                SizedBox(
+                  width: 265,
+                  child: RadioGroup(
+                    groupValue: assetType,
+                    onChanged: _setType,
+                    child: Row(
+                      children: [
+                        const Text('SI', style: TextStyle()),
+                        const Radio(value: AssetType.si),
                         const Spacer(),
-                        ElevatedButton(
-                          onPressed: (assetIndex + 1 < assets.length)
-                              ? () {
-                                  assetIndex++;
-                                  _setType(assets[assetIndex].defaultType);
-                                }
-                              : null,
-                          child: const Icon(Icons.arrow_right),
+                        const Text('Compact', style: TextStyle()),
+                        const Radio(value: AssetType.compact),
+                        const Spacer(),
+                        Text(
+                          'SVG',
+                          style: (asset.svg == null)
+                              ? const TextStyle(color: Colors.grey)
+                              : const TextStyle(),
                         ),
-                      ])),
-                  const SizedBox(width: 15),
-                  SizedBox(
-                      width: 265,
-                      child: RadioGroup(
-                        groupValue: assetType,
-                        onChanged: _setType,
-                        child: Row(children: [
-                          const Text('SI', style: TextStyle()),
-                          const Radio(value: AssetType.si),
-                          const Spacer(),
-                          const Text('Compact', style: TextStyle()),
-                          const Radio(value: AssetType.compact),
-                          const Spacer(),
-                          Text('SVG',
-                              style: (asset.svg == null)
-                                  ? const TextStyle(color: Colors.grey)
-                                  : const TextStyle()),
-                          Radio(
-                              value: AssetType.svg, enabled: asset.svg != null),
-                          const Spacer(),
-                          Text('AVD',
-                              style: (asset.avd == null)
-                                  ? const TextStyle(color: Colors.grey)
-                                  : const TextStyle()),
-                          Radio(
-                              value: AssetType.avd, enabled: asset.avd != null),
-                        ]),
-                      )),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                      width: 300,
-                      child: Row(children: [
-                        Slider(
-                          min: -8,
-                          max: 8,
-                          value: _fitToScreen ? 0 : _scale,
-                          onChanged: _fitToScreen
-                              ? null
-                              : (double v) {
-                                  setState(() {
-                                    _scale = v;
-                                  });
-                                },
+                        Radio(value: AssetType.svg, enabled: asset.svg != null),
+                        const Spacer(),
+                        Text(
+                          'AVD',
+                          style: (asset.avd == null)
+                              ? const TextStyle(color: Colors.grey)
+                              : const TextStyle(),
                         ),
-                        _fitToScreen
-                            ? const Text('')
-                            : Text(
-                                'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
-                                textAlign: TextAlign.left),
-                      ])),
-                  SizedBox(
-                      width: 140,
-                      child: Row(children: [
-                        const Text('Fit to screen:  '),
-                        Checkbox(
-                            value: _fitToScreen,
-                            onChanged: (_) => setState(() {
-                                  _fitToScreen = !_fitToScreen;
-                                })),
-                      ])),
-                  SizedBox(
-                      width: 140,
-                      child: Row(children: [
-                        const Text('Zoom/Prune'),
-                        Checkbox(
-                            value: _originalViewport != null,
-                            onChanged: (_) => _changeZoomPrune())
-                      ])),
-                  SizedBox(
-                      width: 120,
-                      child: Row(children: [
-                        const Text('IDs'),
-                        Checkbox(
-                            value: demoIDs,
-                            onChanged: (_) =>
-                                _setType(assetType, newDemoIDs: !demoIDs))
-                      ])),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: assets[assetIndex].svg == null
-                        ? null
-                        : () {
-                            _launch(assets[assetIndex].svg!);
-                          },
-                    child: const Text('Browser'),
+                        Radio(value: AssetType.avd, enabled: asset.avd != null),
+                      ],
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      _pasteURL(context);
-                    },
-                    child: const Text('Paste URL'),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 300,
+                  child: Row(
+                    children: [
+                      Slider(
+                        min: -8,
+                        max: 8,
+                        value: _fitToScreen ? 0 : _scale,
+                        onChanged: _fitToScreen
+                            ? null
+                            : (double v) {
+                                setState(() {
+                                  _scale = v;
+                                });
+                              },
+                      ),
+                      _fitToScreen
+                          ? const Text('')
+                          : Text(
+                              'Scale:  ${_multiplier.toStringAsFixed(3)}  ',
+                              textAlign: TextAlign.left,
+                            ),
+                    ],
                   ),
-                ]),
+                ),
+                SizedBox(
+                  width: 140,
+                  child: Row(
+                    children: [
+                      const Text('Fit to screen:  '),
+                      Checkbox(
+                        value: _fitToScreen,
+                        onChanged: (_) => setState(() {
+                          _fitToScreen = !_fitToScreen;
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 140,
+                  child: Row(
+                    children: [
+                      const Text('Zoom/Prune'),
+                      Checkbox(
+                        value: _originalViewport != null,
+                        onChanged: (_) => _changeZoomPrune(),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 120,
+                  child: Row(
+                    children: [
+                      const Text('IDs'),
+                      Checkbox(
+                        value: demoIDs,
+                        onChanged: (_) =>
+                            _setType(assetType, newDemoIDs: !demoIDs),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: assets[assetIndex].svg == null
+                      ? null
+                      : () {
+                          _launch(assets[assetIndex].svg!);
+                        },
+                  child: const Text('Browser'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    _pasteURL(context);
+                  },
+                  child: const Text('Paste URL'),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
           Expanded(
-              child: _maybeScrolling(si == null
+            child: _maybeScrolling(
+              si == null
                   ? Text(errorMessage ?? '???')
                   : RepaintBoundary(
                       child: GestureDetector(
-                          onTapDown: _handleTapDown,
-                          child: ScalableImageWidget(
-                              si: si!,
-                              key: _siWidgetKey,
-                              lookup: _idLookup,
-                              alignment: Alignment.center,
-                              scale:
-                                  _fitToScreen ? double.infinity : _multiplier,
-                              background: Colors.white)))))
-        ]));
+                        onTapDown: _handleTapDown,
+                        child: ScalableImageWidget(
+                          si: si!,
+                          key: _siWidgetKey,
+                          lookup: _idLookup,
+                          alignment: Alignment.center,
+                          scale: _fitToScreen ? double.infinity : _multiplier,
+                          background: Colors.white,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleTapDown(TapDownDetails event) {
@@ -413,45 +456,48 @@ class _DemoScreenState extends State<DemoScreen> {
       //
       // cf. https://github.com/flutter/flutter/issues/83628
       return Container(
-          padding: const EdgeInsets.all(5),
-          child: InteractiveViewer(
-              key: ValueKey((_scale, si)),
-              constrained: false,
-              scaleEnabled: false,
-              panEnabled: true,
-              child: scrollee));
+        padding: const EdgeInsets.all(5),
+        child: InteractiveViewer(
+          key: ValueKey((_scale, si)),
+          constrained: false,
+          scaleEnabled: false,
+          panEnabled: true,
+          child: scrollee,
+        ),
+      );
     }
   }
 
   void _changeZoomPrune() => unawaited(() async {
-        final ScalableImage? oldSI = si;
-        Rect? vp = _originalViewport;
-        if (oldSI == null) {
-          return;
-        }
-        final ScalableImage newSI;
-        final Rect? nextOriginalViewport;
-        print('    Original size:  ${oldSI.debugSizeMessage()}');
-        if (vp != null) {
-          newSI = oldSI.withNewViewport(vp); // Restore original viewport
-          nextOriginalViewport = null;
-        } else {
-          nextOriginalViewport = vp = oldSI.viewport;
-          // Card height/width:
-          final ch = vp.height / 5;
-          final cw = vp.width / 13;
-          newSI = oldSI.withNewViewport(
-              Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
-              prune: true);
-        }
-        print('         New size:  ${newSI.debugSizeMessage()}');
-        await newSI.prepareImages();
-        oldSI.unprepareImages();
-        setState(() {
-          si = newSI;
-          _originalViewport = nextOriginalViewport;
-        });
-      }());
+    final ScalableImage? oldSI = si;
+    Rect? vp = _originalViewport;
+    if (oldSI == null) {
+      return;
+    }
+    final ScalableImage newSI;
+    final Rect? nextOriginalViewport;
+    print('    Original size:  ${oldSI.debugSizeMessage()}');
+    if (vp != null) {
+      newSI = oldSI.withNewViewport(vp); // Restore original viewport
+      nextOriginalViewport = null;
+    } else {
+      nextOriginalViewport = vp = oldSI.viewport;
+      // Card height/width:
+      final ch = vp.height / 5;
+      final cw = vp.width / 13;
+      newSI = oldSI.withNewViewport(
+        Rect.fromLTWH(9 * cw, 2 * ch, 3 * cw, ch),
+        prune: true,
+      );
+    }
+    print('         New size:  ${newSI.debugSizeMessage()}');
+    await newSI.prepareImages();
+    oldSI.unprepareImages();
+    setState(() {
+      si = newSI;
+      _originalViewport = nextOriginalViewport;
+    });
+  }());
 }
 
 enum AssetType { si, compact, svg, avd }
