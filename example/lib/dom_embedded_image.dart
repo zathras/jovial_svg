@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Embedded image missing',
       debugShowCheckedModeBanner: false,
       home: _img == null
-          ? Text("Error loading SVG")
+          ? const Text("Error loading SVG")
           : GestureDetector(
               onTap: _handleTap,
               child: ScalableImageWidget(
