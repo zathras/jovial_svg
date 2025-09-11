@@ -964,7 +964,7 @@ class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
   List<SIImage> convertImages(List<SIImageData> images) =>
       List<SIImage>.generate(
         images.length,
-        (i) => SIImage(images[i]),
+        (i) => _daggerize(SIImage(images[i])),
         growable: false,
       );
 

@@ -360,6 +360,9 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
     if (old._si != widget._si || _painter._preparing) {
       // If it's a different si, we need to prepare.  If it's the same but
       // images are still loading, we need the callback when it's done.
+      if (!_painter._preparing) {
+        _painter = _newPainter(widget, true);
+      }
       _registerWithFuture(widget._si.prepareImages());
       old._si.unprepareImages();
     }
@@ -404,7 +407,7 @@ class _SICustomPainter extends CustomPainter {
   @override
   bool shouldRepaint(_SICustomPainter oldDelegate) =>
       _preparing != oldDelegate._preparing ||
-      _widget._si != oldDelegate._widget._si ||
+      !identical(_widget._si, oldDelegate._widget._si) ||
       _widget._fit != oldDelegate._widget._fit ||
       _widget._alignment.x != oldDelegate._widget._alignment.x ||
       _widget._alignment.y != oldDelegate._widget._alignment.y ||
