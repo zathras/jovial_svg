@@ -87,20 +87,8 @@ class TestApp extends StatelessWidget {
         ),
       ),
       ScalableImageWidget.fromSISource(
-        si: ScalableImageSource.fromSvgHttpUrl(
-          Uri.parse('https://jovial.com/images/jupiter.svg'),
-          warnF: _noWarn,
-        ),
-      ),
-      ScalableImageWidget.fromSISource(
         si: ScalableImageSource.fromAvdHttpUrl(
           Uri.dataFromString(simpleAVD),
-          warnF: _noWarn,
-        ),
-      ),
-      ScalableImageWidget.fromSISource(
-        si: ScalableImageSource.fromSvgHttpUrl(
-          Uri.parse('https://jovial.com/images/jupiter.svg'),
           warnF: _noWarn,
         ),
       ),
