@@ -977,6 +977,8 @@ class SIImage extends SIRenderable {
 
   void unprepare() => loader.unprepare();
 
+  bool get isLoaded => loader._decoded != null;
+
   @override
   void paint(Canvas c, Color currentColor) => loader.paint(c);
 

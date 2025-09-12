@@ -1,6 +1,7 @@
-## [1.1.28] - August 2025
+## [1.1.28] - September 2025
 - Add `onLoaded` builder to async `ScalableImageWidget` (Issue 137)
 - Fixed bug with widget repaint and embedded images/canonicalization (Issue 138)
+- Add `ScalableImage.imagesAreLoaded`; optimize widget display
 
 ## [1.1.27] - June 2025
 - Work around platform not calling Canvas.save/restore with BoxPainter  (Issue 134)

@@ -725,6 +725,8 @@ abstract class ScalableImage {
   /// [prepareImages] each time a new [ScalableImage] is created, and
   /// [unprepareImages] when the [ScalableImage] is no longer needed.
   ///
+  /// See also [imagesAreLoaded].
+  ///
   Future<void> prepareImages();
 
   ///
@@ -738,6 +740,15 @@ abstract class ScalableImage {
   /// See also [imageDisposeBugWorkaround].
   ///
   void unprepareImages();
+
+  ///
+  /// Return true if all embedded images have been loaded.  If there are no
+  /// embedded images, return true.  If true, Client code is expected to call
+  /// [prepareImages] and, later, [unprepareImages] as normal, but when this
+  /// method returns true, there is no need to await the [Future] returned
+  /// by [prepareImages].
+  ///
+  bool get imagesAreLoaded;
 
   ///
   /// Paint this ScalableImage to the canvas c.  This method saves the
@@ -863,6 +874,16 @@ abstract class ScalableImageBase extends ScalableImage {
     for (final im in images) {
       im.unprepare();
     }
+  }
+
+  @override
+  bool get imagesAreLoaded {
+    for (final im in images) {
+      if (!im.isLoaded) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override

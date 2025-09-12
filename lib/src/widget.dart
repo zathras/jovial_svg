@@ -347,9 +347,15 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
   @override
   void initState() {
     super.initState();
-    _painter = _newPainter(widget, true);
+    final si = widget._si;
+    bool loaded = si.imagesAreLoaded;
+    _painter = _newPainter(widget, !loaded);
     _preferredSize = _newSize(widget);
-    _registerWithFuture(widget._si.prepareImages());
+    if (loaded) {
+      unawaited(si.prepareImages());
+    } else {
+      _registerWithFuture(si.prepareImages());
+    }
   }
 
   @override
@@ -357,13 +363,25 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
     super.didUpdateWidget(old);
     _painter = _newPainter(widget, _painter._preparing);
     _preferredSize = _newSize(widget);
-    if (old._si != widget._si || _painter._preparing) {
+    final newSI = widget._si;
+    if (old._si != newSI || _painter._preparing) {
       // If it's a different si, we need to prepare.  If it's the same but
       // images are still loading, we need the callback when it's done.
-      if (!_painter._preparing) {
-        _painter = _newPainter(widget, true);
+      bool loaded = newSI.imagesAreLoaded;
+      if (!loaded) {
+        if (!_painter._preparing) {
+          _painter = _newPainter(widget, true);
+        }
+        _registerWithFuture(newSI.prepareImages());
+      } else {
+        // Optimization:  Avoid a potential second display in the normal case
+        // with no images to prepare.
+        if (_painter._preparing) {
+          // completed but not notified yet
+          _painter = _newPainter(widget, false);
+        }
+        unawaited(newSI.prepareImages());
       }
-      _registerWithFuture(widget._si.prepareImages());
       old._si.unprepareImages();
     }
   }
@@ -407,7 +425,7 @@ class _SICustomPainter extends CustomPainter {
   @override
   bool shouldRepaint(_SICustomPainter oldDelegate) =>
       _preparing != oldDelegate._preparing ||
-      !identical(_widget._si, oldDelegate._widget._si) ||
+      _widget._si != oldDelegate._widget._si ||
       _widget._fit != oldDelegate._widget._fit ||
       _widget._alignment.x != oldDelegate._widget._alignment.x ||
       _widget._alignment.y != oldDelegate._widget._alignment.y ||
