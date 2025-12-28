@@ -120,8 +120,8 @@ The bounding rectangles can be compared with the location of a mouse click
 or touch event to determine which node was rendered at the given point.
 See the `ExportedID` class for details.
 
-A document object model (DOM) API is provided to programmatically modify an
-SVG asset.  Using it, Dart code can change rendering atributes like color,
+A Dart document object model (DOM) API is provided to programmatically modify 
+an SVG asset.  Using it, Dart code can change rendering atributes like color,
 line width, font and many others.  It can also add or remove nodes from
 the in-memory graph that represents the asset.  These modifications can 
 be done repeatedly to achieve animation.
@@ -159,7 +159,9 @@ attributes.
   * Non-scaling stroke is not supported (not in SVG 1.1; cf. Tiny 11.5)
   * Constrained transformations are not supported (not in SVG 1.1;
      cf. Tiny 7.7)
-  * A DOM and other features related to animation are not supported.
+  * A JavaScript DOM, JavaScript and other features related to standard 
+    SVG animation are not supported.  However, see "Animation and Interactivity"
+    above.
   * Conditional processing (Tiny s. 5.8) is not supported
   * The `clipPath` SVG element is supported (not in Tiny, cf. SVG 1.1 14.3.5).
   * Filter effects via the `filter` tag are not supported (not in Tiny, cf.
