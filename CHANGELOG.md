@@ -1,3 +1,6 @@
+## [1.1.29] - February 2026
+- Update dependencies
+
 ## [1.1.28] - September 2025
 - Add `onLoaded` builder to async `ScalableImageWidget` (Issue 137)
 - Fixed bug with widget repaint and embedded images/canonicalization (Issue 138)
