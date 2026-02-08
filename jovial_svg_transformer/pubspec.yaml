@@ -12,8 +12,8 @@ environment:
   sdk: ^3.4.0
 
 dependencies:
-  jovial_svg: ^1.1.24-rc.1
-  jovial_misc: ^0.10.0
+  jovial_svg: ^1.1.24
+  jovial_misc: ^0.9.0
   args: ^2.0.0
 
 dev_dependencies:
