@@ -99,14 +99,14 @@ class ScalableImageCompact extends ScalableImageBase
     required this.transforms,
     required Rect? givenViewport,
   }) : super(
-          width,
-          height,
-          tintColor,
-          tintMode,
-          givenViewport,
-          images,
-          currentColor,
-        );
+         width,
+         height,
+         tintColor,
+         tintMode,
+         givenViewport,
+         images,
+         currentColor,
+       );
 
   @override
   ScalableImageCompact withNewViewport(
@@ -211,8 +211,8 @@ class ScalableImageCompact extends ScalableImageBase
   @override
   int? get currentColorARGB =>
       currentColor == ScalableImageBase.defaultCurrentColor
-          ? null
-          : currentColor.valueARGB;
+      ? null
+      : currentColor.valueARGB;
 
   @override
   RectT? get givenViewportNoUI => convertRectToRectT(givenViewport);
@@ -234,23 +234,21 @@ class ScalableImageCompact extends ScalableImageBase
 
   CompactTraverser<R, SIImage> makeTraverser<R>(
     SIVisitor<CompactChildData, SIImage, R> visitor,
-  ) =>
-      CompactTraverser<R, SIImage>(
-        fileVersion: fileVersion,
-        bigFloats: bigFloats,
-        strings: strings,
-        floatLists: floatLists,
-        stringLists:
-            (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
-        floatValues: floatValues,
-        images: images,
-        visiteeChildren: children,
-        visiteeArgs: args,
-        visiteeTransforms: transforms,
-        visiteeNumPaths: numPaths,
-        visiteeNumPaints: numPaints,
-        visitor: visitor,
-      );
+  ) => CompactTraverser<R, SIImage>(
+    fileVersion: fileVersion,
+    bigFloats: bigFloats,
+    strings: strings,
+    floatLists: floatLists,
+    stringLists: (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
+    floatValues: floatValues,
+    images: images,
+    visiteeChildren: children,
+    visiteeArgs: args,
+    visiteeTransforms: transforms,
+    visiteeNumPaths: numPaths,
+    visiteeNumPaints: numPaints,
+    visitor: visitor,
+  );
 
   @override
   ScalableImageDag toDag() {
@@ -291,11 +289,10 @@ class ScalableImageCompact extends ScalableImageBase
   static ScalableImageCompact fromByteData(
     ByteData data, {
     Color? currentColor,
-  }) =>
-      fromBytes(
-        Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
-        currentColor: currentColor,
-      );
+  }) => fromBytes(
+    Uint8List.view(data.buffer, data.offsetInBytes, data.lengthInBytes),
+    currentColor: currentColor,
+  );
 
   static ScalableImageCompact fromBytes(Uint8List data, {Color? currentColor}) {
     final dis = ByteBufferDataInputStream(data, Endian.big);
@@ -489,9 +486,7 @@ class _RenderContext {
     this.transform,
   }) : currentColor = currentColor ?? parent.currentColor;
 
-  _RenderContext.root(this.currentColor)
-      : parent = null,
-        transform = null;
+  _RenderContext.root(this.currentColor) : parent = null, transform = null;
 
   PruningBoundary? transformBoundaryFromChildren(PruningBoundary? b) =>
       Transformer.transformBoundaryFromChildren(transform, b);
@@ -606,8 +601,12 @@ class _PaintingVisitor extends _CompactVisitor<void>
     with SIGroupHelper, SIMaskedHelper, SITextHelper<void> {
   final Canvas canvas;
   List<_MaskStackEntry>? _maskStack;
-  late final CompactTraverserBase<void, SIImage,
-      SIVisitor<CompactChildData, SIImage, void>> traverser;
+  late final CompactTraverserBase<
+    void,
+    SIImage,
+    SIVisitor<CompactChildData, SIImage, void>
+  >
+  traverser;
 
   _PaintingVisitor(this.canvas, _RenderContext context) : super(context);
 
@@ -721,8 +720,8 @@ class _LumaTraverser
   int assertEndPosition = -1;
 
   _LumaTraverser(super.parent, super.visitor)
-      : _startGroupDepth = parent.groupDepth,
-        super.clone();
+    : _startGroupDepth = parent.groupDepth,
+      super.clone();
 
   void traverseLuma() {
     active = true;
@@ -757,16 +756,16 @@ class _PruningVisitor extends _CompactVisitor<PruningBoundary?>
     double? height,
     Rect? givenViewport,
     this._boundary,
-  )   : builder = _PruningBuilder(
-          si.bigFloats,
-          ByteSink(),
-          (si.bigFloats) ? Float64Sink() : Float32Sink(),
-          (si.bigFloats) ? Float64Sink() : Float32Sink(),
-          givenViewport,
-          currentColor: si.currentColor,
-          warn: _noWarn,
-        ),
-        super(_RenderContext.root(Colors.black)) {
+  ) : builder = _PruningBuilder(
+        si.bigFloats,
+        ByteSink(),
+        (si.bigFloats) ? Float64Sink() : Float32Sink(),
+        (si.bigFloats) ? Float64Sink() : Float32Sink(),
+        givenViewport,
+        currentColor: si.currentColor,
+        warn: _noWarn,
+      ),
+      super(_RenderContext.root(Colors.black)) {
     builder.initFloatValueMap(_theCanon.floatValues);
     builder.vector(
       width: width,
@@ -959,13 +958,13 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
     required void Function(String) warn,
     required this.currentColor,
   }) : super(
-          bigFloats,
-          childrenSink,
-          DataOutputSink(childrenSink, Endian.little),
-          args,
-          transforms,
-          warn: warn,
-        );
+         bigFloats,
+         childrenSink,
+         DataOutputSink(childrenSink, Endian.little),
+         args,
+         transforms,
+         warn: warn,
+       );
 
   @override
   void init(
@@ -1298,7 +1297,7 @@ class _ExportedIDVisitor extends _BoundaryVisitor {
   _ExportedIDContext eContext;
 
   _ExportedIDVisitor(this.result, Affine xform)
-      : eContext = _ExportedIDContext(null, null, xform);
+    : eContext = _ExportedIDContext(null, null, xform);
 
   @override
   PruningBoundary? exportedID(PruningBoundary? start, int idIndex) {
@@ -1401,13 +1400,13 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
     required void Function(String) warn,
     this.currentColor,
   }) : super(
-          bigFloats,
-          childrenSink,
-          DataOutputSink(childrenSink, Endian.little),
-          args,
-          transforms,
-          warn: warn,
-        );
+         bigFloats,
+         childrenSink,
+         DataOutputSink(childrenSink, Endian.little),
+         args,
+         transforms,
+         warn: warn,
+       );
 
   factory SICompactBuilder({
     required bool bigFloats,

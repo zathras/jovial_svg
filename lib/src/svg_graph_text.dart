@@ -67,15 +67,15 @@ class SvgText extends SvgInheritableAttributesNode {
   /// processing the text element in the production of a `ScalableImage`.
   ///
   SvgText({void Function(String)? warn})
-      : _warn = warn ?? nullWarn,
-        super._p() {
+    : _warn = warn ?? nullWarn,
+      super._p() {
     root.x = root.y = const [0.0];
   }
 
   SvgText._cloned(SvgText super.other)
-      : root = other.root._clone(null),
-        _warn = other._warn,
-        super._cloned();
+    : root = other.root._clone(null),
+      _warn = other._warn,
+      super._cloned();
 
   @override
   SvgText _clone() => SvgText._cloned(this);
@@ -238,12 +238,12 @@ class SvgTextSpan extends SvgInheritableTextAttributes
   SvgTextSpan(this.tagName) : super._p();
 
   SvgTextSpan._cloned(SvgTextSpan other)
-      : x = other.x,
-        y = other.y,
-        dx = other.dx,
-        dy = other.dy,
-        tagName = other.tagName,
-        super._cloned(other) {
+    : x = other.x,
+      y = other.y,
+      dx = other.dx,
+      dy = other.dy,
+      tagName = other.tagName,
+      super._cloned(other) {
     parts.addAll(other.parts.map((p) => p._clone(this)));
   }
 
@@ -317,20 +317,20 @@ class _FlattenContext {
   final SvgPaint paint;
 
   _FlattenContext(_FlattenContext ancestor, SvgTextSpan span, _WarnT warn)
-      : x = _FCNumberSource.createOr(span.x, ancestor.x),
-        y = _FCNumberSource.createOr(span.y, ancestor.y),
-        dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
-        dy = _FCNumberSource.createOr(span.dy, ancestor.dy),
-        ta = span.textStyle._cascade(ancestor.ta),
-        paint = span.paint._cascade(ancestor.paint, null, warn);
+    : x = _FCNumberSource.createOr(span.x, ancestor.x),
+      y = _FCNumberSource.createOr(span.y, ancestor.y),
+      dx = _FCNumberSource.createOr(span.dx, ancestor.dx),
+      dy = _FCNumberSource.createOr(span.dy, ancestor.dy),
+      ta = span.textStyle._cascade(ancestor.ta),
+      paint = span.paint._cascade(ancestor.paint, null, warn);
 
   _FlattenContext.empty()
-      : x = _FCNumberSource.root(),
-        y = _FCNumberSource.root(),
-        dx = _FCNumberSource.root(),
-        dy = _FCNumberSource.root(),
-        ta = SvgTextStyle.empty(),
-        paint = SvgPaint.empty();
+    : x = _FCNumberSource.root(),
+      y = _FCNumberSource.root(),
+      dx = _FCNumberSource.root(),
+      dy = _FCNumberSource.root(),
+      ta = SvgTextStyle.empty(),
+      paint = SvgPaint.empty();
 
   double? pull(_FCNumberSource s) {
     assert(s == x || s == y || s == dx || s == dy);
@@ -364,9 +364,9 @@ class _FCNumberSource {
   }
 
   _FCNumberSource.root()
-      : numbers = null,
-        ancestor = null,
-        last = _FCLastValue();
+    : numbers = null,
+      ancestor = null,
+      last = _FCLastValue();
 
   double? pullNext() {
     final double? av = ancestor?.pullNext();

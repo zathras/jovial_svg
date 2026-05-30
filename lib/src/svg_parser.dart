@@ -471,7 +471,8 @@ abstract class SvgParser extends GenericParser {
     image.y = getFloat(attrs.remove('y'), percent: _heightPercent) ?? image.y;
     image.width =
         getFloat(attrs.remove('width'), percent: _widthPercent) ?? image.width;
-    image.height = getFloat(attrs.remove('height'), percent: _heightPercent) ??
+    image.height =
+        getFloat(attrs.remove('height'), percent: _heightPercent) ??
         image.height;
     String? data = attrs.remove('href');
     if (data != null) {
@@ -537,8 +538,9 @@ abstract class SvgParser extends GenericParser {
     final y1 = _getCoordinate(attrs.remove('y1'));
     final y2 = _getCoordinate(attrs.remove('y2'));
     final sgu = attrs.remove('gradientunits');
-    final bool? objectBoundingBox =
-        (sgu == null) ? null : sgu != 'userSpaceOnUse';
+    final bool? objectBoundingBox = (sgu == null)
+        ? null
+        : sgu != 'userSpaceOnUse';
     final MutableAffine? transform = getTransform(
       null,
       attrs.remove('gradienttransform'),
@@ -572,8 +574,9 @@ abstract class SvgParser extends GenericParser {
     final fy = _getCoordinate(attrs.remove('fy'));
     final r = _getCoordinate(attrs.remove('r'));
     final sgu = attrs.remove('gradientunits');
-    final bool? objectBoundingBox =
-        (sgu == null) ? null : sgu != 'userSpaceOnUse';
+    final bool? objectBoundingBox = (sgu == null)
+        ? null
+        : sgu != 'userSpaceOnUse';
     final MutableAffine? transform = getTransform(
       null,
       attrs.remove('gradienttransform'),

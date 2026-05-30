@@ -24,8 +24,11 @@ class ToSI {
   final List<Pattern> _exportedIds = List.empty(growable: true);
   bool _parseAVD = false;
 
-  void _parse(String src, SIBuilder<String, SIImageData> builder,
-      void Function(String) warn) {
+  void _parse(
+    String src,
+    SIBuilder<String, SIImageData> builder,
+    void Function(String) warn,
+  ) {
     if (_parseAVD) {
       StringAvdParser(src, builder).parse();
     } else {
@@ -35,8 +38,10 @@ class ToSI {
 
   void _usage(final ArgParser argp) async {
     print('');
-    print('dart run jovial_svg_transformer [options]'
-        ' --input <name> --output <name>');
+    print(
+      'dart run jovial_svg_transformer [options]'
+      ' --input <name> --output <name>',
+    );
     for (final line in argp.usage.split('\n')) {
       print('    $line');
     }
@@ -55,17 +60,22 @@ class ToSI {
   void main(List<String> arguments) async {
     final argp = ArgParser(usageLineLength: 72);
     argp.addFlag('help', abbr: 'h', help: 'show help message');
-    argp.addFlag('big',
-        abbr: 'b', help: 'Use 64 bit double-precision floats, instead of 32.');
+    argp.addFlag(
+      'big',
+      abbr: 'b',
+      help: 'Use 64 bit double-precision floats, instead of 32.',
+    );
     argp.addFlag('quiet', abbr: 'q', help: 'Quiet:  Suppress warnings.');
     argp.addFlag('avd', help: 'Use AVD format instead of SVG.');
 
-    argp.addMultiOption('exportx',
-        abbr: 'x',
-        splitCommas: false,
-        help:
-            'Export:  Export the SVG node IDs matched by the given regular expression.  '
-            'Multiple values may be specified.');
+    argp.addMultiOption(
+      'exportx',
+      abbr: 'x',
+      splitCommas: false,
+      help:
+          'Export:  Export the SVG node IDs matched by the given regular expression.  '
+          'Multiple values may be specified.',
+    );
 
     argp.addOption('export', help: "Export the specified SVG node id.");
     argp.addOption('input', help: 'Specify input file.');

@@ -205,8 +205,8 @@ abstract class AbstractPathParser<BT extends PathBuilder> {
   PointT _currentPoint;
 
   AbstractPathParser(this.builder)
-      : _initialPoint = const PointT(0, 0),
-        _currentPoint = const PointT(0, 0);
+    : _initialPoint = const PointT(0, 0),
+      _currentPoint = const PointT(0, 0);
 
   ///
   /// Run a command that adds to the path.  The command's first argument is
@@ -311,7 +311,7 @@ final class PathParser {
   /// on [builder] to build a result.
   ///
   PathParser(PathBuilder builder, String source)
-      : _hidden = RealPathParser(builder, source);
+    : _hidden = RealPathParser(builder, source);
 
   ///
   /// Parse the string.  On error, this throws a [ParseError], but it leaves

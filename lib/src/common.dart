@@ -723,15 +723,13 @@ class SIClipPath extends SIRenderable {
     Set<Object> dagger,
     Set<SIImage> imageSet,
     PruningBoundary? b,
-  ) =>
-      this;
+  ) => this;
 
   @override
   PruningBoundary? getBoundary(
     List<ExportedIDBoundary>? exportedIDs,
     Affine? exportedIDXform,
-  ) =>
-      PruningBoundary(path.getBounds());
+  ) => PruningBoundary(path.getBounds());
 
   @override
   void addChildren(Set<Object> dagger) {}
@@ -1170,8 +1168,7 @@ class SIText extends SIRenderable {
   PruningBoundary? getBoundary(
     List<ExportedIDBoundary>? exportedIDs,
     Affine? exportedIDXform,
-  ) =>
-      chunks.isEmpty ? null : PruningBoundary(_bounds);
+  ) => chunks.isEmpty ? null : PruningBoundary(_bounds);
 
   @override
   SIRenderable? prunedBy(
@@ -1249,7 +1246,7 @@ class SITextSpan extends SITextChunk {
   final SIPaint siPaint;
 
   SITextSpan(this.text, double dx, double dy, this.attributes, this.siPaint)
-      : super(dx, dy);
+    : super(dx, dy);
 
   @override
   late final Rect _bounds = () {
@@ -1395,8 +1392,9 @@ class SITextSpan extends SITextChunk {
       } else {
         strokeP.strokeWidth = siPaint.strokeWidth;
         strokeP.style = PaintingStyle.stroke;
-        final decoration2 =
-            foreground == null ? decoration : TextDecoration.none;
+        final decoration2 = foreground == null
+            ? decoration
+            : TextDecoration.none;
         _doWithPainter(currentColor, strokeP, decoration2, (
           double left,
           double top,
@@ -1467,7 +1465,8 @@ class SITextSpan extends SITextChunk {
         baseDy = 0;
         break;
       case SIDominantBaseline.middle:
-        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) +
+        baseDy =
+            -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) +
             tp.computeDistanceToActualBaseline(TextBaseline.alphabetic) / 2;
         break;
       case SIDominantBaseline.central:
@@ -1475,7 +1474,8 @@ class SITextSpan extends SITextChunk {
             -tp.computeDistanceToActualBaseline(TextBaseline.alphabetic) / 2;
         break;
       case SIDominantBaseline.hanging:
-        baseDy = -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) +
+        baseDy =
+            -tp.computeDistanceToActualBaseline(TextBaseline.ideographic) +
             tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
         break;
       case SIDominantBaseline.textAfterEdge:
@@ -1633,19 +1633,19 @@ class PruningBoundary {
   final Point<double> d;
 
   PruningBoundary(Rect vp)
-      : a = Point(vp.left, vp.top),
-        b = Point(vp.width + vp.left, vp.top),
-        c = Point(vp.width + vp.left, vp.height + vp.top),
-        d = Point(vp.left, vp.height + vp.top);
+    : a = Point(vp.left, vp.top),
+      b = Point(vp.width + vp.left, vp.top),
+      c = Point(vp.width + vp.left, vp.height + vp.top),
+      d = Point(vp.left, vp.height + vp.top);
 
   PruningBoundary._p(this.a, this.b, this.c, this.d);
 
   Rect getBounds() => Rect.fromLTRB(
-        min(min(a.x, b.x), min(c.x, d.x)),
-        min(min(a.y, b.y), min(c.y, d.y)),
-        max(max(a.x, b.x), max(c.x, d.x)),
-        max(max(a.y, b.y), max(c.y, d.y)),
-      );
+    min(min(a.x, b.x), min(c.x, d.x)),
+    min(min(a.y, b.y), min(c.y, d.y)),
+    max(max(a.x, b.x), max(c.x, d.x)),
+    max(max(a.y, b.y), max(c.y, d.y)),
+  );
 
   static Point<double> _tp(Point<double> p, Affine x) => x.transformed(p);
 

@@ -814,14 +814,14 @@ abstract class ScalableImageBase extends ScalableImage {
     required Color? tintColor,
     required BlendMode tintMode,
     required this.images,
-  })  : givenViewport = _newViewport(viewport, other.givenViewport),
-        super._p(
-          viewport?.width ?? other.width,
-          viewport?.height ?? other.height,
-          tintColor,
-          tintMode,
-          currentColor,
-        );
+  }) : givenViewport = _newViewport(viewport, other.givenViewport),
+       super._p(
+         viewport?.width ?? other.width,
+         viewport?.height ?? other.height,
+         tintColor,
+         tintMode,
+         currentColor,
+       );
 
   static Rect? _newViewport(Rect? incoming, Rect? old) {
     if (incoming == null) {

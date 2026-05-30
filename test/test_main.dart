@@ -60,8 +60,8 @@ const rewriteAllFailedTests =
 /// doesn't change anything.
 ///
 Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
-  for (FileSystemEntity ent in svgDir.listSync()
-    ..sort((a, b) => a.path.compareTo(b.path))) {
+  for (FileSystemEntity ent
+      in svgDir.listSync()..sort((a, b) => a.path.compareTo(b.path))) {
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README' && !name.endsWith('.swp')) {
@@ -488,8 +488,10 @@ class CanvasRecorder implements Canvas {
   }
 
   @override
-  void clipRSuperellipse(RSuperellipse rsuperellipse,
-      {bool doAntiAlias = true}) {
+  void clipRSuperellipse(
+    RSuperellipse rsuperellipse, {
+    bool doAntiAlias = true,
+  }) {
     throw UnimplementedError();
   }
 
@@ -611,7 +613,8 @@ Future<void> _exportedRectangles() async {
         bool found = false;
         for (int i = 0; i < rects!.length; i++) {
           final r = rects[i];
-          found = (r.left - ex.boundingRect.left).abs() < 0.2 &&
+          found =
+              (r.left - ex.boundingRect.left).abs() < 0.2 &&
               (r.right - ex.boundingRect.right).abs() < 0.2 &&
               (r.width - ex.boundingRect.width).abs() < (extra ? 5.0 : 0.2) &&
               (r.height - ex.boundingRect.height).abs() < (extra ? 1.0 : 0.2);
@@ -762,10 +765,12 @@ Future<void> _miscCoverage() async {
   SvgText().textStyle = SvgTextStyle.empty();
   expect(true, SvgTextStyle.empty().hashCode == SvgTextStyle.empty().hashCode);
   ScalableImage.blank().toDag().modifyCurrentColor(const Color(0xff000000));
-  final something = ScalableImage.fromSvgString(
-    '<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>',
-    warnF: _noWarn,
-  ) as ScalableImageDag;
+  final something =
+      ScalableImage.fromSvgString(
+            '<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>',
+            warnF: _noWarn,
+          )
+          as ScalableImageDag;
   something.debugSizeMessage();
   final compact = ScalableImage.fromSvgString(
     '<svg><path d="M 1 2 q 3.5 -7 7 0"></svg>',

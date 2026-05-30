@@ -1363,9 +1363,7 @@ class CMap<K> {
   final Map<K, int> _map;
   bool _growing;
 
-  CMap([Map<K, int>? map])
-      : _map = map ?? {},
-        _growing = true;
+  CMap([Map<K, int>? map]) : _map = map ?? {}, _growing = true;
 
   int operator [](K key) {
     if (_growing) {

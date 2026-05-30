@@ -43,7 +43,7 @@ import 'dart:math' show pi;
 class UIPathBuilder implements EnhancedPathBuilder {
   final void Function(UIPathBuilder)? _onEnd;
 
-  UIPathBuilder({void Function(UIPathBuilder)? onEnd}) : _onEnd = onEnd;
+  UIPathBuilder({this._onEnd});
 
   ///
   /// The path that is built, or is being built.
@@ -57,14 +57,13 @@ class UIPathBuilder implements EnhancedPathBuilder {
     required double rotation,
     required bool largeArc,
     required bool clockwise,
-  }) =>
-      path.arcToPoint(
-        newOffset(arcEnd),
-        radius: newRadius(radius),
-        rotation: rotation * 180 / pi,
-        largeArc: largeArc,
-        clockwise: clockwise,
-      );
+  }) => path.arcToPoint(
+    newOffset(arcEnd),
+    radius: newRadius(radius),
+    rotation: rotation * 180 / pi,
+    largeArc: largeArc,
+    clockwise: clockwise,
+  );
 
   @override
   void addOval(RectT rect) {
@@ -138,8 +137,8 @@ class SvgCustomPathImpl extends SvgCustomPathAbstract implements SvgCustomPath {
   SvgCustomPathImpl(this.path);
 
   SvgCustomPathImpl._cloned(SvgCustomPathImpl super.other)
-      : path = Path.from(other.path),
-        super.copy();
+    : path = Path.from(other.path),
+      super.copy();
 
   @override
   SvgCustomPathImpl clone() => SvgCustomPathImpl._cloned(this);

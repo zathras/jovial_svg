@@ -69,16 +69,16 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
     required Rect? viewport,
     Color? currentColor,
     required List<SIImage> images,
-  })  : _renderables = const [],
-        super(
-          width,
-          height,
-          tintColor,
-          tintMode,
-          viewport,
-          images,
-          currentColor,
-        );
+  }) : _renderables = const [],
+       super(
+         width,
+         height,
+         tintColor,
+         tintMode,
+         viewport,
+         images,
+         currentColor,
+       );
 
   ScalableImageDag._withoutRenderables({
     required double? width,
@@ -89,21 +89,21 @@ class ScalableImageDag extends ScalableImageBase with _SIParentNode {
     Color? currentColor,
     required List<SIImage> images,
   }) : super(
-          width,
-          height,
-          tintColor,
-          tintMode,
-          viewport,
-          images,
-          currentColor,
-        );
+         width,
+         height,
+         tintColor,
+         tintMode,
+         viewport,
+         images,
+         currentColor,
+       );
 
   ///
   /// Creates a new instance of a blank image.
   ///
   ScalableImageDag.blank()
-      : _renderables = [],
-        super(null, null, null, BlendMode.srcIn, null, const [], null);
+    : _renderables = [],
+      super(null, null, null, BlendMode.srcIn, null, const [], null);
 
   ScalableImageDag._modified(
     ScalableImageDag super.other,
@@ -337,9 +337,9 @@ class SIMasked extends SIRenderable with SIMaskedHelper {
   final bool usesLuma;
 
   SIMasked(List<SIRenderable> renderables, RectT? maskBounds, this.usesLuma)
-      : mask = renderables[0],
-        child = renderables[1],
-        maskBounds = convertRectTtoRect(maskBounds) {
+    : mask = renderables[0],
+      child = renderables[1],
+      maskBounds = convertRectTtoRect(maskBounds) {
     assert(renderables.length == 2);
   }
 
@@ -469,13 +469,13 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
     this.groupAlpha,
     this.transform,
     SIBlendMode blendMode,
-  )   : _renderables = List.unmodifiable(renderables),
-        blendMode = blendMode.asBlendMode;
+  ) : _renderables = List.unmodifiable(renderables),
+      blendMode = blendMode.asBlendMode;
 
   SIGroup._modified(SIGroup other, this._renderables)
-      : transform = other.transform,
-        groupAlpha = other.groupAlpha,
-        blendMode = other.blendMode;
+    : transform = other.transform,
+      groupAlpha = other.groupAlpha,
+      blendMode = other.blendMode;
 
   @override
   List<SIRenderable> _childrenPrunedBy(
@@ -575,7 +575,8 @@ class SIGroup extends SIRenderable with _SIParentNode, SIGroupHelper {
   }
 
   @override
-  late final int hashCode = 0xfddf5e28 ^
+  late final int hashCode =
+      0xfddf5e28 ^
       Object.hash(Object.hashAll(_renderables), groupAlpha, transform);
 }
 
@@ -587,7 +588,7 @@ class _GroupBuilder implements _SIParentBuilder {
   final Affine? transform;
 
   _GroupBuilder(this.transform, this.groupAlpha, this.blendMode)
-      : _renderables = List<SIRenderable>.empty(growable: true);
+    : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIGroup get group => SIGroup(_renderables, groupAlpha, transform, blendMode);
 }
@@ -598,7 +599,7 @@ class SIExportedID extends SIRenderable with _SIParentNode, SIGroupHelper {
   final String id;
 
   SIExportedID(SIRenderable renderable, this.id)
-      : _renderables = List.unmodifiable([renderable]);
+    : _renderables = List.unmodifiable([renderable]);
 
   @override
   PruningBoundary? getBoundary(
@@ -687,7 +688,7 @@ class _ExportedIdBuilder implements _SIParentBuilder {
   final String id;
 
   _ExportedIdBuilder(this.id)
-      : _renderables = List<SIRenderable>.empty(growable: true);
+    : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIExportedID? get exportedIdNode {
     if (_renderables.isEmpty) {
@@ -705,7 +706,7 @@ class _MaskedBuilder implements _SIParentBuilder {
   final bool usesLuma;
 
   _MaskedBuilder(this.maskBounds, this.usesLuma)
-      : _renderables = List<SIRenderable>.empty(growable: true);
+    : _renderables = List<SIRenderable>.empty(growable: true);
 
   SIRenderable get masked => SIMasked(_renderables, maskBounds, usesLuma);
 }
@@ -958,7 +959,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 class SIDagBuilder extends SIGenericDagBuilder<String, SIImageData>
     with SIStringPathMaker {
   SIDagBuilder({required void Function(String) warn, Color? currentColor})
-      : super(null, warn, currentColor);
+    : super(null, warn, currentColor);
 
   @override
   List<SIImage> convertImages(List<SIImageData> images) =>

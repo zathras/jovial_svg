@@ -51,7 +51,8 @@ abstract class ToSI {
       'exportx',
       abbr: 'x',
       splitCommas: false,
-      help: 'Export:  Export the IDs matched by the given regular expression.  '
+      help:
+          'Export:  Export the IDs matched by the given regular expression.  '
           'Multiple values may be specified.',
     );
     final ArgResults results = argp.parse(arguments);
@@ -133,8 +134,7 @@ class SvgToSI extends ToSI {
     String src,
     SIBuilder<String, SIImageData> builder,
     void Function(String) warn,
-  ) =>
-      StringSvgParser(src, exportedIds, builder, warn: warn).parse();
+  ) => StringSvgParser(src, exportedIds, builder, warn: warn).parse();
 }
 
 void main(List<String> arguments) => SvgToSI().main(arguments);

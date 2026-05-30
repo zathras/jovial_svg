@@ -61,7 +61,7 @@ abstract class ScalableImageWidget extends StatefulWidget {
   final ExportedIDLookup? _lookup;
 
   const ScalableImageWidget._p(Key? key, this.isComplex, this._lookup)
-      : super(key: key);
+    : super(key: key);
 
   ///
   /// Create a widget to display a pre-loaded [ScalableImage].
@@ -108,30 +108,29 @@ abstract class ScalableImageWidget extends StatefulWidget {
     bool isComplex = false,
     ExportedIDLookup? lookup,
     bool useInk = false,
-  }) =>
-      useInk
-          ? _SyncSIInkWidget(
-              key,
-              si,
-              fit,
-              alignment,
-              clip,
-              scale,
-              background,
-              isComplex,
-              lookup,
-            )
-          : _SyncSIWidget(
-              key,
-              si,
-              fit,
-              alignment,
-              clip,
-              scale,
-              background,
-              isComplex,
-              lookup,
-            );
+  }) => useInk
+      ? _SyncSIInkWidget(
+          key,
+          si,
+          fit,
+          alignment,
+          clip,
+          scale,
+          background,
+          isComplex,
+          lookup,
+        )
+      : _SyncSIWidget(
+          key,
+          si,
+          fit,
+          alignment,
+          clip,
+          scale,
+          background,
+          isComplex,
+          lookup,
+        );
 
   ///
   /// Create a widget to load and then render a [ScalableImage].  In a
@@ -320,15 +319,16 @@ abstract class _SyncSIWidgetBase extends ScalableImageWidget {
 
 class _SyncSIWidget extends _SyncSIWidgetBase {
   const _SyncSIWidget(
-      super.key,
-      super._si,
-      super._fit,
-      super._alignment,
-      super._clip,
-      super._scale,
-      super._background,
-      super.isComplex,
-      super.lookup);
+    super.key,
+    super._si,
+    super._fit,
+    super._alignment,
+    super._clip,
+    super._scale,
+    super._background,
+    super.isComplex,
+    super.lookup,
+  );
 
   @override
   State<StatefulWidget> createState() => _SyncSIWidgetState();
@@ -406,10 +406,10 @@ class _SyncSIWidgetState extends State<_SyncSIWidget> {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-        painter: _painter,
-        size: _preferredSize,
-        isComplex: widget.isComplex,
-      );
+    painter: _painter,
+    size: _preferredSize,
+    isComplex: widget.isComplex,
+  );
 }
 
 class _SICustomPainter extends CustomPainter {
@@ -485,9 +485,10 @@ class _SyncSIInkWidgetState extends State<_SyncSIInkWidget> {
 
   @override
   Widget build(BuildContext context) => Ink(
-      width: _preferredSize.width,
-      height: _preferredSize.height,
-      decoration: _SIInkDecoration(widget));
+    width: _preferredSize.width,
+    height: _preferredSize.height,
+    decoration: _SIInkDecoration(widget),
+  );
 }
 
 class _SIInkDecoration extends Decoration {
@@ -842,17 +843,16 @@ abstract class ScalableImageSource {
     @Deprecated("[warn] has been superseded by [warnF].") bool warn = true,
     void Function(String)? warnF,
     List<Pattern> exportedIDs = const [],
-  }) =>
-      _SvgBundleSource(
-        bundle,
-        key,
-        currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warn: warn,
-        warnF: warnF,
-        exportedIDs: exportedIDs,
-      );
+  }) => _SvgBundleSource(
+    bundle,
+    key,
+    currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    warn: warn,
+    warnF: warnF,
+    exportedIDs: exportedIDs,
+  );
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -896,18 +896,17 @@ abstract class ScalableImageSource {
     List<Pattern> exportedIDs = const [],
     Map<String, String>? httpHeaders,
     Encoding defaultEncoding = utf8,
-  }) =>
-      _SvgHttpSource(
-        url,
-        currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warn: warn,
-        warnF: warnF,
-        exportedIDs: exportedIDs,
-        defaultEncoding: defaultEncoding,
-        httpHeaders: httpHeaders,
-      );
+  }) => _SvgHttpSource(
+    url,
+    currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    warn: warn,
+    warnF: warnF,
+    exportedIDs: exportedIDs,
+    defaultEncoding: defaultEncoding,
+    httpHeaders: httpHeaders,
+  );
 
   ///
   /// Get a [ScalableImage] by parsing an SVG XML file from
@@ -958,16 +957,15 @@ abstract class ScalableImageSource {
     bool bigFloats = false,
     void Function(String)? warnF,
     List<Pattern> exportedIDs = const [],
-  }) =>
-      _SvgFileSource(
-        file,
-        fileReader,
-        currentColor: currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: warnF,
-        exportedIDs: exportedIDs,
-      );
+  }) => _SvgFileSource(
+    file,
+    fileReader,
+    currentColor: currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    warnF: warnF,
+    exportedIDs: exportedIDs,
+  );
 
   ///
   /// Get a [ScalableImage] by parsing an AVD XML file from
@@ -1007,16 +1005,15 @@ abstract class ScalableImageSource {
     void Function(String)? warnF,
     Map<String, String>? httpHeaders,
     Encoding defaultEncoding = utf8,
-  }) =>
-      _AvdHttpSource(
-        url,
-        compact: compact,
-        bigFloats: bigFloats,
-        warn: warn,
-        warnF: warnF,
-        httpHeaders: httpHeaders,
-        defaultEncoding: defaultEncoding,
-      );
+  }) => _AvdHttpSource(
+    url,
+    compact: compact,
+    bigFloats: bigFloats,
+    warn: warn,
+    warnF: warnF,
+    httpHeaders: httpHeaders,
+    defaultEncoding: defaultEncoding,
+  );
 
   ///
   /// Get a [ScalableImage] by reading a pre-compiled `.si` file.
@@ -1036,8 +1033,7 @@ abstract class ScalableImageSource {
     AssetBundle bundle,
     String key, {
     Color? currentColor,
-  }) =>
-      _SIBundleSource(bundle, key, currentColor);
+  }) => _SIBundleSource(bundle, key, currentColor);
 }
 
 class _AvdBundleSource extends ScalableImageSource {
@@ -1130,14 +1126,14 @@ class _SvgBundleSource extends ScalableImageSource {
 
   @override
   Future<ScalableImage> createSI() => ScalableImage.fromSvgAsset(
-        bundle,
-        key,
-        currentColor: currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: _warnArg,
-        exportedIDs: exportedIDs,
-      );
+    bundle,
+    key,
+    currentColor: currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    warnF: _warnArg,
+    exportedIDs: exportedIDs,
+  );
 
   @override
   ScalableImageSource get asKey => warnF == null
@@ -1180,7 +1176,8 @@ class _SvgBundleSource extends ScalableImageSource {
       );
 
   @override
-  String toString() => '_SVGBundleSource($key $bundle $compact $bigFloats '
+  String toString() =>
+      '_SVGBundleSource($key $bundle $compact $bigFloats '
       '$currentColor $exportedIDs)';
 }
 
@@ -1214,15 +1211,15 @@ class _SvgHttpSource extends ScalableImageSource {
 
   @override
   Future<ScalableImage> createSI() => ScalableImage.fromSvgHttpUrl(
-        url,
-        currentColor: currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: _warnArg,
-        defaultEncoding: defaultEncoding,
-        exportedIDs: exportedIDs,
-        httpHeaders: httpHeaders,
-      );
+    url,
+    currentColor: currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    warnF: _warnArg,
+    defaultEncoding: defaultEncoding,
+    exportedIDs: exportedIDs,
+    httpHeaders: httpHeaders,
+  );
 
   @override
   ScalableImageSource get asKey => warnF == null
@@ -1267,7 +1264,8 @@ class _SvgHttpSource extends ScalableImageSource {
       );
 
   @override
-  String toString() => '_SVGHttpSource($url $compact $bigFloats '
+  String toString() =>
+      '_SVGHttpSource($url $compact $bigFloats '
       '$currentColor $defaultEncoding $httpHeaders $exportedIDs)';
 }
 
@@ -1309,14 +1307,14 @@ class _SvgFileSource extends ScalableImageSource {
 
   @override
   ScalableImageSource get asKey => _SvgFileSource(
-        file,
-        _nullFileReader,
-        currentColor: currentColor,
-        compact: compact,
-        bigFloats: bigFloats,
-        exportedIDs: exportedIDs,
-        warnF: null,
-      );
+    file,
+    _nullFileReader,
+    currentColor: currentColor,
+    compact: compact,
+    bigFloats: bigFloats,
+    exportedIDs: exportedIDs,
+    warnF: null,
+  );
 
   static String _nullFileReader() => '';
 
@@ -1375,13 +1373,13 @@ class _AvdHttpSource extends ScalableImageSource {
 
   @override
   Future<ScalableImage> createSI() => ScalableImage.fromAvdHttpUrl(
-        url,
-        compact: compact,
-        bigFloats: bigFloats,
-        warnF: _warnArg,
-        defaultEncoding: defaultEncoding,
-        httpHeaders: httpHeaders,
-      );
+    url,
+    compact: compact,
+    bigFloats: bigFloats,
+    warnF: _warnArg,
+    defaultEncoding: defaultEncoding,
+    httpHeaders: httpHeaders,
+  );
 
   @override
   ScalableImageSource get asKey => warnF == null
@@ -1470,9 +1468,7 @@ class _CacheEntry {
     unawaited(_replaceFuture());
   }
 
-  _CacheEntry._null()
-      : _siSrc = null,
-        _si = null;
+  _CacheEntry._null() : _siSrc = null, _si = null;
 
   Future<void> _replaceFuture() async {
     try {
@@ -1531,12 +1527,12 @@ class ScalableImageCache {
   final _lruList = _CacheEntry._null();
 
   ///
-  /// Create an image cache that holds up to [size] image sources.
+  /// Create an image cache that holds up to [_size] image sources.
   /// A [ScalableImageCache] will always keep referenced [ScalableImageSource]
   /// instances, even if this exceeds the cache size.  In this case, no
   /// unreferenced images would be kept.
   ///
-  ScalableImageCache({int size = 0}) : _size = size {
+  ScalableImageCache({this._size = 0}) {
     _lruList._lessRecent = _lruList;
     _lruList._moreRecent = _lruList;
   }
@@ -1848,9 +1844,9 @@ class ScalingTransform {
   /// the origin of the SI's viewport.
   ///
   Offset toSICoordinate(final Offset c) => Offset(
-        (c.dx - translateX) / scaleX + siViewport.left,
-        (c.dy - translateY) / scaleY + siViewport.top,
-      );
+    (c.dx - translateX) / scaleX + siViewport.left,
+    (c.dy - translateY) / scaleY + siViewport.top,
+  );
 
   ///
   /// Transform a point from the coordinate system of the [ScalableImage] into
@@ -1858,9 +1854,9 @@ class ScalingTransform {
   /// the origin of the SI's viewport.
   ///
   Offset toContainerCoordinate(final Offset si) => Offset(
-        (si.dx - siViewport.left) * scaleX + translateX,
-        (si.dy - siViewport.top) * scaleY + translateY,
-      );
+    (si.dx - siViewport.left) * scaleX + translateX,
+    (si.dy - siViewport.top) * scaleY + translateY,
+  );
 }
 
 ///

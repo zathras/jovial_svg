@@ -45,8 +45,11 @@ import 'path_noui.dart';
 /// A CompactTraverser reads the data produced by an [SIGenericCompactBuilder],
 /// traversing the represented graph.
 ///
-abstract class CompactTraverserBase<R, IM,
-    VT extends SIVisitor<CompactChildData, IM, R>> {
+abstract class CompactTraverserBase<
+  R,
+  IM,
+  VT extends SIVisitor<CompactChildData, IM, R>
+> {
   final int fileVersion; // See [ScalableImageCompactGeneric.latestFileVersion]
   final bool bigFloats;
   @protected
@@ -76,26 +79,26 @@ abstract class CompactTraverserBase<R, IM,
   CompactTraverserBase.clone(
     CompactTraverserBase<R, IM, SIVisitor<CompactChildData, IM, R>> other,
     this.visitor,
-  )   : fileVersion = other.fileVersion,
-        bigFloats = other.bigFloats,
-        _strings = other._strings,
-        _stringLists = other._stringLists,
-        _floatLists = other._floatLists,
-        _floatValues = other._floatValues,
-        _images = other._images,
-        _children = ByteBufferDataInputStream.copy(other._children),
-        _args = FloatBufferInputStream.copy(other._args),
-        _transforms = FloatBufferInputStream.copy(other._transforms),
-        _rewindChildren = ByteBufferDataInputStream.copy(other._rewindChildren),
-        _rewindArgs = FloatBufferInputStream.copy(other._rewindArgs),
-        _pathChildrenSeek = Uint32List.fromList(other._pathChildrenSeek),
-        _pathArgsSeek = Uint32List.fromList(other._pathArgsSeek),
-        _currPathID = other._currPathID,
-        _paintChildrenSeek = Uint32List.fromList(other._paintChildrenSeek),
-        _paintArgsSeek = Uint32List.fromList(other._paintArgsSeek),
-        _paintTransformsSeek = Uint32List.fromList(other._paintTransformsSeek),
-        _currPaintID = other._currPaintID,
-        groupDepth = other.groupDepth;
+  ) : fileVersion = other.fileVersion,
+      bigFloats = other.bigFloats,
+      _strings = other._strings,
+      _stringLists = other._stringLists,
+      _floatLists = other._floatLists,
+      _floatValues = other._floatValues,
+      _images = other._images,
+      _children = ByteBufferDataInputStream.copy(other._children),
+      _args = FloatBufferInputStream.copy(other._args),
+      _transforms = FloatBufferInputStream.copy(other._transforms),
+      _rewindChildren = ByteBufferDataInputStream.copy(other._rewindChildren),
+      _rewindArgs = FloatBufferInputStream.copy(other._rewindArgs),
+      _pathChildrenSeek = Uint32List.fromList(other._pathChildrenSeek),
+      _pathArgsSeek = Uint32List.fromList(other._pathArgsSeek),
+      _currPathID = other._currPathID,
+      _paintChildrenSeek = Uint32List.fromList(other._paintChildrenSeek),
+      _paintArgsSeek = Uint32List.fromList(other._paintArgsSeek),
+      _paintTransformsSeek = Uint32List.fromList(other._paintTransformsSeek),
+      _currPaintID = other._currPaintID,
+      groupDepth = other.groupDepth;
 
   CompactTraverserBase({
     required this.fileVersion,
@@ -108,31 +111,29 @@ abstract class CompactTraverserBase<R, IM,
     required this.visitor,
     required List<String> strings,
     required List<List<String>> stringLists,
-    required List<List<double>> floatLists,
-    required List<double> floatValues,
-    required List<IM> images,
-  })  : _strings = strings,
-        _stringLists =
-            (fileVersion <= 9) ? LegacyStringLists(strings) : stringLists,
-        _floatLists = floatLists,
-        _floatValues = floatValues,
-        _images = images,
-        _children = ByteBufferDataInputStream(visiteeChildren, Endian.little),
-        _args = FloatBufferInputStream(visiteeArgs),
-        _transforms = FloatBufferInputStream(visiteeTransforms),
-        _rewindChildren = ByteBufferDataInputStream(
-          visiteeChildren,
-          Endian.little,
-        ),
-        _rewindArgs = FloatBufferInputStream(visiteeArgs),
-        _pathChildrenSeek = Uint32List(visiteeNumPaths),
-        _pathArgsSeek = Uint32List(visiteeNumPaths),
-        _paintChildrenSeek = Uint32List(visiteeNumPaints),
-        _paintArgsSeek = Uint32List(visiteeNumPaints),
-        _paintTransformsSeek = Uint32List(visiteeNumPaints),
-        _currPathID = 0,
-        _currPaintID = 0,
-        groupDepth = 0;
+    required this._floatLists,
+    required this._floatValues,
+    required this._images,
+  }) : _strings = strings,
+       _stringLists = (fileVersion <= 9)
+           ? LegacyStringLists(strings)
+           : stringLists,
+       _children = ByteBufferDataInputStream(visiteeChildren, Endian.little),
+       _args = FloatBufferInputStream(visiteeArgs),
+       _transforms = FloatBufferInputStream(visiteeTransforms),
+       _rewindChildren = ByteBufferDataInputStream(
+         visiteeChildren,
+         Endian.little,
+       ),
+       _rewindArgs = FloatBufferInputStream(visiteeArgs),
+       _pathChildrenSeek = Uint32List(visiteeNumPaths),
+       _pathArgsSeek = Uint32List(visiteeNumPaths),
+       _paintChildrenSeek = Uint32List(visiteeNumPaints),
+       _paintArgsSeek = Uint32List(visiteeNumPaints),
+       _paintTransformsSeek = Uint32List(visiteeNumPaints),
+       _currPathID = 0,
+       _currPaintID = 0,
+       groupDepth = 0;
 
   R traverse(R collector) {
     collector = visitor.init(
@@ -506,8 +507,9 @@ abstract class CompactTraverserBase<R, IM,
     final strokeCap = SIStrokeCap.values[(flags >> 4) & 0x03];
     final fillType = SIFillType.values[(flags >> 6) & 0x01];
     final hasStrokeDashArray = _flag(flags, 7);
-    final hasStrokeDashOffset =
-        hasStrokeDashArray ? _flag(children.readUnsignedByte(), 0) : false;
+    final hasStrokeDashOffset = hasStrokeDashArray
+        ? _flag(children.readUnsignedByte(), 0)
+        : false;
     final fillColor = _readColor(fillColorType, children, args);
     final strokeColor = _readColor(strokeColorType, children, args);
     final strokeWidth = hasStrokeWidth ? args.get() : null;
@@ -677,12 +679,12 @@ class LegacyStringLists extends ListBase<List<String>> {
   final List<List<String>?> _stringLists;
 
   LegacyStringLists(List<String> strings)
-      : _strings = strings,
-        _stringLists = List<List<String>?>.filled(
-          strings.length,
-          null,
-          growable: false,
-        );
+    : _strings = strings,
+      _stringLists = List<List<String>?>.filled(
+        strings.length,
+        null,
+        growable: false,
+      );
 
   @override
   int get length => _strings.length;
@@ -1034,8 +1036,8 @@ class CompactChildData {
   CompactChildData(this.children, this.args);
 
   CompactChildData.copy(CompactChildData other)
-      : children = ByteBufferDataInputStream.copy(other.children),
-        args = FloatBufferInputStream.copy(other.args);
+    : children = ByteBufferDataInputStream.copy(other.children),
+      args = FloatBufferInputStream.copy(other.args);
 
   @override
   bool operator ==(final Object other) {
@@ -1065,8 +1067,8 @@ class CompactPathParser extends AbstractPathParser<EnhancedPathBuilder> {
   bool _nextNybble = false;
 
   CompactPathParser(CompactChildData data, super.builder)
-      : children = data.children,
-        args = data.args;
+    : children = data.children,
+      args = data.args;
 
   void parse() {
     for (;;) {
@@ -1738,13 +1740,13 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
     FloatSink transforms, {
     required void Function(String) warn,
   }) : super(
-          bigFloats,
-          childrenSink,
-          DataOutputSink(childrenSink, Endian.little),
-          args,
-          transforms,
-          warn: warn,
-        );
+         bigFloats,
+         childrenSink,
+         DataOutputSink(childrenSink, Endian.little),
+         args,
+         transforms,
+         warn: warn,
+       );
 
   factory SICompactBuilderNoUI({
     required bool bigFloats,
@@ -1815,8 +1817,8 @@ class CompactPathBuilder<PathDataT, IM> extends EnhancedPathBuilder {
   int _currByte = 0;
 
   CompactPathBuilder(SIGenericCompactBuilder<PathDataT, IM> b)
-      : _children = b.children,
-        _args = b.args {
+    : _children = b.children,
+      _args = b.args {
     assert(_PathCommand.end.index == 0);
   }
 
@@ -2028,8 +2030,8 @@ class FloatBufferInputStream {
   FloatBufferInputStream(this._buf) : seek = 0;
 
   FloatBufferInputStream.copy(FloatBufferInputStream other)
-      : seek = other.seek,
-        _buf = other._buf;
+    : seek = other.seek,
+      _buf = other._buf;
 
   double get() => _buf[seek++];
 

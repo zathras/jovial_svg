@@ -137,9 +137,9 @@ abstract class Affine {
   /// Return a point transformed by this matrix.
   ///
   Point<double> transformed(Point<double> p) => Point(
-        p.x * _get(0, 0) + p.y * _get(0, 1) + _get(0, 2),
-        p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2),
-      );
+    p.x * _get(0, 0) + p.y * _get(0, 1) + _get(0, 2),
+    p.x * _get(1, 0) + p.y * _get(1, 1) + _get(1, 2),
+  );
 
   @override
   int get hashCode =>
@@ -242,22 +242,20 @@ class MutableAffine extends Affine {
   final Matrix3 _storage;
 
   MutableAffine._p([Matrix3? storage])
-      : _storage = storage ?? Matrix3.zero(),
-        super._p();
+    : _storage = storage ?? Matrix3.zero(),
+      super._p();
 
   ///
   /// Create a matrix representing the identity transform.
   ///
-  MutableAffine.identity()
-      : _storage = Matrix3.identity(),
-        super._p();
+  MutableAffine.identity() : _storage = Matrix3.identity(), super._p();
 
   ///
   /// Create a matrix representing a scaling transform.
   ///
   MutableAffine.scale(double sx, double sy)
-      : _storage = Matrix3.zero(),
-        super._p() {
+    : _storage = Matrix3.zero(),
+      super._p() {
     set(0, 0, sx);
     set(1, 1, sy);
     set(2, 2, 1);
@@ -267,8 +265,8 @@ class MutableAffine extends Affine {
   /// Create a matrix representing a translation.
   ///
   MutableAffine.translation(double tx, double ty)
-      : _storage = Matrix3.identity(),
-        super._p() {
+    : _storage = Matrix3.identity(),
+      super._p() {
     set(0, 2, tx);
     set(1, 2, ty);
   }
@@ -277,9 +275,7 @@ class MutableAffine extends Affine {
   /// Create a matrix representing a rotation transform, for the
   /// angle [a] in radians.
   ///
-  MutableAffine.rotation(double a)
-      : _storage = Matrix3.zero(),
-        super._p() {
+  MutableAffine.rotation(double a) : _storage = Matrix3.zero(), super._p() {
     final c = cos(a);
     final s = sin(a);
     set(0, 0, c);
@@ -292,24 +288,20 @@ class MutableAffine extends Affine {
   ///
   /// Create a matrix representing x skew transformation.
   ///
-  MutableAffine.skewX(double a)
-      : _storage = Matrix3.identity(),
-        super._p() {
+  MutableAffine.skewX(double a) : _storage = Matrix3.identity(), super._p() {
     set(0, 1, tan(a));
   }
 
   ///
   /// Create a matrix representing y skew transformation.
   ///
-  MutableAffine.skewY(double a)
-      : _storage = Matrix3.identity(),
-        super._p() {
+  MutableAffine.skewY(double a) : _storage = Matrix3.identity(), super._p() {
     set(1, 0, tan(a));
   }
 
   MutableAffine._copy(MutableAffine other)
-      : _storage = Matrix3.copy(other._storage),
-        super._p();
+    : _storage = Matrix3.copy(other._storage),
+      super._p();
 
   ///
   /// Create an affine matrix representing a transformation matrix as described
@@ -318,8 +310,8 @@ class MutableAffine extends Affine {
   /// https://www.w3.org/TR/SVGTiny12/coords.html#TransformAttribute .
   ///
   MutableAffine.cssTransform(List<double> css)
-      : _storage = Matrix3.zero(),
-        super._p() {
+    : _storage = Matrix3.zero(),
+      super._p() {
     // s. 7.5 https://www.w3.org/TR/SVGTiny12/coords.html
     set(0, 0, css[0]);
     set(1, 0, css[1]);

@@ -642,8 +642,7 @@ class _AvdParserEventHandler with XmlEventVisitor {
   void visitCommentEvent(XmlCommentEvent event) {} // coverage:ignore-line
 
   @override
-  void visitDeclarationEvent(
-      XmlDeclarationEvent event) {} // coverage:ignore-line
+  void visitDeclarationEvent(XmlDeclarationEvent event) {} // coverage:ignore-line
 
   @override
   void visitDoctypeEvent(XmlDoctypeEvent event) {} // coverage:ignore-line
@@ -659,7 +658,7 @@ class StreamAvdParser extends AvdParser {
   final Stream<String> _input;
 
   StreamAvdParser(this._input, SIBuilder<String, SIImageData> builder)
-      : super(builder);
+    : super(builder);
 
   /// Throws a [ParseError] or other exception in case of error.
   Future<void> parse() {
@@ -676,7 +675,7 @@ class StringAvdParser extends AvdParser {
   final String _input;
 
   StringAvdParser(this._input, SIBuilder<String, SIImageData> builder)
-      : super(builder);
+    : super(builder);
 
   /// Throws a [ParseError] or other exception in case of error.
   void parse() {

@@ -11,8 +11,7 @@ class AvdToSI extends ToSI {
     String src,
     SIBuilder<String, SIImageData> builder,
     void Function(String) warn,
-  ) =>
-      StringAvdParser(src, builder).parse();
+  ) => StringAvdParser(src, builder).parse();
 
   @override
   String get extension => '.xml';
