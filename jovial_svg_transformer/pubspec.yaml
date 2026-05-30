@@ -9,7 +9,7 @@ executables:
   jovial_svg_transformer:
 
 environment:
-  sdk: ^3.4.0
+  sdk: ^3.12.0
 
 dependencies:
   jovial_svg: ^1.1.25
