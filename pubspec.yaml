@@ -22,7 +22,7 @@ environment:
     #  "pedantic," since unawaited was moved to async.
 
 dependencies:
-  xml: ^6.3.0
+  xml: ^7.0.0
   collection: ^1.15.0
   args: ^2.0.0
   vector_math: ^2.1.0
