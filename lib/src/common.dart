@@ -788,12 +788,22 @@ class SIPath extends SIRenderable {
     return hasWork;
   }
 
+  /// Flutter 3.47 Skwasm `EnginePath.fillType=` always invalidates and
+  /// disposes the cached native path. Re-assigning the same value every
+  /// paint (and fill+stroke in one paint) double-disposes SkwasmPath.
+  void _applyFillTypeIfNeeded() {
+    final fillType = siPaint.fillType.asPathFillType;
+    if (path.fillType != fillType) {
+      path.fillType = fillType;
+    }
+  }
+
   @override
   void paint(Canvas c, Color currentColor) {
     final paint = Paint();
+    _applyFillTypeIfNeeded();
     if (_setPaint(paint, siPaint.fillColor, currentColor)) {
       paint.style = PaintingStyle.fill;
-      path.fillType = siPaint.fillType.asPathFillType;
       c.drawPath(path, paint);
     }
     if (_setPaint(paint, siPaint.strokeColor, currentColor)) {
