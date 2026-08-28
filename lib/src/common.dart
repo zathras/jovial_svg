@@ -753,7 +753,22 @@ class SIPath extends SIRenderable {
   final Path path;
   final SIPaint siPaint;
 
-  SIPath(this.path, this.siPaint);
+  /// Sets the fill type once, while [path] is still freshly built.
+  ///
+  /// Assigning `Path.fillType` after the path has been drawn or measured is
+  /// unsafe on Flutter web: `EnginePath.fillType=` always invalidates the
+  /// cached native path, and `SkwasmPath.build()` returns `this`, so the
+  /// invalidation frees the very object the builder still refers to. The
+  /// engine then frees it a second time when the frame service collects it,
+  /// which traps with "memory access out of bounds". Path builders hand the
+  /// path over before anything can draw or measure it, so this is the last
+  /// safe moment to choose a fill type.
+  SIPath(this.path, this.siPaint) {
+    final fillType = siPaint.fillType.asPathFillType;
+    if (path.fillType != fillType) {
+      path.fillType = fillType;
+    }
+  }
 
   bool _setPaint(Paint paint, SIColor si, Color currentColor) {
     bool hasWork = true;
@@ -788,20 +803,9 @@ class SIPath extends SIRenderable {
     return hasWork;
   }
 
-  /// Flutter 3.47 Skwasm `EnginePath.fillType=` always invalidates and
-  /// disposes the cached native path. Re-assigning the same value every
-  /// paint (and fill+stroke in one paint) double-disposes SkwasmPath.
-  void _applyFillTypeIfNeeded() {
-    final fillType = siPaint.fillType.asPathFillType;
-    if (path.fillType != fillType) {
-      path.fillType = fillType;
-    }
-  }
-
   @override
   void paint(Canvas c, Color currentColor) {
     final paint = Paint();
-    _applyFillTypeIfNeeded();
     if (_setPaint(paint, siPaint.fillColor, currentColor)) {
       paint.style = PaintingStyle.fill;
       c.drawPath(path, paint);
