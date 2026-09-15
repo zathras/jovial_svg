@@ -21,10 +21,8 @@ class MinimalSample extends StatelessWidget {
   Widget build(BuildContext context) {
     final ab = DefaultAssetBundle.of(context);
     return MaterialApp(
-      title: 'SVG Minimal Sample',
-      home: ScalableImageWidget.fromSISource(
-        si: ScalableImageSource.fromSI(ab, 'assets/tiger.svg'),
-      ),
-    );
+        title: 'SVG Minimal Sample',
+        home: ScalableImageWidget.fromSISource(
+            si: ScalableImageSource.fromSI(ab, 'assets/tiger.svg')));
   }
 }

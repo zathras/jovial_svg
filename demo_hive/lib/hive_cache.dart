@@ -108,11 +108,9 @@ class _SIFetcher extends AsyncCanonicalizingFetcher<String, ScalableImage> {
     }
     assert(cached == null);
     try {
-      final si = await ScalableImageSource.fromSvgHttpUrl(
-        Uri.parse(url),
-        compact: true,
-        bigFloats: true,
-      ).createSI();
+      final si = await ScalableImageSource.fromSvgHttpUrl(Uri.parse(url),
+              compact: true, bigFloats: true)
+          .createSI();
       await _cache._box.put(url, si.toSIBytes());
       if (_warn) {
         print('FROM NETWORK: $url');
