@@ -1101,6 +1101,7 @@ void main() {
         getDir(outputDir, 'si'),
         (File f) async =>
             ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true),
+        issue143Hack: true,
       );
 
       await _testReference(
