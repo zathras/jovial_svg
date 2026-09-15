@@ -186,7 +186,7 @@ Future<void> _testReference(
   Future<ScalableImage> Function(File f) producer, {
   Directory? overrideReferenceDir,
   final Size? scaleTo,
-  final issue143Hack = false
+  final bool issue143Hack = false
 }) async {
   print('Running test:  $description');
   for (FileSystemEntity ent in inputDir.listSync()) {
@@ -1125,6 +1125,7 @@ void main() {
           dos.close();
           return ScalableImage.fromSIBytes(cs.toList(), compact: false);
         },
+        issue143Hack: true
       );
     },
     timeout: const Timeout(Duration(minutes: rewriteAllFailedTests ? 30 : 5)),
