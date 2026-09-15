@@ -197,7 +197,10 @@ Future<void> _testReference(
           ent.path == 'demo/assets/svg/swiss-xvii.svg' ||
           ent.path == 'demo/assets/avd/anglo.xml' ||
           ent.path == 'demo/assets/avd/anglo_bitmap.xml' ||
-          ent.path == 'demo/assets/avd/swiss-xvii.xml') {
+          ent.path == 'demo/assets/avd/swiss-xvii.xml' ||
+          ent.path == 'demo/assets/si/anglo.si' ||
+          ent.path == 'demo/assets/si/anglo_bitmap.si' ||
+          ent.path == 'demo/assets/si/swiss-xvii.si') {
         continue;
       }
     }
