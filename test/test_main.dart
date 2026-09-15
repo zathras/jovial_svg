@@ -1058,6 +1058,7 @@ void main() {
               result = result.withNewViewport(result.viewport, prune: true);
               return result;
             },
+            issue143Hack: true
           );
           await _testReference(
             'AVD => .si',
