@@ -17,6 +17,10 @@ linter:
 
 
 analyzer:
+    exclude:
+        - build/**
+        - macos/**
+        - linux/**
     language:
         strict-casts: true
         strict-inference: true
