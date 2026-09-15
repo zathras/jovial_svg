@@ -139,7 +139,7 @@ class SvgDOMManager {
   final SvgDOM dom;
 
   ScalableImageDag? _lastDag;
-  Map<Object?, Path>? _lastPaths;
+  Map<SkiaBugPathKey, Path>? _lastPaths;
   bool _lastCall = false;
 
   ///
@@ -242,7 +242,7 @@ class SvgDOMManager {
     final b = SIDagBuilder(warn: warnArg, currentColor: currentColor);
     if (_lastDag != null) {
       final lastPaths = _lastPaths!;
-      SvgDOMNotExported.visitPaths(dom, (Object pathKey) {
+      SvgDOMNotExported.visitPaths(dom, (SkiaBugPathKey pathKey) {
         final Path? p = lastPaths[pathKey];
         if (p != null) {
           b.paths[pathKey] = p;

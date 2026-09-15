@@ -240,7 +240,8 @@ class SvgDOM {
     return r;
   }
 
-  void _visitPaths(void Function(Object pathKey) f) => root._visitPaths(f);
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f) =>
+      root._visitPaths(f, SIFillType.nonZero);
 
   void _cloneAttributes() => root._cloneAttributes();
 
@@ -593,7 +594,7 @@ sealed class SvgNode {
   ///
   SvgNode _clone();
 
-  void _visitPaths(void Function(Object pathKey) f) {}
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {}
 
   @mustCallSuper
   void _addIDs(Map<String, SvgNode> idLookup) {
@@ -846,7 +847,7 @@ abstract class SvgInheritableAttributesNode extends SvgInheritableAttributes
   String? get _idForApplyStyle => id;
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) {}
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {}
 
   @mustCallSuper
   @override
@@ -1212,9 +1213,10 @@ class SvgGroup extends SvgInheritableAttributesNode {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) {
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
     for (final c in children) {
-      c._visitPaths(f);
+      c._visitPaths(f, fill);
     }
   }
 
@@ -1558,7 +1560,8 @@ class _SvgMasked extends SvgNode {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => unreachable(null);
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) =>
+      unreachable(null);
 
   @override
   void _addIDs(Map<String, SvgNode> idLookup) {
@@ -1786,7 +1789,7 @@ abstract class SvgPathMaker extends SvgInheritableAttributesNode {
 ///
 /// A key to use to determine if two path maker instances will generate
 /// the same path.  As a special case, this isn't used by `SvgPath`, because
-/// the string path data is adequate in th is case.
+/// the string path data is adequate in this case.
 ///
 class _PathKey {
   final SvgPathMaker node;
@@ -1874,7 +1877,10 @@ class SvgPath extends SvgPathMaker {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => f(pathData);
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
+    f((pathData, fill));
+  }
 
   @override
   bool _pathKeyEquals(SvgPathMaker other) => unreachable(false);
@@ -1977,8 +1983,12 @@ abstract class SvgCustomPathAbstract extends SvgPathMaker {
   void addPathNode(SIBuilder<String, SIImageData> builder, SIPaint cascaded);
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => visitPaths(f);
-  void visitPaths(void Function(Object pathKey) f);
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
+    visitPathNode(f, fill);
+  }
+
+  void visitPathNode(void Function(SkiaBugPathKey pathKey) f, SIFillType fill);
 
   @override
   bool _pathKeyEquals(SvgPathMaker other) => unreachable(false);
@@ -2102,7 +2112,10 @@ class SvgRect extends SvgPathMaker {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => f(_PathKey(this));
+  void _visitPaths(void Function(SkiaBugPathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
+    f((_PathKey(this), fill));
+  }
 
   @override
   bool _pathKeyEquals(SvgPathMaker other) {
@@ -2200,7 +2213,10 @@ class SvgEllipse extends SvgPathMaker {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => f(_PathKey(this));
+  void _visitPaths(void Function(SkiaBugPathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
+    f((_PathKey(this), fill));
+  }
 
   @override
   bool _pathKeyEquals(SvgPathMaker other) {
@@ -2301,7 +2317,10 @@ class SvgPoly extends SvgPathMaker {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) => f(this);
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {
+    fill = _paint?.fillType ?? fill;
+    f((this, fill));
+  }
 
   @override
   bool _pathKeyEquals(SvgPathMaker other) {
@@ -2354,7 +2373,7 @@ class SvgGradientNode implements SvgNode {
   }
 
   @override
-  void _visitPaths(void Function(Object pathKey) f) {}
+  void _visitPaths(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {}
 
   @override
   @mustCallSuper
@@ -3578,7 +3597,7 @@ class SvgDOMNotExported {
 
   static SvgDOM clone(SvgDOM svg) => svg._clone();
 
-  static void visitPaths(SvgDOM dom, void Function(Object pathKey) f) =>
+  static void visitPaths(SvgDOM dom, void Function(SkiaBugPathKey pathKey) f) =>
       dom._visitPaths(f);
 
   static void cloneAttributes(SvgDOM svg) => svg._cloneAttributes();

@@ -711,7 +711,7 @@ class _MaskedBuilder implements _SIParentBuilder {
   SIRenderable get masked => SIMasked(_renderables, maskBounds, usesLuma);
 }
 
-abstract class SIGenericDagBuilder<PathDataT, IM>
+abstract class SIGenericDagBuilder<PathDataT extends Object, IM>
     extends SIBuilder<PathDataT, IM>
     with SITextHelper<void>
     implements _SIParentBuilder {
@@ -739,7 +739,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   @protected
   @override
   late final List<double> floatValues;
-  final paths = <Object?, Path>{};
+  final paths = <SkiaBugPathKey, Path>{};
   final Set<Object> dagger = <Object>{};
   final Color? currentColor;
 
@@ -780,7 +780,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   /// path it is given. Two renderables that share one [Path] but disagree on
   /// the fill rule would otherwise fight over it, and mutating a path that has
   /// already been drawn is what makes Flutter web free the underlying native
-  /// path twice.
+  /// path twice.  See issue #143.
   Path _getPath(PathDataT pathData, SIFillType fillType) {
     final key = (immutableKey(pathData), fillType);
     final p = paths[key];
@@ -795,6 +795,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
   @override
   EnhancedPathBuilder? startPath(SIPaint paint, Object key) {
     final pathKey = (key, paint.fillType);
+    // See issue #143, and _getPath, above.
     final p = paths[pathKey];
     if (p != null) {
       final sip = _daggerize(SIPath(p, paint));

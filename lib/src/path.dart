@@ -158,5 +158,8 @@ class SvgCustomPathImpl extends SvgCustomPathAbstract implements SvgCustomPath {
   }
 
   @override
-  void visitPaths(void Function(Object pathKey) f) => f(path);
+  void visitPathNode(void Function(SkiaBugPathKey pathKey) f, SIFillType fill) {
+    SkiaBugPathKey key = (path, fill);
+    f(key);
+  }
 }

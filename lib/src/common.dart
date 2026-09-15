@@ -753,16 +753,22 @@ class SIPath extends SIRenderable {
   final Path path;
   final SIPaint siPaint;
 
-  /// Sets the fill type once, while [path] is still freshly built.
+  /// Create a new SIPath.  This constructor potentially mutates the provided
+  /// [path] by setting the fill type, so callers must ensure that the [path]
+  /// isn't re-used in a different SIPath instance with a different fill type.
+  ///
+  /// The fill type is set here, so that it doesn't need to be set in
+  /// the paint method.  This works around a bug in the WASM Skia renderer
+  /// that was present as of Sept. 2026.
   ///
   /// Assigning `Path.fillType` after the path has been drawn or measured is
-  /// unsafe on Flutter web: `EnginePath.fillType=` always invalidates the
-  /// cached native path, and `SkwasmPath.build()` returns `this`, so the
-  /// invalidation frees the very object the builder still refers to. The
-  /// engine then frees it a second time when the frame service collects it,
-  /// which traps with "memory access out of bounds". Path builders hand the
-  /// path over before anything can draw or measure it, so this is the last
-  /// safe moment to choose a fill type.
+  /// unsafe on Flutter web due to this bug: `EnginePath.fillType=` always
+  /// invalidates the cached native path, and `SkwasmPath.build()` returns
+  /// `this`, so the invalidation frees the very object the builder still
+  /// refers to. The engine then frees it a second time when the frame service
+  /// collects it, which traps with "memory access out of bounds". Path
+  /// builders hand the path over before anything can draw or measure it, so
+  /// this is the last safe moment to choose a fill type.
   SIPath(this.path, this.siPaint) {
     final fillType = siPaint.fillType.asPathFillType;
     if (path.fillType != fillType) {

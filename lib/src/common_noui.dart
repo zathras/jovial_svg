@@ -1191,6 +1191,15 @@ enum SIStrokeCap { butt, round, square }
 enum SIFillType { evenOdd, nonZero }
 
 ///
+/// A key used for canonicalizing Flutter Path objects.  See issue #143.
+/// The original path key was an Object, because its type differs (it's the
+/// PathDataT parameter of various classes).  With the bug workaround
+/// described in #143, a fill type needs to be added to the key, because
+/// SIPath sets the fillType of the Path object in the SIPath constructor
+/// now.
+typedef SkiaBugPathKey = (Object, SIFillType);
+
+///
 /// Possible tint mode values for an asset.  This is a top-level
 /// property for an asset that is not present in an SVG; it comes
 /// from Android Vector Drawables.  It determines the `dart:ui`
