@@ -121,7 +121,16 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
         if (ent.path != 'demo/assets/svg/anglo.svg' &&
             ent.path != 'demo/assets/svg/anglo_bitmap.svg' &&
             ent.path != 'demo/assets/svg/swiss-xvii.svg') {
-          // @@ explain this
+          //
+          // With the optimization made for issue #143, there are
+          // rendering differences that I can't ssee visually, but
+          // that do cause the binary PNG format to be different.
+          // I reproduced this with a minimal test image (a rect
+          // that's shown by itself, and again offset by a surrounding
+          // group), and I convinced myself that the calls to the renderer
+          // are the same, except that the (identical) path is being
+          // reused  in one case, and not the other.  ¯\_(ツ)_/¯
+          //
           expect(siB, svgcB);
         }
       } catch (failure) {
