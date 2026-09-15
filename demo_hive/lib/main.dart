@@ -104,9 +104,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CacheDemo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: HomePage(svgs),
     );
   }
@@ -138,25 +136,32 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Persistent Cache'), actions: [
-        ElevatedButton(
+      appBar: AppBar(
+        title: const Text('Persistent Cache'),
+        actions: [
+          ElevatedButton(
             onPressed: _clearStorage,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-            child: const Text('Clear Storage'))
-      ]),
+            child: const Text('Clear Storage'),
+          ),
+        ],
+      ),
       body: GridView.builder(
-          itemCount: widget.svgs.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5),
-          itemBuilder: (context, index) {
-            return GridTile(
-              child: ScalableImageWidget.fromSISource(
-                  cache: _memoryCache,
-                  si: persistentCache.get(widget.svgs[index]),
-                  onLoading: _onLoading,
-                  onError: _onError),
-            );
-          }),
+        itemCount: widget.svgs.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+        ),
+        itemBuilder: (context, index) {
+          return GridTile(
+            child: ScalableImageWidget.fromSISource(
+              cache: _memoryCache,
+              si: persistentCache.get(widget.svgs[index]),
+              onLoading: _onLoading,
+              onError: _onError,
+            ),
+          );
+        },
+      ),
     );
   }
 

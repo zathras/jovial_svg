@@ -50,11 +50,12 @@ class _CompareImagesState extends State<CompareImages> {
         while (newImages == null) {
           if (context.mounted) {
             final s = await FilesystemPicker.open(
-                context: context,
-                rootDirectory: Directory('../..'),
-                directory: Directory('../../tmp'),
-                title: 'New images directory',
-                fsType: FilesystemType.folder);
+              context: context,
+              rootDirectory: Directory('../..'),
+              directory: Directory('../../tmp'),
+              title: 'New images directory',
+              fsType: FilesystemType.folder,
+            );
             if (s != null) {
               newImages = Directory(path.normalize(path.relative(s)));
             }
@@ -63,11 +64,12 @@ class _CompareImagesState extends State<CompareImages> {
         while (oldImages == null) {
           if (context.mounted) {
             final s = await FilesystemPicker.open(
-                context: context,
-                rootDirectory: Directory('../..'),
-                directory: Directory('../../test/reference_images'),
-                title: 'Old images directory',
-                fsType: FilesystemType.folder);
+              context: context,
+              rootDirectory: Directory('../..'),
+              directory: Directory('../../test/reference_images'),
+              title: 'Old images directory',
+              fsType: FilesystemType.folder,
+            );
             if (s != null) {
               oldImages = Directory(path.normalize(path.relative(s)));
             }
@@ -84,33 +86,41 @@ class _CompareImagesState extends State<CompareImages> {
     }
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(files == null
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(
+          files == null
               ? ''
-              : '${pos + 1} / ${files!.length} : ${files![pos].path}'),
-          actions: [
-            IconButton(
-              onPressed: (files == null) ? null : _last,
-              tooltip: 'Last',
-              icon: const Icon(Icons.arrow_back),
-              iconSize: 36,
-            ),
-            const SizedBox(width: 20),
-            IconButton(
-              onPressed: (files == null) ? null : _next,
-              tooltip: 'Next',
-              icon: const Icon(Icons.arrow_forward),
-              iconSize: 36,
-            ),
-          ]),
+              : '${pos + 1} / ${files!.length} : ${files![pos].path}',
+        ),
+        actions: [
+          IconButton(
+            onPressed: (files == null) ? null : _last,
+            tooltip: 'Last',
+            icon: const Icon(Icons.arrow_back),
+            iconSize: 36,
+          ),
+          const SizedBox(width: 20),
+          IconButton(
+            onPressed: (files == null) ? null : _next,
+            tooltip: 'Next',
+            icon: const Icon(Icons.arrow_forward),
+            iconSize: 36,
+          ),
+        ],
+      ),
       body: files == null
           ? Container()
-          : Stack(children: [
-              Image.file(files![(pos + 1) % files!.length],
-                  scale: .1, fit: BoxFit.contain), // Preload
-              Container(color: Colors.white),
-              Image.file(files![pos], scale: .1, fit: BoxFit.contain),
-            ]),
+          : Stack(
+              children: [
+                Image.file(
+                  files![(pos + 1) % files!.length],
+                  scale: .1,
+                  fit: BoxFit.contain,
+                ), // Preload
+                Container(color: Colors.white),
+                Image.file(files![pos], scale: .1, fit: BoxFit.contain),
+              ],
+            ),
     );
   }
 
