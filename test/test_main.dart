@@ -186,9 +186,18 @@ Future<void> _testReference(
   Future<ScalableImage> Function(File f) producer, {
   Directory? overrideReferenceDir,
   final Size? scaleTo,
+  final issue143Hack = false
 }) async {
   print('Running test:  $description');
   for (FileSystemEntity ent in inputDir.listSync()) {
+    if (issue143Hack) {
+      // See issue #143 elsewhere in test_main
+      if (ent.path == 'demo/assets/svg/anglo.svg' ||
+          ent.path == 'demo/assets/svg/anglo_bitmap.svg' ||
+          ent.path == 'demo/assets/svg/swiss-xvii.svg') {
+        continue;
+      }
+    }
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README' && !noExt.startsWith('.')) {
@@ -997,21 +1006,17 @@ void main() {
           getDir(inputDir, 'svg')!,
           getDir(outputDir, 'svg_si_same'),
         );
-        if (ent.path != 'demo/assets/svg/anglo.svg' &&
-            ent.path != 'demo/assets/svg/anglo_bitmap.svg' &&
-            ent.path != 'demo/assets/svg/swiss-xvii.svg') {
-          // See issue #143 elsewhere in test_main
-          await _testReference(
-            'SVG source',
-            getDir(inputDir, 'svg')!,
-            getDir(referenceDir, 'svg')!,
-            getDir(outputDir, 'svg'),
-            (File f) async => ScalableImage.fromSvgString(
-              await f.readAsString(),
-              warnF: _noWarn,
-            ),
-          );
-        }
+        await _testReference(
+          'SVG source',
+          getDir(inputDir, 'svg')!,
+          getDir(referenceDir, 'svg')!,
+          getDir(outputDir, 'svg'),
+          (File f) async => ScalableImage.fromSvgString(
+            await f.readAsString(),
+            warnF: _noWarn,
+          ),
+          issue143Hack: true
+        );
         await _testReference(
           'SVG source, compact',
           getDir(inputDir, 'svg')!,

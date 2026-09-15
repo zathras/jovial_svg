@@ -24,6 +24,13 @@ linter:
       # statements to show what's going on internally is appropriate.
 
 analyzer:
+    exclude:
+        - build/**
+        - android/**
+        - ios/**
+        - web/**
+        - windows/**
+        - macos/**
     language:
         strict-casts: true
         strict-inference: true
