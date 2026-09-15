@@ -761,17 +761,28 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   void path(void collector, PathDataT pathData, SIPaint paint) {
-    final p = _daggerize(SIPath(_getPath(pathData), _daggerize(paint)));
+    final p = _daggerize(
+      SIPath(_getPath(pathData, paint.fillType), _daggerize(paint)),
+    );
     addRenderable(p);
   }
 
   @override
   void clipPath(void collector, PathDataT pathData) {
-    addRenderable(_daggerize(SIClipPath(_getPath(pathData))));
+    addRenderable(
+      _daggerize(SIClipPath(_getPath(pathData, SIFillType.nonZero))),
+    );
   }
 
-  Path _getPath(PathDataT pathData) {
-    final key = immutableKey(pathData);
+  /// Returns a shared [Path] for [pathData].
+  ///
+  /// [fillType] is part of the key because [SIPath] sets the fill type on the
+  /// path it is given. Two renderables that share one [Path] but disagree on
+  /// the fill rule would otherwise fight over it, and mutating a path that has
+  /// already been drawn is what makes Flutter web free the underlying native
+  /// path twice.
+  Path _getPath(PathDataT pathData, SIFillType fillType) {
+    final key = (immutableKey(pathData), fillType);
     final p = paths[key];
     if (p != null) {
       return p;
@@ -783,7 +794,8 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
 
   @override
   EnhancedPathBuilder? startPath(SIPaint paint, Object key) {
-    final p = paths[key];
+    final pathKey = (key, paint.fillType);
+    final p = paths[pathKey];
     if (p != null) {
       final sip = _daggerize(SIPath(p, paint));
       addRenderable(sip);
@@ -791,7 +803,7 @@ abstract class SIGenericDagBuilder<PathDataT, IM>
     }
     return UIPathBuilder(
       onEnd: (pb) {
-        paths[key] = pb.path;
+        paths[pathKey] = pb.path;
         final p = _daggerize(SIPath(pb.path, paint));
         addRenderable(p);
       },
