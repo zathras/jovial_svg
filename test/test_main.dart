@@ -1028,6 +1028,7 @@ void main() {
             bigFloats: true,
             compact: true,
           ),
+          issue143Hack: true
         );
 
         // Make sure the latest .si format produces identical results
