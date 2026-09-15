@@ -955,7 +955,7 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
     FloatSink args,
     FloatSink transforms,
     this.givenViewport, {
-    required void Function(String) warn,
+    required super.warn,
     required this.currentColor,
   }) : super(
          bigFloats,
@@ -963,7 +963,6 @@ class _PruningBuilder extends SIGenericCompactBuilder<CompactChildData, SIImage>
          DataOutputSink(childrenSink, Endian.little),
          args,
          transforms,
-         warn: warn,
        );
 
   @override
@@ -1397,7 +1396,7 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
     ByteSink childrenSink,
     FloatSink args,
     FloatSink transforms, {
-    required void Function(String) warn,
+    required super.warn,
     this.currentColor,
   }) : super(
          bigFloats,
@@ -1405,7 +1404,6 @@ class SICompactBuilder extends SIGenericCompactBuilder<String, SIImageData>
          DataOutputSink(childrenSink, Endian.little),
          args,
          transforms,
-         warn: warn,
        );
 
   factory SICompactBuilder({

@@ -1738,14 +1738,13 @@ class SICompactBuilderNoUI extends SIGenericCompactBuilder<String, SIImageData>
     ByteSink childrenSink,
     FloatSink args,
     FloatSink transforms, {
-    required void Function(String) warn,
+    required super.warn,
   }) : super(
          bigFloats,
          childrenSink,
          DataOutputSink(childrenSink, Endian.little),
          args,
          transforms,
-         warn: warn,
        );
 
   factory SICompactBuilderNoUI({
