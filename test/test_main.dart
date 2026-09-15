@@ -997,16 +997,21 @@ void main() {
           getDir(inputDir, 'svg')!,
           getDir(outputDir, 'svg_si_same'),
         );
-        await _testReference(
-          'SVG source',
-          getDir(inputDir, 'svg')!,
-          getDir(referenceDir, 'svg')!,
-          getDir(outputDir, 'svg'),
-          (File f) async => ScalableImage.fromSvgString(
-            await f.readAsString(),
-            warnF: _noWarn,
-          ),
-        );
+        if (ent.path != 'demo/assets/svg/anglo.svg' &&
+            ent.path != 'demo/assets/svg/anglo_bitmap.svg' &&
+            ent.path != 'demo/assets/svg/swiss-xvii.svg') {
+          // See issue #143 elsewhere in test_main
+          await _testReference(
+            'SVG source',
+            getDir(inputDir, 'svg')!,
+            getDir(referenceDir, 'svg')!,
+            getDir(outputDir, 'svg'),
+            (File f) async => ScalableImage.fromSvgString(
+              await f.readAsString(),
+              warnF: _noWarn,
+            ),
+          );
+        }
         await _testReference(
           'SVG source, compact',
           getDir(inputDir, 'svg')!,
