@@ -547,6 +547,10 @@ abstract class _CompactVisitor<R>
       final pb = UIPathBuilder();
       CompactPathParser(pathData, pb).parse();
       path = paths[key] = pb.path;
+    } else {
+      // Need to skip past the path
+      final pb = _DummyPathBuilder();
+      CompactPathParser(pathData, pb).parse();
     }
     final p = SIPath(path, paint);
     return siPath(collector, p);
@@ -605,6 +609,41 @@ abstract class _CompactVisitor<R>
   void traversalDone() {
     assert(_context.parent == null);
   }
+}
+
+///
+/// A path builder that builds nothing
+///
+class _DummyPathBuilder extends EnhancedPathBuilder {
+  @override
+  void addOval(RectT rect) {}
+
+  @override
+  void arcToPoint(
+    PointT arcEnd, {
+    required RadiusT radius,
+    required double rotation,
+    required bool largeArc,
+    required bool clockwise,
+  }) {}
+
+  @override
+  void close() {}
+
+  @override
+  void cubicTo(PointT c1, PointT c2, PointT p, bool shorthand) {}
+
+  @override
+  void end() {}
+
+  @override
+  void lineTo(PointT p) {}
+
+  @override
+  void moveTo(PointT p) {}
+
+  @override
+  void quadraticBezierTo(PointT control, PointT p, bool shorthand) {}
 }
 
 class _PaintingVisitor extends _CompactVisitor<void>
