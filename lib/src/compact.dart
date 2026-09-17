@@ -511,6 +511,8 @@ abstract class _CompactVisitor<R>
   late final List<double> floatValues;
   @protected
   late final List<SIImage> images;
+  // New:  recycling paths @@
+  final paths = <SkiaBugPathKey, Path>{};
   _RenderContext _context;
   _RenderContext get context => _context;
 
@@ -536,9 +538,17 @@ abstract class _CompactVisitor<R>
 
   @override
   R path(R collector, CompactChildData pathData, SIPaint paint) {
-    final pb = UIPathBuilder();
-    CompactPathParser(pathData, pb).parse();
-    final p = SIPath(pb.path, paint);
+    final SkiaBugPathKey key = (
+      CompactChildData.copy(pathData),
+      paint.fillType,
+    );
+    Path? path = paths[key];
+    if (path == null) {
+      final pb = UIPathBuilder();
+      CompactPathParser(pathData, pb).parse();
+      path = paths[key] = pb.path;
+    }
+    final p = SIPath(path, paint);
     return siPath(collector, p);
   }
 

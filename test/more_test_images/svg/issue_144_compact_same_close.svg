@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="900" height="350" id="svg2">
+  <g id="club_1">
+    <rect width="201.08269" height="313.5827" rx="8.6760731" ry="8.6760731" x="0.70866394" y="0.70863581" style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round" id="rect9340"/>
+  </g>
+
+
+  <g id="club_king">
+    <use transform="translate(330,0)" id="use9477" x="0" y="0" width="900" height="350" xlink:href="#rect9340"/>
+  </g>
+</svg>

@@ -48,6 +48,8 @@ import 'test_widget.dart';
 
 void _noWarn(String s) {}
 
+final bool HACK = false; // @@@@
+
 const rewriteAllFailedTests =
     String.fromEnvironment('jovial_svg_rewriteAllFailedTests') == 'true';
 // DANGEROUS - for every failed test, rewrite the reference file.  When flutter
@@ -118,7 +120,8 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
       }
       try {
         _checkDrawingSame(fromSvg, fromSvgC, '$ent differs');
-        if (ent.path != 'demo/assets/svg/anglo.svg' &&
+        if (!HACK &&
+            ent.path != 'demo/assets/svg/anglo.svg' &&
             ent.path != 'demo/assets/svg/anglo_bitmap.svg' &&
             ent.path != 'demo/assets/svg/swiss-xvii.svg') {
           //
@@ -190,7 +193,7 @@ Future<void> _testReference(
 }) async {
   print('Running test:  $description');
   for (FileSystemEntity ent in inputDir.listSync()) {
-    if (issue143Hack) {
+    if (HACK && issue143Hack) {
       // See issue #143 elsewhere in test_main
       if (ent.path == 'demo/assets/svg/anglo.svg' ||
           ent.path == 'demo/assets/svg/anglo_bitmap.svg' ||
@@ -606,6 +609,42 @@ void _cacheTest() {
   }
 }
 
+Future<void> _issue143() async {
+  for (final name in ['close', 'far']) {
+    // Prior to the fix for issue 144, the file "close" rendered the same,
+    // whereas the file "far" did not.  The only difference is the x offset
+    // of the group.
+    final f = File(
+      'test/more_test_images/svg/issue_144_compact_same_$name.svg',
+    );
+    final str = await f.readAsString();
+    final fromSvg = ScalableImage.fromSvgString(str, warnF: _noWarn);
+    final fromSvgC = ScalableImage.fromSvgString(
+      str,
+      warnF: _noWarn,
+      compact: true,
+      bigFloats: true,
+    );
+    final b = SICompactBuilderNoUI(bigFloats: true, warn: _noWarn);
+    StringSvgParser(str, const [], b, warn: _noWarn).parse();
+    final cs = ByteSink();
+    final dos = DataOutputSink(cs);
+    b.si.writeToFile(dos);
+    dos.close();
+    final fromSi = ScalableImage.fromSIBytes(cs.toList(), compact: false);
+    final svgB = await renderToBytes(fromSvg, format: ImageByteFormat.png);
+    final svgcB = await renderToBytes(fromSvgC, format: ImageByteFormat.png);
+    final siB = await renderToBytes(fromSi, format: ImageByteFormat.png);
+    try {
+      expect(svgB, svgcB);
+      expect(siB, svgcB);
+    } catch (t) {
+      print('Failed on $f');
+      rethrow;
+    }
+  }
+}
+
 Future<void> _exportedRectangles() async {
   const hasText = {'text'};
   for (final compact in [true, false]) {
@@ -958,6 +997,7 @@ void main() {
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('Issue 144 - svg/compact renders same', _issue143);
   test(
     'Exported renders same',
     _exportedRendersSame,
