@@ -1,5 +1,6 @@
 ## [1.1.31] - September 2026
 - Optimize Path usage to work around WASM/Skia bug (Issue 143)
+- Share Path objects when rendering compact format (Issue 144)
 
 ## [1.1.30] - May 2026
 - Update dependencies (for xml 7.0, Issue 141)

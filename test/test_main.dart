@@ -48,8 +48,6 @@ import 'test_widget.dart';
 
 void _noWarn(String s) {}
 
-final bool HACK = false; // @@@@
-
 const rewriteAllFailedTests =
     String.fromEnvironment('jovial_svg_rewriteAllFailedTests') == 'true';
 // DANGEROUS - for every failed test, rewrite the reference file.  When flutter
@@ -120,22 +118,7 @@ Future<void> _testSvgSiSame(Directory svgDir, Directory? outputDir) async {
       }
       try {
         _checkDrawingSame(fromSvg, fromSvgC, '$ent differs');
-        if (!HACK &&
-            ent.path != 'demo/assets/svg/anglo.svg' &&
-            ent.path != 'demo/assets/svg/anglo_bitmap.svg' &&
-            ent.path != 'demo/assets/svg/swiss-xvii.svg') {
-          //
-          // With the optimization made for issue #143, there are
-          // rendering differences that I can't ssee visually, but
-          // that do cause the binary PNG format to be different.
-          // I reproduced this with a minimal test image (a rect
-          // that's shown by itself, and again offset by a surrounding
-          // group), and I convinced myself that the calls to the renderer
-          // are the same, except that the (identical) path is being
-          // reused  in one case, and not the other.  ¯\_(ツ)_/¯
-          //
-          expect(siB, svgcB);
-        }
+        expect(siB, svgcB);
       } catch (failure) {
         print('Failed on file ${ent.path}');
         fail(svgB, svgcB, true);
@@ -189,24 +172,9 @@ Future<void> _testReference(
   Future<ScalableImage> Function(File f) producer, {
   Directory? overrideReferenceDir,
   final Size? scaleTo,
-  final bool issue143Hack = false,
 }) async {
   print('Running test:  $description');
   for (FileSystemEntity ent in inputDir.listSync()) {
-    if (HACK && issue143Hack) {
-      // See issue #143 elsewhere in test_main
-      if (ent.path == 'demo/assets/svg/anglo.svg' ||
-          ent.path == 'demo/assets/svg/anglo_bitmap.svg' ||
-          ent.path == 'demo/assets/svg/swiss-xvii.svg' ||
-          ent.path == 'demo/assets/avd/anglo.xml' ||
-          ent.path == 'demo/assets/avd/anglo_bitmap.xml' ||
-          ent.path == 'demo/assets/avd/swiss-xvii.xml' ||
-          ent.path == 'demo/assets/si/anglo.si' ||
-          ent.path == 'demo/assets/si/anglo_bitmap.si' ||
-          ent.path == 'demo/assets/si/swiss-xvii.si') {
-        continue;
-      }
-    }
     final name = ent.uri.pathSegments.last;
     final noExt = name.substring(0, name.lastIndexOf('.'));
     if (ent is File && noExt != 'README' && !noExt.startsWith('.')) {
@@ -609,7 +577,7 @@ void _cacheTest() {
   }
 }
 
-Future<void> _issue143() async {
+Future<void> _issue144() async {
   for (final name in ['close', 'far']) {
     // Prior to the fix for issue 144, the file "close" rendered the same,
     // whereas the file "far" did not.  The only difference is the x offset
@@ -997,7 +965,7 @@ void main() {
   const dirName = String.fromEnvironment('jovial_svg.output');
   final outputDir = (dirName == '') ? null : Directory(dirName);
   TestWidgetsFlutterBinding.ensureInitialized();
-  test('Issue 144 - svg/compact renders same', _issue143);
+  test('Issue 144 - svg/compact renders same', _issue144);
   test(
     'Exported renders same',
     _exportedRendersSame,
@@ -1057,7 +1025,6 @@ void main() {
         getDir(outputDir, 'svg'),
         (File f) async =>
             ScalableImage.fromSvgString(await f.readAsString(), warnF: _noWarn),
-        issue143Hack: true,
       );
       await _testReference(
         'SVG source, compact',
@@ -1070,7 +1037,6 @@ void main() {
           bigFloats: true,
           compact: true,
         ),
-        issue143Hack: true,
       );
 
       // Make sure the latest .si format produces identical results
@@ -1100,7 +1066,6 @@ void main() {
             result = result.withNewViewport(result.viewport, prune: true);
             return result;
           },
-          issue143Hack: true,
         );
         await _testReference(
           'AVD => .si #1',
@@ -1122,7 +1087,6 @@ void main() {
             result = result.withNewViewport(result.viewport, prune: true);
             return result;
           },
-          issue143Hack: true,
         );
       }
 
@@ -1132,7 +1096,6 @@ void main() {
         getDir(referenceDir, 'si')!,
         getDir(outputDir, 'si'),
         (File f) async => ScalableImage.fromSIBytes(await f.readAsBytes()),
-        issue143Hack: true,
       );
       await _testReference(
         'SI source, compact',
@@ -1141,7 +1104,6 @@ void main() {
         getDir(outputDir, 'si'),
         (File f) async =>
             ScalableImage.fromSIBytes(await f.readAsBytes(), compact: true),
-        issue143Hack: true,
       );
 
       await _testReference(
@@ -1167,7 +1129,6 @@ void main() {
         dos.close();
         return ScalableImage.fromSIBytes(cs.toList(), compact: false);
       },
-      issue143Hack: true,
     );
   }, timeout: const Timeout(Duration(minutes: rewriteAllFailedTests ? 30 : 5)));
 

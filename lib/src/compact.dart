@@ -511,7 +511,7 @@ abstract class _CompactVisitor<R>
   late final List<double> floatValues;
   @protected
   late final List<SIImage> images;
-  // New:  recycling paths @@
+  // The [Path] object we've used so far, so we can re-use them.  Cf. #144
   final paths = <SkiaBugPathKey, Path>{};
   _RenderContext _context;
   _RenderContext get context => _context;
